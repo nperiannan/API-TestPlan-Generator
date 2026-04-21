@@ -80,7 +80,7 @@ func (g *Generator) generateFunctionalTests(feature *model.Feature, paths []*mod
 	}
 
 	// Partial update test (only update specific fields)
-	if updatePath != nil && readPath != nil {
+	if createPath != nil && updatePath != nil && readPath != nil {
 		tests = append(tests, g.generatePartialUpdateTest(feature, createPath, updatePath, readPath))
 	}
 

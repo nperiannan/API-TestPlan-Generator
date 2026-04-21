@@ -1,17 +1,17 @@
 version: "1.0"
-generatedAt: "2026-04-21T17:31:14+05:30"
+generatedAt: "2026-04-21T20:00:26+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
 features:
     - featureName: service-profile-blueprint
-      featurePath: /configuration-profile/{name}/target
+      featurePath: /configuration-profile/{name}/sites/deploy
       profileType: configuration
       description: ""
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_1428
+            - testCaseID: TCXM_3888
               featureName: service-profile-blueprint
               priority: P0
               type: functional
@@ -22,7 +22,7 @@ features:
                   description: Create service-profile-blueprint
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     name: TestResource
                   expectedStatus: 201
@@ -30,6 +30,17 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Verify response contains created object ID
+                    - type: jsonPathEquals
+                      path: $[0].status
+                      expected: success
+                      description: Verify operation status is 'success'
+                    - type: jsonPathEquals
+                      path: $[0].operation
+                      expected: create
+                      description: Verify operation type is 'create'
                 - name: verifyCreation
                   description: Verify resource was created
                   method: GET
@@ -55,7 +66,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='features')].value
                       expected: testValue
                       description: Verify 'features' value is 'testValue' as set during create
-            - testCaseID: TCXM_1429
+            - testCaseID: TCXM_3889
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -66,7 +77,7 @@ features:
                   description: Create service-profile-blueprint before updating
                   method: POST
                   api: REST
-                  path: /service-profile/{name}
+                  path: /configuration-profile/{name}/feature/object/modify
                   body:
                     name: TestResource
                   expectedStatus: 201
@@ -75,9 +86,9 @@ features:
                       expected: 201
                 - name: updateResource
                   description: Update service-profile-blueprint
-                  method: PATCH
+                  method: POST
                   api: REST
-                  path: /service-profile/{name}
+                  path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
                     name: TestResource
                   body:
@@ -97,7 +108,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1430
+            - testCaseID: TCXM_3890
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -137,7 +148,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_1431
+            - testCaseID: TCXM_3891
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -148,7 +159,7 @@ features:
                   description: Create service-profile-blueprint
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     name: TestResource
                   expectedStatus: 201
@@ -166,9 +177,9 @@ features:
                       expected: 200
                 - name: updateResource
                   description: Update service-profile-blueprint
-                  method: PATCH
+                  method: POST
                   api: REST
-                  path: /service-profile/{name}
+                  path: /configuration-profile/{name}/feature/object/modify
                   body:
                     name: TestResource
                   expectedStatus: 200
@@ -193,7 +204,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1432
+            - testCaseID: TCXM_3892
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -204,7 +215,7 @@ features:
                   description: Create service-profile-blueprint for partial update
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     name: TestResource
                   expectedStatus: 201
@@ -213,9 +224,9 @@ features:
                       expected: 201
                 - name: partialUpdate
                   description: Partially update service-profile-blueprint (only specific fields)
-                  method: PATCH
+                  method: POST
                   api: REST
-                  path: /service-profile/{name}
+                  path: /configuration-profile/{name}/feature/object/modify
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -230,7 +241,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1433
+            - testCaseID: TCXM_3893
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -241,7 +252,7 @@ features:
                   description: Create service-profile-blueprint (first attempt)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     name: TestResource
                   expectedStatus: 201
@@ -252,14 +263,14 @@ features:
                   description: Create same service-profile-blueprint again (idempotent check)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     name: TestResource
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1434
+            - testCaseID: TCXM_3894
               featureName: service-profile-blueprint
               priority: P0
               type: functional
@@ -273,7 +284,7 @@ features:
                   description: Create service-profile-blueprint configuration
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     name: TestProfile
                   expectedStatus: 201
@@ -347,7 +358,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1435
+            - testCaseID: TCXM_3895
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -360,14 +371,14 @@ features:
                   description: Create service-profile-blueprint configuration
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     name: TestProfile-Simple
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1436
+            - testCaseID: TCXM_3896
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -378,7 +389,7 @@ features:
                   description: Create service-profile-blueprint providing only required YANG fields
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body: {}
                   expectedStatus: 201
                   validations:
@@ -399,7 +410,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_1437
+            - testCaseID: TCXM_3897
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -410,7 +421,7 @@ features:
                   description: Create service-profile-blueprint providing all YANG-defined fields including optional
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     features: testValue
                   expectedStatus: 201
@@ -439,7 +450,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='features')].value
                       expected: testValue
                       description: Verify field 'features' has value 'testValue' as sent on create
-            - testCaseID: TCXM_1438
+            - testCaseID: TCXM_3898
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -450,7 +461,7 @@ features:
                   description: Create service-profile-blueprint with optional field 'features'=testValue explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     features: testValue
                   expectedStatus: 201
@@ -476,7 +487,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='features')].value
                       expected: testValue
                       description: Verify optional field 'features' value is 'testValue' as set on create
-            - testCaseID: TCXM_1439
+            - testCaseID: TCXM_3899
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -487,7 +498,7 @@ features:
                   description: 'Create service-profile-blueprint with YANG type ''container'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     features: testValue
                     name: TestResource
@@ -511,7 +522,7 @@ features:
                       path: $.features
                       expected: testValue
                       description: Verify 'features' YANG type 'container' value is persisted
-            - testCaseID: TCXM_1440
+            - testCaseID: TCXM_3900
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -522,7 +533,7 @@ features:
                   description: 'Create service-profile-blueprint with YANG type ''container'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     features: testValue
                     name: TestResource
@@ -546,7 +557,7 @@ features:
                       path: $.features
                       expected: testValue
                       description: Verify 'features' YANG type 'container' value is persisted
-            - testCaseID: TCXM_1441
+            - testCaseID: TCXM_3901
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -557,7 +568,7 @@ features:
                   description: 'Create service-profile-blueprint with YANG type ''boolean'' value: true'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     enabled: true
                     name: TestResource
@@ -581,7 +592,7 @@ features:
                       path: $.enabled
                       expected: true
                       description: Verify 'enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_1442
+            - testCaseID: TCXM_3902
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -592,7 +603,7 @@ features:
                   description: 'Create service-profile-blueprint with YANG type ''boolean'' value: false'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     enabled: false
                     name: TestResource
@@ -616,7 +627,7 @@ features:
                       path: $.enabled
                       expected: false
                       description: Verify 'enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_1443
+            - testCaseID: TCXM_3903
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -627,7 +638,7 @@ features:
                   description: 'Create service-profile-blueprint with YANG type ''string'' value: test-value-1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     name: TestResource
                     yang-module: test-value-1
@@ -651,7 +662,7 @@ features:
                       path: $.yang-module
                       expected: test-value-1
                       description: Verify 'yang-module' YANG type 'string' value is persisted
-            - testCaseID: TCXM_1444
+            - testCaseID: TCXM_3904
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -662,7 +673,7 @@ features:
                   description: 'Create service-profile-blueprint with YANG type ''string'' value: test-value-2'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     name: TestResource
                     yang-module: test-value-2
@@ -686,7 +697,7 @@ features:
                       path: $.yang-module
                       expected: test-value-2
                       description: Verify 'yang-module' YANG type 'string' value is persisted
-            - testCaseID: TCXM_1445
+            - testCaseID: TCXM_3905
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -738,7 +749,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1446
+            - testCaseID: TCXM_3906
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -790,7 +801,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1447
+            - testCaseID: TCXM_3907
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -842,7 +853,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1448
+            - testCaseID: TCXM_3908
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -894,7 +905,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1449
+            - testCaseID: TCXM_3909
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -946,7 +957,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1450
+            - testCaseID: TCXM_3910
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -998,7 +1009,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1451
+            - testCaseID: TCXM_3911
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1051,7 +1062,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1452
+            - testCaseID: TCXM_3912
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1104,7 +1115,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1453
+            - testCaseID: TCXM_3913
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1157,7 +1168,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1454
+            - testCaseID: TCXM_3914
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1210,7 +1221,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1455
+            - testCaseID: TCXM_3915
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1263,7 +1274,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1456
+            - testCaseID: TCXM_3916
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1316,7 +1327,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1457
+            - testCaseID: TCXM_3917
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1370,7 +1381,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1458
+            - testCaseID: TCXM_3918
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1424,7 +1435,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1459
+            - testCaseID: TCXM_3919
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1478,7 +1489,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1460
+            - testCaseID: TCXM_3920
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1532,7 +1543,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1461
+            - testCaseID: TCXM_3921
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1586,7 +1597,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1462
+            - testCaseID: TCXM_3922
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1640,7 +1651,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1463
+            - testCaseID: TCXM_3923
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1694,7 +1705,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1464
+            - testCaseID: TCXM_3924
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1748,7 +1759,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1465
+            - testCaseID: TCXM_3925
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1802,7 +1813,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1466
+            - testCaseID: TCXM_3926
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1856,7 +1867,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1467
+            - testCaseID: TCXM_3927
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1909,7 +1920,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1468
+            - testCaseID: TCXM_3928
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -1962,7 +1973,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1469
+            - testCaseID: TCXM_3929
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -2015,7 +2026,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1470
+            - testCaseID: TCXM_3930
               featureName: service-profile-blueprint
               priority: P0
               type: functional
@@ -2031,7 +2042,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/edit
+                    featurePath: /configuration-profile/{name}/target-query/object/{objectId}
                     name: TestProfile-Additional
                     objectType: service-profile-blueprint
                     objects:
@@ -2048,14 +2059,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-21T13:01:14Z
+                  description: Schedule deployment to device at 2026-04-21T15:30:26Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T13:01:14Z"
+                    deployAt: "2026-04-21T15:30:26Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -2063,7 +2074,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_1471
+            - testCaseID: TCXM_3931
               featureName: service-profile-blueprint
               priority: P0
               type: functional
@@ -2079,7 +2090,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/edit
+                    featurePath: /configuration-profile/{name}/target-query/object/{objectId}
                     name: TestProfile-Additional
                     objectType: service-profile-blueprint
                     objects:
@@ -2096,14 +2107,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-21T13:01:14Z
+                  description: Schedule deployment to site at 2026-04-21T15:30:26Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T13:01:14Z"
+                    deployAt: "2026-04-21T15:30:26Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -2111,7 +2122,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_1472
+            - testCaseID: TCXM_3932
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -2124,7 +2135,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/edit
+                    featurePath: /configuration-profile/{name}/target-query/object/{objectId}
                     name: TestProfile-Additional
                     objectType: service-profile-blueprint
                     objects:
@@ -2148,7 +2159,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T13:01:14Z"
+                    deployAt: "2026-04-21T15:30:26Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -2157,14 +2168,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-21T14:01:14Z
+                  description: Edit deployment schedule to 2026-04-21T16:30:26Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T14:01:14Z"
+                    deployAt: "2026-04-21T16:30:26Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -2172,7 +2183,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_1473
+            - testCaseID: TCXM_3933
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -2185,7 +2196,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/edit
+                    featurePath: /configuration-profile/{name}/target-query/object/{objectId}
                     name: TestProfile-Additional
                     objectType: service-profile-blueprint
                     objects:
@@ -2209,7 +2220,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T13:01:14Z"
+                    deployAt: "2026-04-21T15:30:26Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -2231,7 +2242,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_1474
+            - testCaseID: TCXM_3934
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -2244,7 +2255,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/edit
+                    featurePath: /configuration-profile/{name}/target-query/object/{objectId}
                     name: TestProfile-Additional
                     objectType: service-profile-blueprint
                     objects:
@@ -2273,7 +2284,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_1475
+            - testCaseID: TCXM_3935
               featureName: service-profile-blueprint
               priority: P1
               type: functional
@@ -2286,7 +2297,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/edit
+                    featurePath: /configuration-profile/{name}/target-query/object/{objectId}
                     name: TestProfile-Additional
                     objectType: service-profile-blueprint
                     objects:
@@ -2310,7 +2321,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /configuration-profile/{name}/edit
+                    featurePath: /configuration-profile/{name}/target-query/object/{objectId}
                     newId: cloned-object-1
                     objectType: service-profile-blueprint
                     sourceId: original-object-1
@@ -2318,7 +2329,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_1476
+            - testCaseID: TCXM_3936
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2329,7 +2340,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='10.0.0.1' (Private Class A address (RFC 1918 10.0.0.0/8))
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 10.0.0.1
                     name: TestResource-IP-PrivateClassA
@@ -2337,7 +2348,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1477
+            - testCaseID: TCXM_3937
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2348,7 +2359,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='10.255.255.1' (Private Class A – high end of range)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 10.255.255.1
                     name: TestResource-IP-PrivateClassA2
@@ -2356,7 +2367,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1478
+            - testCaseID: TCXM_3938
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2367,7 +2378,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='172.16.0.1' (Private Class B address (RFC 1918 172.16.0.0/12))
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 172.16.0.1
                     name: TestResource-IP-PrivateClassB
@@ -2375,7 +2386,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1479
+            - testCaseID: TCXM_3939
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2386,7 +2397,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='172.31.255.1' (Private Class B – high end of range)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 172.31.255.1
                     name: TestResource-IP-PrivateClassB2
@@ -2394,7 +2405,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1480
+            - testCaseID: TCXM_3940
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2405,7 +2416,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='192.168.0.1' (Private Class C address (RFC 1918 192.168.0.0/16))
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 192.168.0.1
                     name: TestResource-IP-PrivateClassC
@@ -2413,7 +2424,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1481
+            - testCaseID: TCXM_3941
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2424,7 +2435,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='192.168.255.1' (Private Class C – high end of range)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 192.168.255.1
                     name: TestResource-IP-PrivateClassC2
@@ -2432,7 +2443,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1482
+            - testCaseID: TCXM_3942
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2443,7 +2454,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='127.0.0.1' (IPv4 loopback address)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 127.0.0.1
                     name: TestResource-IP-Loopback
@@ -2451,7 +2462,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1483
+            - testCaseID: TCXM_3943
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2462,7 +2473,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='8.8.8.8' (Public Class A – Google DNS primary)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 8.8.8.8
                     name: TestResource-IP-PublicClassA
@@ -2470,7 +2481,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1484
+            - testCaseID: TCXM_3944
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2481,7 +2492,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='1.1.1.1' (Public Class A – Cloudflare DNS primary)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 1.1.1.1
                     name: TestResource-IP-PublicClassA2
@@ -2489,7 +2500,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1485
+            - testCaseID: TCXM_3945
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2500,7 +2511,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='208.67.222.222' (Public Class B – OpenDNS primary)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 208.67.222.222
                     name: TestResource-IP-PublicClassB
@@ -2508,7 +2519,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1486
+            - testCaseID: TCXM_3946
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2519,7 +2530,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='198.51.100.1' (Public Class C – TEST-NET-2 (RFC 5737))
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 198.51.100.1
                     name: TestResource-IP-PublicClassC
@@ -2527,7 +2538,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1487
+            - testCaseID: TCXM_3947
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2538,7 +2549,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='2001:4860:4860::8888' (IPv6 global unicast – Google DNS)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 2001:4860:4860::8888
                     name: TestResource-IP-IPv6GlobalUnicast
@@ -2546,7 +2557,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1488
+            - testCaseID: TCXM_3948
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2557,7 +2568,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='2606:4700:4700::1111' (IPv6 global unicast – Cloudflare DNS)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 2606:4700:4700::1111
                     name: TestResource-IP-IPv6GlobalUnicast2
@@ -2565,7 +2576,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1489
+            - testCaseID: TCXM_3949
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2576,7 +2587,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='::1' (IPv6 loopback address)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: ::1
                     name: TestResource-IP-IPv6Loopback
@@ -2584,7 +2595,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1490
+            - testCaseID: TCXM_3950
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2595,7 +2606,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='fe80::1' (IPv6 link-local address)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: fe80::1
                     name: TestResource-IP-IPv6LinkLocal
@@ -2603,7 +2614,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1491
+            - testCaseID: TCXM_3951
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2614,7 +2625,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='dns.google.com' (Fully qualified domain name)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: dns.google.com
                     name: TestResource-IP-FQDN
@@ -2622,7 +2633,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1492
+            - testCaseID: TCXM_3952
               featureName: service-profile-blueprint
               priority: P2
               type: functional
@@ -2633,7 +2644,7 @@ features:
                   description: Create service-profile-blueprint with ip-subnet-feature='ns1.example.org' (FQDN with subdomain)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: ns1.example.org
                     name: TestResource-IP-FQDNSubdomain
@@ -2642,7 +2653,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_1493
+            - testCaseID: TCXM_3953
               featureName: service-profile-blueprint
               priority: P2
               type: negative
@@ -2653,14 +2664,14 @@ features:
                   description: Create service-profile-blueprint without optional field 'features' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body: {}
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'features' is omitted
-            - testCaseID: TCXM_1494
+            - testCaseID: TCXM_3954
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2671,7 +2682,7 @@ features:
                   description: Attempt to create without operation field
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     name: TestResource
                   expectedStatus: 400
@@ -2680,7 +2691,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1495
+            - testCaseID: TCXM_3955
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2701,7 +2712,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_1496
+            - testCaseID: TCXM_3956
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2712,7 +2723,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='256.0.0.1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 256.0.0.1
                     name: TestResource-BadIP-InvalidOctet256
@@ -2720,7 +2731,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1497
+            - testCaseID: TCXM_3957
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2731,7 +2742,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='999.999.999.999'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 999.999.999.999
                     name: TestResource-BadIP-InvalidOctet999
@@ -2739,7 +2750,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1498
+            - testCaseID: TCXM_3958
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2750,7 +2761,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='-1.0.0.1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: -1.0.0.1
                     name: TestResource-BadIP-NegativeOctet
@@ -2758,7 +2769,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1499
+            - testCaseID: TCXM_3959
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2769,7 +2780,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='192.168.1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 192.168.1
                     name: TestResource-BadIP-IncompleteIPv4
@@ -2777,7 +2788,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1500
+            - testCaseID: TCXM_3960
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2788,7 +2799,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='10.0'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: "10.0"
                     name: TestResource-BadIP-OnlyTwoOctets
@@ -2796,7 +2807,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1501
+            - testCaseID: TCXM_3961
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2807,7 +2818,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='not-an-ip-address'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: not-an-ip-address
                     name: TestResource-BadIP-PlainText
@@ -2815,7 +2826,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1502
+            - testCaseID: TCXM_3962
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2826,7 +2837,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature=''
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: ""
                     name: TestResource-BadIP-EmptyString
@@ -2834,7 +2845,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1503
+            - testCaseID: TCXM_3963
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2845,7 +2856,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='   '
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: '   '
                     name: TestResource-BadIP-SpacesOnly
@@ -2853,7 +2864,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1504
+            - testCaseID: TCXM_3964
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2864,7 +2875,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='8.8.8.8:53'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 8.8.8.8:53
                     name: TestResource-BadIP-IPWithPort
@@ -2872,7 +2883,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1505
+            - testCaseID: TCXM_3965
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2883,7 +2894,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='192.168.1.0/24'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 192.168.1.0/24
                     name: TestResource-BadIP-CIDRNotation
@@ -2891,7 +2902,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1506
+            - testCaseID: TCXM_3966
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2902,7 +2913,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='192.168.1.0'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 192.168.1.0
                     name: TestResource-BadIP-NetworkAddress
@@ -2910,7 +2921,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1507
+            - testCaseID: TCXM_3967
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2921,7 +2932,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='255.255.255.255'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 255.255.255.255
                     name: TestResource-BadIP-BroadcastAddress
@@ -2929,7 +2940,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1508
+            - testCaseID: TCXM_3968
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2940,7 +2951,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='ff00::1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: ff00::1
                     name: TestResource-BadIP-IPv6Multicast
@@ -2948,7 +2959,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1509
+            - testCaseID: TCXM_3969
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2959,7 +2970,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='zzzz::1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: zzzz::1
                     name: TestResource-BadIP-IPv6Invalid
@@ -2967,7 +2978,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1510
+            - testCaseID: TCXM_3970
               featureName: service-profile-blueprint
               priority: P1
               type: negative
@@ -2978,7 +2989,7 @@ features:
                   description: Attempt to create service-profile-blueprint with invalid ip-subnet-feature='010.0.0.1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/edit
+                  path: /service-profile/{name}
                   body:
                     ip-subnet-feature: 010.0.0.1
                     name: TestResource-BadIP-LeadingZeroOctet
@@ -2987,7 +2998,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_1515
+            - testCaseID: TCXM_3975
               featureName: service-profile-blueprint
               priority: P3
               type: performance
@@ -3148,7 +3159,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_1516
+            - testCaseID: TCXM_3976
               featureName: service-profile-blueprint
               priority: P3
               type: performance
@@ -3309,7 +3320,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_1517
+            - testCaseID: TCXM_3977
               featureName: service-profile-blueprint
               priority: P2
               type: performance
@@ -3490,7 +3501,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_1518
+            - testCaseID: TCXM_3978
               featureName: service-profile-blueprint
               priority: P2
               type: performance
@@ -3740,7 +3751,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_1519
+            - testCaseID: TCXM_3979
               featureName: service-profile-blueprint
               priority: P2
               type: performance
@@ -3922,7 +3933,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_1511
+            - testCaseID: TCXM_3971
               featureName: service-profile-blueprint
               priority: P2
               type: scale
@@ -5031,7 +5042,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_1512
+            - testCaseID: TCXM_3972
               featureName: service-profile-blueprint
               priority: P2
               type: scale
@@ -6252,7 +6263,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_1513
+            - testCaseID: TCXM_3973
               featureName: service-profile-blueprint
               priority: P2
               type: scale
@@ -6393,7 +6404,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_1514
+            - testCaseID: TCXM_3974
               featureName: service-profile-blueprint
               priority: P2
               type: scale
