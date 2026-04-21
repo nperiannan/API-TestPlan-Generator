@@ -1,51 +1,121 @@
-featurePath: /configuration-profile/{name}/target
-profileType: configuration
+featurePath: /dns-server-feature
+profileType: global
 test:
-    testCaseID: TCXM_1000
-    featureName: management-profile
+    testCaseID: TCXM_1006
+    featureName: dns-server
     priority: P0
     type: functional
-    description: Create management-profile and schedule deployment to device
+    description: Create dns-server, scope to device, target to device, deploy, and verify on NOS devices
     scopeType: device
     targetType: device
-    deploymentMethod: scheduled
+    deploymentMethod: immediate
     isDeploymentTest: true
     steps:
-        - name: createmanagement-profile
-          description: Create management-profile configuration
+        - name: createdns-server
+          description: Create dns-server configuration
           method: POST
           api: REST
           path: /global-profile/feature/object/modify
           body:
-            featurePath: /configuration-profile/{name}/target-query/profile
-            name: TestProfile-Additional
-            objectType: management-profile
+            featurePath: /dns-server-feature
+            name: TestProfile
+            objectType: dns-server
             objects:
                 - operation: add
                   properties:
-                    - name: hostname
+                    - name: priority
+                      origin: Global
+                      type: number
+                      value: 1
+                    - name: server
                       origin: Global
                       type: string
-                      value: test-hostname
-                  type: management-profile
+                      value: 8.8.8.8
+                  type: dns-server
             operation: add
           expectedStatus: 201
           validations:
             - type: statusCode
-              expected: "201"
-        - name: scheduleDeploymentTodevice
-          description: Schedule deployment to device at 2026-04-21T15:40:24Z
+              expected: 201
+        - name: getProfile
+          description: Retrieve created profile
           method: POST
           api: REST
-          path: /configuration-profile/TestProfile-Additional/devices/deploy
+          path: /global-profile/feature/object/retrieve
           pathParams:
-            name: TestProfile-Additional
+            profileName: TestProfile
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+        - name: scopeProfileTodevice
+          description: Scope profile to device
+          method: POST
+          api: REST
+          path: /global-profile/TestProfile/scope
+          pathParams:
+            profileName: TestProfile
           body:
-            deployAt: "2026-04-21T15:40:24Z"
-            devices:
-                - test-device-001
-            timezone: UTC
+            scopeId: test-scope-001
+            scopeType: device
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+        - name: targetProfileTodevice
+          description: Target profile to device
+          method: POST
+          api: REST
+          path: /global-profile/TestProfile/target
+          pathParams:
+            profileName: TestProfile
+          body:
+            targetId: test-scope-001
+            targetType: device
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+        - name: deployProfileTodevice
+          description: Deploy profile to device
+          method: POST
+          api: REST
+          path: /global-profile/TestProfile/deploy
+          pathParams:
+            profileName: TestProfile
+          body:
+            deploymentMethod: immediate
           expectedStatus: 202
           validations:
             - type: statusCode
-              expected: "202"
+              expected: 202
+        - name: checkDeploymentStatus
+          description: Verify deployment status
+          method: GET
+          api: REST
+          path: /global-profile/TestProfile/deployment/status
+          pathParams:
+            profileName: TestProfile
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+            - type: jsonPathEquals
+              path: $.status
+              expected: SUCCESS
+          timeout: 300
+        - name: verifyNosConfigFordevice
+          description: Verify configuration on NOS devices in device
+          method: GET
+          api: NOSAPI
+          path: /v0/configuration/dns
+          pathParams:
+            deviceId: test-scope-001
+            siteGroupId: test-scope-001
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+            - type: nosConfigMatchesExpected
+              description: Verify NOS device configuration matches expected state
+          devicesScope: device

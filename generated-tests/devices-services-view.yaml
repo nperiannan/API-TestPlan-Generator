@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2025-12-25T00:30:07+05:30"
+generatedAt: "2026-04-21T20:37:22+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
@@ -9,9 +9,29 @@ features:
       profileType: service
       description: ""
       tests:
-        boundary: []
+        boundary:
+            - testCaseID: TCXM_2999
+              featureName: devices-services-view
+              priority: P2
+              type: boundary
+              description: Test service-name parameter with maxLength constraint
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary
+                  description: Test service-name with maxLength
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    service-name: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_2279
+            - testCaseID: TCXM_2905
               featureName: devices-services-view
               priority: P0
               type: functional
@@ -30,7 +50,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_2280
+            - testCaseID: TCXM_2906
               featureName: devices-services-view
               priority: P2
               type: functional
@@ -59,7 +79,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_2281
+            - testCaseID: TCXM_2907
               featureName: devices-services-view
               priority: P0
               type: functional
@@ -136,7 +156,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2282
+            - testCaseID: TCXM_2908
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -156,7 +176,603 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2283
+            - testCaseID: TCXM_2909
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Create devices-services-view with required fields only (verify optional fields are optional per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithRequiredFieldsOnly
+                  description: Create devices-services-view providing only required YANG fields
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body: {}
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created with required fields only
+            - testCaseID: TCXM_2910
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Create devices-services-view with all fields (required + optional) per YANG model definition
+              isDeploymentTest: false
+              steps:
+                - name: createWithAllFields
+                  description: Create devices-services-view providing all YANG-defined fields including optional
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    service-name: test-resource
+                    service-type: testValue
+                    unused-services-tag-view: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created with all fields
+            - testCaseID: TCXM_2911
+              featureName: devices-services-view
+              priority: P2
+              type: functional
+              description: 'Verify optional field ''device-id'' is accepted and persisted when provided (YANG type: ietf-yang:uuid)'
+              isDeploymentTest: false
+              steps:
+                - name: createWith_optional_device_id
+                  description: Create devices-services-view with optional field 'device-id'=testValue explicitly provided
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created when optional field 'device-id' is provided
+            - testCaseID: TCXM_2912
+              featureName: devices-services-view
+              priority: P2
+              type: functional
+              description: 'Verify optional field ''service-name'' is accepted and persisted when provided (YANG type: string)'
+              isDeploymentTest: false
+              steps:
+                - name: createWith_optional_service_name
+                  description: Create devices-services-view with optional field 'service-name'=test-resource explicitly provided
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    service-name: test-resource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created when optional field 'service-name' is provided
+            - testCaseID: TCXM_2913
+              featureName: devices-services-view
+              priority: P2
+              type: functional
+              description: 'Verify optional field ''service-type'' is accepted and persisted when provided (YANG type: inf-types:service-type-enum)'
+              isDeploymentTest: false
+              steps:
+                - name: createWith_optional_service_type
+                  description: Create devices-services-view with optional field 'service-type'=testValue explicitly provided
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    service-type: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created when optional field 'service-type' is provided
+            - testCaseID: TCXM_2914
+              featureName: devices-services-view
+              priority: P2
+              type: functional
+              description: 'Verify optional field ''unused-services-tag-view'' is accepted and persisted when provided (YANG type: list)'
+              isDeploymentTest: false
+              steps:
+                - name: createWith_optional_unused_services_tag_view
+                  description: Create devices-services-view with optional field 'unused-services-tag-view'=testValue explicitly provided
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    unused-services-tag-view: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created when optional field 'unused-services-tag-view' is provided
+            - testCaseID: TCXM_2915
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'ietf-yang:uuid' for field 'device-id' with value variation 1 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithietfyang:uuidType_v1
+                  description: 'Create devices-services-view with YANG type ''ietf-yang:uuid'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify device-id type 'ietf-yang:uuid' value is accepted
+            - testCaseID: TCXM_2916
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'ietf-yang:uuid' for field 'device-id' with value variation 2 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithietfyang:uuidType_v2
+                  description: 'Create devices-services-view with YANG type ''ietf-yang:uuid'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify device-id type 'ietf-yang:uuid' value is accepted
+            - testCaseID: TCXM_2917
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'string' for field 'service-name' with value variation 1 (test-value-1)
+              isDeploymentTest: false
+              steps:
+                - name: createWithstringType_v1
+                  description: 'Create devices-services-view with YANG type ''string'' value: test-value-1'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    service-name: test-value-1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify service-name type 'string' value is accepted
+            - testCaseID: TCXM_2918
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'string' for field 'service-name' with value variation 2 (test-value-2)
+              isDeploymentTest: false
+              steps:
+                - name: createWithstringType_v2
+                  description: 'Create devices-services-view with YANG type ''string'' value: test-value-2'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    service-name: test-value-2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify service-name type 'string' value is accepted
+            - testCaseID: TCXM_2919
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'inf-types:service-type-enum' for field 'service-type' with value variation 1 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithinftypes:servicetypeenumType_v1
+                  description: 'Create devices-services-view with YANG type ''inf-types:service-type-enum'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    service-type: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify service-type type 'inf-types:service-type-enum' value is accepted
+            - testCaseID: TCXM_2920
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'inf-types:service-type-enum' for field 'service-type' with value variation 2 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithinftypes:servicetypeenumType_v2
+                  description: 'Create devices-services-view with YANG type ''inf-types:service-type-enum'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    service-type: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify service-type type 'inf-types:service-type-enum' value is accepted
+            - testCaseID: TCXM_2921
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'list' for field 'unused-services-tag-view' with value variation 1 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithlistType_v1
+                  description: 'Create devices-services-view with YANG type ''list'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    unused-services-tag-view: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify unused-services-tag-view type 'list' value is accepted
+            - testCaseID: TCXM_2922
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'list' for field 'unused-services-tag-view' with value variation 2 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithlistType_v2
+                  description: 'Create devices-services-view with YANG type ''list'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    unused-services-tag-view: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify unused-services-tag-view type 'list' value is accepted
+            - testCaseID: TCXM_2923
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'ieee-dot1q:vlanid' for field 'vlan-number' with value variation 1 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithieeedot1q:vlanidType_v1
+                  description: 'Create devices-services-view with YANG type ''ieee-dot1q:vlanid'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    vlan-number: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vlan-number type 'ieee-dot1q:vlanid' value is accepted
+            - testCaseID: TCXM_2924
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'ieee-dot1q:vlanid' for field 'vlan-number' with value variation 2 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithieeedot1q:vlanidType_v2
+                  description: 'Create devices-services-view with YANG type ''ieee-dot1q:vlanid'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    vlan-number: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vlan-number type 'ieee-dot1q:vlanid' value is accepted
+            - testCaseID: TCXM_2925
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'int32' for field 'type' with value variation 1 (1)
+              isDeploymentTest: false
+              steps:
+                - name: createWithint32Type_v1
+                  description: 'Create devices-services-view with YANG type ''int32'' value: 1'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    type: 1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify type type 'int32' value is accepted
+            - testCaseID: TCXM_2926
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'int32' for field 'type' with value variation 2 (100)
+              isDeploymentTest: false
+              steps:
+                - name: createWithint32Type_v2
+                  description: 'Create devices-services-view with YANG type ''int32'' value: 100'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    type: 100
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify type type 'int32' value is accepted
+            - testCaseID: TCXM_2927
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'uint32' for field 'customer-id' with value variation 1 (1)
+              isDeploymentTest: false
+              steps:
+                - name: createWithuint32Type_v1
+                  description: 'Create devices-services-view with YANG type ''uint32'' value: 1'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    customer-id: 1
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify customer-id type 'uint32' value is accepted
+            - testCaseID: TCXM_2928
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'uint32' for field 'customer-id' with value variation 2 (100)
+              isDeploymentTest: false
+              steps:
+                - name: createWithuint32Type_v2
+                  description: 'Create devices-services-view with YANG type ''uint32'' value: 100'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    customer-id: 100
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify customer-id type 'uint32' value is accepted
+            - testCaseID: TCXM_2929
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'inf-types:overlay-type-enum' for field 'type' with value variation 1 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithinftypes:overlaytypeenumType_v1
+                  description: 'Create devices-services-view with YANG type ''inf-types:overlay-type-enum'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    type: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify type type 'inf-types:overlay-type-enum' value is accepted
+            - testCaseID: TCXM_2930
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'inf-types:overlay-type-enum' for field 'type' with value variation 2 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithinftypes:overlaytypeenumType_v2
+                  description: 'Create devices-services-view with YANG type ''inf-types:overlay-type-enum'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    type: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify type type 'inf-types:overlay-type-enum' value is accepted
+            - testCaseID: TCXM_2931
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'inf-types:service-sub-type-enum' for field 'sub-type' with value variation 1 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithinftypes:servicesubtypeenumType_v1
+                  description: 'Create devices-services-view with YANG type ''inf-types:service-sub-type-enum'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    sub-type: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify sub-type type 'inf-types:service-sub-type-enum' value is accepted
+            - testCaseID: TCXM_2932
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'inf-types:service-sub-type-enum' for field 'sub-type' with value variation 2 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithinftypes:servicesubtypeenumType_v2
+                  description: 'Create devices-services-view with YANG type ''inf-types:service-sub-type-enum'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    sub-type: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify sub-type type 'inf-types:service-sub-type-enum' value is accepted
+            - testCaseID: TCXM_2933
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'inf-types:service-subnet-type-enum' for field 'associated-subnets' with value variation 1 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithinftypes:servicesubnettypeenumType_v1
+                  description: 'Create devices-services-view with YANG type ''inf-types:service-subnet-type-enum'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    associated-subnets: testValue
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify associated-subnets type 'inf-types:service-subnet-type-enum' value is accepted
+            - testCaseID: TCXM_2934
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'inf-types:service-subnet-type-enum' for field 'associated-subnets' with value variation 2 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithinftypes:servicesubnettypeenumType_v2
+                  description: 'Create devices-services-view with YANG type ''inf-types:service-subnet-type-enum'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    associated-subnets: testValue
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify associated-subnets type 'inf-types:service-subnet-type-enum' value is accepted
+            - testCaseID: TCXM_2935
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'inf-types:service-feature-type-enum' for field 'enabled-features' with value variation 1 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithinftypes:servicefeaturetypeenumType_v1
+                  description: 'Create devices-services-view with YANG type ''inf-types:service-feature-type-enum'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    enabled-features: testValue
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify enabled-features type 'inf-types:service-feature-type-enum' value is accepted
+            - testCaseID: TCXM_2936
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'inf-types:service-feature-type-enum' for field 'enabled-features' with value variation 2 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithinftypes:servicefeaturetypeenumType_v2
+                  description: 'Create devices-services-view with YANG type ''inf-types:service-feature-type-enum'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    enabled-features: testValue
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify enabled-features type 'inf-types:service-feature-type-enum' value is accepted
+            - testCaseID: TCXM_2937
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'leafref' for field 'tag-id' with value variation 1 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithleafrefType_v1
+                  description: 'Create devices-services-view with YANG type ''leafref'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    tag-id: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify tag-id type 'leafref' value is accepted
+            - testCaseID: TCXM_2938
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'leafref' for field 'tag-id' with value variation 2 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithleafrefType_v2
+                  description: 'Create devices-services-view with YANG type ''leafref'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource
+                    tag-id: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify tag-id type 'leafref' value is accepted
+            - testCaseID: TCXM_2939
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -208,7 +824,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2284
+            - testCaseID: TCXM_2940
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -260,7 +876,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2285
+            - testCaseID: TCXM_2941
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -312,7 +928,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2286
+            - testCaseID: TCXM_2942
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -364,7 +980,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2287
+            - testCaseID: TCXM_2943
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -416,7 +1032,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2288
+            - testCaseID: TCXM_2944
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -468,7 +1084,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2289
+            - testCaseID: TCXM_2945
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -521,7 +1137,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2290
+            - testCaseID: TCXM_2946
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -574,7 +1190,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2291
+            - testCaseID: TCXM_2947
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -627,7 +1243,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2292
+            - testCaseID: TCXM_2948
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -680,7 +1296,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2293
+            - testCaseID: TCXM_2949
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -733,7 +1349,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2294
+            - testCaseID: TCXM_2950
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -786,7 +1402,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2295
+            - testCaseID: TCXM_2951
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -840,7 +1456,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2296
+            - testCaseID: TCXM_2952
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -894,7 +1510,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2297
+            - testCaseID: TCXM_2953
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -948,7 +1564,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2298
+            - testCaseID: TCXM_2954
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1002,7 +1618,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2299
+            - testCaseID: TCXM_2955
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1056,7 +1672,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2300
+            - testCaseID: TCXM_2956
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1110,7 +1726,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2301
+            - testCaseID: TCXM_2957
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1165,7 +1781,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2302
+            - testCaseID: TCXM_2958
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1220,7 +1836,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2303
+            - testCaseID: TCXM_2959
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1275,7 +1891,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2304
+            - testCaseID: TCXM_2960
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1330,7 +1946,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2305
+            - testCaseID: TCXM_2961
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1385,7 +2001,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2306
+            - testCaseID: TCXM_2962
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1440,7 +2056,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2307
+            - testCaseID: TCXM_2963
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1496,7 +2112,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2308
+            - testCaseID: TCXM_2964
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1552,7 +2168,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2309
+            - testCaseID: TCXM_2965
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1608,7 +2224,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2310
+            - testCaseID: TCXM_2966
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1664,7 +2280,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2311
+            - testCaseID: TCXM_2967
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1720,7 +2336,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2312
+            - testCaseID: TCXM_2968
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1776,7 +2392,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2313
+            - testCaseID: TCXM_2969
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1830,7 +2446,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2314
+            - testCaseID: TCXM_2970
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1884,7 +2500,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2315
+            - testCaseID: TCXM_2971
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1938,7 +2554,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2316
+            - testCaseID: TCXM_2972
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -1992,7 +2608,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2317
+            - testCaseID: TCXM_2973
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2046,7 +2662,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2318
+            - testCaseID: TCXM_2974
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2100,7 +2716,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2319
+            - testCaseID: TCXM_2975
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2154,7 +2770,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2320
+            - testCaseID: TCXM_2976
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2208,7 +2824,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2321
+            - testCaseID: TCXM_2977
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2262,7 +2878,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2322
+            - testCaseID: TCXM_2978
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2316,7 +2932,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2323
+            - testCaseID: TCXM_2979
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2370,7 +2986,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2324
+            - testCaseID: TCXM_2980
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2424,7 +3040,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2325
+            - testCaseID: TCXM_2981
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2478,7 +3094,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2326
+            - testCaseID: TCXM_2982
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2532,7 +3148,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2327
+            - testCaseID: TCXM_2983
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2586,7 +3202,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2328
+            - testCaseID: TCXM_2984
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2640,7 +3256,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2329
+            - testCaseID: TCXM_2985
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2694,7 +3310,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2330
+            - testCaseID: TCXM_2986
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2748,166 +3364,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2331
-              featureName: devices-services-view
-              priority: P1
-              type: functional
-              description: Deploy and verify devices-services-view with []map[string]interface{} value variation 1 for 'unused-services-tag-view'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with []map[string]interface{} type variation: value-1'
-                  method: POST
-                  api: REST
-                  path: /service-profiles
-                  body:
-                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V1
-                    unused-services-tag-view: value-1
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V1/devices/deploy
-                  pathParams:
-                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V1
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V1/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V1
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2332
-              featureName: devices-services-view
-              priority: P1
-              type: functional
-              description: Deploy and verify devices-services-view with []map[string]interface{} value variation 2 for 'unused-services-tag-view'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with []map[string]interface{} type variation: value-2'
-                  method: POST
-                  api: REST
-                  path: /service-profiles
-                  body:
-                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V2
-                    unused-services-tag-view: value-2
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V2/devices/deploy
-                  pathParams:
-                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V2
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V2/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V2
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2333
-              featureName: devices-services-view
-              priority: P1
-              type: functional
-              description: Deploy and verify devices-services-view with []map[string]interface{} value variation 3 for 'unused-services-tag-view'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with []map[string]interface{} type variation: value-3'
-                  method: POST
-                  api: REST
-                  path: /service-profiles
-                  body:
-                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V3
-                    unused-services-tag-view: value-3
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V3/devices/deploy
-                  pathParams:
-                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V3
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V3/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V3
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2334
+            - testCaseID: TCXM_2987
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -2960,7 +3417,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2335
+            - testCaseID: TCXM_2988
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -3013,7 +3470,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2336
+            - testCaseID: TCXM_2989
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -3066,7 +3523,166 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2337
+            - testCaseID: TCXM_2990
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Deploy and verify devices-services-view with []map[string]interface{} value variation 1 for 'unused-services-tag-view'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with []map[string]interface{} type variation: value-1'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V1
+                    unused-services-tag-view: value-1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2991
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Deploy and verify devices-services-view with []map[string]interface{} value variation 2 for 'unused-services-tag-view'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with []map[string]interface{} type variation: value-2'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V2
+                    unused-services-tag-view: value-2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2992
+              featureName: devices-services-view
+              priority: P1
+              type: functional
+              description: Deploy and verify devices-services-view with []map[string]interface{} value variation 3 for 'unused-services-tag-view'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with []map[string]interface{} type variation: value-3'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V3
+                    unused-services-tag-view: value-3
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-unused-services-tag-view-Type[]map[string]interface{}-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-unused-services-tag-view-Type[]map[string]interface{}-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2993
               featureName: devices-services-view
               priority: P0
               type: functional
@@ -3099,14 +3715,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2025-12-24T20:00:07Z
+                  description: Schedule deployment to device at 2026-04-21T16:07:22Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2025-12-24T20:00:07Z"
+                    deployAt: "2026-04-21T16:07:22Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -3114,7 +3730,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2338
+            - testCaseID: TCXM_2994
               featureName: devices-services-view
               priority: P0
               type: functional
@@ -3147,14 +3763,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2025-12-24T20:00:07Z
+                  description: Schedule deployment to site at 2026-04-21T16:07:22Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2025-12-24T20:00:07Z"
+                    deployAt: "2026-04-21T16:07:22Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -3162,7 +3778,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2339
+            - testCaseID: TCXM_2995
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -3199,7 +3815,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2025-12-24T20:00:07Z"
+                    deployAt: "2026-04-21T16:07:22Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -3208,14 +3824,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2025-12-24T21:00:07Z
+                  description: Edit deployment schedule to 2026-04-21T17:07:22Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2025-12-24T21:00:07Z"
+                    deployAt: "2026-04-21T17:07:22Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -3223,7 +3839,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2340
+            - testCaseID: TCXM_2996
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -3260,7 +3876,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2025-12-24T20:00:07Z"
+                    deployAt: "2026-04-21T16:07:22Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -3282,7 +3898,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2341
+            - testCaseID: TCXM_2997
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -3324,7 +3940,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2342
+            - testCaseID: TCXM_2998
               featureName: devices-services-view
               priority: P1
               type: functional
@@ -3370,7 +3986,79 @@ features:
                     - type: statusCode
                       expected: "201"
         negative:
-            - testCaseID: TCXM_2343
+            - testCaseID: TCXM_3000
+              featureName: devices-services-view
+              priority: P2
+              type: negative
+              description: Verify optional field 'device-id' can be omitted — server must accept without it (non-required per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithout_optional_device_id
+                  description: Create devices-services-view without optional field 'device-id' — server must accept (201)
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body: {}
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify server accepts request when optional field 'device-id' is omitted
+            - testCaseID: TCXM_3001
+              featureName: devices-services-view
+              priority: P2
+              type: negative
+              description: Verify optional field 'service-name' can be omitted — server must accept without it (non-required per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithout_optional_service_name
+                  description: Create devices-services-view without optional field 'service-name' — server must accept (201)
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body: {}
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify server accepts request when optional field 'service-name' is omitted
+            - testCaseID: TCXM_3002
+              featureName: devices-services-view
+              priority: P2
+              type: negative
+              description: Verify optional field 'service-type' can be omitted — server must accept without it (non-required per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithout_optional_service_type
+                  description: Create devices-services-view without optional field 'service-type' — server must accept (201)
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body: {}
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify server accepts request when optional field 'service-type' is omitted
+            - testCaseID: TCXM_3003
+              featureName: devices-services-view
+              priority: P2
+              type: negative
+              description: Verify optional field 'unused-services-tag-view' can be omitted — server must accept without it (non-required per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithout_optional_unused_services_tag_view
+                  description: Create devices-services-view without optional field 'unused-services-tag-view' — server must accept (201)
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body: {}
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify server accepts request when optional field 'unused-services-tag-view' is omitted
+            - testCaseID: TCXM_3004
               featureName: devices-services-view
               priority: P1
               type: negative
@@ -3390,8 +4078,29 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
+            - testCaseID: TCXM_3005
+              featureName: devices-services-view
+              priority: P1
+              type: negative
+              description: Verify deleting non-existent devices-services-view returns 404
+              isDeploymentTest: false
+              steps:
+                - name: deleteNonExistent
+                  description: Attempt to delete devices-services-view 'does-not-exist-9999' which was never created
+                  method: DELETE
+                  api: REST
+                  path: /service-profiles
+                  pathParams:
+                    name: does-not-exist-9999
+                  body:
+                    name: does-not-exist-9999
+                    operation: delete
+                  expectedStatus: 404
+                  validations:
+                    - type: statusCode
+                      expected: 404
         performance:
-            - testCaseID: TCXM_2348
+            - testCaseID: TCXM_3010
               featureName: devices-services-view
               priority: P3
               type: performance
@@ -3553,7 +4262,7 @@ features:
                 iterations: 10
                 operation: create
         scale:
-            - testCaseID: TCXM_2344
+            - testCaseID: TCXM_3006
               featureName: devices-services-view
               priority: P2
               type: scale
@@ -4662,7 +5371,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_2345
+            - testCaseID: TCXM_3007
               featureName: devices-services-view
               priority: P2
               type: scale
@@ -4783,7 +5492,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_2346
+            - testCaseID: TCXM_3008
               featureName: devices-services-view
               priority: P2
               type: scale
@@ -4924,7 +5633,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_2347
+            - testCaseID: TCXM_3009
               featureName: devices-services-view
               priority: P2
               type: scale

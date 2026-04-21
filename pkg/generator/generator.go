@@ -216,9 +216,27 @@ func (g *Generator) generateFeatureTestGroup(feature *model.Feature, paths []*mo
 
 	primaryPath := paths[len(paths)-1] // use the explicit path for metadata if available
 
+	// For deep-scanned features (wired/wireless blueprint, service profile), extract the YANG
+	// featurePath from the PathParams FixedValue. Search all explicit paths (BlueprintCategory != "")
+	// for one that carries the featurePath param, since DEPLOY/SCOPE paths may not have it.
+	headerFeaturePath := primaryPath.Path
+	for i := len(paths) - 1; i >= 0; i-- {
+		fp := paths[i]
+		if fp.BlueprintCategory == "" {
+			break // no explicit paths left
+		}
+		for _, p := range fp.PathParams {
+			if p.Name == "featurePath" && p.FixedValue != "" {
+				headerFeaturePath = p.FixedValue
+				goto foundFeaturePath
+			}
+		}
+	}
+foundFeaturePath:
+
 	group := &model.FeatureTestGroup{
 		FeatureName: feature.Name,
-		FeaturePath: primaryPath.Path,
+		FeaturePath: headerFeaturePath,
 		ProfileType: primaryPath.ProfileType,
 		Description: feature.Description,
 		Tests:       make(map[model.TestCategory][]model.TestCase),

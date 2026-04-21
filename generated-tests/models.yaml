@@ -1,16 +1,16 @@
 version: "1.0"
-generatedAt: "2026-04-21T20:10:24+05:30"
+generatedAt: "2026-04-21T20:38:27+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
 features:
     - featureName: models
-      featurePath: /configuration-profile/{name}/models/retrieve
+      featurePath: /inventory/models/retrieve
       profileType: configuration
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_4143
+            - testCaseID: TCXM_7022
               featureName: models
               priority: P2
               type: boundary
@@ -21,7 +21,7 @@ features:
                   description: Test model-name with minLength
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: a
                     name: TestResource
@@ -30,7 +30,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_4144
+            - testCaseID: TCXM_7023
               featureName: models
               priority: P2
               type: boundary
@@ -41,7 +41,7 @@ features:
                   description: Test model-name with maxLength
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: abcdefghijklmnopqrstuvwxyzABCDEF
                     name: TestResource
@@ -51,7 +51,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_4113
+            - testCaseID: TCXM_6992
               featureName: models
               priority: P0
               type: functional
@@ -62,7 +62,7 @@ features:
                   description: Create models
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource
@@ -100,7 +100,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='model-name')].value
                       expected: test-resource
                       description: Verify 'model-name' value is 'test-resource' as set during create
-            - testCaseID: TCXM_4114
+            - testCaseID: TCXM_6993
               featureName: models
               priority: P2
               type: functional
@@ -111,7 +111,7 @@ features:
                   description: Create models for list test
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource
@@ -123,12 +123,12 @@ features:
                   description: List all models resources
                   method: GET
                   api: REST
-                  path: /inventory/models
+                  path: /inventory/model-families
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_4115
+            - testCaseID: TCXM_6994
               featureName: models
               priority: P2
               type: functional
@@ -139,7 +139,7 @@ features:
                   description: Create models (first attempt)
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource
@@ -151,7 +151,7 @@ features:
                   description: Create same models again (idempotent check)
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource
@@ -159,7 +159,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_4116
+            - testCaseID: TCXM_6995
               featureName: models
               priority: P0
               type: functional
@@ -173,7 +173,7 @@ features:
                   description: Create models configuration
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-resource
                     name: TestProfile
@@ -248,7 +248,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4117
+            - testCaseID: TCXM_6996
               featureName: models
               priority: P1
               type: functional
@@ -261,7 +261,7 @@ features:
                   description: Create models configuration
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-resource
                     name: TestProfile-Simple
@@ -269,7 +269,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4118
+            - testCaseID: TCXM_6997
               featureName: models
               priority: P1
               type: functional
@@ -280,7 +280,7 @@ features:
                   description: Create models providing only required YANG fields
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-resource
                   expectedStatus: 201
@@ -309,7 +309,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='model-name')].value
                       expected: test-resource
                       description: Verify required field 'model-name' has value 'test-resource' as created
-            - testCaseID: TCXM_4119
+            - testCaseID: TCXM_6998
               featureName: models
               priority: P1
               type: functional
@@ -320,7 +320,7 @@ features:
                   description: Create models providing all YANG-defined fields including optional
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-resource
                   expectedStatus: 201
@@ -349,7 +349,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='model-name')].value
                       expected: test-resource
                       description: Verify field 'model-name' has value 'test-resource' as sent on create
-            - testCaseID: TCXM_4120
+            - testCaseID: TCXM_6999
               featureName: models
               priority: P1
               type: functional
@@ -360,7 +360,7 @@ features:
                   description: 'Create models with YANG type ''string'' value: test-value-1'
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-value-1
                     name: TestResource
@@ -384,7 +384,7 @@ features:
                       path: $.model-name
                       expected: test-value-1
                       description: Verify 'model-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_4121
+            - testCaseID: TCXM_7000
               featureName: models
               priority: P1
               type: functional
@@ -395,7 +395,7 @@ features:
                   description: 'Create models with YANG type ''string'' value: test-value-2'
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-value-2
                     name: TestResource
@@ -419,7 +419,7 @@ features:
                       path: $.model-name
                       expected: test-value-2
                       description: Verify 'model-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_4122
+            - testCaseID: TCXM_7001
               featureName: models
               priority: P0
               type: functional
@@ -433,7 +433,7 @@ features:
                   description: Create with variation 1 of model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: testValue-1
                     name: TestResource-model-name-Var1
@@ -472,7 +472,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4123
+            - testCaseID: TCXM_7002
               featureName: models
               priority: P0
               type: functional
@@ -486,7 +486,7 @@ features:
                   description: Create with variation 1 of model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: testValue-1
                     name: TestResource-model-name-Var1
@@ -525,7 +525,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4124
+            - testCaseID: TCXM_7003
               featureName: models
               priority: P0
               type: functional
@@ -539,7 +539,7 @@ features:
                   description: Create with variation 2 of model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: testValue-2
                     name: TestResource-model-name-Var2
@@ -578,7 +578,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4125
+            - testCaseID: TCXM_7004
               featureName: models
               priority: P0
               type: functional
@@ -592,7 +592,7 @@ features:
                   description: Create with variation 2 of model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: testValue-2
                     name: TestResource-model-name-Var2
@@ -631,7 +631,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4126
+            - testCaseID: TCXM_7005
               featureName: models
               priority: P0
               type: functional
@@ -645,7 +645,7 @@ features:
                   description: Create with variation 3 of model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: testValue-3
                     name: TestResource-model-name-Var3
@@ -684,7 +684,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4127
+            - testCaseID: TCXM_7006
               featureName: models
               priority: P0
               type: functional
@@ -698,7 +698,7 @@ features:
                   description: Create with variation 3 of model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: testValue-3
                     name: TestResource-model-name-Var3
@@ -737,7 +737,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4128
+            - testCaseID: TCXM_7007
               featureName: models
               priority: P0
               type: functional
@@ -751,7 +751,7 @@ features:
                   description: Create with variation 4 of model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: testValue-4
                     name: TestResource-model-name-Var4
@@ -790,7 +790,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4129
+            - testCaseID: TCXM_7008
               featureName: models
               priority: P0
               type: functional
@@ -804,7 +804,7 @@ features:
                   description: Create with variation 4 of model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: testValue-4
                     name: TestResource-model-name-Var4
@@ -843,7 +843,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4130
+            - testCaseID: TCXM_7009
               featureName: models
               priority: P0
               type: functional
@@ -857,7 +857,7 @@ features:
                   description: Create with variation 5 of model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: testValue-5
                     name: TestResource-model-name-Var5
@@ -896,7 +896,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4131
+            - testCaseID: TCXM_7010
               featureName: models
               priority: P0
               type: functional
@@ -910,7 +910,7 @@ features:
                   description: Create with variation 5 of model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: testValue-5
                     name: TestResource-model-name-Var5
@@ -949,7 +949,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4132
+            - testCaseID: TCXM_7011
               featureName: models
               priority: P1
               type: functional
@@ -963,7 +963,7 @@ features:
                   description: Create with min value for model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: a
                     name: TestResource-model-name-min
@@ -1002,7 +1002,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4133
+            - testCaseID: TCXM_7012
               featureName: models
               priority: P1
               type: functional
@@ -1016,7 +1016,7 @@ features:
                   description: Create with max value for model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
                     name: TestResource-model-name-max
@@ -1055,7 +1055,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4134
+            - testCaseID: TCXM_7013
               featureName: models
               priority: P1
               type: functional
@@ -1069,7 +1069,7 @@ features:
                   description: 'Create with string type variation: test-value-1'
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-value-1
                     name: TestResource-model-name-Typestring-V1
@@ -1108,7 +1108,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4135
+            - testCaseID: TCXM_7014
               featureName: models
               priority: P1
               type: functional
@@ -1122,7 +1122,7 @@ features:
                   description: 'Create with string type variation: TestValue2'
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: TestValue2
                     name: TestResource-model-name-Typestring-V2
@@ -1161,7 +1161,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4136
+            - testCaseID: TCXM_7015
               featureName: models
               priority: P1
               type: functional
@@ -1175,7 +1175,7 @@ features:
                   description: 'Create with string type variation: test_value_3'
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test_value_3
                     name: TestResource-model-name-Typestring-V3
@@ -1214,7 +1214,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4137
+            - testCaseID: TCXM_7016
               featureName: models
               priority: P0
               type: functional
@@ -1230,7 +1230,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /inventory/models/retrieve
+                    featurePath: /inventory/models/modelVariants/retrieve
                     name: TestProfile-Additional
                     objectType: models
                     objects:
@@ -1247,14 +1247,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-21T15:40:24Z
+                  description: Schedule deployment to device at 2026-04-21T16:08:27Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T15:40:24Z"
+                    deployAt: "2026-04-21T16:08:27Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -1262,7 +1262,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_4138
+            - testCaseID: TCXM_7017
               featureName: models
               priority: P0
               type: functional
@@ -1278,7 +1278,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /inventory/models/retrieve
+                    featurePath: /inventory/models/modelVariants/retrieve
                     name: TestProfile-Additional
                     objectType: models
                     objects:
@@ -1295,14 +1295,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-21T15:40:24Z
+                  description: Schedule deployment to site at 2026-04-21T16:08:27Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T15:40:24Z"
+                    deployAt: "2026-04-21T16:08:27Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -1310,7 +1310,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_4139
+            - testCaseID: TCXM_7018
               featureName: models
               priority: P1
               type: functional
@@ -1323,7 +1323,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /inventory/models/retrieve
+                    featurePath: /inventory/models/modelVariants/retrieve
                     name: TestProfile-Additional
                     objectType: models
                     objects:
@@ -1347,7 +1347,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T15:40:24Z"
+                    deployAt: "2026-04-21T16:08:27Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -1356,14 +1356,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-21T16:40:24Z
+                  description: Edit deployment schedule to 2026-04-21T17:08:27Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:40:24Z"
+                    deployAt: "2026-04-21T17:08:27Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -1371,7 +1371,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_4140
+            - testCaseID: TCXM_7019
               featureName: models
               priority: P1
               type: functional
@@ -1384,7 +1384,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /inventory/models/retrieve
+                    featurePath: /inventory/models/modelVariants/retrieve
                     name: TestProfile-Additional
                     objectType: models
                     objects:
@@ -1408,7 +1408,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T15:40:24Z"
+                    deployAt: "2026-04-21T16:08:27Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -1430,7 +1430,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_4141
+            - testCaseID: TCXM_7020
               featureName: models
               priority: P1
               type: functional
@@ -1443,7 +1443,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /inventory/models/retrieve
+                    featurePath: /inventory/models/modelVariants/retrieve
                     name: TestProfile-Additional
                     objectType: models
                     objects:
@@ -1472,7 +1472,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_4142
+            - testCaseID: TCXM_7021
               featureName: models
               priority: P1
               type: functional
@@ -1485,7 +1485,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /inventory/models/retrieve
+                    featurePath: /inventory/models/modelVariants/retrieve
                     name: TestProfile-Additional
                     objectType: models
                     objects:
@@ -1509,7 +1509,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /inventory/models/retrieve
+                    featurePath: /inventory/models/modelVariants/retrieve
                     newId: cloned-object-1
                     objectType: models
                     sourceId: original-object-1
@@ -1518,7 +1518,7 @@ features:
                     - type: statusCode
                       expected: "201"
         negative:
-            - testCaseID: TCXM_4145
+            - testCaseID: TCXM_7024
               featureName: models
               priority: P1
               type: negative
@@ -1529,7 +1529,7 @@ features:
                   description: Attempt to create models without required field 'model-name'
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     name: TestResource
                   expectedStatus: 400
@@ -1540,7 +1540,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'model-name'
-            - testCaseID: TCXM_4146
+            - testCaseID: TCXM_7025
               featureName: models
               priority: P1
               type: negative
@@ -1551,7 +1551,7 @@ features:
                   description: Attempt to create with model-name exceeding max length
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP
                     name: TestResource
@@ -1559,7 +1559,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4147
+            - testCaseID: TCXM_7026
               featureName: models
               priority: P1
               type: negative
@@ -1570,7 +1570,7 @@ features:
                   description: Attempt to create with model-name below min length
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: ""
                     name: TestResource
@@ -1578,7 +1578,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4148
+            - testCaseID: TCXM_7027
               featureName: models
               priority: P1
               type: negative
@@ -1589,7 +1589,7 @@ features:
                   description: Attempt to create with empty model-name field
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: ""
                     name: TestResource
@@ -1599,7 +1599,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_4149
+            - testCaseID: TCXM_7028
               featureName: models
               priority: P1
               type: negative
@@ -1610,7 +1610,7 @@ features:
                   description: Attempt to create with null model-name
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: null
                     name: TestResource
@@ -1620,7 +1620,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_4150
+            - testCaseID: TCXM_7029
               featureName: models
               priority: P1
               type: negative
@@ -1631,7 +1631,7 @@ features:
                   description: Attempt to create without operation field
                   method: POST
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource
@@ -1641,7 +1641,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_4151
+            - testCaseID: TCXM_7030
               featureName: models
               priority: P1
               type: negative
@@ -1652,7 +1652,7 @@ features:
                   description: Attempt to delete models 'does-not-exist-9999' which was never created
                   method: DELETE
                   api: REST
-                  path: /inventory/models/retrieve
+                  path: /inventory/models/modelVariants/retrieve
                   pathParams:
                     name: does-not-exist-9999
                   body:
@@ -1663,7 +1663,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_4156
+            - testCaseID: TCXM_7035
               featureName: models
               priority: P3
               type: performance
@@ -1674,7 +1674,7 @@ features:
                   description: Create iteration 0
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: PerfTest-0
@@ -1690,7 +1690,7 @@ features:
                   description: Create iteration 1
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: PerfTest-1
@@ -1706,7 +1706,7 @@ features:
                   description: Create iteration 2
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: PerfTest-2
@@ -1722,7 +1722,7 @@ features:
                   description: Create iteration 3
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: PerfTest-3
@@ -1738,7 +1738,7 @@ features:
                   description: Create iteration 4
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: PerfTest-4
@@ -1754,7 +1754,7 @@ features:
                   description: Create iteration 5
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: PerfTest-5
@@ -1770,7 +1770,7 @@ features:
                   description: Create iteration 6
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: PerfTest-6
@@ -1786,7 +1786,7 @@ features:
                   description: Create iteration 7
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: PerfTest-7
@@ -1802,7 +1802,7 @@ features:
                   description: Create iteration 8
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: PerfTest-8
@@ -1818,7 +1818,7 @@ features:
                   description: Create iteration 9
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: PerfTest-9
@@ -1834,7 +1834,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_4157
+            - testCaseID: TCXM_7036
               featureName: models
               priority: P3
               type: performance
@@ -1995,7 +1995,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_4158
+            - testCaseID: TCXM_7037
               featureName: models
               priority: P3
               type: performance
@@ -2006,7 +2006,7 @@ features:
                   description: List iteration 0
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -2019,7 +2019,7 @@ features:
                   description: List iteration 1
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -2032,7 +2032,7 @@ features:
                   description: List iteration 2
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -2045,7 +2045,7 @@ features:
                   description: List iteration 3
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -2058,7 +2058,7 @@ features:
                   description: List iteration 4
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -2071,7 +2071,7 @@ features:
                   description: List iteration 5
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -2084,7 +2084,7 @@ features:
                   description: List iteration 6
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -2097,7 +2097,7 @@ features:
                   description: List iteration 7
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -2110,7 +2110,7 @@ features:
                   description: List iteration 8
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -2123,7 +2123,7 @@ features:
                   description: List iteration 9
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -2137,7 +2137,7 @@ features:
                 iterations: 10
                 operation: list
         scale:
-            - testCaseID: TCXM_4152
+            - testCaseID: TCXM_7031
               featureName: models
               priority: P2
               type: scale
@@ -2148,7 +2148,7 @@ features:
                   description: Create instance 0
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-0
@@ -2160,7 +2160,7 @@ features:
                   description: Create instance 1
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-1
@@ -2172,7 +2172,7 @@ features:
                   description: Create instance 2
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-2
@@ -2184,7 +2184,7 @@ features:
                   description: Create instance 3
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-3
@@ -2196,7 +2196,7 @@ features:
                   description: Create instance 4
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-4
@@ -2208,7 +2208,7 @@ features:
                   description: Create instance 5
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-5
@@ -2220,7 +2220,7 @@ features:
                   description: Create instance 6
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-6
@@ -2232,7 +2232,7 @@ features:
                   description: Create instance 7
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-7
@@ -2244,7 +2244,7 @@ features:
                   description: Create instance 8
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-8
@@ -2256,7 +2256,7 @@ features:
                   description: Create instance 9
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-9
@@ -2268,7 +2268,7 @@ features:
                   description: Create instance 10
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-10
@@ -2280,7 +2280,7 @@ features:
                   description: Create instance 11
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-11
@@ -2292,7 +2292,7 @@ features:
                   description: Create instance 12
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-12
@@ -2304,7 +2304,7 @@ features:
                   description: Create instance 13
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-13
@@ -2316,7 +2316,7 @@ features:
                   description: Create instance 14
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-14
@@ -2328,7 +2328,7 @@ features:
                   description: Create instance 15
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-15
@@ -2340,7 +2340,7 @@ features:
                   description: Create instance 16
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-16
@@ -2352,7 +2352,7 @@ features:
                   description: Create instance 17
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-17
@@ -2364,7 +2364,7 @@ features:
                   description: Create instance 18
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-18
@@ -2376,7 +2376,7 @@ features:
                   description: Create instance 19
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-19
@@ -2388,7 +2388,7 @@ features:
                   description: Create instance 20
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-20
@@ -2400,7 +2400,7 @@ features:
                   description: Create instance 21
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-21
@@ -2412,7 +2412,7 @@ features:
                   description: Create instance 22
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-22
@@ -2424,7 +2424,7 @@ features:
                   description: Create instance 23
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-23
@@ -2436,7 +2436,7 @@ features:
                   description: Create instance 24
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-24
@@ -2448,7 +2448,7 @@ features:
                   description: Create instance 25
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-25
@@ -2460,7 +2460,7 @@ features:
                   description: Create instance 26
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-26
@@ -2472,7 +2472,7 @@ features:
                   description: Create instance 27
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-27
@@ -2484,7 +2484,7 @@ features:
                   description: Create instance 28
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-28
@@ -2496,7 +2496,7 @@ features:
                   description: Create instance 29
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-29
@@ -2508,7 +2508,7 @@ features:
                   description: Create instance 30
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-30
@@ -2520,7 +2520,7 @@ features:
                   description: Create instance 31
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-31
@@ -2532,7 +2532,7 @@ features:
                   description: Create instance 32
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-32
@@ -2544,7 +2544,7 @@ features:
                   description: Create instance 33
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-33
@@ -2556,7 +2556,7 @@ features:
                   description: Create instance 34
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-34
@@ -2568,7 +2568,7 @@ features:
                   description: Create instance 35
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-35
@@ -2580,7 +2580,7 @@ features:
                   description: Create instance 36
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-36
@@ -2592,7 +2592,7 @@ features:
                   description: Create instance 37
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-37
@@ -2604,7 +2604,7 @@ features:
                   description: Create instance 38
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-38
@@ -2616,7 +2616,7 @@ features:
                   description: Create instance 39
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-39
@@ -2628,7 +2628,7 @@ features:
                   description: Create instance 40
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-40
@@ -2640,7 +2640,7 @@ features:
                   description: Create instance 41
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-41
@@ -2652,7 +2652,7 @@ features:
                   description: Create instance 42
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-42
@@ -2664,7 +2664,7 @@ features:
                   description: Create instance 43
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-43
@@ -2676,7 +2676,7 @@ features:
                   description: Create instance 44
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-44
@@ -2688,7 +2688,7 @@ features:
                   description: Create instance 45
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-45
@@ -2700,7 +2700,7 @@ features:
                   description: Create instance 46
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-46
@@ -2712,7 +2712,7 @@ features:
                   description: Create instance 47
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-47
@@ -2724,7 +2724,7 @@ features:
                   description: Create instance 48
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-48
@@ -2736,7 +2736,7 @@ features:
                   description: Create instance 49
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-49
@@ -2748,7 +2748,7 @@ features:
                   description: Create instance 50
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-50
@@ -2760,7 +2760,7 @@ features:
                   description: Create instance 51
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-51
@@ -2772,7 +2772,7 @@ features:
                   description: Create instance 52
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-52
@@ -2784,7 +2784,7 @@ features:
                   description: Create instance 53
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-53
@@ -2796,7 +2796,7 @@ features:
                   description: Create instance 54
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-54
@@ -2808,7 +2808,7 @@ features:
                   description: Create instance 55
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-55
@@ -2820,7 +2820,7 @@ features:
                   description: Create instance 56
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-56
@@ -2832,7 +2832,7 @@ features:
                   description: Create instance 57
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-57
@@ -2844,7 +2844,7 @@ features:
                   description: Create instance 58
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-58
@@ -2856,7 +2856,7 @@ features:
                   description: Create instance 59
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-59
@@ -2868,7 +2868,7 @@ features:
                   description: Create instance 60
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-60
@@ -2880,7 +2880,7 @@ features:
                   description: Create instance 61
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-61
@@ -2892,7 +2892,7 @@ features:
                   description: Create instance 62
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-62
@@ -2904,7 +2904,7 @@ features:
                   description: Create instance 63
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-63
@@ -2916,7 +2916,7 @@ features:
                   description: Create instance 64
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-64
@@ -2928,7 +2928,7 @@ features:
                   description: Create instance 65
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-65
@@ -2940,7 +2940,7 @@ features:
                   description: Create instance 66
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-66
@@ -2952,7 +2952,7 @@ features:
                   description: Create instance 67
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-67
@@ -2964,7 +2964,7 @@ features:
                   description: Create instance 68
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-68
@@ -2976,7 +2976,7 @@ features:
                   description: Create instance 69
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-69
@@ -2988,7 +2988,7 @@ features:
                   description: Create instance 70
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-70
@@ -3000,7 +3000,7 @@ features:
                   description: Create instance 71
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-71
@@ -3012,7 +3012,7 @@ features:
                   description: Create instance 72
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-72
@@ -3024,7 +3024,7 @@ features:
                   description: Create instance 73
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-73
@@ -3036,7 +3036,7 @@ features:
                   description: Create instance 74
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-74
@@ -3048,7 +3048,7 @@ features:
                   description: Create instance 75
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-75
@@ -3060,7 +3060,7 @@ features:
                   description: Create instance 76
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-76
@@ -3072,7 +3072,7 @@ features:
                   description: Create instance 77
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-77
@@ -3084,7 +3084,7 @@ features:
                   description: Create instance 78
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-78
@@ -3096,7 +3096,7 @@ features:
                   description: Create instance 79
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-79
@@ -3108,7 +3108,7 @@ features:
                   description: Create instance 80
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-80
@@ -3120,7 +3120,7 @@ features:
                   description: Create instance 81
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-81
@@ -3132,7 +3132,7 @@ features:
                   description: Create instance 82
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-82
@@ -3144,7 +3144,7 @@ features:
                   description: Create instance 83
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-83
@@ -3156,7 +3156,7 @@ features:
                   description: Create instance 84
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-84
@@ -3168,7 +3168,7 @@ features:
                   description: Create instance 85
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-85
@@ -3180,7 +3180,7 @@ features:
                   description: Create instance 86
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-86
@@ -3192,7 +3192,7 @@ features:
                   description: Create instance 87
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-87
@@ -3204,7 +3204,7 @@ features:
                   description: Create instance 88
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-88
@@ -3216,7 +3216,7 @@ features:
                   description: Create instance 89
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-89
@@ -3228,7 +3228,7 @@ features:
                   description: Create instance 90
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-90
@@ -3240,7 +3240,7 @@ features:
                   description: Create instance 91
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-91
@@ -3252,7 +3252,7 @@ features:
                   description: Create instance 92
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-92
@@ -3264,7 +3264,7 @@ features:
                   description: Create instance 93
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-93
@@ -3276,7 +3276,7 @@ features:
                   description: Create instance 94
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-94
@@ -3288,7 +3288,7 @@ features:
                   description: Create instance 95
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-95
@@ -3300,7 +3300,7 @@ features:
                   description: Create instance 96
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-96
@@ -3312,7 +3312,7 @@ features:
                   description: Create instance 97
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-97
@@ -3324,7 +3324,7 @@ features:
                   description: Create instance 98
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-98
@@ -3336,7 +3336,7 @@ features:
                   description: Create instance 99
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource-99
@@ -3348,14 +3348,14 @@ features:
                   description: List all created instances
                   method: GET
                   api: REST
-                  path: /inventory/model-families
+                  path: /inventory/models
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_4153
+            - testCaseID: TCXM_7032
               featureName: models
               priority: P2
               type: scale
@@ -3366,7 +3366,7 @@ features:
                   description: Create with 100 items
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: TestResource
@@ -3376,7 +3376,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_4154
+            - testCaseID: TCXM_7033
               featureName: models
               priority: P2
               type: scale
@@ -3387,7 +3387,7 @@ features:
                   description: Create initial resource
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: RapidUpdateTest
@@ -3399,7 +3399,7 @@ features:
                   description: Rapid update 0
                   method: PUT
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     description: Update iteration 0
                     model-name: test-resource
@@ -3412,7 +3412,7 @@ features:
                   description: Rapid update 1
                   method: PUT
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     description: Update iteration 1
                     model-name: test-resource
@@ -3425,7 +3425,7 @@ features:
                   description: Rapid update 2
                   method: PUT
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     description: Update iteration 2
                     model-name: test-resource
@@ -3438,7 +3438,7 @@ features:
                   description: Rapid update 3
                   method: PUT
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     description: Update iteration 3
                     model-name: test-resource
@@ -3451,7 +3451,7 @@ features:
                   description: Rapid update 4
                   method: PUT
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     description: Update iteration 4
                     model-name: test-resource
@@ -3464,7 +3464,7 @@ features:
                   description: Rapid update 5
                   method: PUT
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     description: Update iteration 5
                     model-name: test-resource
@@ -3477,7 +3477,7 @@ features:
                   description: Rapid update 6
                   method: PUT
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     description: Update iteration 6
                     model-name: test-resource
@@ -3490,7 +3490,7 @@ features:
                   description: Rapid update 7
                   method: PUT
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     description: Update iteration 7
                     model-name: test-resource
@@ -3503,7 +3503,7 @@ features:
                   description: Rapid update 8
                   method: PUT
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     description: Update iteration 8
                     model-name: test-resource
@@ -3516,7 +3516,7 @@ features:
                   description: Rapid update 9
                   method: PUT
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     description: Update iteration 9
                     model-name: test-resource
@@ -3528,7 +3528,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_4155
+            - testCaseID: TCXM_7034
               featureName: models
               priority: P2
               type: scale
@@ -3539,7 +3539,7 @@ features:
                   description: Create instance 0 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-0
@@ -3551,7 +3551,7 @@ features:
                   description: Create instance 1 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-1
@@ -3563,7 +3563,7 @@ features:
                   description: Create instance 2 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-2
@@ -3575,7 +3575,7 @@ features:
                   description: Create instance 3 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-3
@@ -3587,7 +3587,7 @@ features:
                   description: Create instance 4 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-4
@@ -3599,7 +3599,7 @@ features:
                   description: Create instance 5 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-5
@@ -3611,7 +3611,7 @@ features:
                   description: Create instance 6 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-6
@@ -3623,7 +3623,7 @@ features:
                   description: Create instance 7 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-7
@@ -3635,7 +3635,7 @@ features:
                   description: Create instance 8 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-8
@@ -3647,7 +3647,7 @@ features:
                   description: Create instance 9 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-9
@@ -3659,7 +3659,7 @@ features:
                   description: Create instance 10 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-10
@@ -3671,7 +3671,7 @@ features:
                   description: Create instance 11 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-11
@@ -3683,7 +3683,7 @@ features:
                   description: Create instance 12 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-12
@@ -3695,7 +3695,7 @@ features:
                   description: Create instance 13 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-13
@@ -3707,7 +3707,7 @@ features:
                   description: Create instance 14 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-14
@@ -3719,7 +3719,7 @@ features:
                   description: Create instance 15 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-15
@@ -3731,7 +3731,7 @@ features:
                   description: Create instance 16 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-16
@@ -3743,7 +3743,7 @@ features:
                   description: Create instance 17 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-17
@@ -3755,7 +3755,7 @@ features:
                   description: Create instance 18 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-18
@@ -3767,7 +3767,7 @@ features:
                   description: Create instance 19 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-19
@@ -3779,7 +3779,7 @@ features:
                   description: Create instance 20 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-20
@@ -3791,7 +3791,7 @@ features:
                   description: Create instance 21 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-21
@@ -3803,7 +3803,7 @@ features:
                   description: Create instance 22 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-22
@@ -3815,7 +3815,7 @@ features:
                   description: Create instance 23 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-23
@@ -3827,7 +3827,7 @@ features:
                   description: Create instance 24 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-24
@@ -3839,7 +3839,7 @@ features:
                   description: Create instance 25 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-25
@@ -3851,7 +3851,7 @@ features:
                   description: Create instance 26 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-26
@@ -3863,7 +3863,7 @@ features:
                   description: Create instance 27 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-27
@@ -3875,7 +3875,7 @@ features:
                   description: Create instance 28 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-28
@@ -3887,7 +3887,7 @@ features:
                   description: Create instance 29 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-29
@@ -3899,7 +3899,7 @@ features:
                   description: Create instance 30 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-30
@@ -3911,7 +3911,7 @@ features:
                   description: Create instance 31 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-31
@@ -3923,7 +3923,7 @@ features:
                   description: Create instance 32 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-32
@@ -3935,7 +3935,7 @@ features:
                   description: Create instance 33 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-33
@@ -3947,7 +3947,7 @@ features:
                   description: Create instance 34 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-34
@@ -3959,7 +3959,7 @@ features:
                   description: Create instance 35 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-35
@@ -3971,7 +3971,7 @@ features:
                   description: Create instance 36 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-36
@@ -3983,7 +3983,7 @@ features:
                   description: Create instance 37 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-37
@@ -3995,7 +3995,7 @@ features:
                   description: Create instance 38 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-38
@@ -4007,7 +4007,7 @@ features:
                   description: Create instance 39 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-39
@@ -4019,7 +4019,7 @@ features:
                   description: Create instance 40 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-40
@@ -4031,7 +4031,7 @@ features:
                   description: Create instance 41 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-41
@@ -4043,7 +4043,7 @@ features:
                   description: Create instance 42 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-42
@@ -4055,7 +4055,7 @@ features:
                   description: Create instance 43 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-43
@@ -4067,7 +4067,7 @@ features:
                   description: Create instance 44 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-44
@@ -4079,7 +4079,7 @@ features:
                   description: Create instance 45 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-45
@@ -4091,7 +4091,7 @@ features:
                   description: Create instance 46 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-46
@@ -4103,7 +4103,7 @@ features:
                   description: Create instance 47 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-47
@@ -4115,7 +4115,7 @@ features:
                   description: Create instance 48 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-48
@@ -4127,7 +4127,7 @@ features:
                   description: Create instance 49 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-49
@@ -4139,7 +4139,7 @@ features:
                   description: Create instance 50 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-50
@@ -4151,7 +4151,7 @@ features:
                   description: Create instance 51 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-51
@@ -4163,7 +4163,7 @@ features:
                   description: Create instance 52 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-52
@@ -4175,7 +4175,7 @@ features:
                   description: Create instance 53 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-53
@@ -4187,7 +4187,7 @@ features:
                   description: Create instance 54 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-54
@@ -4199,7 +4199,7 @@ features:
                   description: Create instance 55 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-55
@@ -4211,7 +4211,7 @@ features:
                   description: Create instance 56 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-56
@@ -4223,7 +4223,7 @@ features:
                   description: Create instance 57 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-57
@@ -4235,7 +4235,7 @@ features:
                   description: Create instance 58 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-58
@@ -4247,7 +4247,7 @@ features:
                   description: Create instance 59 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-59
@@ -4259,7 +4259,7 @@ features:
                   description: Create instance 60 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-60
@@ -4271,7 +4271,7 @@ features:
                   description: Create instance 61 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-61
@@ -4283,7 +4283,7 @@ features:
                   description: Create instance 62 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-62
@@ -4295,7 +4295,7 @@ features:
                   description: Create instance 63 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-63
@@ -4307,7 +4307,7 @@ features:
                   description: Create instance 64 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-64
@@ -4319,7 +4319,7 @@ features:
                   description: Create instance 65 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-65
@@ -4331,7 +4331,7 @@ features:
                   description: Create instance 66 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-66
@@ -4343,7 +4343,7 @@ features:
                   description: Create instance 67 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-67
@@ -4355,7 +4355,7 @@ features:
                   description: Create instance 68 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-68
@@ -4367,7 +4367,7 @@ features:
                   description: Create instance 69 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-69
@@ -4379,7 +4379,7 @@ features:
                   description: Create instance 70 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-70
@@ -4391,7 +4391,7 @@ features:
                   description: Create instance 71 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-71
@@ -4403,7 +4403,7 @@ features:
                   description: Create instance 72 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-72
@@ -4415,7 +4415,7 @@ features:
                   description: Create instance 73 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-73
@@ -4427,7 +4427,7 @@ features:
                   description: Create instance 74 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-74
@@ -4439,7 +4439,7 @@ features:
                   description: Create instance 75 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-75
@@ -4451,7 +4451,7 @@ features:
                   description: Create instance 76 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-76
@@ -4463,7 +4463,7 @@ features:
                   description: Create instance 77 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-77
@@ -4475,7 +4475,7 @@ features:
                   description: Create instance 78 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-78
@@ -4487,7 +4487,7 @@ features:
                   description: Create instance 79 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-79
@@ -4499,7 +4499,7 @@ features:
                   description: Create instance 80 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-80
@@ -4511,7 +4511,7 @@ features:
                   description: Create instance 81 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-81
@@ -4523,7 +4523,7 @@ features:
                   description: Create instance 82 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-82
@@ -4535,7 +4535,7 @@ features:
                   description: Create instance 83 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-83
@@ -4547,7 +4547,7 @@ features:
                   description: Create instance 84 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-84
@@ -4559,7 +4559,7 @@ features:
                   description: Create instance 85 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-85
@@ -4571,7 +4571,7 @@ features:
                   description: Create instance 86 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-86
@@ -4583,7 +4583,7 @@ features:
                   description: Create instance 87 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-87
@@ -4595,7 +4595,7 @@ features:
                   description: Create instance 88 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-88
@@ -4607,7 +4607,7 @@ features:
                   description: Create instance 89 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-89
@@ -4619,7 +4619,7 @@ features:
                   description: Create instance 90 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-90
@@ -4631,7 +4631,7 @@ features:
                   description: Create instance 91 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-91
@@ -4643,7 +4643,7 @@ features:
                   description: Create instance 92 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-92
@@ -4655,7 +4655,7 @@ features:
                   description: Create instance 93 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-93
@@ -4667,7 +4667,7 @@ features:
                   description: Create instance 94 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-94
@@ -4679,7 +4679,7 @@ features:
                   description: Create instance 95 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-95
@@ -4691,7 +4691,7 @@ features:
                   description: Create instance 96 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-96
@@ -4703,7 +4703,7 @@ features:
                   description: Create instance 97 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-97
@@ -4715,7 +4715,7 @@ features:
                   description: Create instance 98 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-98
@@ -4727,7 +4727,7 @@ features:
                   description: Create instance 99 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-99
@@ -4739,7 +4739,7 @@ features:
                   description: Create instance 100 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-100
@@ -4751,7 +4751,7 @@ features:
                   description: Create instance 101 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-101
@@ -4763,7 +4763,7 @@ features:
                   description: Create instance 102 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-102
@@ -4775,7 +4775,7 @@ features:
                   description: Create instance 103 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-103
@@ -4787,7 +4787,7 @@ features:
                   description: Create instance 104 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-104
@@ -4799,7 +4799,7 @@ features:
                   description: Create instance 105 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-105
@@ -4811,7 +4811,7 @@ features:
                   description: Create instance 106 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-106
@@ -4823,7 +4823,7 @@ features:
                   description: Create instance 107 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-107
@@ -4835,7 +4835,7 @@ features:
                   description: Create instance 108 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-108
@@ -4847,7 +4847,7 @@ features:
                   description: Create instance 109 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-109
@@ -4859,7 +4859,7 @@ features:
                   description: Create instance 110 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-110
@@ -4871,7 +4871,7 @@ features:
                   description: Create instance 111 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-111
@@ -4883,7 +4883,7 @@ features:
                   description: Create instance 112 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-112
@@ -4895,7 +4895,7 @@ features:
                   description: Create instance 113 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-113
@@ -4907,7 +4907,7 @@ features:
                   description: Create instance 114 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-114
@@ -4919,7 +4919,7 @@ features:
                   description: Create instance 115 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-115
@@ -4931,7 +4931,7 @@ features:
                   description: Create instance 116 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-116
@@ -4943,7 +4943,7 @@ features:
                   description: Create instance 117 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-117
@@ -4955,7 +4955,7 @@ features:
                   description: Create instance 118 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-118
@@ -4967,7 +4967,7 @@ features:
                   description: Create instance 119 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-119
@@ -4979,7 +4979,7 @@ features:
                   description: Create instance 120 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-120
@@ -4991,7 +4991,7 @@ features:
                   description: Create instance 121 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-121
@@ -5003,7 +5003,7 @@ features:
                   description: Create instance 122 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-122
@@ -5015,7 +5015,7 @@ features:
                   description: Create instance 123 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-123
@@ -5027,7 +5027,7 @@ features:
                   description: Create instance 124 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-124
@@ -5039,7 +5039,7 @@ features:
                   description: Create instance 125 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-125
@@ -5051,7 +5051,7 @@ features:
                   description: Create instance 126 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-126
@@ -5063,7 +5063,7 @@ features:
                   description: Create instance 127 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-127
@@ -5075,7 +5075,7 @@ features:
                   description: Create instance 128 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-128
@@ -5087,7 +5087,7 @@ features:
                   description: Create instance 129 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-129
@@ -5099,7 +5099,7 @@ features:
                   description: Create instance 130 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-130
@@ -5111,7 +5111,7 @@ features:
                   description: Create instance 131 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-131
@@ -5123,7 +5123,7 @@ features:
                   description: Create instance 132 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-132
@@ -5135,7 +5135,7 @@ features:
                   description: Create instance 133 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-133
@@ -5147,7 +5147,7 @@ features:
                   description: Create instance 134 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-134
@@ -5159,7 +5159,7 @@ features:
                   description: Create instance 135 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-135
@@ -5171,7 +5171,7 @@ features:
                   description: Create instance 136 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-136
@@ -5183,7 +5183,7 @@ features:
                   description: Create instance 137 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-137
@@ -5195,7 +5195,7 @@ features:
                   description: Create instance 138 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-138
@@ -5207,7 +5207,7 @@ features:
                   description: Create instance 139 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-139
@@ -5219,7 +5219,7 @@ features:
                   description: Create instance 140 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-140
@@ -5231,7 +5231,7 @@ features:
                   description: Create instance 141 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-141
@@ -5243,7 +5243,7 @@ features:
                   description: Create instance 142 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-142
@@ -5255,7 +5255,7 @@ features:
                   description: Create instance 143 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-143
@@ -5267,7 +5267,7 @@ features:
                   description: Create instance 144 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-144
@@ -5279,7 +5279,7 @@ features:
                   description: Create instance 145 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-145
@@ -5291,7 +5291,7 @@ features:
                   description: Create instance 146 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-146
@@ -5303,7 +5303,7 @@ features:
                   description: Create instance 147 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-147
@@ -5315,7 +5315,7 @@ features:
                   description: Create instance 148 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-148
@@ -5327,7 +5327,7 @@ features:
                   description: Create instance 149 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-149
@@ -5339,7 +5339,7 @@ features:
                   description: Create instance 150 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-150
@@ -5351,7 +5351,7 @@ features:
                   description: Create instance 151 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-151
@@ -5363,7 +5363,7 @@ features:
                   description: Create instance 152 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-152
@@ -5375,7 +5375,7 @@ features:
                   description: Create instance 153 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-153
@@ -5387,7 +5387,7 @@ features:
                   description: Create instance 154 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-154
@@ -5399,7 +5399,7 @@ features:
                   description: Create instance 155 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-155
@@ -5411,7 +5411,7 @@ features:
                   description: Create instance 156 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-156
@@ -5423,7 +5423,7 @@ features:
                   description: Create instance 157 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-157
@@ -5435,7 +5435,7 @@ features:
                   description: Create instance 158 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-158
@@ -5447,7 +5447,7 @@ features:
                   description: Create instance 159 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-159
@@ -5459,7 +5459,7 @@ features:
                   description: Create instance 160 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-160
@@ -5471,7 +5471,7 @@ features:
                   description: Create instance 161 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-161
@@ -5483,7 +5483,7 @@ features:
                   description: Create instance 162 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-162
@@ -5495,7 +5495,7 @@ features:
                   description: Create instance 163 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-163
@@ -5507,7 +5507,7 @@ features:
                   description: Create instance 164 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-164
@@ -5519,7 +5519,7 @@ features:
                   description: Create instance 165 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-165
@@ -5531,7 +5531,7 @@ features:
                   description: Create instance 166 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-166
@@ -5543,7 +5543,7 @@ features:
                   description: Create instance 167 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-167
@@ -5555,7 +5555,7 @@ features:
                   description: Create instance 168 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-168
@@ -5567,7 +5567,7 @@ features:
                   description: Create instance 169 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-169
@@ -5579,7 +5579,7 @@ features:
                   description: Create instance 170 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-170
@@ -5591,7 +5591,7 @@ features:
                   description: Create instance 171 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-171
@@ -5603,7 +5603,7 @@ features:
                   description: Create instance 172 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-172
@@ -5615,7 +5615,7 @@ features:
                   description: Create instance 173 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-173
@@ -5627,7 +5627,7 @@ features:
                   description: Create instance 174 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-174
@@ -5639,7 +5639,7 @@ features:
                   description: Create instance 175 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-175
@@ -5651,7 +5651,7 @@ features:
                   description: Create instance 176 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-176
@@ -5663,7 +5663,7 @@ features:
                   description: Create instance 177 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-177
@@ -5675,7 +5675,7 @@ features:
                   description: Create instance 178 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-178
@@ -5687,7 +5687,7 @@ features:
                   description: Create instance 179 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-179
@@ -5699,7 +5699,7 @@ features:
                   description: Create instance 180 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-180
@@ -5711,7 +5711,7 @@ features:
                   description: Create instance 181 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-181
@@ -5723,7 +5723,7 @@ features:
                   description: Create instance 182 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-182
@@ -5735,7 +5735,7 @@ features:
                   description: Create instance 183 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-183
@@ -5747,7 +5747,7 @@ features:
                   description: Create instance 184 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-184
@@ -5759,7 +5759,7 @@ features:
                   description: Create instance 185 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-185
@@ -5771,7 +5771,7 @@ features:
                   description: Create instance 186 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-186
@@ -5783,7 +5783,7 @@ features:
                   description: Create instance 187 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-187
@@ -5795,7 +5795,7 @@ features:
                   description: Create instance 188 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-188
@@ -5807,7 +5807,7 @@ features:
                   description: Create instance 189 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-189
@@ -5819,7 +5819,7 @@ features:
                   description: Create instance 190 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-190
@@ -5831,7 +5831,7 @@ features:
                   description: Create instance 191 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-191
@@ -5843,7 +5843,7 @@ features:
                   description: Create instance 192 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-192
@@ -5855,7 +5855,7 @@ features:
                   description: Create instance 193 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-193
@@ -5867,7 +5867,7 @@ features:
                   description: Create instance 194 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-194
@@ -5879,7 +5879,7 @@ features:
                   description: Create instance 195 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-195
@@ -5891,7 +5891,7 @@ features:
                   description: Create instance 196 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-196
@@ -5903,7 +5903,7 @@ features:
                   description: Create instance 197 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-197
@@ -5915,7 +5915,7 @@ features:
                   description: Create instance 198 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-198
@@ -5927,7 +5927,7 @@ features:
                   description: Create instance 199 for max capacity test
                   method: POST
                   api: REST
-                  path: /inventory/models/operating-systems/retrieve
+                  path: /inventory/models/retrieve
                   body:
                     model-name: test-resource
                     name: MaxCapacityTest-199
