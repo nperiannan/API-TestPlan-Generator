@@ -1,0 +1,1075 @@
+version: "1.0"
+generatedAt: "2026-04-21T00:00:00+05:30"
+sourceRESTAPI: ./qaopenapi.yaml
+features:
+  - featureName: device-conflict
+    featurePath: /configuration-profile/device/conflict
+    profileType: configuration
+    description: >
+      End-to-end test plan for Device Conflict detection, inspection, and resolution.
+      Conflicts occur when a device's running configuration diverges from the previously
+      deployed intent (deviceValue ≠ previousDeployedValue). Resolution strategies are
+      Cloud-wins (CC/acceptCloud) or Device-wins (DD/acceptDevice) at property level or
+      device level, plus a Combined (CD) mixed mode.
+    tests:
+
+      # =========================================================================
+      # CONFLICT DETECTION TESTS — GET endpoints to detect and inspect conflicts
+      # =========================================================================
+      conflict-detection:
+
+        # ----- FEATURE 1: GET conflicts per device on a profile ---------------
+
+        - testCaseID: TC-CONFLICT-F-001
+          featureName: device-conflict
+          priority: P1
+          type: functional
+          description: >
+            [Happy Path] No conflict exists — GET conflicts returns hasConflicts=false.
+            Pre-condition: profile deployed successfully, no out-of-band device changes.
+          isDeploymentTest: false
+          steps:
+            - name: createProfile
+              description: Create a configuration profile
+              method: POST
+              api: REST
+              path: /configuration-profile
+              body:
+                name: "conflict-test-profile-001"
+              expectedStatus: 201
+              validations:
+                - type: statusCode
+                  expected: 201
+            - name: checkNoConflicts
+              description: GET conflicts — expect hasConflicts false when no drift exists
+              method: GET
+              api: REST
+              path: /configuration-profile/{name}/device/{hostName}/conflicts
+              pathParams:
+                name: "conflict-test-profile-001"
+                hostName: "Device-NoConflict"
+              queryParams:
+                detailLevel: "detailed"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.hasConflicts
+                  expected: false
+                - type: jsonPathEquals
+                  path: $.totalConflicts
+                  expected: 0
+
+        - testCaseID: TC-CONFLICT-F-002
+          featureName: device-conflict
+          priority: P1
+          type: functional
+          description: >
+            [Conflict Detected] Induce a conflict by simulating an out-of-band device
+            change (deviceValue ≠ previousDeployedValue), then verify GET reports the
+            conflict with the correct feature path and property details.
+          isDeploymentTest: true
+          steps:
+            - name: createProfile
+              description: Create profile
+              method: POST
+              api: REST
+              path: /configuration-profile
+              body:
+                name: "conflict-test-profile-002"
+              expectedStatus: 201
+            - name: deployProfile
+              description: Deploy profile to bind previousDeployedValue
+              method: POST
+              api: REST
+              path: /configuration-profile/{name}/deploy
+              pathParams:
+                name: "conflict-test-profile-002"
+              body:
+                scopeType: "device"
+                targetType: "device"
+                deploymentMethod: "immediate"
+              expectedStatus: 200
+            - name: simulateOutOfBandChange
+              description: >
+                Simulate device-side drift — apply a conflicting value directly on
+                the device (e.g. via NOSAPI push of a different vlan-id). This makes
+                deviceValue differ from previousDeployedValue.
+              method: POST
+              api: NOSAPI
+              path: /v0/configuration/vlan
+              body:
+                deviceId: "device-002-id"
+                vlanId: 999
+              expectedStatus: 200
+            - name: getConflicts
+              description: GET conflicts — expect hasConflicts=true with conflict details
+              method: GET
+              api: REST
+              path: /configuration-profile/{name}/device/{hostName}/conflicts
+              pathParams:
+                name: "conflict-test-profile-002"
+                hostName: "Device-Conflict-002"
+              queryParams:
+                detailLevel: "detailed"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.hasConflicts
+                  expected: true
+                - type: jsonPathExists
+                  path: $.features[0].featurePath
+                  description: At least one feature path is reported
+                - type: jsonPathExists
+                  path: $.features[0].objectsToBeUpdatedOnDevice[0].properties[0].valuePresentOnDevice
+                  description: Device value is reported in the conflict detail
+                - type: jsonPathExists
+                  path: $.features[0].objectsToBeUpdatedOnDevice[0].properties[0].valueToBeUpdatedOnDevice
+                  description: Cloud intended value is reported in the conflict detail
+
+        - testCaseID: TC-CONFLICT-F-003
+          featureName: device-conflict
+          priority: P2
+          type: functional
+          description: >
+            [Summary Detail Level] GET conflicts with detailLevel=summary returns only
+            high-level counts (conflictingFeatureCount, totalConflicts) without object
+            or property lists.
+          isDeploymentTest: false
+          steps:
+            - name: getConflictsSummary
+              description: GET conflicts at summary level
+              method: GET
+              api: REST
+              path: /configuration-profile/{name}/device/{hostName}/conflicts
+              pathParams:
+                name: "conflict-test-profile-002"
+                hostName: "Device-Conflict-002"
+              queryParams:
+                detailLevel: "summary"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathExists
+                  path: $.conflictingFeatureCount
+                - type: jsonPathExists
+                  path: $.totalConflicts
+                - type: jsonPathExists
+                  path: $.hasConflicts
+
+        # ----- FEATURE 2: GET conflict feature tree ---------------------------
+
+        - testCaseID: TC-CONFLICT-F-004
+          featureName: device-conflict
+          priority: P1
+          type: functional
+          description: >
+            [Conflict Feature Tree] GET /configuration-profile/device/conflict/feature-tree
+            returns ONLY features/objects/properties that have conflicts (filtered view).
+            Verify hasConflict=true on each returned property.
+          isDeploymentTest: false
+          steps:
+            - name: getConflictFeatureTree
+              description: GET filtered feature tree showing only conflicting items
+              method: GET
+              api: REST
+              path: /configuration-profile/device/conflict/feature-tree
+              queryParams:
+                deviceId: "123e4567-e89b-12d3-a456-426614174000"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathExists
+                  path: $.deviceId
+                - type: jsonPathExists
+                  path: $.totalConflictCount
+                - type: jsonPathExists
+                  path: $.features[0].objects[0].properties
+                  description: Properties are present in the tree
+                - type: jsonPathEquals
+                  path: $.features[0].objects[0].properties.vlanId.hasConflict
+                  expected: true
+                  description: Every returned property must have hasConflict=true
+
+        - testCaseID: TC-CONFLICT-F-005
+          featureName: device-conflict
+          priority: P2
+          type: functional
+          description: >
+            [Conflict Feature Tree — No Conflicts] When no conflicts exist for a device,
+            GET feature-tree must return 404 with message 'No conflicts found for the device'.
+          isDeploymentTest: false
+          steps:
+            - name: getConflictFeatureTreeNoConflicts
+              description: GET feature tree for a device with no conflicts — expect 404
+              method: GET
+              api: REST
+              path: /configuration-profile/device/conflict/feature-tree
+              queryParams:
+                deviceId: "device-with-no-conflicts-uuid"
+              expectedStatus: 404
+              validations:
+                - type: statusCode
+                  expected: 404
+                - type: jsonPathEquals
+                  path: $.error.message
+                  expected: "No conflicts found for the device"
+
+        # ----- FEATURE 3: GET scoped devices conflict summary -----------------
+
+        - testCaseID: TC-CONFLICT-F-006
+          featureName: device-conflict
+          priority: P1
+          type: functional
+          description: >
+            [Scoped Summary] GET /configuration-profile/devices/conflict?detailLevel=summary
+            returns aggregate counts (total_devices_with_conflicts, total_conflict_count).
+          isDeploymentTest: false
+          steps:
+            - name: getScopedConflictSummary
+              description: GET scoped conflict summary
+              method: GET
+              api: REST
+              path: /configuration-profile/devices/conflict
+              queryParams:
+                profileId: "550e8400-e29b-41d4-a716-446655440000"
+                detailLevel: "summary"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathExists
+                  path: $.total_devices_with_conflicts
+                - type: jsonPathExists
+                  path: $.total_conflict_count
+
+        - testCaseID: TC-CONFLICT-F-007
+          featureName: device-conflict
+          priority: P2
+          type: functional
+          description: >
+            [Scoped Full Detail] GET /configuration-profile/devices/conflict?detailLevel=full
+            returns per-device breakdown with deviceId, deviceName, conflictCount.
+          isDeploymentTest: false
+          steps:
+            - name: getScopedConflictFull
+              description: GET scoped conflict in full detail mode
+              method: GET
+              api: REST
+              path: /configuration-profile/devices/conflict
+              queryParams:
+                profileId: "550e8400-e29b-41d4-a716-446655440000"
+                detailLevel: "full"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathExists
+                  path: $.devices
+                - type: jsonPathExists
+                  path: $.devices[0].deviceId
+                - type: jsonPathExists
+                  path: $.devices[0].deviceName
+                - type: jsonPathExists
+                  path: $.devices[0].conflictCount
+
+        # ----- FEATURE 10: Verify profile-not-changed is NOT a conflict -------
+
+        - testCaseID: TC-CONFLICT-F-014
+          featureName: device-conflict
+          priority: P2
+          type: conflict-detection
+          description: >
+            [Not a Conflict — Profile Change] Verify that updating the profile value
+            (current intent) when the device value still matches the previousDeployedValue
+            does NOT create a conflict. Only out-of-band device changes cause conflicts.
+          isDeploymentTest: false
+          steps:
+            - name: updateProfileValue
+              description: Update the profile's intended vlan-id (profile change, device unchanged)
+              method: POST
+              api: REST
+              path: /configuration-profile/{name}/feature/object/modify
+              pathParams:
+                name: "conflict-test-profile-001"
+              body:
+                featurePath: "/l2-service-feature"
+                objectType: "vlan"
+                properties:
+                  - name: "vlan-id"
+                    value: 300
+              expectedStatus: 200
+            - name: checkNoConflictAfterProfileChange
+              description: >
+                GET conflicts — must return hasConflicts=false because device still
+                holds previousDeployedValue (=200); only the profile intent changed.
+              method: GET
+              api: REST
+              path: /configuration-profile/{name}/device/{hostName}/conflicts
+              pathParams:
+                name: "conflict-test-profile-001"
+                hostName: "Device-NoConflict"
+              queryParams:
+                detailLevel: "summary"
+              expectedStatus: 200
+              validations:
+                - type: jsonPathEquals
+                  path: $.hasConflicts
+                  expected: false
+
+      # =========================================================================
+      # CONFLICT RESOLUTION TESTS — CC/DD/CC-Bulk/DD-Bulk/CD resolution strategies
+      # =========================================================================
+      conflict-resolution:
+
+        # ----- FEATURE 4: Resolve — CC (Cloud wins, property level) -----------
+
+        - testCaseID: TC-CONFLICT-F-008
+          featureName: device-conflict
+          priority: P0
+          type: functional
+          description: >
+            [CC — Cloud wins, property level] Induce a conflict, then resolve by
+            accepting cloud value (resolutionType: acceptCloud) for specific properties.
+            Verify: 200 response, status=success, numberOfConflictsResolved > 0,
+            and subsequent GET conflicts shows hasConflicts=false.
+          isDeploymentTest: true
+          steps:
+            - name: induceSinglePropertyConflict
+              description: Simulate out-of-band change on device (deviceValue differs from previousDeployedValue)
+              method: POST
+              api: NOSAPI
+              path: /v0/configuration/vlan
+              body:
+                deviceId: "550e8400-e29b-41d4-a716-446655440000"
+                vlanId: 999
+              expectedStatus: 200
+            - name: resolveCloudWins
+              description: >
+                POST resolve — acceptCloud for a specific property (Cloud wins, CC strategy).
+                Previous intent was vlan-id=100, device changed to 999, we push cloud value back.
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                propertyResolutions:
+                  - deviceId: "550e8400-e29b-41d4-a716-446655440000"
+                    conflictingObjects:
+                      - objectId: "550e8400-e29b-41d4-a716-446655440001"
+                        properties:
+                          - name: "vlan-id"
+                            resolutionType: "acceptCloud"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.results[0].status
+                  expected: "success"
+                - type: jsonPathExists
+                  path: $.summary.numberOfConflictsResolved
+                  description: At least one conflict resolved
+            - name: verifyConflictCleared
+              description: GET conflicts after CC resolution — expect hasConflicts=false
+              method: GET
+              api: REST
+              path: /configuration-profile/{name}/device/{hostName}/conflicts
+              pathParams:
+                name: "conflict-test-profile-002"
+                hostName: "Device-Conflict-002"
+              queryParams:
+                detailLevel: "summary"
+              expectedStatus: 200
+              validations:
+                - type: jsonPathEquals
+                  path: $.hasConflicts
+                  expected: false
+
+        # ----- FEATURE 5: Resolve — DD (Device wins, property level) ----------
+
+        - testCaseID: TC-CONFLICT-F-009
+          featureName: device-conflict
+          priority: P0
+          type: functional
+          description: >
+            [DD — Device wins, property level] Induce a conflict, then resolve by
+            accepting device value (resolutionType: acceptDevice) for a specific property.
+            This updates the cloud's previousDeployedValue to match the device's current
+            value, removing the conflict without changing the device.
+          isDeploymentTest: true
+          steps:
+            - name: induceConflictForDD
+              description: Simulate out-of-band change on device side
+              method: POST
+              api: NOSAPI
+              path: /v0/configuration/vlan
+              body:
+                deviceId: "550e8400-e29b-41d4-a716-446655440000"
+                vlanId: 777
+              expectedStatus: 200
+            - name: resolveDeviceWins
+              description: POST resolve — acceptDevice for vlan-id property (DD strategy)
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                propertyResolutions:
+                  - deviceId: "550e8400-e29b-41d4-a716-446655440000"
+                    conflictingObjects:
+                      - objectId: "550e8400-e29b-41d4-a716-446655440001"
+                        properties:
+                          - name: "vlan-id"
+                            resolutionType: "acceptDevice"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.results[0].status
+                  expected: "success"
+                - type: jsonPathExists
+                  path: $.summary.numberOfConflictsResolved
+            - name: verifyConflictClearedDD
+              description: After DD resolution, conflicts should be gone (device value accepted as new baseline)
+              method: GET
+              api: REST
+              path: /configuration-profile/{name}/device/{hostName}/conflicts
+              pathParams:
+                name: "conflict-test-profile-002"
+                hostName: "Device-Conflict-002"
+              queryParams:
+                detailLevel: "summary"
+              expectedStatus: 200
+              validations:
+                - type: jsonPathEquals
+                  path: $.hasConflicts
+                  expected: false
+
+        # ----- FEATURE 6: Resolve — CC bulk (Device level acceptCloud) --------
+
+        - testCaseID: TC-CONFLICT-F-010
+          featureName: device-conflict
+          priority: P1
+          type: functional
+          description: >
+            [CC Bulk — Device level] Resolve ALL conflicting properties on a device at once
+            using deviceResolutions with resolution=acceptCloud. Simulates fleet-wide
+            cloud-wins resolution after mass out-of-band drift.
+          isDeploymentTest: true
+          steps:
+            - name: induceBulkConflict
+              description: Simulate multiple out-of-band changes across multiple properties
+              method: POST
+              api: NOSAPI
+              path: /v0/configuration/vlan
+              body:
+                deviceId: "660e8400-e29b-41d4-a716-446655440001"
+                vlanId: 888
+              expectedStatus: 200
+            - name: resolveBulkCloudWins
+              description: POST device-level resolve — acceptCloud for entire device (all properties)
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                deviceResolutions:
+                  - deviceId: "660e8400-e29b-41d4-a716-446655440001"
+                    resolution: "acceptCloud"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.results[0].status
+                  expected: "success"
+                - type: jsonPathExists
+                  path: $.summary.numberOfConflictsResolved
+
+        # ----- FEATURE 7: Resolve — DD bulk (Device level acceptDevice) -------
+
+        - testCaseID: TC-CONFLICT-F-011
+          featureName: device-conflict
+          priority: P1
+          type: functional
+          description: >
+            [DD Bulk — Device level] Resolve ALL conflicting properties on a device at once
+            using deviceResolutions with resolution=acceptDevice. The cloud updates its
+            baseline to match the device's current values.
+          isDeploymentTest: true
+          steps:
+            - name: induceBulkConflictDD
+              description: Simulate out-of-band change
+              method: POST
+              api: NOSAPI
+              path: /v0/configuration/vlan
+              body:
+                deviceId: "770e8400-e29b-41d4-a716-446655440002"
+                vlanId: 555
+              expectedStatus: 200
+            - name: resolveBulkDeviceWins
+              description: POST device-level resolve — acceptDevice for entire device
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                deviceResolutions:
+                  - deviceId: "770e8400-e29b-41d4-a716-446655440002"
+                    resolution: "acceptDevice"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.results[0].status
+                  expected: "success"
+                - type: jsonPathExists
+                  path: $.summary.numberOfConflictsResolved
+
+        # ----- FEATURE 8: Resolve — Combined CD (mixed property+device) -------
+
+        - testCaseID: TC-CONFLICT-F-012
+          featureName: device-conflict
+          priority: P1
+          type: functional
+          description: >
+            [CD — Combined Mode] Mix property-level and device-level resolutions in one
+            request. Device A uses fine-grained property resolution; Devices B and C use
+            bulk device-level acceptCloud. Each deviceId must appear in only ONE array.
+          isDeploymentTest: true
+          steps:
+            - name: resolveCombined
+              description: POST combined resolution — property-level for Device A, device-level for B and C
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                propertyResolutions:
+                  - deviceId: "550e8400-e29b-41d4-a716-446655440000"
+                    conflictingObjects:
+                      - objectId: "123e4567-e89b-12d3-a456-426614174001"
+                        properties:
+                          - name: "vlan-id"
+                            resolutionType: "acceptCloud"
+                          - name: "vlan-name"
+                            resolutionType: "acceptDevice"
+                      - objectId: "123e4567-e89b-12d3-a456-426614174002"
+                        properties:
+                          - name: "port-speed"
+                            resolutionType: "acceptCloud"
+                deviceResolutions:
+                  - deviceId: "660e8400-e29b-41d4-a716-446655440001"
+                    resolution: "acceptCloud"
+                  - deviceId: "770e8400-e29b-41d4-a716-446655440002"
+                    resolution: "acceptCloud"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.results[0].status
+                  expected: "success"
+                - type: jsonPathEquals
+                  path: $.results[1].status
+                  expected: "success"
+                - type: jsonPathEquals
+                  path: $.results[2].status
+                  expected: "success"
+                - type: jsonPathExists
+                  path: $.summary.numberOfDevices
+                - type: jsonPathExists
+                  path: $.summary.numberOfConflictsResolved
+
+        # ----- FEATURE 9: Multi-device batch conflict resolution --------------
+
+        - testCaseID: TC-CONFLICT-F-013
+          featureName: device-conflict
+          priority: P1
+          type: functional
+          description: >
+            [Multi-device Batch] Resolve conflicts on 3 devices simultaneously using
+            device-level resolution (fleet-wide acceptCloud). Verify each device entry
+            in results shows status=success and aggregate summary is correct.
+          isDeploymentTest: true
+          steps:
+            - name: resolveMultiDevice
+              description: POST device-level resolve for 3 devices simultaneously
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                deviceResolutions:
+                  - deviceId: "550e8400-e29b-41d4-a716-446655440000"
+                    resolution: "acceptCloud"
+                  - deviceId: "660e8400-e29b-41d4-a716-446655440001"
+                    resolution: "acceptCloud"
+                  - deviceId: "770e8400-e29b-41d4-a716-446655440002"
+                    resolution: "acceptCloud"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.summary.numberOfDevices
+                  expected: 3
+                - type: jsonPathExists
+                  path: $.summary.numberOfConflictsResolved
+
+      # =========================================================================
+      # NEGATIVE TESTS
+      # =========================================================================
+      negative:
+
+        - testCaseID: TC-CONFLICT-N-001
+          featureName: device-conflict
+          priority: P2
+          type: negative
+          description: >
+            [Invalid Profile] GET conflicts with a non-existent profile name returns 404.
+          isDeploymentTest: false
+          steps:
+            - name: getConflictsInvalidProfile
+              method: GET
+              api: REST
+              path: /configuration-profile/{name}/device/{hostName}/conflicts
+              pathParams:
+                name: "nonexistent-profile-xyz"
+                hostName: "Device-001"
+              queryParams:
+                detailLevel: "detailed"
+              expectedStatus: 404
+              validations:
+                - type: statusCode
+                  expected: 404
+                - type: jsonPathExists
+                  path: $.Errors[0].error.message
+
+        - testCaseID: TC-CONFLICT-N-002
+          featureName: device-conflict
+          priority: P2
+          type: negative
+          description: >
+            [Invalid Device] GET conflicts with a non-existent device hostname returns 404.
+          isDeploymentTest: false
+          steps:
+            - name: getConflictsInvalidDevice
+              method: GET
+              api: REST
+              path: /configuration-profile/{name}/device/{hostName}/conflicts
+              pathParams:
+                name: "conflict-test-profile-001"
+                hostName: "device-does-not-exist-xyz"
+              expectedStatus: 404
+              validations:
+                - type: statusCode
+                  expected: 404
+
+        - testCaseID: TC-CONFLICT-N-003
+          featureName: device-conflict
+          priority: P2
+          type: negative
+          description: >
+            [Invalid detailLevel] GET conflicts with an unsupported detailLevel value
+            returns 400 Bad Request.
+          isDeploymentTest: false
+          steps:
+            - name: getConflictsInvalidDetailLevel
+              method: GET
+              api: REST
+              path: /configuration-profile/{name}/device/{hostName}/conflicts
+              pathParams:
+                name: "conflict-test-profile-001"
+                hostName: "Device-001"
+              queryParams:
+                detailLevel: "verbose"
+              expectedStatus: 400
+              validations:
+                - type: statusCode
+                  expected: 400
+
+        - testCaseID: TC-CONFLICT-N-004
+          featureName: device-conflict
+          priority: P1
+          type: negative
+          description: >
+            [Invalid resolutionType] POST resolve with an unsupported resolutionType value
+            (not acceptCloud or acceptDevice) returns 400 Bad Request.
+          isDeploymentTest: false
+          steps:
+            - name: resolveWithInvalidResolutionType
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                propertyResolutions:
+                  - deviceId: "550e8400-e29b-41d4-a716-446655440000"
+                    conflictingObjects:
+                      - objectId: "550e8400-e29b-41d4-a716-446655440001"
+                        properties:
+                          - name: "vlan-id"
+                            resolutionType: "acceptBoth"
+              expectedStatus: 400
+              validations:
+                - type: statusCode
+                  expected: 400
+                - type: jsonPathEquals
+                  path: $.results[0].status
+                  expected: "failed"
+                - type: jsonPathEquals
+                  path: $.results[0].error.message
+                  expected: "Invalid resolution strategy. Must be 'acceptCloud' or 'acceptDevice'"
+
+        - testCaseID: TC-CONFLICT-N-005
+          featureName: device-conflict
+          priority: P1
+          type: negative
+          description: >
+            [Duplicate deviceId] POST resolve with the same deviceId appearing in both
+            propertyResolutions AND deviceResolutions. Property-level should succeed;
+            device-level for the duplicate must return status=failed with error message
+            'Already resolved as part of propertyResolutions'.
+          isDeploymentTest: false
+          steps:
+            - name: resolveDuplicateDeviceId
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                propertyResolutions:
+                  - deviceId: "550e8400-e29b-41d4-a716-446655440000"
+                    conflictingObjects:
+                      - objectId: "550e8400-e29b-41d4-a716-446655440001"
+                        properties:
+                          - name: "admin-status"
+                            resolutionType: "acceptCloud"
+                deviceResolutions:
+                  - deviceId: "550e8400-e29b-41d4-a716-446655440000"
+                    resolution: "acceptCloud"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.results[0].status
+                  expected: "success"
+                - type: jsonPathEquals
+                  path: $.results[1].status
+                  expected: "failed"
+                - type: jsonPathExists
+                  path: $.results[1].error.message
+
+        - testCaseID: TC-CONFLICT-N-006
+          featureName: device-conflict
+          priority: P2
+          type: negative
+          description: >
+            [No conflicts to resolve] POST resolve for a device that has no conflicts
+            returns 404 with message 'Device not found or no conflicts exist'.
+          isDeploymentTest: false
+          steps:
+            - name: resolveNoConflicts
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                deviceResolutions:
+                  - deviceId: "device-with-zero-conflicts-uuid"
+                    resolution: "acceptCloud"
+              expectedStatus: 404
+              validations:
+                - type: statusCode
+                  expected: 404
+                - type: jsonPathEquals
+                  path: $.results[0].status
+                  expected: "failed"
+
+        - testCaseID: TC-CONFLICT-N-007
+          featureName: device-conflict
+          priority: P2
+          type: negative
+          description: >
+            [Missing deviceId in conflict resolve] POST resolve with an empty propertyResolutions
+            array (no deviceId) returns 400 Bad Request.
+          isDeploymentTest: false
+          steps:
+            - name: resolveMissingDeviceId
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                propertyResolutions: []
+                deviceResolutions: []
+              expectedStatus: 400
+              validations:
+                - type: statusCode
+                  expected: 400
+
+        - testCaseID: TC-CONFLICT-N-008
+          featureName: device-conflict
+          priority: P2
+          type: negative
+          description: >
+            [Feature tree — missing deviceId query param] GET conflict/feature-tree
+            without the required deviceId query parameter returns 400.
+          isDeploymentTest: false
+          steps:
+            - name: getFeatureTreeMissingDeviceId
+              method: GET
+              api: REST
+              path: /configuration-profile/device/conflict/feature-tree
+              expectedStatus: 400
+              validations:
+                - type: statusCode
+                  expected: 400
+
+        - testCaseID: TC-CONFLICT-N-009
+          featureName: device-conflict
+          priority: P2
+          type: negative
+          description: >
+            [Feature tree — invalid UUID format] GET conflict/feature-tree with a
+            malformed deviceId (not a UUID) returns 400 with appropriate error message.
+          isDeploymentTest: false
+          steps:
+            - name: getFeatureTreeInvalidUUID
+              method: GET
+              api: REST
+              path: /configuration-profile/device/conflict/feature-tree
+              queryParams:
+                deviceId: "not-a-valid-uuid"
+              expectedStatus: 400
+              validations:
+                - type: statusCode
+                  expected: 400
+                - type: jsonPathEquals
+                  path: $.error.message
+                  expected: "Invalid device ID format"
+
+        - testCaseID: TC-CONFLICT-N-010
+          featureName: device-conflict
+          priority: P2
+          type: negative
+          description: >
+            [Scoped summary — invalid profileId] GET /configuration-profile/devices/conflict
+            with a malformed (non-UUID) profileId returns 400.
+          isDeploymentTest: false
+          steps:
+            - name: getScopedConflictInvalidProfileId
+              method: GET
+              api: REST
+              path: /configuration-profile/devices/conflict
+              queryParams:
+                profileId: "bad-id-123"
+              expectedStatus: 400
+              validations:
+                - type: statusCode
+                  expected: 400
+                - type: jsonPathEquals
+                  path: $.error.code
+                  expected: 1727
+
+        - testCaseID: TC-CONFLICT-N-011
+          featureName: device-conflict
+          priority: P2
+          type: negative
+          description: >
+            [Scoped summary — non-existent profileId] GET /configuration-profile/devices/conflict
+            with a valid-format but non-existent profileId returns 404.
+          isDeploymentTest: false
+          steps:
+            - name: getScopedConflictNotFoundProfile
+              method: GET
+              api: REST
+              path: /configuration-profile/devices/conflict
+              queryParams:
+                profileId: "00000000-0000-0000-0000-000000000000"
+              expectedStatus: 404
+              validations:
+                - type: statusCode
+                  expected: 404
+
+      # =========================================================================
+      # BOUNDARY TESTS
+      # =========================================================================
+      boundary:
+
+        - testCaseID: TC-CONFLICT-B-001
+          featureName: device-conflict
+          priority: P2
+          type: boundary
+          description: >
+            [Max Devices in batch resolve] POST resolve with the maximum expected number
+            of devices in a single request. Verify all succeed and summary counts are correct.
+          isDeploymentTest: false
+          steps:
+            - name: resolveLargeDeviceBatch
+              description: Resolve conflicts for a large batch of devices simultaneously
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                deviceResolutions:
+                  - deviceId: "aaaaaaaa-0000-0000-0000-000000000001"
+                    resolution: "acceptCloud"
+                  - deviceId: "aaaaaaaa-0000-0000-0000-000000000002"
+                    resolution: "acceptCloud"
+                  - deviceId: "aaaaaaaa-0000-0000-0000-000000000003"
+                    resolution: "acceptCloud"
+                  - deviceId: "aaaaaaaa-0000-0000-0000-000000000004"
+                    resolution: "acceptCloud"
+                  - deviceId: "aaaaaaaa-0000-0000-0000-000000000005"
+                    resolution: "acceptCloud"
+                  - deviceId: "aaaaaaaa-0000-0000-0000-000000000006"
+                    resolution: "acceptCloud"
+                  - deviceId: "aaaaaaaa-0000-0000-0000-000000000007"
+                    resolution: "acceptCloud"
+                  - deviceId: "aaaaaaaa-0000-0000-0000-000000000008"
+                    resolution: "acceptCloud"
+                  - deviceId: "aaaaaaaa-0000-0000-0000-000000000009"
+                    resolution: "acceptCloud"
+                  - deviceId: "aaaaaaaa-0000-0000-0000-000000000010"
+                    resolution: "acceptCloud"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.summary.numberOfDevices
+                  expected: 10
+
+        - testCaseID: TC-CONFLICT-B-002
+          featureName: device-conflict
+          priority: P2
+          type: boundary
+          description: >
+            [Max properties in single object resolve] POST property-level resolve with
+            the maximum number of properties in a single conflicting object.
+          isDeploymentTest: false
+          steps:
+            - name: resolveMaxProperties
+              description: Resolve conflicts for a single device with many conflicting properties
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                propertyResolutions:
+                  - deviceId: "550e8400-e29b-41d4-a716-446655440000"
+                    conflictingObjects:
+                      - objectId: "550e8400-e29b-41d4-a716-446655440001"
+                        properties:
+                          - name: "vlan-id"
+                            resolutionType: "acceptCloud"
+                          - name: "vlan-name"
+                            resolutionType: "acceptCloud"
+                          - name: "port-mode"
+                            resolutionType: "acceptCloud"
+                          - name: "poe-enable"
+                            resolutionType: "acceptCloud"
+                          - name: "power-mode"
+                            resolutionType: "acceptCloud"
+                          - name: "power-limit"
+                            resolutionType: "acceptCloud"
+                          - name: "poe-priority"
+                            resolutionType: "acceptCloud"
+                          - name: "static-port-type"
+                            resolutionType: "acceptCloud"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.results[0].status
+                  expected: "success"
+
+        - testCaseID: TC-CONFLICT-B-003
+          featureName: device-conflict
+          priority: P2
+          type: boundary
+          description: >
+            [Zero conflicts in scoped summary] When a profile has no devices with conflicts,
+            GET scoped summary returns total_devices_with_conflicts=0 and total_conflict_count=0.
+          isDeploymentTest: false
+          steps:
+            - name: getScopedSummaryZeroConflicts
+              method: GET
+              api: REST
+              path: /configuration-profile/devices/conflict
+              queryParams:
+                profileId: "clean-profile-no-conflicts-uuid"
+                detailLevel: "summary"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathEquals
+                  path: $.total_devices_with_conflicts
+                  expected: 0
+                - type: jsonPathEquals
+                  path: $.total_conflict_count
+                  expected: 0
+
+      # =========================================================================
+      # SCALE TESTS
+      # =========================================================================
+      scale:
+
+        - testCaseID: TC-CONFLICT-S-001
+          featureName: device-conflict
+          priority: P3
+          type: scale
+          description: >
+            [Scale — Fleet-wide conflict check] Trigger conflict detection across 100
+            devices simultaneously. Verify response time is within acceptable limits and
+            all conflict data is returned correctly.
+          isDeploymentTest: false
+          steps:
+            - name: getScopedConflictFullScale
+              description: GET scoped conflict full detail for a profile with 100+ devices
+              method: GET
+              api: REST
+              path: /configuration-profile/devices/conflict
+              queryParams:
+                profileId: "scale-test-profile-uuid"
+                detailLevel: "full"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: jsonPathExists
+                  path: $.devices
+                - type: responseTimeUnder
+                  expected: 5000
+                  description: Response must arrive within 5 seconds for 100 devices
+
+        - testCaseID: TC-CONFLICT-S-002
+          featureName: device-conflict
+          priority: P3
+          type: scale
+          description: >
+            [Scale — Batch resolve 50 devices] POST resolve for 50 devices at once using
+            device-level acceptCloud. Verify 200 response, all devices succeed, and
+            summary numberOfDevices=50.
+          isDeploymentTest: false
+          steps:
+            - name: resolveFiftyDevices
+              description: Batch resolve 50 devices via device-level resolution
+              method: POST
+              api: REST
+              path: /configuration-profile/device/conflict/resolve
+              body:
+                deviceResolutions:
+                  - deviceId: "scale-device-0001"
+                    resolution: "acceptCloud"
+                  - deviceId: "scale-device-0002"
+                    resolution: "acceptCloud"
+              expectedStatus: 200
+              validations:
+                - type: statusCode
+                  expected: 200
+                - type: responseTimeUnder
+                  expected: 10000
+                  description: Batch resolution of 50 devices must complete within 10 seconds

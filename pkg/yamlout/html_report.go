@@ -331,6 +331,8 @@ func (w *Writer) generateHTML(summaries []FeatureSummary, coverage *CoverageData
         .category-badge.boundary { background: #fff3e0; color: #ef6c00; }
         .category-badge.scale { background: #e8f5e9; color: #2e7d32; }
         .category-badge.performance { background: #f3e5f5; color: #7b1fa2; }
+        .category-badge.conflict-detection { background: #fce4ec; color: #880e4f; }
+        .category-badge.conflict-resolution { background: #e8eaf6; color: #283593; }
         
         .property-table {
             width: 100%;
@@ -545,6 +547,8 @@ func (w *Writer) writeFeatureSection(html *strings.Builder, summary FeatureSumma
 	// Sort categories for consistent display
 	categories := []model.TestCategory{
 		model.TestCategoryFunctional,
+		model.TestCategoryConflictDetection,
+		model.TestCategoryConflictResolution,
 		model.TestCategoryNegative,
 		model.TestCategoryBoundary,
 		model.TestCategoryScale,
@@ -806,6 +810,8 @@ tbody tr:hover td { background:#fafafa; }
 .tc-negative { background:#ffebee; color:#b71c1c; }
 .tc-scale { background:#e8f5e9; color:#1b5e20; }
 .tc-performance { background:#f3e5f5; color:#6a1b9a; }
+.tc-conflict-detection { background:#fce4ec; color:#880e4f; }
+.tc-conflict-resolution { background:#e8eaf6; color:#283593; }
 .tc-total { background:#263238; color:#fff; }
 .zero { color:#ccc; }
 footer { text-align:center; color:#aaa; font-size:.8em; margin-top:20px; }
@@ -829,6 +835,7 @@ footer { text-align:center; color:#aaa; font-size:.8em; margin-top:20px; }
 	for _, cat := range []model.TestCategory{
 		model.TestCategoryFunctional, model.TestCategoryBoundary,
 		model.TestCategoryNegative, model.TestCategoryScale, model.TestCategoryPerformance,
+		model.TestCategoryConflictDetection, model.TestCategoryConflictResolution,
 	} {
 		if n := catTotals[cat]; n > 0 {
 			html.WriteString(fmt.Sprintf(`<div class="kpi"><div class="val">%d</div><div class="lbl">%s</div></div>`, n, strings.Title(string(cat))))
@@ -841,6 +848,8 @@ footer { text-align:center; color:#aaa; font-size:.8em; margin-top:20px; }
 <thead><tr>
 <th>#</th><th>Feature Name</th><th>Feature Path</th><th>Depth</th>
 <th class="tc-functional" style="border-radius:6px 6px 0 0">Functional</th>
+<th class="tc-conflict-detection" style="border-radius:6px 6px 0 0">Conflict Detection</th>
+<th class="tc-conflict-resolution" style="border-radius:6px 6px 0 0">Conflict Resolution</th>
 <th class="tc-boundary" style="border-radius:6px 6px 0 0">Boundary</th>
 <th class="tc-negative" style="border-radius:6px 6px 0 0">Negative</th>
 <th class="tc-scale" style="border-radius:6px 6px 0 0">Scale</th>
@@ -901,7 +910,10 @@ footer { text-align:center; color:#aaa; font-size:.8em; margin-top:20px; }
 				depthStr))
 
 			for _, cat := range []model.TestCategory{
-				model.TestCategoryFunctional, model.TestCategoryBoundary,
+				model.TestCategoryFunctional,
+				model.TestCategoryConflictDetection,
+				model.TestCategoryConflictResolution,
+				model.TestCategoryBoundary,
 				model.TestCategoryNegative, model.TestCategoryScale, model.TestCategoryPerformance,
 			} {
 				if n := counts[cat]; n > 0 {

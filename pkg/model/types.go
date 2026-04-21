@@ -50,11 +50,13 @@ const (
 type TestCategory string
 
 const (
-	TestCategoryFunctional  TestCategory = "functional"
-	TestCategoryBoundary    TestCategory = "boundary"
-	TestCategoryNegative    TestCategory = "negative"
-	TestCategoryScale       TestCategory = "scale"
-	TestCategoryPerformance TestCategory = "performance"
+	TestCategoryFunctional         TestCategory = "functional"
+	TestCategoryBoundary           TestCategory = "boundary"
+	TestCategoryNegative           TestCategory = "negative"
+	TestCategoryScale              TestCategory = "scale"
+	TestCategoryPerformance        TestCategory = "performance"
+	TestCategoryConflictDetection  TestCategory = "conflict-detection"
+	TestCategoryConflictResolution TestCategory = "conflict-resolution"
 )
 
 // TestPriority represents test priority levels
