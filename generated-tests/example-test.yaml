@@ -1,0 +1,91 @@
+featurePath: /configuration-profile/{name}/feature/object/retrieve
+profileType: configuration
+test:
+    testCaseID: TCXM_1002
+    featureName: user-profile-policy-config
+    priority: P0
+    type: functional
+    description: Create user-profile-policy-config, scope to device, target to device, deploy, and verify on NOS devices
+    scopeType: device
+    targetType: device
+    deploymentMethod: immediate
+    isDeploymentTest: true
+    steps:
+        - name: createuser-profile-policy-config
+          description: Create user-profile-policy-config configuration
+          method: POST
+          api: REST
+          path: /configuration-profile/{name}/feature/object/override/create-modify
+          body:
+            name: TestProfile
+          expectedStatus: 201
+          validations:
+            - type: statusCode
+              expected: 201
+        - name: getProfile
+          description: Retrieve created profile
+          method: GET
+          api: REST
+          path: /configuration-profile/{name}/feature/object/retrieve
+          pathParams:
+            profileName: TestProfile
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+        - name: scopeProfileTodevice
+          description: Scope profile to device
+          method: POST
+          api: REST
+          path: /global-profile/TestProfile/scope
+          pathParams:
+            profileName: TestProfile
+          body:
+            scopeId: test-scope-001
+            scopeType: device
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+        - name: targetProfileTodevice
+          description: Target profile to device
+          method: POST
+          api: REST
+          path: /global-profile/TestProfile/target
+          pathParams:
+            profileName: TestProfile
+          body:
+            targetId: test-scope-001
+            targetType: device
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+        - name: deployProfileTodevice
+          description: Deploy profile to device
+          method: POST
+          api: REST
+          path: /global-profile/TestProfile/deploy
+          pathParams:
+            profileName: TestProfile
+          body:
+            deploymentMethod: immediate
+          expectedStatus: 202
+          validations:
+            - type: statusCode
+              expected: 202
+        - name: checkDeploymentStatus
+          description: Verify deployment status
+          method: GET
+          api: REST
+          path: /global-profile/TestProfile/deployment/status
+          pathParams:
+            profileName: TestProfile
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+            - type: jsonPathEquals
+              path: $.status
+              expected: SUCCESS
+          timeout: 300

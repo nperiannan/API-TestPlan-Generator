@@ -1,0 +1,480 @@
+version: "1.0"
+generatedAt: "2026-04-21T14:29:18+05:30"
+sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
+sourceRESTAPI: ./qaopenapi.yaml
+sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
+features:
+    - featureName: security-object-security-protocol-suite
+      featurePath: /configuration-profile/{name}/feature/object/retrieve
+      profileType: configuration
+      description: ""
+      tests:
+        boundary: []
+        functional:
+            - testCaseID: TCXM_1707
+              featureName: security-object-security-protocol-suite
+              priority: P0
+              type: functional
+              description: Create security-object-security-protocol-suite and schedule deployment to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: scheduled
+              isDeploymentTest: true
+              steps:
+                - name: createsecurity-object-security-protocol-suite
+                  description: Create security-object-security-protocol-suite configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    name: TestProfile-Additional
+                    objectType: security-object-security-protocol-suite
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: security-object-security-protocol-suite
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeploymentTodevice
+                  description: Schedule deployment to device at 2026-04-21T09:59:18Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-21T09:59:18Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+            - testCaseID: TCXM_1708
+              featureName: security-object-security-protocol-suite
+              priority: P0
+              type: functional
+              description: Create security-object-security-protocol-suite and schedule deployment to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: scheduled
+              isDeploymentTest: true
+              steps:
+                - name: createsecurity-object-security-protocol-suite
+                  description: Create security-object-security-protocol-suite configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    name: TestProfile-Additional
+                    objectType: security-object-security-protocol-suite
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: security-object-security-protocol-suite
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeploymentTosite
+                  description: Schedule deployment to site at 2026-04-21T09:59:18Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-21T09:59:18Z"
+                    sites:
+                        - test-site-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+            - testCaseID: TCXM_1709
+              featureName: security-object-security-protocol-suite
+              priority: P1
+              type: functional
+              description: Edit deployment schedule for security-object-security-protocol-suite on device
+              isDeploymentTest: true
+              steps:
+                - name: createsecurity-object-security-protocol-suite
+                  description: Create security-object-security-protocol-suite configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    name: TestProfile-Additional
+                    objectType: security-object-security-protocol-suite
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: security-object-security-protocol-suite
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleInitialDeployment
+                  description: Schedule initial deployment
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-21T09:59:18Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+                - name: editDeploymentSchedule
+                  description: Edit deployment schedule to 2026-04-21T10:59:18Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-21T10:59:18Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: "200"
+            - testCaseID: TCXM_1710
+              featureName: security-object-security-protocol-suite
+              priority: P1
+              type: functional
+              description: Clear deployment schedule for security-object-security-protocol-suite on site
+              isDeploymentTest: true
+              steps:
+                - name: createsecurity-object-security-protocol-suite
+                  description: Create security-object-security-protocol-suite configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    name: TestProfile-Additional
+                    objectType: security-object-security-protocol-suite
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: security-object-security-protocol-suite
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeployment
+                  description: Schedule deployment
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-21T09:59:18Z"
+                    sites:
+                        - test-site-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+                - name: clearDeploymentSchedule
+                  description: Clear the deployment schedule
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy/clear-schedule
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    sites:
+                        - test-site-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: "200"
+            - testCaseID: TCXM_1711
+              featureName: security-object-security-protocol-suite
+              priority: P1
+              type: functional
+              description: Clone security-object-security-protocol-suite configuration profile
+              isDeploymentTest: false
+              steps:
+                - name: createsecurity-object-security-protocol-suite
+                  description: Create security-object-security-protocol-suite configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    name: TestProfile-Additional
+                    objectType: security-object-security-protocol-suite
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: security-object-security-protocol-suite
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: cloneProfile
+                  description: Clone the configuration profile
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/clone
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    newProfileName: TestProfile-Additional-Cloned
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+            - testCaseID: TCXM_1712
+              featureName: security-object-security-protocol-suite
+              priority: P1
+              type: functional
+              description: Clone security-object-security-protocol-suite feature object
+              isDeploymentTest: false
+              steps:
+                - name: createsecurity-object-security-protocol-suite
+                  description: Create security-object-security-protocol-suite configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    name: TestProfile-Additional
+                    objectType: security-object-security-protocol-suite
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: security-object-security-protocol-suite
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: cloneFeatureObject
+                  description: Clone security-object-security-protocol-suite feature object
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/feature/object/clone
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    newId: cloned-object-1
+                    objectType: security-object-security-protocol-suite
+                    sourceId: original-object-1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+        negative: []
+        performance:
+            - testCaseID: TCXM_1713
+              featureName: security-object-security-protocol-suite
+              priority: P3
+              type: performance
+              description: 'Performance test: read security-object-security-protocol-suite 10 times'
+              isDeploymentTest: false
+              steps:
+                - name: read0
+                  description: Read iteration 0
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/overrides
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read1
+                  description: Read iteration 1
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/overrides
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read2
+                  description: Read iteration 2
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/overrides
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read3
+                  description: Read iteration 3
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/overrides
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read4
+                  description: Read iteration 4
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/overrides
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read5
+                  description: Read iteration 5
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/overrides
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read6
+                  description: Read iteration 6
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/overrides
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read7
+                  description: Read iteration 7
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/overrides
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read8
+                  description: Read iteration 8
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/overrides
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read9
+                  description: Read iteration 9
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/overrides
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+              metadata:
+                concurrency: 5
+                iterations: 10
+                operation: read
+        scale: []

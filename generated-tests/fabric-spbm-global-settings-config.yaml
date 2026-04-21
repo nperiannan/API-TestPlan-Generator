@@ -1,0 +1,3609 @@
+version: "1.0"
+generatedAt: "2026-04-20T19:58:46+05:30"
+sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
+sourceRESTAPI: .\qaopenapi.yaml
+sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
+features:
+    - featureName: fabric-spbm-global-settings-config
+      featurePath: /global-profile
+      profileType: global
+      description: ""
+      tests:
+        functional:
+            - testCaseID: TCXM_2064
+              featureName: fabric-spbm-global-settings-config
+              priority: P0
+              type: functional
+              description: Create a fabric-spbm-global-settings-config and verify it exists
+              isDeploymentTest: false
+              steps:
+                - name: createResource
+                  description: Create fabric-spbm-global-settings-config
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_2065
+              featureName: fabric-spbm-global-settings-config
+              priority: P2
+              type: functional
+              description: List all fabric-spbm-global-settings-config resources
+              isDeploymentTest: false
+              steps:
+                - name: createResourceForList
+                  description: Create fabric-spbm-global-settings-config for list test
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: listAllResources
+                  description: List all fabric-spbm-global-settings-config resources
+                  method: GET
+                  api: REST
+                  path: /global-profile
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+            - testCaseID: TCXM_2066
+              featureName: fabric-spbm-global-settings-config
+              priority: P2
+              type: functional
+              description: Idempotent create test for fabric-spbm-global-settings-config (creating same resource twice)
+              isDeploymentTest: false
+              steps:
+                - name: createResourceFirstTime
+                  description: Create fabric-spbm-global-settings-config (first attempt)
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: createResourceAgain
+                  description: Create same fabric-spbm-global-settings-config again (idempotent check)
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+            - testCaseID: TCXM_2067
+              featureName: fabric-spbm-global-settings-config
+              priority: P0
+              type: functional
+              description: Create fabric-spbm-global-settings-config, scope to device, target to device, deploy, and verify on NOS devices
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createfabric-spbm-global-settings-config
+                  description: Create fabric-spbm-global-settings-config configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestProfile
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: scopeProfileTodevice
+                  description: Scope profile to device
+                  method: POST
+                  api: REST
+                  path: /global-profile/TestProfile/scope
+                  pathParams:
+                    profileName: TestProfile
+                  body:
+                    scopeId: test-scope-001
+                    scopeType: device
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                - name: targetProfileTodevice
+                  description: Target profile to device
+                  method: POST
+                  api: REST
+                  path: /global-profile/TestProfile/target
+                  pathParams:
+                    profileName: TestProfile
+                  body:
+                    targetId: test-scope-001
+                    targetType: device
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                - name: deployProfileTodevice
+                  description: Deploy profile to device
+                  method: POST
+                  api: REST
+                  path: /global-profile/TestProfile/deploy
+                  pathParams:
+                    profileName: TestProfile
+                  body:
+                    deploymentMethod: immediate
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: GET
+                  api: REST
+                  path: /global-profile/TestProfile/deployment/status
+                  pathParams:
+                    profileName: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2068
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Create fabric-spbm-global-settings-config and verify configuration on NOS devices (without explicit scope/target/deploy)
+              scopeType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createfabric-spbm-global-settings-config
+                  description: Create fabric-spbm-global-settings-config configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestProfile-Simple
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+            - testCaseID: TCXM_2069
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 0 optional parameters (variation 1), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals0
+                  description: Create with 0 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-Opt0-Var1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var1/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt0-Var1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt0-Var1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2070
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 0 optional parameters (variation 1), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals0
+                  description: Create with 0 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-Opt0-Var1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var1/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt0-Var1
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var1/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt0-Var1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2071
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 0 optional parameters (variation 2), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals0
+                  description: Create with 0 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-Opt0-Var2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var2/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt0-Var2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt0-Var2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2072
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 0 optional parameters (variation 2), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals0
+                  description: Create with 0 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-Opt0-Var2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var2/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt0-Var2
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var2/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt0-Var2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2073
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 0 optional parameters (variation 3), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals0
+                  description: Create with 0 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-Opt0-Var3
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var3/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt0-Var3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt0-Var3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2074
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 0 optional parameters (variation 3), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals0
+                  description: Create with 0 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-Opt0-Var3
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var3/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt0-Var3
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt0-Var3/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt0-Var3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2075
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 1 optional parameters (variation 1), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals1
+                  description: Create with 1 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt1-Var1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var1/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt1-Var1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt1-Var1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2076
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 1 optional parameters (variation 1), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals1
+                  description: Create with 1 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt1-Var1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var1/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt1-Var1
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var1/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt1-Var1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2077
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 1 optional parameters (variation 2), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals1
+                  description: Create with 1 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    name: TestResource-Opt1-Var2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var2/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt1-Var2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt1-Var2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2078
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 1 optional parameters (variation 2), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals1
+                  description: Create with 1 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    name: TestResource-Opt1-Var2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var2/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt1-Var2
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var2/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt1-Var2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2079
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 1 optional parameters (variation 3), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals1
+                  description: Create with 1 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt1-Var3
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var3/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt1-Var3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt1-Var3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2080
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 1 optional parameters (variation 3), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals1
+                  description: Create with 1 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt1-Var3
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var3/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt1-Var3
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt1-Var3/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt1-Var3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2081
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 2 optional parameters (variation 1), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals2
+                  description: Create with 2 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt2-Var1
+                    nickname-server-enabled: false
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var1/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt2-Var1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt2-Var1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2082
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 2 optional parameters (variation 1), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals2
+                  description: Create with 2 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt2-Var1
+                    nickname-server-enabled: false
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var1/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt2-Var1
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var1/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt2-Var1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2083
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 2 optional parameters (variation 2), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals2
+                  description: Create with 2 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    name: TestResource-Opt2-Var2
+                    nickname-server-enabled: true
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var2/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt2-Var2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt2-Var2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2084
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 2 optional parameters (variation 2), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals2
+                  description: Create with 2 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    name: TestResource-Opt2-Var2
+                    nickname-server-enabled: true
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var2/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt2-Var2
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var2/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt2-Var2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2085
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 2 optional parameters (variation 3), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals2
+                  description: Create with 2 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt2-Var3
+                    nickname-server-enabled: false
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var3/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt2-Var3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt2-Var3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2086
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 2 optional parameters (variation 3), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals2
+                  description: Create with 2 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt2-Var3
+                    nickname-server-enabled: false
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var3/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt2-Var3
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt2-Var3/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt2-Var3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2087
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 3 optional parameters (variation 1), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals3
+                  description: Create with 3 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt3-Var1
+                    nickname-server-enabled: false
+                    nickname-server-prefix: 1.1.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var1/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt3-Var1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt3-Var1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2088
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 3 optional parameters (variation 1), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals3
+                  description: Create with 3 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt3-Var1
+                    nickname-server-enabled: false
+                    nickname-server-prefix: 1.1.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var1/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt3-Var1
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var1/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt3-Var1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2089
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 3 optional parameters (variation 2), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals3
+                  description: Create with 3 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    name: TestResource-Opt3-Var2
+                    nickname-server-enabled: true
+                    nickname-server-prefix: 192.168.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var2/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt3-Var2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt3-Var2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2090
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 3 optional parameters (variation 2), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals3
+                  description: Create with 3 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    name: TestResource-Opt3-Var2
+                    nickname-server-enabled: true
+                    nickname-server-prefix: 192.168.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var2/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt3-Var2
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var2/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt3-Var2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2091
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 3 optional parameters (variation 3), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals3
+                  description: Create with 3 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt3-Var3
+                    nickname-server-enabled: false
+                    nickname-server-prefix: 10.0.0.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var3/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt3-Var3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt3-Var3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2092
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 3 optional parameters (variation 3), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals3
+                  description: Create with 3 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Opt3-Var3
+                    nickname-server-enabled: false
+                    nickname-server-prefix: 10.0.0.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var3/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt3-Var3
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt3-Var3/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt3-Var3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2093
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 4 optional parameters (variation 1), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals4
+                  description: Create with 4 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    fabric-isis-global-config: value-1
+                    name: TestResource-Opt4-Var1
+                    nickname-server-enabled: false
+                    nickname-server-prefix: 1.1.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var1/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt4-Var1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt4-Var1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2094
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 4 optional parameters (variation 1), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals4
+                  description: Create with 4 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    fabric-isis-global-config: value-1
+                    name: TestResource-Opt4-Var1
+                    nickname-server-enabled: false
+                    nickname-server-prefix: 1.1.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var1/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt4-Var1
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var1/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt4-Var1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2095
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 4 optional parameters (variation 2), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals4
+                  description: Create with 4 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    fabric-isis-global-config: value-2
+                    name: TestResource-Opt4-Var2
+                    nickname-server-enabled: true
+                    nickname-server-prefix: 192.168.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var2/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt4-Var2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt4-Var2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2096
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 4 optional parameters (variation 2), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals4
+                  description: Create with 4 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    fabric-isis-global-config: value-2
+                    name: TestResource-Opt4-Var2
+                    nickname-server-enabled: true
+                    nickname-server-prefix: 192.168.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var2/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt4-Var2
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var2/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt4-Var2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2097
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 4 optional parameters (variation 3), scope to device, target to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals4
+                  description: Create with 4 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    fabric-isis-global-config: value-3
+                    name: TestResource-Opt4-Var3
+                    nickname-server-enabled: false
+                    nickname-server-prefix: 10.0.0.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var3/devices/deploy
+                  pathParams:
+                    name: TestResource-Opt4-Var3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt4-Var3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2098
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with 4 optional parameters (variation 3), scope to site, target to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithOptionals4
+                  description: Create with 4 optional parameters
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    fabric-isis-global-config: value-3
+                    name: TestResource-Opt4-Var3
+                    nickname-server-enabled: false
+                    nickname-server-prefix: 10.0.0.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTosite
+                  description: Deploy configuration to site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var3/sites/deploy
+                  pathParams:
+                    name: TestResource-Opt4-Var3
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Opt4-Var3/site/test-site-001/deploy/status
+                  pathParams:
+                    name: TestResource-Opt4-Var3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2099
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with max boundary value for 'nickname-server-prefix'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithBoundaryValue
+                  description: Create with max value for nickname-server-prefix
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-nickname-server-prefix-max
+                    nickname-server-prefix: 255.255.255.255
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-nickname-server-prefix-max/devices/deploy
+                  pathParams:
+                    name: TestResource-nickname-server-prefix-max
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-nickname-server-prefix-max/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-nickname-server-prefix-max
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2100
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'enabled' and 'nickname-server-enabled' (var 1)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination1
+                  description: Create with enabled=false and nickname-server-enabled=true
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Combo-enabled-nickname-server-enabled-V1
+                    nickname-server-enabled: true
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-enabled-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-enabled-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-enabled-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-enabled-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2101
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'enabled' and 'nickname-server-enabled' (var 2)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination2
+                  description: Create with enabled=true and nickname-server-enabled=false
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    name: TestResource-Combo-enabled-nickname-server-enabled-V2
+                    nickname-server-enabled: false
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-enabled-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-enabled-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-enabled-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-enabled-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2102
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'enabled' and 'nickname-server-enabled' (var 3)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination3
+                  description: Create with enabled=false and nickname-server-enabled=true
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Combo-enabled-nickname-server-enabled-V3
+                    nickname-server-enabled: true
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-enabled-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-enabled-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-enabled-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-enabled-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2103
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'enabled' and 'nickname-server-prefix' (var 1)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination1
+                  description: Create with enabled=false and nickname-server-prefix=192.168.1.1
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Combo-enabled-nickname-server-prefix-V1
+                    nickname-server-prefix: 192.168.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-prefix-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-prefix-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-prefix-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-prefix-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2104
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'enabled' and 'nickname-server-prefix' (var 2)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination2
+                  description: Create with enabled=true and nickname-server-prefix=10.0.0.1
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    name: TestResource-Combo-enabled-nickname-server-prefix-V2
+                    nickname-server-prefix: 10.0.0.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-prefix-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-prefix-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-prefix-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-prefix-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2105
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'enabled' and 'nickname-server-prefix' (var 3)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination3
+                  description: Create with enabled=false and nickname-server-prefix=172.16.0.1
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-Combo-enabled-nickname-server-prefix-V3
+                    nickname-server-prefix: 172.16.0.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-prefix-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-prefix-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-nickname-server-prefix-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-enabled-nickname-server-prefix-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2106
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'enabled' and 'fabric-isis-global-config' (var 1)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination1
+                  description: Create with enabled=false and fabric-isis-global-config=value-2
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    fabric-isis-global-config: value-2
+                    name: TestResource-Combo-enabled-fabric-isis-global-config-V1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-fabric-isis-global-config-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-enabled-fabric-isis-global-config-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-fabric-isis-global-config-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-enabled-fabric-isis-global-config-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2107
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'enabled' and 'fabric-isis-global-config' (var 2)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination2
+                  description: Create with enabled=true and fabric-isis-global-config=value-3
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    fabric-isis-global-config: value-3
+                    name: TestResource-Combo-enabled-fabric-isis-global-config-V2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-fabric-isis-global-config-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-enabled-fabric-isis-global-config-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-fabric-isis-global-config-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-enabled-fabric-isis-global-config-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2108
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'enabled' and 'fabric-isis-global-config' (var 3)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination3
+                  description: Create with enabled=false and fabric-isis-global-config=value-4
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    fabric-isis-global-config: value-4
+                    name: TestResource-Combo-enabled-fabric-isis-global-config-V3
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-fabric-isis-global-config-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-enabled-fabric-isis-global-config-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-enabled-fabric-isis-global-config-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-enabled-fabric-isis-global-config-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2109
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'nickname-server-enabled' and 'nickname-server-prefix' (var 1)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination1
+                  description: Create with nickname-server-enabled=false and nickname-server-prefix=192.168.1.1
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V1
+                    nickname-server-enabled: false
+                    nickname-server-prefix: 192.168.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2110
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'nickname-server-enabled' and 'nickname-server-prefix' (var 2)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination2
+                  description: Create with nickname-server-enabled=true and nickname-server-prefix=10.0.0.1
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V2
+                    nickname-server-enabled: true
+                    nickname-server-prefix: 10.0.0.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2111
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'nickname-server-enabled' and 'nickname-server-prefix' (var 3)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination3
+                  description: Create with nickname-server-enabled=false and nickname-server-prefix=172.16.0.1
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V3
+                    nickname-server-enabled: false
+                    nickname-server-prefix: 172.16.0.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-nickname-server-prefix-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2112
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'nickname-server-enabled' and 'fabric-isis-global-config' (var 1)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination1
+                  description: Create with nickname-server-enabled=false and fabric-isis-global-config=value-2
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    fabric-isis-global-config: value-2
+                    name: TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V1
+                    nickname-server-enabled: false
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2113
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'nickname-server-enabled' and 'fabric-isis-global-config' (var 2)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination2
+                  description: Create with nickname-server-enabled=true and fabric-isis-global-config=value-3
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    fabric-isis-global-config: value-3
+                    name: TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V2
+                    nickname-server-enabled: true
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2114
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'nickname-server-enabled' and 'fabric-isis-global-config' (var 3)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination3
+                  description: Create with nickname-server-enabled=false and fabric-isis-global-config=value-4
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    fabric-isis-global-config: value-4
+                    name: TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V3
+                    nickname-server-enabled: false
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-enabled-fabric-isis-global-config-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2115
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'nickname-server-prefix' and 'fabric-isis-global-config' (var 1)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination1
+                  description: Create with nickname-server-prefix=1.1.1.1 and fabric-isis-global-config=value-2
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    fabric-isis-global-config: value-2
+                    name: TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V1
+                    nickname-server-prefix: 1.1.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2116
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'nickname-server-prefix' and 'fabric-isis-global-config' (var 2)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination2
+                  description: Create with nickname-server-prefix=192.168.1.1 and fabric-isis-global-config=value-3
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    fabric-isis-global-config: value-3
+                    name: TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V2
+                    nickname-server-prefix: 192.168.1.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2117
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with combined values for 'nickname-server-prefix' and 'fabric-isis-global-config' (var 3)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithCombination3
+                  description: Create with nickname-server-prefix=10.0.0.1 and fabric-isis-global-config=value-4
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    fabric-isis-global-config: value-4
+                    name: TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V3
+                    nickname-server-prefix: 10.0.0.1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-Combo-nickname-server-prefix-fabric-isis-global-config-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2118
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with bool value variation 1 for 'enabled'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    name: TestResource-enabled-Typebool-V1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2119
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with bool value variation 2 for 'enabled'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with bool type variation: false'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: false
+                    name: TestResource-enabled-Typebool-V2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2120
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with bool value variation 3 for 'enabled'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    enabled: true
+                    name: TestResource-enabled-Typebool-V3
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2121
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with string value variation 1 for 'nickname-server-prefix'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with string type variation: test-value-1'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-nickname-server-prefix-Typestring-V1
+                    nickname-server-prefix: test-value-1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-nickname-server-prefix-Typestring-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-nickname-server-prefix-Typestring-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-nickname-server-prefix-Typestring-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-nickname-server-prefix-Typestring-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2122
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with string value variation 2 for 'nickname-server-prefix'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with string type variation: TestValue2'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-nickname-server-prefix-Typestring-V2
+                    nickname-server-prefix: TestValue2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-nickname-server-prefix-Typestring-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-nickname-server-prefix-Typestring-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-nickname-server-prefix-Typestring-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-nickname-server-prefix-Typestring-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2123
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with string value variation 3 for 'nickname-server-prefix'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with string type variation: test_value_3'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    name: TestResource-nickname-server-prefix-Typestring-V3
+                    nickname-server-prefix: test_value_3
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-nickname-server-prefix-Typestring-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-nickname-server-prefix-Typestring-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-nickname-server-prefix-Typestring-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-nickname-server-prefix-Typestring-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2124
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with []map[string]interface{} value variation 1 for 'fabric-isis-global-config'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with []map[string]interface{} type variation: value-1'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    fabric-isis-global-config: value-1
+                    name: TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2125
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with []map[string]interface{} value variation 2 for 'fabric-isis-global-config'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with []map[string]interface{} type variation: value-2'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    fabric-isis-global-config: value-2
+                    name: TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2126
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with []map[string]interface{} value variation 3 for 'fabric-isis-global-config'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with []map[string]interface{} type variation: value-3'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/usage
+                  body:
+                    fabric-isis-global-config: value-3
+                    name: TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V3
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-fabric-isis-global-config-Type[]map[string]interface{}-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2127
+              featureName: fabric-spbm-global-settings-config
+              priority: P0
+              type: functional
+              description: Create fabric-spbm-global-settings-config and schedule deployment to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: scheduled
+              isDeploymentTest: true
+              steps:
+                - name: createfabric-spbm-global-settings-config
+                  description: Create fabric-spbm-global-settings-config configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /global-profile
+                    name: TestProfile-Additional
+                    objectType: fabric-spbm-global-settings-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: fabric-spbm-global-settings-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeploymentTodevice
+                  description: Schedule deployment to device at 2026-04-20T15:28:47Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-20T15:28:47Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+            - testCaseID: TCXM_2128
+              featureName: fabric-spbm-global-settings-config
+              priority: P0
+              type: functional
+              description: Create fabric-spbm-global-settings-config and schedule deployment to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: scheduled
+              isDeploymentTest: true
+              steps:
+                - name: createfabric-spbm-global-settings-config
+                  description: Create fabric-spbm-global-settings-config configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /global-profile
+                    name: TestProfile-Additional
+                    objectType: fabric-spbm-global-settings-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: fabric-spbm-global-settings-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeploymentTosite
+                  description: Schedule deployment to site at 2026-04-20T15:28:47Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-20T15:28:47Z"
+                    sites:
+                        - test-site-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+            - testCaseID: TCXM_2129
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Edit deployment schedule for fabric-spbm-global-settings-config on device
+              isDeploymentTest: true
+              steps:
+                - name: createfabric-spbm-global-settings-config
+                  description: Create fabric-spbm-global-settings-config configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /global-profile
+                    name: TestProfile-Additional
+                    objectType: fabric-spbm-global-settings-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: fabric-spbm-global-settings-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleInitialDeployment
+                  description: Schedule initial deployment
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-20T15:28:47Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+                - name: editDeploymentSchedule
+                  description: Edit deployment schedule to 2026-04-20T16:28:47Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-20T16:28:47Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: "200"
+            - testCaseID: TCXM_2130
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Clear deployment schedule for fabric-spbm-global-settings-config on site
+              isDeploymentTest: true
+              steps:
+                - name: createfabric-spbm-global-settings-config
+                  description: Create fabric-spbm-global-settings-config configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /global-profile
+                    name: TestProfile-Additional
+                    objectType: fabric-spbm-global-settings-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: fabric-spbm-global-settings-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeployment
+                  description: Schedule deployment
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-20T15:28:47Z"
+                    sites:
+                        - test-site-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+                - name: clearDeploymentSchedule
+                  description: Clear the deployment schedule
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy/clear-schedule
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    sites:
+                        - test-site-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: "200"
+            - testCaseID: TCXM_2131
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Clone fabric-spbm-global-settings-config configuration profile
+              isDeploymentTest: false
+              steps:
+                - name: createfabric-spbm-global-settings-config
+                  description: Create fabric-spbm-global-settings-config configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /global-profile
+                    name: TestProfile-Additional
+                    objectType: fabric-spbm-global-settings-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: fabric-spbm-global-settings-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: cloneProfile
+                  description: Clone the configuration profile
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/clone
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    newProfileName: TestProfile-Additional-Cloned
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+            - testCaseID: TCXM_2132
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              type: functional
+              description: Clone fabric-spbm-global-settings-config feature object
+              isDeploymentTest: false
+              steps:
+                - name: createfabric-spbm-global-settings-config
+                  description: Create fabric-spbm-global-settings-config configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /global-profile
+                    name: TestProfile-Additional
+                    objectType: fabric-spbm-global-settings-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: fabric-spbm-global-settings-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: cloneFeatureObject
+                  description: Clone fabric-spbm-global-settings-config feature object
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/feature/object/clone
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    featurePath: /global-profile
+                    newId: cloned-object-1
+                    objectType: fabric-spbm-global-settings-config
+                    sourceId: original-object-1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"

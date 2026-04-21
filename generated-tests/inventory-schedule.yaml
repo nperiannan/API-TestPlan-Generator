@@ -1,0 +1,319 @@
+version: "1.0"
+generatedAt: "2026-04-21T01:55:22+05:30"
+sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
+sourceRESTAPI: ./qaopenapi.yaml
+sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
+features:
+    - featureName: inventory-schedule
+      featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
+      profileType: configuration
+      description: ""
+      tests:
+        boundary: []
+        functional:
+            - testCaseID: TCXM_5970
+              featureName: inventory-schedule
+              priority: P0
+              type: functional
+              description: Create inventory-schedule and schedule deployment to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: scheduled
+              isDeploymentTest: true
+              steps:
+                - name: createinventory-schedule
+                  description: Create inventory-schedule configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
+                    name: TestProfile-Additional
+                    objectType: inventory-schedule
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-name
+                          type: inventory-schedule
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeploymentTodevice
+                  description: Schedule deployment to device at 2026-04-20T21:25:23Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-20T21:25:23Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+            - testCaseID: TCXM_5971
+              featureName: inventory-schedule
+              priority: P0
+              type: functional
+              description: Create inventory-schedule and schedule deployment to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: scheduled
+              isDeploymentTest: true
+              steps:
+                - name: createinventory-schedule
+                  description: Create inventory-schedule configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
+                    name: TestProfile-Additional
+                    objectType: inventory-schedule
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-name
+                          type: inventory-schedule
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeploymentTosite
+                  description: Schedule deployment to site at 2026-04-20T21:25:23Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-20T21:25:23Z"
+                    sites:
+                        - test-site-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+            - testCaseID: TCXM_5972
+              featureName: inventory-schedule
+              priority: P1
+              type: functional
+              description: Edit deployment schedule for inventory-schedule on device
+              isDeploymentTest: true
+              steps:
+                - name: createinventory-schedule
+                  description: Create inventory-schedule configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
+                    name: TestProfile-Additional
+                    objectType: inventory-schedule
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-name
+                          type: inventory-schedule
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleInitialDeployment
+                  description: Schedule initial deployment
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-20T21:25:23Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+                - name: editDeploymentSchedule
+                  description: Edit deployment schedule to 2026-04-20T22:25:23Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-20T22:25:23Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: "200"
+            - testCaseID: TCXM_5973
+              featureName: inventory-schedule
+              priority: P1
+              type: functional
+              description: Clear deployment schedule for inventory-schedule on site
+              isDeploymentTest: true
+              steps:
+                - name: createinventory-schedule
+                  description: Create inventory-schedule configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
+                    name: TestProfile-Additional
+                    objectType: inventory-schedule
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-name
+                          type: inventory-schedule
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeployment
+                  description: Schedule deployment
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-20T21:25:23Z"
+                    sites:
+                        - test-site-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+                - name: clearDeploymentSchedule
+                  description: Clear the deployment schedule
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy/clear-schedule
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    sites:
+                        - test-site-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: "200"
+            - testCaseID: TCXM_5974
+              featureName: inventory-schedule
+              priority: P1
+              type: functional
+              description: Clone inventory-schedule configuration profile
+              isDeploymentTest: false
+              steps:
+                - name: createinventory-schedule
+                  description: Create inventory-schedule configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
+                    name: TestProfile-Additional
+                    objectType: inventory-schedule
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-name
+                          type: inventory-schedule
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: cloneProfile
+                  description: Clone the configuration profile
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/clone
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    newProfileName: TestProfile-Additional-Cloned
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+            - testCaseID: TCXM_5975
+              featureName: inventory-schedule
+              priority: P1
+              type: functional
+              description: Clone inventory-schedule feature object
+              isDeploymentTest: false
+              steps:
+                - name: createinventory-schedule
+                  description: Create inventory-schedule configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
+                    name: TestProfile-Additional
+                    objectType: inventory-schedule
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-name
+                          type: inventory-schedule
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: cloneFeatureObject
+                  description: Clone inventory-schedule feature object
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/feature/object/clone
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
+                    newId: cloned-object-1
+                    objectType: inventory-schedule
+                    sourceId: original-object-1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+        negative: []
+        performance: []
+        scale: []

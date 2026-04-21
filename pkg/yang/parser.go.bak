@@ -1,0 +1,322 @@
+package yang
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+
+	"github.com/extremenetworks/testcase-generator/pkg/model"
+)
+
+// Parser parses YANG models and extracts features
+type Parser struct {
+	yangDir string
+	features map[string]*model.Feature
+}
+
+// NewParser creates a new YANG parser
+func NewParser(yangDir string) *Parser {
+	return &Parser{
+		yangDir:  yangDir,
+		features: make(map[string]*model.Feature),
+	}
+}
+
+// Parse loads and parses all YANG files in the directory
+func (p *Parser) Parse() error {
+	yangFiles, err := filepath.Glob(filepath.Join(p.yangDir, "*.yang"))
+	if err != nil {
+		return fmt.Errorf("failed to list YANG files: %w", err)
+	}
+
+	if len(yangFiles) == 0 {
+		return fmt.Errorf("no YANG files found in %s", p.yangDir)
+	}
+
+	for _, yangFile := range yangFiles {
+		if err := p.parseFile(yangFile); err != nil {
+			return fmt.Errorf("failed to parse %s: %w", yangFile, err)
+		}
+	}
+
+	return nil
+}
+
+// parseFile parses a single YANG file
+func (p *Parser) parseFile(filePath string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	var currentModule string
+	var currentFeature *model.Feature
+	var inContainer bool
+	var braceDepth int
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		trimmed := strings.TrimSpace(line)
+
+		// Skip comments and empty lines
+		if strings.HasPrefix(trimmed, "//") || strings.HasPrefix(trimmed, "#") || trimmed == "" {
+			continue
+		}
+
+		// Track brace depth
+		braceDepth += strings.Count(line, "{")
+		braceDepth -= strings.Count(line, "}")
+
+		// Parse module
+		if strings.HasPrefix(trimmed, "module ") {
+			currentModule = extractModuleName(trimmed)
+			continue
+		}
+
+		// Parse container (represents a feature)
+		if strings.HasPrefix(trimmed, "container ") {
+			containerName := extractContainerName(trimmed)
+			currentContainer = containerName
+			inContainer = true
+			
+			currentFeature = &model.Feature{
+				Name:       containerName,
+				YangPath:   fmt.Sprintf("/%s/%s", currentModule, containerName),
+				Parameters: []model.Parameter{},
+			}
+			continue
+		}
+
+		// Parse leaf (parameter)
+		if inContainer && strings.HasPrefix(trimmed, "leaf ") {
+			param := p.parseLeaf(scanner, trimmed)
+			if currentFeature != nil {
+				currentFeature.Parameters = append(currentFeature.Parameters, param.ToModelParameter())
+			}
+			continue
+		}
+
+		// Parse leaf-list (array parameter)
+		if inContainer && strings.HasPrefix(trimmed, "leaf-list ") {
+			param := p.parseLeafList(scanner, trimmed)
+			if currentFeature != nil {
+				currentFeature.Parameters = append(currentFeature.Parameters, param.ToModelParameter())
+			}
+			continue
+		}
+
+		// Parse list (represents array of objects)
+		if inContainer && strings.HasPrefix(trimmed, "list ") {
+			listName := extractListName(trimmed)
+				currentFeature.IsListType = true
+			}
+			continue
+		}
+
+		// End of container
+		if inContainer && braceDepth == 0 && trimmed == "}" {
+			if currentFeature != nil {
+				p.features[currentFeature.Name] = currentFeature
+				currentFeature = nil
+			}
+			inContainer = false
+			currentContainer = ""
+		
+
+	return scanner.Err()
+}
+
+// parseLeaf parses a leaf statement and returns a Parameter
+func (p *Parser) parseLeaf(scanner *bufio.Scanner, leafLine string) Parameter {
+	param := Parameter{
+		Name: extractLeafName(leafLine),
+		Constraints: []model.Constraint{},
+	}
+
+	// Continue reading until we find the closing brace
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		
+		if line == "}" {
+			break
+		}
+
+		// Parse type
+		if strings.HasPrefix(line, "type ") {
+			param.YangType = extractType(line)
+			param.GoType = yangTypeToGoType(param.YangType)
+		}
+
+		// Parse description
+		if strings.HasPrefix(line, "description ") {
+			param.Description = extractQuotedString(line)
+		}
+
+		// Parse mandatory
+		if strings.Contains(line, "mandatory true") {
+			param.Required = true
+			param.Constraints = append(param.Constraints, model.Constraint{
+				Type: model.ConstraintTypeRequired,
+				Value: true,
+			})
+		}
+
+		// Parse default
+		if strings.HasPrefix(line, "default ") {
+			param.DefaultValue = extractQuotedString(line)
+		}
+
+		// Parse pattern constraint
+		if strings.HasPrefix(line, "pattern ") {
+			param.Constraints = append(param.Constraints, model.Constraint{
+				Type: model.ConstraintTypePattern,
+				Value: extractQuotedString(line),
+			})
+		}
+	}
+
+	return param
+}
+
+// parseLeafList parses a leaf-list statement
+func (p *Parser) parseLeafList(scanner *bufio.Scanner, leafListLine string) Parameter {
+	param := Parameter{
+		Name:    extractLeafName(leafListLine),
+		IsArray: true,
+		Constraints: []model.Constraint{},
+	}
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		
+		if line == "}" {
+			break
+		}
+
+		if strings.HasPrefix(line, "type ") {
+			param.YangType = extractType(line)
+			param.GoType = "[]" + yangTypeToGoType(param.YangType)
+		}
+
+		if strings.HasPrefix(line, "min-elements ") {
+			minItems := extractNumber(line)
+			param.ArrayMinItems = minItems
+			param.Constraints = append(param.Constraints, model.Constraint{
+				Type: model.ConstraintTypeMinItems,
+				Value: minItems,
+			})
+		}
+
+		if strings.HasPrefix(line, "max-elements ") {
+			maxItems := extractNumber(line)
+			param.ArrayMaxItems = maxItems
+			param.Constraints = append(param.Constraints, model.Constraint{
+				Type: model.ConstraintTypeMaxItems,
+				Value: maxItems,
+			})
+		}
+	}
+
+	return param
+}
+
+// GetFeatures returns all parsed features
+func (p *Parser) GetFeatures() map[string]*model.Feature {
+	return p.features
+}
+
+// Helper functions for parsing YANG syntax
+
+func extractModuleName(line string) string {
+	re := regexp.MustCompile(`module\s+(\S+)`)
+	matches := re.FindStringSubmatch(line)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
+}
+
+func extractContainerName(line string) string {
+	re := regexp.MustCompile(`container\s+(\S+)`)
+	matches := re.FindStringSubmatch(line)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
+}
+
+func extractListName(line string) string {
+	re := regexp.MustCompile(`list\s+(\S+)`)
+	matches := re.FindStringSubmatch(line)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
+}
+
+func extractLeafName(line string) string {
+	re := regexp.MustCompile(`leaf(?:-list)?\s+(\S+)`)
+	matches := re.FindStringSubmatch(line)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
+}
+
+func extractType(line string) string {
+	re := regexp.MustCompile(`type\s+(\S+)`)
+	matches := re.FindStringSubmatch(line)
+	if len(matches) > 1 {
+		return strings.TrimSuffix(matches[1], ";")
+	}
+	return ""
+}
+
+func extractQuotedString(line string) string {
+	re := regexp.MustCompile(`"([^"]*)"`)
+	matches := re.FindStringSubmatch(line)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
+}
+
+func extractNumber(line string) int {
+	re := regexp.MustCompile(`\d+`)
+	matches := re.FindString(line)
+	var num int
+	fmt.Sscanf(matches, "%d", &num)
+	return num
+}
+
+func yangTypeToGoType(yangType string) string {
+	typeMap := map[string]string{
+		"string":      "string",
+		"int8":        "int8",
+		"int16":       "int16",
+		"int32":       "int32",
+		"int64":       "int64",
+		"uint8":       "uint8",
+		"uint16":      "uint16",
+		"uint32":      "uint32",
+		"uint64":      "uint64",
+		"boolean":     "bool",
+		"enumeration": "string",
+		"decimal64":   "float64",
+		"binary":      "[]byte",
+		"bits":        "string",
+		"leafref":     "string",
+		"identityref": "string",
+		"union":       "interface{}",
+	}
+
+	if goType, ok := typeMap[yangType]; ok {
+		return goType
+	}
+	return "string" // default
+}

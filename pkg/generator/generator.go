@@ -1,0 +1,315 @@
+package generator
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/extremenetworks/testcase-generator/pkg/model"
+	"github.com/extremenetworks/testcase-generator/pkg/spec/nosapi"
+	"github.com/extremenetworks/testcase-generator/pkg/spec/rest"
+)
+
+// Generator generates test cases from features and API specs
+type Generator struct {
+	config        *model.GeneratorConfig
+	features      map[string]*model.Feature
+	featurePaths  map[string]*model.FeaturePath
+	nosEndpoints  map[string]*model.NOSAPIEndpoint
+	nosParser     *nosapi.Parser
+	restParser    *rest.Parser
+	testIDCounter int
+}
+
+// NewGenerator creates a new test generator
+func NewGenerator(
+	config *model.GeneratorConfig,
+	features map[string]*model.Feature,
+	featurePaths map[string]*model.FeaturePath,
+	nosParser *nosapi.Parser,
+	restParser *rest.Parser,
+) *Generator {
+	var nosEndpoints map[string]*model.NOSAPIEndpoint
+	if nosParser != nil {
+		nosEndpoints = nosParser.GetEndpoints()
+	}
+
+	return &Generator{
+		config:        config,
+		features:      features,
+		featurePaths:  featurePaths,
+		nosEndpoints:  nosEndpoints,
+		nosParser:     nosParser,
+		restParser:    restParser,
+		testIDCounter: config.StartingIDNumber,
+	}
+}
+
+// Generate generates test suites for all features
+func (g *Generator) Generate() (*model.TestSuite, error) {
+	suite := &model.TestSuite{
+		Version:       "1.0",
+		GeneratedAt:   time.Now().Format(time.RFC3339),
+		SourceYangDir: g.config.YangDir,
+		SourceRESTAPI: g.config.RESTSpecPath,
+		SourceNOSAPI:  g.config.NOSAPISpecPath,
+		Features:      []model.FeatureTestGroup{},
+	}
+
+	// PRIORITY 1: Generate tests for YANG features first (actual configuration features)
+	// These are features like vlan, syslog, ntp, dhcp, dns, etc.
+	for yangFeatureName, yangFeature := range g.features {
+		// Filter by feature name if configured
+		if !g.shouldIncludeFeatureByName(yangFeatureName) {
+			continue
+		}
+
+		// Find matching API paths for this YANG feature
+		var matchingPaths []*model.FeaturePath
+		for _, fp := range g.featurePaths {
+			if fp.Feature != nil && fp.Feature.Name == yangFeatureName {
+				// Filter by BlueprintCategory if configured
+				if g.shouldIncludeFeature(fp) {
+					matchingPaths = append(matchingPaths, fp)
+				}
+			}
+		}
+
+		// If we have paths for this feature, generate tests
+		if len(matchingPaths) > 0 {
+			testGroup := g.generateFeatureTestGroup(yangFeature, matchingPaths)
+			if testGroup != nil && g.hasAnyTests(testGroup) {
+				suite.Features = append(suite.Features, *testGroup)
+			}
+		}
+	}
+
+	// PRIORITY 2: Generate tests for API endpoints that don't have YANG features
+	// but are still configuration APIs (not infrastructure)
+	featurePathGroups := g.groupFeaturePaths()
+	for groupName, paths := range featurePathGroups {
+		// Skip if already handled by YANG feature
+		if g.features[groupName] != nil {
+			continue
+		}
+
+		// Create a basic feature for this API group
+		feature := &model.Feature{
+			Name: groupName,
+		}
+
+		testGroup := g.generateFeatureTestGroup(feature, paths)
+		if testGroup != nil && g.hasAnyTests(testGroup) {
+			suite.Features = append(suite.Features, *testGroup)
+		}
+	}
+
+	return suite, nil
+}
+
+// hasAnyTests checks if a test group has any tests
+func (g *Generator) hasAnyTests(testGroup *model.FeatureTestGroup) bool {
+	for _, tests := range testGroup.Tests {
+		if len(tests) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// groupFeaturePaths groups feature paths by YANG feature name
+// Infrastructure APIs (scope, target, deploy, status, etc.) are NOT grouped separately
+func (g *Generator) groupFeaturePaths() map[string][]*model.FeaturePath {
+	groups := make(map[string][]*model.FeaturePath)
+
+	// Infrastructure API patterns to skip as standalone features
+	infraAPIs := map[string]bool{
+		"scope": true, "target": true, "deploy": true, "deployments": true,
+		"status": true, "cancel": true, "retrieve": true, "usage": true,
+		"categories": true, "models": true, "groups": true,
+		"configuration-profiles": true, "service-profiles": true,
+		"global-profile": true, "configuration-profile": true, "service-profile": true,
+	}
+
+	for _, fp := range g.featurePaths {
+		// Use YANG feature name if available
+		if fp.Feature != nil && fp.Feature.Name != "" {
+			featureName := fp.Feature.Name
+			// Skip if it's an infrastructure API
+			if !infraAPIs[featureName] {
+				groups[featureName] = append(groups[featureName], fp)
+			}
+			continue
+		}
+
+		// Fallback: extract from path, but skip infrastructure
+		featureName := g.extractFeatureName(fp)
+		if !infraAPIs[featureName] {
+			groups[featureName] = append(groups[featureName], fp)
+		}
+	}
+
+	return groups
+}
+
+// extractFeatureName extracts a feature name from a feature path
+// Prioritizes YANG feature name, looks for actual configuration features in path
+func (g *Generator) extractFeatureName(fp *model.FeaturePath) string {
+	if fp.Feature != nil && fp.Feature.Name != "" {
+		return fp.Feature.Name
+	}
+
+	// Extract from path - look for actual feature names after profile identifiers
+	// e.g., "/configuration-profile/{name}/vlan" -> "vlan"
+	// e.g., "/configuration-profile/{name}/syslog-servers" -> "syslog-servers"
+	parts := splitPath(fp.Path)
+
+	// Look for feature name after profile identifier
+	for i, part := range parts {
+		if part == "configuration-profile" || part == "global-profile" || part == "service-profile" {
+			// Skip {name} param and look for actual feature
+			for j := i + 2; j < len(parts); j++ {
+				if parts[j] != "" && parts[j][0] != '{' &&
+					parts[j] != "feature" && parts[j] != "object" &&
+					parts[j] != "sites" && parts[j] != "devices" {
+					return parts[j]
+				}
+			}
+		}
+	}
+
+	// Fallback to last meaningful part
+	for i := len(parts) - 1; i >= 0; i-- {
+		if parts[i] != "" && parts[i][0] != '{' {
+			return parts[i]
+		}
+	}
+
+	return "unknown"
+}
+
+// generateFeatureTestGroup generates test group for a feature
+func (g *Generator) generateFeatureTestGroup(feature *model.Feature, paths []*model.FeaturePath) *model.FeatureTestGroup {
+	if len(paths) == 0 {
+		return nil
+	}
+
+	primaryPath := paths[0]
+
+	group := &model.FeatureTestGroup{
+		FeatureName: feature.Name,
+		FeaturePath: primaryPath.Path,
+		ProfileType: primaryPath.ProfileType,
+		Description: feature.Description,
+		Tests:       make(map[model.TestCategory][]model.TestCase),
+	}
+
+	// Generate tests for each category
+	for _, category := range g.config.IncludeCategories {
+		switch category {
+		case model.TestCategoryFunctional:
+			// Generate standard functional tests
+			group.Tests[category] = g.generateFunctionalTests(feature, paths)
+			// Add comprehensive permutation-based tests for ~1000+ coverage
+			group.Tests[category] = append(group.Tests[category], g.generatePermutationTests(feature, paths)...)
+			// Add minimal additional coverage tests (scheduled deployment, clone, schedule management)
+			group.Tests[category] = append(group.Tests[category], g.generateAdditionalCoverageTests(feature, paths)...)
+			// Value-transition tests: enum A→B→A, key-field delete+recreate, priority changes
+			group.Tests[category] = append(group.Tests[category], g.generateValueTransitionTests(feature, paths)...)
+			// IP address classification tests: private/public/loopback/IPv6 positive coverage
+			group.Tests[category] = append(group.Tests[category], g.generateIPClassificationTests(feature, paths)...)
+		case model.TestCategoryBoundary:
+			group.Tests[category] = g.generateBoundaryTests(feature, paths)
+		case model.TestCategoryNegative:
+			group.Tests[category] = g.generateNegativeTests(feature, paths)
+			// IP address negative tests: invalid formats, out-of-range octets, network/broadcast
+			group.Tests[category] = append(group.Tests[category], g.generateIPNegativeClassificationTests(feature, paths)...)
+		case model.TestCategoryScale:
+			group.Tests[category] = g.generateScaleTests(feature, paths)
+		case model.TestCategoryPerformance:
+			group.Tests[category] = g.generatePerformanceTests(feature, paths)
+		}
+	}
+
+	return group
+}
+
+// nextTestID generates the next test case ID
+func (g *Generator) nextTestID() string {
+	id := fmt.Sprintf("%s_%04d", g.config.TestIDPrefix, g.testIDCounter)
+	g.testIDCounter++
+	return id
+}
+
+// Helper function to split path
+func splitPath(path string) []string {
+	var parts []string
+	current := ""
+	inBrace := false
+
+	for _, ch := range path {
+		if ch == '{' {
+			inBrace = true
+			if current != "" && current != "/" {
+				parts = append(parts, current)
+				current = ""
+			}
+		} else if ch == '}' {
+			inBrace = false
+			if current != "" {
+				current = ""
+			}
+		} else if ch == '/' && !inBrace {
+			if current != "" {
+				parts = append(parts, current)
+			}
+			current = ""
+		} else if !inBrace {
+			current += string(ch)
+		}
+	}
+
+	if current != "" {
+		parts = append(parts, current)
+	}
+
+	return parts
+}
+
+// shouldIncludeFeature checks if a feature should be included based on BlueprintCategory filter
+func (g *Generator) shouldIncludeFeature(fp *model.FeaturePath) bool {
+	// If no category is set for the feature path, include it (non-deep-scanned features)
+	if fp.BlueprintCategory == "" {
+		return true
+	}
+
+	// If no feature categories configured, include all
+	if len(g.config.FeatureCategories) == 0 {
+		return true
+	}
+
+	// Check if the feature's category is in the configured list
+	for _, allowedCategory := range g.config.FeatureCategories {
+		if fp.BlueprintCategory == allowedCategory {
+			return true
+		}
+	}
+
+	return false
+}
+
+// shouldIncludeFeatureByName checks if a feature should be included based on feature name filter
+func (g *Generator) shouldIncludeFeatureByName(featureName string) bool {
+	// If no specific features configured, include all
+	if len(g.config.Features) == 0 {
+		return true
+	}
+
+	// Check if the feature name is in the configured list
+	for _, allowedFeature := range g.config.Features {
+		if featureName == allowedFeature {
+			return true
+		}
+	}
+
+	return false
+}
