@@ -188,6 +188,7 @@ func (g *Generator) generateBasicCreateTest(feature *model.Feature, createPath, 
 			API:            model.APITypeREST,
 			Path:           readPath.Path,
 			PathParams:     map[string]string{"name": "TestResource"},
+			Body:           g.generateReadBody(feature, createPath),
 			ExpectedStatus: 200,
 			Validations:    g.generateResponseValidations(feature, readPath, 200),
 		}
@@ -255,6 +256,7 @@ func (g *Generator) generateBasicUpdateTest(feature *model.Feature, updatePath, 
 			Method:         readPath.HTTPMethod,
 			API:            model.APITypeREST,
 			Path:           readPath.Path,
+			Body:           g.generateReadBody(feature, updatePath),
 			PathParams:     map[string]string{"name": "TestResource"},
 			ExpectedStatus: 200,
 			Validations: []model.Validation{
@@ -567,6 +569,7 @@ func (g *Generator) generateFullCRUDLifecycleTest(
 		Method:         readPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           readPath.Path,
+		Body:           g.generateReadBody(feature, createPath),
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
 			{
@@ -606,6 +609,7 @@ func (g *Generator) generateFullCRUDLifecycleTest(
 		Method:         readPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           readPath.Path,
+		Body:           g.generateReadBody(feature, updatePath),
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
 			{
@@ -770,6 +774,7 @@ func (g *Generator) generatePartialUpdateTest(
 		Method:         readPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           readPath.Path,
+		Body:           g.generateReadBody(feature, updatePath),
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
 			{
@@ -1616,19 +1621,20 @@ func (g *Generator) generateBodyWithoutParam(feature *model.Feature, fp *model.F
 // generateReadBody builds the body for a read (retrieve) request.
 // For global-profile features the retrieve endpoint is also POST with a featurePath body.
 func (g *Generator) generateReadBody(feature *model.Feature, createPath *model.FeaturePath) map[string]interface{} {
-	if createPath.BlueprintCategory != "" {
-		var fpValue string
-		for _, p := range createPath.PathParams {
-			if p.Name == "featurePath" && p.FixedValue != "" {
-				fpValue = p.FixedValue
-				break
-			}
+	if createPath == nil || createPath.BlueprintCategory == "" {
+		return nil
+	}
+	var fpValue string
+	for _, p := range createPath.PathParams {
+		if p.Name == "featurePath" && p.FixedValue != "" {
+			fpValue = p.FixedValue
+			break
 		}
-		if fpValue != "" {
-			return map[string]interface{}{
-				"featurePath": fpValue,
-				"objectType":  feature.Name,
-			}
+	}
+	if fpValue != "" {
+		return map[string]interface{}{
+			"featurePath": fpValue,
+			"objectType":  feature.Name,
 		}
 	}
 	return nil

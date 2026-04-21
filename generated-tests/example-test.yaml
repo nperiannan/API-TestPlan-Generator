@@ -1,106 +1,51 @@
-featurePath: /configuration-profile/{name}/lag-configurations/{identifier}
+featurePath: /configuration-profile/{name}/target
 profileType: configuration
 test:
-    testCaseID: TCXM_1002
-    featureName: lag
+    testCaseID: TCXM_1000
+    featureName: management-profile
     priority: P0
     type: functional
-    description: Create lag, scope to device, target to device, deploy, and verify on NOS devices
+    description: Create management-profile and schedule deployment to device
     scopeType: device
     targetType: device
-    deploymentMethod: immediate
+    deploymentMethod: scheduled
     isDeploymentTest: true
     steps:
-        - name: createlag
-          description: Create lag configuration
+        - name: createmanagement-profile
+          description: Create management-profile configuration
           method: POST
           api: REST
-          path: /configuration-profile/{name}/lag-configurations
+          path: /global-profile/feature/object/modify
           body:
-            name: TestProfile
+            featurePath: /configuration-profile/{name}/target-query/profile
+            name: TestProfile-Additional
+            objectType: management-profile
+            objects:
+                - operation: add
+                  properties:
+                    - name: hostname
+                      origin: Global
+                      type: string
+                      value: test-hostname
+                  type: management-profile
+            operation: add
           expectedStatus: 201
           validations:
             - type: statusCode
-              expected: 201
-        - name: getProfile
-          description: Retrieve created profile
-          method: GET
-          api: REST
-          path: /configuration-profile/{name}/lag-configurations/{identifier}
-          pathParams:
-            profileName: TestProfile
-          expectedStatus: 200
-          validations:
-            - type: statusCode
-              expected: 200
-        - name: scopeProfileTodevice
-          description: Scope profile to device
+              expected: "201"
+        - name: scheduleDeploymentTodevice
+          description: Schedule deployment to device at 2026-04-21T15:40:24Z
           method: POST
           api: REST
-          path: /global-profile/TestProfile/scope
+          path: /configuration-profile/TestProfile-Additional/devices/deploy
           pathParams:
-            profileName: TestProfile
+            name: TestProfile-Additional
           body:
-            scopeId: test-scope-001
-            scopeType: device
-          expectedStatus: 200
-          validations:
-            - type: statusCode
-              expected: 200
-        - name: targetProfileTodevice
-          description: Target profile to device
-          method: POST
-          api: REST
-          path: /global-profile/TestProfile/target
-          pathParams:
-            profileName: TestProfile
-          body:
-            targetId: test-scope-001
-            targetType: device
-          expectedStatus: 200
-          validations:
-            - type: statusCode
-              expected: 200
-        - name: deployProfileTodevice
-          description: Deploy profile to device
-          method: POST
-          api: REST
-          path: /global-profile/TestProfile/deploy
-          pathParams:
-            profileName: TestProfile
-          body:
-            deploymentMethod: immediate
+            deployAt: "2026-04-21T15:40:24Z"
+            devices:
+                - test-device-001
+            timezone: UTC
           expectedStatus: 202
           validations:
             - type: statusCode
-              expected: 202
-        - name: checkDeploymentStatus
-          description: Verify deployment status
-          method: GET
-          api: REST
-          path: /global-profile/TestProfile/deployment/status
-          pathParams:
-            profileName: TestProfile
-          expectedStatus: 200
-          validations:
-            - type: statusCode
-              expected: 200
-            - type: jsonPathEquals
-              path: $.status
-              expected: SUCCESS
-          timeout: 300
-        - name: verifyNosConfigFordevice
-          description: Verify configuration on NOS devices in device
-          method: GET
-          api: NOSAPI
-          path: /v0/state/lag/{lag_id}
-          pathParams:
-            deviceId: test-scope-001
-            siteGroupId: test-scope-001
-          expectedStatus: 200
-          validations:
-            - type: statusCode
-              expected: 200
-            - type: nosConfigMatchesExpected
-              description: Verify NOS device configuration matches expected state
-          devicesScope: device
+              expected: "202"

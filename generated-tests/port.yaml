@@ -1,16 +1,16 @@
 version: "1.0"
-generatedAt: "2026-04-21T20:00:26+05:30"
+generatedAt: "2026-04-21T20:10:24+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
 features:
     - featureName: port
-      featurePath: /configuration-profile/{name}/sites/deploy
+      featurePath: /configuration-profile/{name}/feature/object/retrieve
       profileType: configuration
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_3649
+            - testCaseID: TCXM_1795
               featureName: port
               priority: P2
               type: boundary
@@ -21,7 +21,7 @@ features:
                   description: Test name with minLength
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                  path: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                   body:
                     name: a
                   expectedStatus: 201
@@ -29,7 +29,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_3650
+            - testCaseID: TCXM_1796
               featureName: port
               priority: P2
               type: boundary
@@ -40,7 +40,7 @@ features:
                   description: Test name with maxLength
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                  path: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                   body:
                     name: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg
                   expectedStatus: 201
@@ -48,7 +48,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_3651
+            - testCaseID: TCXM_1797
               featureName: port
               priority: P2
               type: boundary
@@ -59,7 +59,7 @@ features:
                   description: Test description with maxLength
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                  path: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                   body:
                     description: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEF
                     name: TestResource
@@ -69,7 +69,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_3572
+            - testCaseID: TCXM_1718
               featureName: port
               priority: P0
               type: functional
@@ -101,6 +101,9 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   pathParams:
                     name: TestResource
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -127,7 +130,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-port-status')].value
                       expected: ""
                       description: Verify 'enable-port-status' value is '' as set during create
-            - testCaseID: TCXM_3573
+            - testCaseID: TCXM_1719
               featureName: port
               priority: P1
               type: functional
@@ -165,11 +168,14 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   pathParams:
                     name: TestResource
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3574
+            - testCaseID: TCXM_1720
               featureName: port
               priority: P1
               type: functional
@@ -209,7 +215,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_3575
+            - testCaseID: TCXM_1721
               featureName: port
               priority: P2
               type: functional
@@ -232,6 +238,9 @@ features:
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -252,6 +261,9 @@ features:
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port
                   expectedStatus: 200
                   validations:
                     - type: statusCode
@@ -265,7 +277,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3576
+            - testCaseID: TCXM_1722
               featureName: port
               priority: P2
               type: functional
@@ -292,7 +304,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3577
+            - testCaseID: TCXM_1723
               featureName: port
               priority: P2
               type: functional
@@ -325,11 +337,14 @@ features:
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3578
+            - testCaseID: TCXM_1724
               featureName: port
               priority: P2
               type: functional
@@ -358,7 +373,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3579
+            - testCaseID: TCXM_1725
               featureName: port
               priority: P0
               type: functional
@@ -468,7 +483,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3580
+            - testCaseID: TCXM_1726
               featureName: port
               priority: P1
               type: functional
@@ -499,7 +514,7 @@ features:
                   description: Verify configuration on NOS devices in device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/ports
+                  path: /v0/configuration/lldp/ports/{port}
                   pathParams:
                     deviceId: test-scope-001
                     siteGroupId: test-scope-001
@@ -510,7 +525,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3581
+            - testCaseID: TCXM_1727
               featureName: port
               priority: P1
               type: functional
@@ -551,7 +566,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_3582
+            - testCaseID: TCXM_1728
               featureName: port
               priority: P1
               type: functional
@@ -625,7 +640,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-port-status')].value
                       expected: ""
                       description: Verify field 'enable-port-status' has value '' as sent on create
-            - testCaseID: TCXM_3583
+            - testCaseID: TCXM_1729
               featureName: port
               priority: P2
               type: functional
@@ -674,7 +689,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='name')].value
                       expected: test-resource
                       description: Verify optional field 'name' value is 'test-resource' as set on create
-            - testCaseID: TCXM_3584
+            - testCaseID: TCXM_1730
               featureName: port
               priority: P2
               type: functional
@@ -723,7 +738,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='description')].value
                       expected: 8.8.8.8
                       description: Verify optional field 'description' value is '8.8.8.8' as set on create
-            - testCaseID: TCXM_3585
+            - testCaseID: TCXM_1731
               featureName: port
               priority: P2
               type: functional
@@ -772,7 +787,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-port-status')].value
                       expected: ""
                       description: Verify optional field 'enable-port-status' value is '' as set on create
-            - testCaseID: TCXM_3586
+            - testCaseID: TCXM_1732
               featureName: port
               priority: P1
               type: functional
@@ -814,7 +829,7 @@ features:
                       path: $.name
                       expected: test-value-1
                       description: Verify 'name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_3587
+            - testCaseID: TCXM_1733
               featureName: port
               priority: P1
               type: functional
@@ -856,7 +871,7 @@ features:
                       path: $.name
                       expected: test-value-2
                       description: Verify 'name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_3588
+            - testCaseID: TCXM_1734
               featureName: port
               priority: P1
               type: functional
@@ -898,7 +913,7 @@ features:
                       path: $.enable-port-status
                       expected: true
                       description: Verify 'enable-port-status' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_3589
+            - testCaseID: TCXM_1735
               featureName: port
               priority: P1
               type: functional
@@ -940,7 +955,7 @@ features:
                       path: $.enable-port-status
                       expected: false
                       description: Verify 'enable-port-status' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_3590
+            - testCaseID: TCXM_1736
               featureName: port
               priority: P1
               type: functional
@@ -982,7 +997,7 @@ features:
                       path: $.enable-port-status
                       expected: ""
                       description: 'Verify ''enable-port-status'' equals YANG-defined default value '
-            - testCaseID: TCXM_3591
+            - testCaseID: TCXM_1737
               featureName: port
               priority: P1
               type: functional
@@ -1045,7 +1060,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/storm-control/ports
+                  path: /v0/state/fabric-attach/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -1056,7 +1071,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3592
+            - testCaseID: TCXM_1738
               featureName: port
               priority: P1
               type: functional
@@ -1115,7 +1130,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3593
+            - testCaseID: TCXM_1739
               featureName: port
               priority: P1
               type: functional
@@ -1178,7 +1193,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/poe-power/ports
+                  path: /v0/configuration/lldp/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -1189,7 +1204,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3594
+            - testCaseID: TCXM_1740
               featureName: port
               priority: P1
               type: functional
@@ -1248,7 +1263,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3595
+            - testCaseID: TCXM_1741
               featureName: port
               priority: P1
               type: functional
@@ -1322,7 +1337,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3596
+            - testCaseID: TCXM_1742
               featureName: port
               priority: P1
               type: functional
@@ -1381,7 +1396,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3597
+            - testCaseID: TCXM_1743
               featureName: port
               priority: P1
               type: functional
@@ -1444,7 +1459,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/fabric-attach/element/ports/{port}
+                  path: /v0/configuration/slpp/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -1455,7 +1470,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3598
+            - testCaseID: TCXM_1744
               featureName: port
               priority: P1
               type: functional
@@ -1514,7 +1529,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3599
+            - testCaseID: TCXM_1745
               featureName: port
               priority: P1
               type: functional
@@ -1577,7 +1592,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/fabric-attach/element/ports/{port}
+                  path: /v0/state/macsec/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -1588,7 +1603,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3600
+            - testCaseID: TCXM_1746
               featureName: port
               priority: P1
               type: functional
@@ -1647,7 +1662,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3601
+            - testCaseID: TCXM_1747
               featureName: port
               priority: P1
               type: functional
@@ -1710,7 +1725,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/ports
+                  path: /v0/state/fabric-attach/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -1721,7 +1736,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3602
+            - testCaseID: TCXM_1748
               featureName: port
               priority: P1
               type: functional
@@ -1780,7 +1795,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3603
+            - testCaseID: TCXM_1749
               featureName: port
               priority: P1
               type: functional
@@ -1843,7 +1858,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/port/{port}
+                  path: /v0/state/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -1854,7 +1869,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3604
+            - testCaseID: TCXM_1750
               featureName: port
               priority: P1
               type: functional
@@ -1913,7 +1928,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3605
+            - testCaseID: TCXM_1751
               featureName: port
               priority: P1
               type: functional
@@ -1976,7 +1991,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/autosense/ports
+                  path: /v0/configuration/instant-port
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -1987,7 +2002,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3606
+            - testCaseID: TCXM_1752
               featureName: port
               priority: P1
               type: functional
@@ -2046,7 +2061,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3607
+            - testCaseID: TCXM_1753
               featureName: port
               priority: P1
               type: functional
@@ -2109,7 +2124,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/poe-power/ports
+                  path: /v0/configuration/slpp/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2120,7 +2135,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3608
+            - testCaseID: TCXM_1754
               featureName: port
               priority: P1
               type: functional
@@ -2179,7 +2194,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3609
+            - testCaseID: TCXM_1755
               featureName: port
               priority: P1
               type: functional
@@ -2242,7 +2257,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/spbm/isis/ports
+                  path: /v0/state/stp/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2253,7 +2268,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3610
+            - testCaseID: TCXM_1756
               featureName: port
               priority: P1
               type: functional
@@ -2312,7 +2327,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3611
+            - testCaseID: TCXM_1757
               featureName: port
               priority: P1
               type: functional
@@ -2375,7 +2390,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/ports
+                  path: /v0/state/fabric-attach/element/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2386,7 +2401,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3612
+            - testCaseID: TCXM_1758
               featureName: port
               priority: P1
               type: functional
@@ -2445,7 +2460,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3613
+            - testCaseID: TCXM_1759
               featureName: port
               priority: P1
               type: functional
@@ -2508,7 +2523,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/poe-power/ports
+                  path: /v0/configuration/instant-port
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2519,7 +2534,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3614
+            - testCaseID: TCXM_1760
               featureName: port
               priority: P1
               type: functional
@@ -2578,7 +2593,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3615
+            - testCaseID: TCXM_1761
               featureName: port
               priority: P1
               type: functional
@@ -2644,7 +2659,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/ip-source-guard/ports/{port}
+                  path: /v0/configuration/slpp/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2655,7 +2670,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3616
+            - testCaseID: TCXM_1762
               featureName: port
               priority: P1
               type: functional
@@ -2721,7 +2736,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/port/{port}
+                  path: /v0/state/eee/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2732,7 +2747,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3617
+            - testCaseID: TCXM_1763
               featureName: port
               priority: P1
               type: functional
@@ -2798,7 +2813,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/ports
+                  path: /v0/state/fabric-attach/element/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2809,7 +2824,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3618
+            - testCaseID: TCXM_1764
               featureName: port
               priority: P1
               type: functional
@@ -2875,7 +2890,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/authentication/{port}
+                  path: /v0/configuration/vlan/port/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2886,7 +2901,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3619
+            - testCaseID: TCXM_1765
               featureName: port
               priority: P1
               type: functional
@@ -2952,7 +2967,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/ports
+                  path: /v0/configuration/mlag/peers/{peer_id}/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2963,7 +2978,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3620
+            - testCaseID: TCXM_1766
               featureName: port
               priority: P1
               type: functional
@@ -3029,7 +3044,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/energy-saver/ports/{port}
+                  path: /v0/configuration/cdp/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3040,7 +3055,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3621
+            - testCaseID: TCXM_1767
               featureName: port
               priority: P1
               type: functional
@@ -3106,7 +3121,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/autosense/ports
+                  path: /v1/state/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3117,7 +3132,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3622
+            - testCaseID: TCXM_1768
               featureName: port
               priority: P1
               type: functional
@@ -3183,7 +3198,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/fabric-attach/element/ports/{port}
+                  path: /v0/configuration/spbm/isis/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3194,7 +3209,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3623
+            - testCaseID: TCXM_1769
               featureName: port
               priority: P1
               type: functional
@@ -3260,7 +3275,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/fabric-attach/element/ports/{port}
+                  path: /v0/configuration/spbm/isis/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3271,7 +3286,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3624
+            - testCaseID: TCXM_1770
               featureName: port
               priority: P1
               type: functional
@@ -3337,7 +3352,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/poe-power/ports/{port}
+                  path: /v0/configuration/slpp/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3348,7 +3363,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3625
+            - testCaseID: TCXM_1771
               featureName: port
               priority: P1
               type: functional
@@ -3411,7 +3426,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/fabric-attach/element/ports/{port}
+                  path: /v0/configuration/autosense/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3422,7 +3437,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3626
+            - testCaseID: TCXM_1772
               featureName: port
               priority: P1
               type: functional
@@ -3485,7 +3500,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/spbm/isis/ports
+                  path: /v0/configuration/lldp/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3496,7 +3511,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3627
+            - testCaseID: TCXM_1773
               featureName: port
               priority: P1
               type: functional
@@ -3559,7 +3574,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/state/ports/{port}
+                  path: /v0/configuration/vlan/port/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3570,7 +3585,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3628
+            - testCaseID: TCXM_1774
               featureName: port
               priority: P1
               type: functional
@@ -3634,7 +3649,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/fabric-attach/element/ports/{port}
+                  path: /v0/state/eee/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3645,7 +3660,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3629
+            - testCaseID: TCXM_1775
               featureName: port
               priority: P1
               type: functional
@@ -3709,7 +3724,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/autosense/ports
+                  path: /v0/configuration/spbm/isis/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3720,7 +3735,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3630
+            - testCaseID: TCXM_1776
               featureName: port
               priority: P1
               type: functional
@@ -3784,7 +3799,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/autosense/ports
+                  path: /v0/state/transceiver/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3795,7 +3810,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3631
+            - testCaseID: TCXM_1777
               featureName: port
               priority: P1
               type: functional
@@ -3859,7 +3874,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/macsec/ports/{port}
+                  path: /v0/configuration/vlan/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3870,7 +3885,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3632
+            - testCaseID: TCXM_1778
               featureName: port
               priority: P1
               type: functional
@@ -3934,7 +3949,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/ports
+                  path: /v0/state/transceiver/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3945,7 +3960,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3633
+            - testCaseID: TCXM_1779
               featureName: port
               priority: P1
               type: functional
@@ -4009,7 +4024,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/ip-source-guard/ports/{port}
+                  path: /v0/configuration/lldp/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4020,7 +4035,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3634
+            - testCaseID: TCXM_1780
               featureName: port
               priority: P1
               type: functional
@@ -4085,7 +4100,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/ports
+                  path: /v0/configuration/autosense/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4096,7 +4111,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3635
+            - testCaseID: TCXM_1781
               featureName: port
               priority: P1
               type: functional
@@ -4161,7 +4176,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/qos/profiles/ports/{port}
+                  path: /v0/configuration/vlacp/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4172,7 +4187,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3636
+            - testCaseID: TCXM_1782
               featureName: port
               priority: P1
               type: functional
@@ -4237,7 +4252,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/ports
+                  path: /v0/configuration/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4248,229 +4263,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3637
-              featureName: port
-              priority: P1
-              type: functional
-              description: Deploy and verify port with bool value variation 1 for 'enable-port-status'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with bool type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    name: TestResource-enable-port-status-Typebool-V1
-                    objectType: port
-                    objects:
-                        - operation: add
-                          properties: []
-                          type: port
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V1/devices/deploy
-                  pathParams:
-                    name: TestResource-enable-port-status-Typebool-V1
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V1/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-enable-port-status-Typebool-V1
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/configuration/qos/profiles/ports/{port}
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_3638
-              featureName: port
-              priority: P1
-              type: functional
-              description: Deploy and verify port with bool value variation 2 for 'enable-port-status'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with bool type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    name: TestResource-enable-port-status-Typebool-V2
-                    objectType: port
-                    objects:
-                        - operation: add
-                          properties: []
-                          type: port
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V2/devices/deploy
-                  pathParams:
-                    name: TestResource-enable-port-status-Typebool-V2
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V2/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-enable-port-status-Typebool-V2
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/configuration/qos/profiles/ports/{port}
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_3639
-              featureName: port
-              priority: P1
-              type: functional
-              description: Deploy and verify port with bool value variation 3 for 'enable-port-status'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with bool type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    name: TestResource-enable-port-status-Typebool-V3
-                    objectType: port
-                    objects:
-                        - operation: add
-                          properties: []
-                          type: port
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V3/devices/deploy
-                  pathParams:
-                    name: TestResource-enable-port-status-Typebool-V3
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V3/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-enable-port-status-Typebool-V3
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/state/ports
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_3640
+            - testCaseID: TCXM_1783
               featureName: port
               priority: P1
               type: functional
@@ -4533,7 +4326,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/poe-power/ports
+                  path: /v0/configuration/lldp/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4544,7 +4337,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3641
+            - testCaseID: TCXM_1784
               featureName: port
               priority: P1
               type: functional
@@ -4607,7 +4400,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/ports
+                  path: /v1/state/ports
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4618,7 +4411,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3642
+            - testCaseID: TCXM_1785
               featureName: port
               priority: P1
               type: functional
@@ -4681,7 +4474,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/qos/profiles/ports/{port}
+                  path: /v0/state/stp/{stp_name}/ports/{port}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4692,7 +4485,229 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3643
+            - testCaseID: TCXM_1786
+              featureName: port
+              priority: P1
+              type: functional
+              description: Deploy and verify port with bool value variation 1 for 'enable-port-status'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with bool type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    name: TestResource-enable-port-status-Typebool-V1
+                    objectType: port
+                    objects:
+                        - operation: add
+                          properties: []
+                          type: port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-enable-port-status-Typebool-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-enable-port-status-Typebool-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/autosense/port/{port}
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_1787
+              featureName: port
+              priority: P1
+              type: functional
+              description: Deploy and verify port with bool value variation 2 for 'enable-port-status'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with bool type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    name: TestResource-enable-port-status-Typebool-V2
+                    objectType: port
+                    objects:
+                        - operation: add
+                          properties: []
+                          type: port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-enable-port-status-Typebool-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-enable-port-status-Typebool-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/autosense/ports
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_1788
+              featureName: port
+              priority: P1
+              type: functional
+              description: Deploy and verify port with bool value variation 3 for 'enable-port-status'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with bool type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    name: TestResource-enable-port-status-Typebool-V3
+                    objectType: port
+                    objects:
+                        - operation: add
+                          properties: []
+                          type: port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-enable-port-status-Typebool-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enable-port-status-Typebool-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-enable-port-status-Typebool-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/poe-power/ports
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_1789
               featureName: port
               priority: P0
               type: functional
@@ -4708,7 +4723,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                    featurePath: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                     name: TestProfile-Additional
                     objectType: port
                     objects:
@@ -4725,14 +4740,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-21T15:30:26Z
+                  description: Schedule deployment to device at 2026-04-21T15:40:24Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T15:30:26Z"
+                    deployAt: "2026-04-21T15:40:24Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -4740,7 +4755,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_3644
+            - testCaseID: TCXM_1790
               featureName: port
               priority: P0
               type: functional
@@ -4756,7 +4771,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                    featurePath: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                     name: TestProfile-Additional
                     objectType: port
                     objects:
@@ -4773,14 +4788,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-21T15:30:26Z
+                  description: Schedule deployment to site at 2026-04-21T15:40:24Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T15:30:26Z"
+                    deployAt: "2026-04-21T15:40:24Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -4788,7 +4803,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_3645
+            - testCaseID: TCXM_1791
               featureName: port
               priority: P1
               type: functional
@@ -4801,7 +4816,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                    featurePath: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                     name: TestProfile-Additional
                     objectType: port
                     objects:
@@ -4825,7 +4840,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T15:30:26Z"
+                    deployAt: "2026-04-21T15:40:24Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -4834,14 +4849,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-21T16:30:26Z
+                  description: Edit deployment schedule to 2026-04-21T16:40:24Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:30:26Z"
+                    deployAt: "2026-04-21T16:40:24Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -4849,7 +4864,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_3646
+            - testCaseID: TCXM_1792
               featureName: port
               priority: P1
               type: functional
@@ -4862,7 +4877,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                    featurePath: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                     name: TestProfile-Additional
                     objectType: port
                     objects:
@@ -4886,7 +4901,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T15:30:26Z"
+                    deployAt: "2026-04-21T15:40:24Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -4908,7 +4923,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_3647
+            - testCaseID: TCXM_1793
               featureName: port
               priority: P1
               type: functional
@@ -4921,7 +4936,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                    featurePath: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                     name: TestProfile-Additional
                     objectType: port
                     objects:
@@ -4950,7 +4965,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_3648
+            - testCaseID: TCXM_1794
               featureName: port
               priority: P1
               type: functional
@@ -4963,7 +4978,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                    featurePath: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                     name: TestProfile-Additional
                     objectType: port
                     objects:
@@ -4987,7 +5002,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                    featurePath: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                     newId: cloned-object-1
                     objectType: port
                     sourceId: original-object-1
@@ -4996,7 +5011,7 @@ features:
                     - type: statusCode
                       expected: "201"
         negative:
-            - testCaseID: TCXM_3652
+            - testCaseID: TCXM_1798
               featureName: port
               priority: P1
               type: negative
@@ -5007,14 +5022,14 @@ features:
                   description: Attempt to create with name exceeding max length
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                  path: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                   body:
                     name: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopq
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3653
+            - testCaseID: TCXM_1799
               featureName: port
               priority: P1
               type: negative
@@ -5025,7 +5040,7 @@ features:
                   description: Attempt to create with description exceeding max length
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                  path: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                   body:
                     description: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP
                     name: TestResource
@@ -5033,7 +5048,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3654
+            - testCaseID: TCXM_1800
               featureName: port
               priority: P1
               type: negative
@@ -5044,14 +5059,14 @@ features:
                   description: Attempt to create with name below min length
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                  path: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                   body:
                     name: ""
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3655
+            - testCaseID: TCXM_1801
               featureName: port
               priority: P2
               type: negative
@@ -5062,14 +5077,14 @@ features:
                   description: Create port without optional field 'name' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                  path: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                   body: {}
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'name' is omitted
-            - testCaseID: TCXM_3656
+            - testCaseID: TCXM_1802
               featureName: port
               priority: P2
               type: negative
@@ -5080,14 +5095,14 @@ features:
                   description: Create port without optional field 'description' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                  path: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                   body: {}
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'description' is omitted
-            - testCaseID: TCXM_3657
+            - testCaseID: TCXM_1803
               featureName: port
               priority: P2
               type: negative
@@ -5098,14 +5113,14 @@ features:
                   description: Create port without optional field 'enable-port-status' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                  path: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                   body: {}
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enable-port-status' is omitted
-            - testCaseID: TCXM_3658
+            - testCaseID: TCXM_1804
               featureName: port
               priority: P1
               type: negative
@@ -5116,7 +5131,7 @@ features:
                   description: Attempt to create without operation field
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/port-mappings/{port-mappingId}/port-profiles
+                  path: /configuration-profile/{name}/port-profile/{portProfileName}/port-mappings/retrieve
                   body:
                     name: TestResource
                   expectedStatus: 400
@@ -5125,7 +5140,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3659
+            - testCaseID: TCXM_1805
               featureName: port
               priority: P1
               type: negative
@@ -5147,7 +5162,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_3665
+            - testCaseID: TCXM_1811
               featureName: port
               priority: P3
               type: performance
@@ -5378,7 +5393,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_3666
+            - testCaseID: TCXM_1812
               featureName: port
               priority: P3
               type: performance
@@ -5539,7 +5554,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_3667
+            - testCaseID: TCXM_1813
               featureName: port
               priority: P3
               type: performance
@@ -5680,7 +5695,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: list
-            - testCaseID: TCXM_3668
+            - testCaseID: TCXM_1814
               featureName: port
               priority: P2
               type: performance
@@ -5938,7 +5953,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_3669
+            - testCaseID: TCXM_1815
               featureName: port
               priority: P2
               type: performance
@@ -6258,7 +6273,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_3670
+            - testCaseID: TCXM_1816
               featureName: port
               priority: P2
               type: performance
@@ -6447,7 +6462,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_3660
+            - testCaseID: TCXM_1806
               featureName: port
               priority: P2
               type: scale
@@ -8265,7 +8280,7 @@ features:
                       expected: 200
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_3661
+            - testCaseID: TCXM_1807
               featureName: port
               priority: P2
               type: scale
@@ -8291,7 +8306,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_3662
+            - testCaseID: TCXM_1808
               featureName: port
               priority: P2
               type: scale
@@ -9519,7 +9534,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_3663
+            - testCaseID: TCXM_1809
               featureName: port
               priority: P2
               type: scale
@@ -9737,7 +9752,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_3664
+            - testCaseID: TCXM_1810
               featureName: port
               priority: P2
               type: scale
