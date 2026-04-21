@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-04-21T21:03:03+05:30"
+generatedAt: "2026-04-21T21:58:53+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_7155
+            - testCaseID: TCXM_4946
               featureName: time-object
               priority: P0
               type: functional
@@ -22,7 +22,7 @@ features:
                   description: Create time-object
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -31,7 +31,18 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_7156
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Verify response contains created object ID
+                    - type: jsonPathEquals
+                      path: $[0].status
+                      expected: success
+                      description: Verify operation status is 'success'
+                    - type: jsonPathEquals
+                      path: $[0].operation
+                      expected: create
+                      description: Verify operation type is 'create'
+            - testCaseID: TCXM_4947
               featureName: time-object
               priority: P2
               type: functional
@@ -42,7 +53,7 @@ features:
                   description: Create time-object (first attempt)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -54,7 +65,7 @@ features:
                   description: Create same time-object again (idempotent check)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -62,7 +73,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_7157
+            - testCaseID: TCXM_4948
               featureName: time-object
               priority: P0
               type: functional
@@ -76,7 +87,7 @@ features:
                   description: Create time-object configuration
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestProfile
@@ -140,7 +151,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7158
+            - testCaseID: TCXM_4949
               featureName: time-object
               priority: P1
               type: functional
@@ -153,7 +164,7 @@ features:
                   description: Create time-object configuration
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestProfile-Simple
@@ -161,7 +172,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7159
+            - testCaseID: TCXM_4950
               featureName: time-object
               priority: P1
               type: functional
@@ -172,7 +183,7 @@ features:
                   description: Create time-object providing only required YANG fields
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                   expectedStatus: 201
@@ -180,7 +191,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify resource is created with required fields only
-            - testCaseID: TCXM_7160
+            - testCaseID: TCXM_4951
               featureName: time-object
               priority: P1
               type: functional
@@ -191,7 +202,7 @@ features:
                   description: Create time-object providing all YANG-defined fields including optional
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     time-object-date-range: testValue
@@ -201,7 +212,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify resource is created with all fields
-            - testCaseID: TCXM_7161
+            - testCaseID: TCXM_4952
               featureName: time-object
               priority: P2
               type: functional
@@ -212,7 +223,7 @@ features:
                   description: Create time-object with optional field 'time-zone'=100 explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     time-zone: 100
@@ -221,7 +232,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify resource is created when optional field 'time-zone' is provided
-            - testCaseID: TCXM_7162
+            - testCaseID: TCXM_4953
               featureName: time-object
               priority: P2
               type: functional
@@ -232,7 +243,7 @@ features:
                   description: Create time-object with optional field 'time-object-date-range'=testValue explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     time-object-date-range: testValue
@@ -241,7 +252,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify resource is created when optional field 'time-object-date-range' is provided
-            - testCaseID: TCXM_7163
+            - testCaseID: TCXM_4954
               featureName: time-object
               priority: P1
               type: functional
@@ -252,7 +263,7 @@ features:
                   description: 'Create time-object with YANG type ''asset-types:schedule-type-enum'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -261,7 +272,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify asset-device-id type 'asset-types:schedule-type-enum' value is accepted
-            - testCaseID: TCXM_7164
+            - testCaseID: TCXM_4955
               featureName: time-object
               priority: P1
               type: functional
@@ -272,7 +283,7 @@ features:
                   description: 'Create time-object with YANG type ''asset-types:schedule-type-enum'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -281,7 +292,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify asset-device-id type 'asset-types:schedule-type-enum' value is accepted
-            - testCaseID: TCXM_7165
+            - testCaseID: TCXM_4956
               featureName: time-object
               priority: P1
               type: functional
@@ -292,7 +303,7 @@ features:
                   description: 'Create time-object with YANG type ''int8'' value: 1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -302,7 +313,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify time-zone type 'int8' value is accepted
-            - testCaseID: TCXM_7166
+            - testCaseID: TCXM_4957
               featureName: time-object
               priority: P1
               type: functional
@@ -313,7 +324,7 @@ features:
                   description: 'Create time-object with YANG type ''int8'' value: 100'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -323,7 +334,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify time-zone type 'int8' value is accepted
-            - testCaseID: TCXM_7167
+            - testCaseID: TCXM_4958
               featureName: time-object
               priority: P1
               type: functional
@@ -334,7 +345,7 @@ features:
                   description: 'Create time-object with YANG type ''list'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -344,7 +355,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify time-object-date-range type 'list' value is accepted
-            - testCaseID: TCXM_7168
+            - testCaseID: TCXM_4959
               featureName: time-object
               priority: P1
               type: functional
@@ -355,7 +366,7 @@ features:
                   description: 'Create time-object with YANG type ''list'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -365,7 +376,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify time-object-date-range type 'list' value is accepted
-            - testCaseID: TCXM_7169
+            - testCaseID: TCXM_4960
               featureName: time-object
               priority: P1
               type: functional
@@ -376,7 +387,7 @@ features:
                   description: 'Create time-object with YANG type ''string'' value: test-value-1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -386,7 +397,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify time-object-id type 'string' value is accepted
-            - testCaseID: TCXM_7170
+            - testCaseID: TCXM_4961
               featureName: time-object
               priority: P1
               type: functional
@@ -397,7 +408,7 @@ features:
                   description: 'Create time-object with YANG type ''string'' value: test-value-2'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -407,7 +418,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify time-object-id type 'string' value is accepted
-            - testCaseID: TCXM_7171
+            - testCaseID: TCXM_4962
               featureName: time-object
               priority: P1
               type: functional
@@ -418,7 +429,7 @@ features:
                   description: 'Create time-object with YANG type ''asset-types:weekday-enum'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -428,7 +439,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify time-object-id type 'asset-types:weekday-enum' value is accepted
-            - testCaseID: TCXM_7172
+            - testCaseID: TCXM_4963
               featureName: time-object
               priority: P1
               type: functional
@@ -439,7 +450,7 @@ features:
                   description: 'Create time-object with YANG type ''asset-types:weekday-enum'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -449,7 +460,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify time-object-id type 'asset-types:weekday-enum' value is accepted
-            - testCaseID: TCXM_7173
+            - testCaseID: TCXM_4964
               featureName: time-object
               priority: P0
               type: functional
@@ -502,7 +513,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7174
+            - testCaseID: TCXM_4965
               featureName: time-object
               priority: P0
               type: functional
@@ -555,7 +566,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7175
+            - testCaseID: TCXM_4966
               featureName: time-object
               priority: P0
               type: functional
@@ -608,7 +619,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7176
+            - testCaseID: TCXM_4967
               featureName: time-object
               priority: P0
               type: functional
@@ -661,7 +672,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7177
+            - testCaseID: TCXM_4968
               featureName: time-object
               priority: P0
               type: functional
@@ -714,7 +725,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7178
+            - testCaseID: TCXM_4969
               featureName: time-object
               priority: P0
               type: functional
@@ -767,7 +778,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7179
+            - testCaseID: TCXM_4970
               featureName: time-object
               priority: P0
               type: functional
@@ -820,7 +831,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7180
+            - testCaseID: TCXM_4971
               featureName: time-object
               priority: P0
               type: functional
@@ -873,7 +884,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7181
+            - testCaseID: TCXM_4972
               featureName: time-object
               priority: P0
               type: functional
@@ -926,7 +937,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7182
+            - testCaseID: TCXM_4973
               featureName: time-object
               priority: P0
               type: functional
@@ -979,7 +990,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7183
+            - testCaseID: TCXM_4974
               featureName: time-object
               priority: P1
               type: functional
@@ -1032,7 +1043,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7184
+            - testCaseID: TCXM_4975
               featureName: time-object
               priority: P1
               type: functional
@@ -1085,7 +1096,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7185
+            - testCaseID: TCXM_4976
               featureName: time-object
               priority: P1
               type: functional
@@ -1138,7 +1149,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7186
+            - testCaseID: TCXM_4977
               featureName: time-object
               priority: P1
               type: functional
@@ -1191,7 +1202,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7187
+            - testCaseID: TCXM_4978
               featureName: time-object
               priority: P1
               type: functional
@@ -1244,7 +1255,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7188
+            - testCaseID: TCXM_4979
               featureName: time-object
               priority: P1
               type: functional
@@ -1297,7 +1308,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7189
+            - testCaseID: TCXM_4980
               featureName: time-object
               priority: P1
               type: functional
@@ -1351,7 +1362,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7190
+            - testCaseID: TCXM_4981
               featureName: time-object
               priority: P1
               type: functional
@@ -1405,7 +1416,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7191
+            - testCaseID: TCXM_4982
               featureName: time-object
               priority: P1
               type: functional
@@ -1459,7 +1470,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7192
+            - testCaseID: TCXM_4983
               featureName: time-object
               priority: P1
               type: functional
@@ -1513,7 +1524,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7193
+            - testCaseID: TCXM_4984
               featureName: time-object
               priority: P1
               type: functional
@@ -1567,7 +1578,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7194
+            - testCaseID: TCXM_4985
               featureName: time-object
               priority: P1
               type: functional
@@ -1621,7 +1632,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7195
+            - testCaseID: TCXM_4986
               featureName: time-object
               priority: P1
               type: functional
@@ -1676,7 +1687,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7196
+            - testCaseID: TCXM_4987
               featureName: time-object
               priority: P1
               type: functional
@@ -1731,7 +1742,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7197
+            - testCaseID: TCXM_4988
               featureName: time-object
               priority: P1
               type: functional
@@ -1786,7 +1797,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7198
+            - testCaseID: TCXM_4989
               featureName: time-object
               priority: P1
               type: functional
@@ -1841,7 +1852,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7199
+            - testCaseID: TCXM_4990
               featureName: time-object
               priority: P1
               type: functional
@@ -1896,7 +1907,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7200
+            - testCaseID: TCXM_4991
               featureName: time-object
               priority: P1
               type: functional
@@ -1951,7 +1962,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7201
+            - testCaseID: TCXM_4992
               featureName: time-object
               priority: P1
               type: functional
@@ -2006,7 +2017,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7202
+            - testCaseID: TCXM_4993
               featureName: time-object
               priority: P1
               type: functional
@@ -2061,7 +2072,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7203
+            - testCaseID: TCXM_4994
               featureName: time-object
               priority: P1
               type: functional
@@ -2116,7 +2127,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7204
+            - testCaseID: TCXM_4995
               featureName: time-object
               priority: P1
               type: functional
@@ -2171,7 +2182,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7205
+            - testCaseID: TCXM_4996
               featureName: time-object
               priority: P1
               type: functional
@@ -2226,7 +2237,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7206
+            - testCaseID: TCXM_4997
               featureName: time-object
               priority: P1
               type: functional
@@ -2281,7 +2292,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7207
+            - testCaseID: TCXM_4998
               featureName: time-object
               priority: P1
               type: functional
@@ -2336,7 +2347,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7208
+            - testCaseID: TCXM_4999
               featureName: time-object
               priority: P1
               type: functional
@@ -2391,7 +2402,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7209
+            - testCaseID: TCXM_5000
               featureName: time-object
               priority: P1
               type: functional
@@ -2446,7 +2457,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7210
+            - testCaseID: TCXM_5001
               featureName: time-object
               priority: P1
               type: functional
@@ -2501,7 +2512,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7211
+            - testCaseID: TCXM_5002
               featureName: time-object
               priority: P1
               type: functional
@@ -2555,7 +2566,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7212
+            - testCaseID: TCXM_5003
               featureName: time-object
               priority: P1
               type: functional
@@ -2609,7 +2620,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7213
+            - testCaseID: TCXM_5004
               featureName: time-object
               priority: P1
               type: functional
@@ -2663,7 +2674,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7214
+            - testCaseID: TCXM_5005
               featureName: time-object
               priority: P1
               type: functional
@@ -2717,7 +2728,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7215
+            - testCaseID: TCXM_5006
               featureName: time-object
               priority: P1
               type: functional
@@ -2771,7 +2782,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7216
+            - testCaseID: TCXM_5007
               featureName: time-object
               priority: P1
               type: functional
@@ -2825,7 +2836,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7217
+            - testCaseID: TCXM_5008
               featureName: time-object
               priority: P1
               type: functional
@@ -2880,7 +2891,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7218
+            - testCaseID: TCXM_5009
               featureName: time-object
               priority: P1
               type: functional
@@ -2935,7 +2946,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7219
+            - testCaseID: TCXM_5010
               featureName: time-object
               priority: P1
               type: functional
@@ -2990,166 +3001,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7220
-              featureName: time-object
-              priority: P1
-              type: functional
-              description: Deploy and verify time-object with string value variation 1 for 'asset-device-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with string type variation: test-value-1'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
-                  body:
-                    asset-device-id: test-value-1
-                    name: TestResource-asset-device-id-Typestring-V1
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V1/devices/deploy
-                  pathParams:
-                    name: TestResource-asset-device-id-Typestring-V1
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V1/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-asset-device-id-Typestring-V1
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_7221
-              featureName: time-object
-              priority: P1
-              type: functional
-              description: Deploy and verify time-object with string value variation 2 for 'asset-device-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with string type variation: TestValue2'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
-                  body:
-                    asset-device-id: TestValue2
-                    name: TestResource-asset-device-id-Typestring-V2
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V2/devices/deploy
-                  pathParams:
-                    name: TestResource-asset-device-id-Typestring-V2
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V2/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-asset-device-id-Typestring-V2
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_7222
-              featureName: time-object
-              priority: P1
-              type: functional
-              description: Deploy and verify time-object with string value variation 3 for 'asset-device-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with string type variation: test_value_3'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
-                  body:
-                    asset-device-id: test_value_3
-                    name: TestResource-asset-device-id-Typestring-V3
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V3/devices/deploy
-                  pathParams:
-                    name: TestResource-asset-device-id-Typestring-V3
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V3/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-asset-device-id-Typestring-V3
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_7223
+            - testCaseID: TCXM_5011
               featureName: time-object
               priority: P1
               type: functional
@@ -3203,7 +3055,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7224
+            - testCaseID: TCXM_5012
               featureName: time-object
               priority: P1
               type: functional
@@ -3257,7 +3109,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7225
+            - testCaseID: TCXM_5013
               featureName: time-object
               priority: P1
               type: functional
@@ -3311,7 +3163,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7226
+            - testCaseID: TCXM_5014
               featureName: time-object
               priority: P1
               type: functional
@@ -3365,7 +3217,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7227
+            - testCaseID: TCXM_5015
               featureName: time-object
               priority: P1
               type: functional
@@ -3419,7 +3271,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7228
+            - testCaseID: TCXM_5016
               featureName: time-object
               priority: P1
               type: functional
@@ -3473,7 +3325,166 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_7229
+            - testCaseID: TCXM_5017
+              featureName: time-object
+              priority: P1
+              type: functional
+              description: Deploy and verify time-object with string value variation 1 for 'asset-device-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with string type variation: test-value-1'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/clone
+                  body:
+                    asset-device-id: test-value-1
+                    name: TestResource-asset-device-id-Typestring-V1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-asset-device-id-Typestring-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-asset-device-id-Typestring-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5018
+              featureName: time-object
+              priority: P1
+              type: functional
+              description: Deploy and verify time-object with string value variation 2 for 'asset-device-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with string type variation: TestValue2'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/clone
+                  body:
+                    asset-device-id: TestValue2
+                    name: TestResource-asset-device-id-Typestring-V2
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-asset-device-id-Typestring-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-asset-device-id-Typestring-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5019
+              featureName: time-object
+              priority: P1
+              type: functional
+              description: Deploy and verify time-object with string value variation 3 for 'asset-device-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with string type variation: test_value_3'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/clone
+                  body:
+                    asset-device-id: test_value_3
+                    name: TestResource-asset-device-id-Typestring-V3
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-asset-device-id-Typestring-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-asset-device-id-Typestring-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-asset-device-id-Typestring-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5020
               featureName: time-object
               priority: P0
               type: functional
@@ -3489,7 +3500,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/clone
                     name: TestProfile-Additional
                     objectType: time-object
                     objects:
@@ -3506,14 +3517,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-21T16:33:04Z
+                  description: Schedule deployment to device at 2026-04-21T17:28:54Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:33:04Z"
+                    deployAt: "2026-04-21T17:28:54Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -3521,7 +3532,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_7230
+            - testCaseID: TCXM_5021
               featureName: time-object
               priority: P0
               type: functional
@@ -3537,7 +3548,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/clone
                     name: TestProfile-Additional
                     objectType: time-object
                     objects:
@@ -3554,14 +3565,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-21T16:33:04Z
+                  description: Schedule deployment to site at 2026-04-21T17:28:54Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:33:04Z"
+                    deployAt: "2026-04-21T17:28:54Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -3569,7 +3580,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_7231
+            - testCaseID: TCXM_5022
               featureName: time-object
               priority: P1
               type: functional
@@ -3582,7 +3593,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/clone
                     name: TestProfile-Additional
                     objectType: time-object
                     objects:
@@ -3606,7 +3617,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:33:04Z"
+                    deployAt: "2026-04-21T17:28:54Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -3615,14 +3626,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-21T17:33:04Z
+                  description: Edit deployment schedule to 2026-04-21T18:28:54Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T17:33:04Z"
+                    deployAt: "2026-04-21T18:28:54Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -3630,7 +3641,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_7232
+            - testCaseID: TCXM_5023
               featureName: time-object
               priority: P1
               type: functional
@@ -3643,7 +3654,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/clone
                     name: TestProfile-Additional
                     objectType: time-object
                     objects:
@@ -3667,7 +3678,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:33:04Z"
+                    deployAt: "2026-04-21T17:28:54Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -3689,7 +3700,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_7233
+            - testCaseID: TCXM_5024
               featureName: time-object
               priority: P1
               type: functional
@@ -3702,7 +3713,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/clone
                     name: TestProfile-Additional
                     objectType: time-object
                     objects:
@@ -3731,7 +3742,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_7234
+            - testCaseID: TCXM_5025
               featureName: time-object
               priority: P1
               type: functional
@@ -3744,7 +3755,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/clone
                     name: TestProfile-Additional
                     objectType: time-object
                     objects:
@@ -3768,7 +3779,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/clone
                     newId: cloned-object-1
                     objectType: time-object
                     sourceId: original-object-1
@@ -3777,7 +3788,7 @@ features:
                     - type: statusCode
                       expected: "201"
         negative:
-            - testCaseID: TCXM_7235
+            - testCaseID: TCXM_5026
               featureName: time-object
               priority: P1
               type: negative
@@ -3788,7 +3799,7 @@ features:
                   description: Attempt to create time-object without required field 'asset-device-id'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     name: TestResource
                   expectedStatus: 400
@@ -3799,7 +3810,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'asset-device-id'
-            - testCaseID: TCXM_7236
+            - testCaseID: TCXM_5027
               featureName: time-object
               priority: P1
               type: negative
@@ -3810,7 +3821,7 @@ features:
                   description: Attempt to create with empty asset-device-id field
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: ""
                     name: TestResource
@@ -3820,7 +3831,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7237
+            - testCaseID: TCXM_5028
               featureName: time-object
               priority: P1
               type: negative
@@ -3831,7 +3842,7 @@ features:
                   description: Attempt to create with null asset-device-id
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: null
                     name: TestResource
@@ -3841,7 +3852,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7238
+            - testCaseID: TCXM_5029
               featureName: time-object
               priority: P2
               type: negative
@@ -3852,7 +3863,7 @@ features:
                   description: Create time-object without optional field 'time-zone' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                   expectedStatus: 201
@@ -3860,7 +3871,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'time-zone' is omitted
-            - testCaseID: TCXM_7239
+            - testCaseID: TCXM_5030
               featureName: time-object
               priority: P2
               type: negative
@@ -3871,7 +3882,7 @@ features:
                   description: Create time-object without optional field 'time-object-date-range' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                   expectedStatus: 201
@@ -3879,7 +3890,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'time-object-date-range' is omitted
-            - testCaseID: TCXM_7240
+            - testCaseID: TCXM_5031
               featureName: time-object
               priority: P1
               type: negative
@@ -3890,7 +3901,7 @@ features:
                   description: Attempt to create without operation field
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   body:
                     asset-device-id: testValue
                     name: TestResource
@@ -3900,7 +3911,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7241
+            - testCaseID: TCXM_5032
               featureName: time-object
               priority: P1
               type: negative
@@ -3911,7 +3922,7 @@ features:
                   description: Attempt to delete time-object 'does-not-exist-9999' which was never created
                   method: DELETE
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
+                  path: /configuration-profile/{name}/feature/object/clone
                   pathParams:
                     name: does-not-exist-9999
                   body:
@@ -3922,7 +3933,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_7246
+            - testCaseID: TCXM_5037
               featureName: time-object
               priority: P3
               type: performance
@@ -4094,7 +4105,7 @@ features:
                 iterations: 10
                 operation: create
         scale:
-            - testCaseID: TCXM_7242
+            - testCaseID: TCXM_5033
               featureName: time-object
               priority: P2
               type: scale
@@ -5303,7 +5314,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_7243
+            - testCaseID: TCXM_5034
               featureName: time-object
               priority: P2
               type: scale
@@ -5425,7 +5436,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_7244
+            - testCaseID: TCXM_5035
               featureName: time-object
               priority: P2
               type: scale
@@ -5577,7 +5588,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_7245
+            - testCaseID: TCXM_5036
               featureName: time-object
               priority: P2
               type: scale

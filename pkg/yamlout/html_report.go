@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/extremenetworks/testcase-generator/pkg/model"
 )
@@ -672,4 +673,249 @@ func (w *Writer) writePathParameterCoverage(html *strings.Builder, featureName s
 	// Path parameter coverage is organized by endpoint, not feature
 	// We'll skip this section for now as it's endpoint-based, not feature-based
 	// This could be enhanced in the future to show path parameters used by each feature
+}
+
+// WriteSummaryHTML generates a summary_<timestamp>.html showing all test plans,
+// test counts per category, blueprint category grouping, and featurePath depth.
+func (w *Writer) WriteSummaryHTML(suite *model.TestSuite) error {
+	timestamp := time.Now().Format("20060102_150405")
+	fileName := fmt.Sprintf("summary_%s.html", timestamp)
+	htmlPath := filepath.Join(w.outputDir, fileName)
+
+	html := w.generateSummaryHTML(suite, timestamp)
+
+	if err := os.WriteFile(htmlPath, []byte(html), 0644); err != nil {
+		return fmt.Errorf("failed to write summary HTML: %w", err)
+	}
+
+	fmt.Printf("Generated summary report: %s\n", htmlPath)
+	return nil
+}
+
+// categoryDisplayName returns a human-friendly label for a BlueprintCategory.
+func categoryDisplayName(cat model.BlueprintCategory) string {
+	switch cat {
+	case model.BlueprintCategoryGlobal:
+		return "Global Profile"
+	case model.BlueprintCategoryWired:
+		return "Wired Blueprint"
+	case model.BlueprintCategoryWireless:
+		return "Wireless Blueprint"
+	case model.BlueprintCategoryService:
+		return "Service Profile"
+	default:
+		return "Standalone / Global"
+	}
+}
+
+// categoryOrder defines the display order of blueprint categories.
+var categoryOrder = []model.BlueprintCategory{
+	"",
+	model.BlueprintCategoryGlobal,
+	model.BlueprintCategoryWired,
+	model.BlueprintCategoryWireless,
+	model.BlueprintCategoryService,
+}
+
+// featurePathBreadcrumb turns /a/b/c into a styled breadcrumb HTML span.
+func featurePathBreadcrumb(fp string) string {
+	if fp == "" {
+		return `<span style="color:#999">—</span>`
+	}
+	segments := strings.Split(strings.TrimPrefix(fp, "/"), "/")
+	parts := make([]string, 0, len(segments))
+	for _, s := range segments {
+		if s != "" {
+			parts = append(parts, `<span class="fp-seg">`+s+`</span>`)
+		}
+	}
+	return strings.Join(parts, `<span class="fp-sep">›</span>`)
+}
+
+// featurePathDepth returns the number of segments in a YANG-style path.
+func featurePathDepth(fp string) int {
+	if fp == "" {
+		return 0
+	}
+	count := 0
+	for _, s := range strings.Split(strings.TrimPrefix(fp, "/"), "/") {
+		if s != "" && !strings.Contains(s, "{") {
+			count++
+		}
+	}
+	return count
+}
+
+func (w *Writer) generateSummaryHTML(suite *model.TestSuite, timestamp string) string {
+	// Group features by BlueprintCategory
+	grouped := make(map[model.BlueprintCategory][]model.FeatureTestGroup)
+	for _, f := range suite.Features {
+		grouped[f.BlueprintCategory] = append(grouped[f.BlueprintCategory], f)
+	}
+
+	// Compute totals
+	totalFeatures := len(suite.Features)
+	totalTests := 0
+	catTotals := map[model.TestCategory]int{}
+	for _, f := range suite.Features {
+		for cat, tests := range f.Tests {
+			totalTests += len(tests)
+			catTotals[cat] += len(tests)
+		}
+	}
+
+	var html strings.Builder
+	html.WriteString(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Plan Summary</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f0f2f5; color:#222; line-height:1.5; }
+.wrap { max-width:1300px; margin:0 auto; padding:24px; }
+header { background:linear-gradient(135deg,#1a73e8,#0d47a1); color:#fff; padding:28px 32px; border-radius:12px; margin-bottom:28px; }
+header h1 { font-size:2em; margin-bottom:6px; }
+header p { opacity:.85; font-size:.95em; }
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:28px; }
+.kpi { background:#fff; border-radius:10px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,.1); text-align:center; }
+.kpi .val { font-size:2.4em; font-weight:700; color:#1a73e8; }
+.kpi .lbl { font-size:.8em; color:#666; text-transform:uppercase; letter-spacing:.5px; margin-top:4px; }
+.section { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.1); margin-bottom:28px; overflow:hidden; }
+.section-header { padding:16px 20px; border-bottom:2px solid #e8eaf6; display:flex; align-items:center; gap:12px; }
+.section-header h2 { font-size:1.15em; color:#1a73e8; }
+.cat-badge { padding:4px 12px; border-radius:20px; font-size:.82em; font-weight:600; }
+.cat-standalone { background:#e3f2fd; color:#0d47a1; }
+.cat-global { background:#e8f5e9; color:#1b5e20; }
+.cat-wired { background:#fff3e0; color:#e65100; }
+.cat-wireless { background:#f3e5f5; color:#6a1b9a; }
+.cat-service { background:#e0f7fa; color:#006064; }
+table { width:100%; border-collapse:collapse; font-size:.88em; }
+thead th { background:#f5f5f5; padding:10px 14px; text-align:left; font-weight:600; color:#555; border-bottom:2px solid #ddd; white-space:nowrap; }
+tbody td { padding:9px 14px; border-bottom:1px solid #eee; vertical-align:middle; }
+tbody tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:#fafafa; }
+.fp-crumb { font-size:.82em; }
+.fp-seg { background:#e8eaf6; color:#3f51b5; padding:2px 7px; border-radius:4px; font-family:'Courier New',monospace; }
+.fp-sep { color:#9e9e9e; margin:0 3px; font-size:.9em; }
+.depth-pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:.78em; font-weight:700; background:#ede7f6; color:#512da8; }
+.tc-badge { display:inline-block; min-width:36px; padding:2px 6px; border-radius:10px; font-size:.8em; font-weight:600; text-align:center; }
+.tc-functional { background:#e3f2fd; color:#1565c0; }
+.tc-boundary { background:#fff3e0; color:#e65100; }
+.tc-negative { background:#ffebee; color:#b71c1c; }
+.tc-scale { background:#e8f5e9; color:#1b5e20; }
+.tc-performance { background:#f3e5f5; color:#6a1b9a; }
+.tc-total { background:#263238; color:#fff; }
+.zero { color:#ccc; }
+footer { text-align:center; color:#aaa; font-size:.8em; margin-top:20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+`)
+
+	// Header
+	html.WriteString(fmt.Sprintf(`<header>
+<h1>Test Plan Summary</h1>
+<p>Generated: %s &nbsp;|&nbsp; Source YANG: %s</p>
+</header>
+`, suite.GeneratedAt, suite.SourceYangDir))
+
+	// KPI cards
+	html.WriteString(`<div class="kpi-row">`)
+	html.WriteString(fmt.Sprintf(`<div class="kpi"><div class="val">%d</div><div class="lbl">Test Plans</div></div>`, totalFeatures))
+	html.WriteString(fmt.Sprintf(`<div class="kpi"><div class="val">%d</div><div class="lbl">Total Test Cases</div></div>`, totalTests))
+	for _, cat := range []model.TestCategory{
+		model.TestCategoryFunctional, model.TestCategoryBoundary,
+		model.TestCategoryNegative, model.TestCategoryScale, model.TestCategoryPerformance,
+	} {
+		if n := catTotals[cat]; n > 0 {
+			html.WriteString(fmt.Sprintf(`<div class="kpi"><div class="val">%d</div><div class="lbl">%s</div></div>`, n, strings.Title(string(cat))))
+		}
+	}
+	html.WriteString("</div>\n")
+
+	// Table header columns
+	tableHeader := `<table>
+<thead><tr>
+<th>#</th><th>Feature Name</th><th>Feature Path</th><th>Depth</th>
+<th class="tc-functional" style="border-radius:6px 6px 0 0">Functional</th>
+<th class="tc-boundary" style="border-radius:6px 6px 0 0">Boundary</th>
+<th class="tc-negative" style="border-radius:6px 6px 0 0">Negative</th>
+<th class="tc-scale" style="border-radius:6px 6px 0 0">Scale</th>
+<th class="tc-performance" style="border-radius:6px 6px 0 0">Performance</th>
+<th class="tc-total" style="border-radius:6px 6px 0 0">Total</th>
+</tr></thead>
+<tbody>
+`
+
+	catClasses := map[model.BlueprintCategory]string{
+		"":                              "cat-standalone",
+		model.BlueprintCategoryGlobal:   "cat-global",
+		model.BlueprintCategoryWired:    "cat-wired",
+		model.BlueprintCategoryWireless: "cat-wireless",
+		model.BlueprintCategoryService:  "cat-service",
+	}
+
+	for _, bcat := range categoryOrder {
+		features, ok := grouped[bcat]
+		if !ok {
+			continue
+		}
+		// Sort features by name
+		sort.Slice(features, func(i, j int) bool { return features[i].FeatureName < features[j].FeatureName })
+
+		catClass := catClasses[bcat]
+		displayName := categoryDisplayName(bcat)
+
+		html.WriteString(fmt.Sprintf(`<div class="section">
+<div class="section-header">
+<h2>%s</h2>
+<span class="cat-badge %s">%d features</span>
+</div>
+`, displayName, catClass, len(features)))
+		html.WriteString(tableHeader)
+
+		for i, f := range features {
+			counts := map[model.TestCategory]int{}
+			total := 0
+			for cat, tests := range f.Tests {
+				counts[cat] = len(tests)
+				total += len(tests)
+			}
+			depth := featurePathDepth(f.FeaturePath)
+			depthStr := "—"
+			if depth > 0 {
+				depthStr = fmt.Sprintf("%d", depth)
+			}
+
+			html.WriteString(fmt.Sprintf(`<tr>
+<td>%d</td>
+<td><strong>%s</strong></td>
+<td class="fp-crumb">%s</td>
+<td><span class="depth-pill">%s</span></td>
+`,
+				i+1, f.FeatureName,
+				featurePathBreadcrumb(f.FeaturePath),
+				depthStr))
+
+			for _, cat := range []model.TestCategory{
+				model.TestCategoryFunctional, model.TestCategoryBoundary,
+				model.TestCategoryNegative, model.TestCategoryScale, model.TestCategoryPerformance,
+			} {
+				if n := counts[cat]; n > 0 {
+					html.WriteString(fmt.Sprintf(`<td><span class="tc-badge tc-%s">%d</span></td>`, string(cat), n))
+				} else {
+					html.WriteString(`<td class="zero">—</td>`)
+				}
+			}
+			html.WriteString(fmt.Sprintf("<td><span class=\"tc-badge tc-total\">%d</span></td></tr>\n", total))
+		}
+
+		html.WriteString("</tbody></table></div>\n")
+	}
+
+	html.WriteString(fmt.Sprintf("<footer>Generated by testgen &nbsp;|&nbsp; Run timestamp: %s</footer>\n</div>\n</body>\n</html>\n", timestamp))
+	return html.String()
 }

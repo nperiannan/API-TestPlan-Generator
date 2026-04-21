@@ -13,17 +13,19 @@ import (
 
 // Parser parses YANG models and extracts features
 type Parser struct {
-	yangDir  string
-	features map[string]*model.Feature
-	typedefs map[string]*Typedef // Registry of all typedef definitions
+	yangDir   string
+	features  map[string]*model.Feature
+	typedefs  map[string]*Typedef  // Registry of all typedef definitions
+	groupings map[string]*Grouping // Registry of all grouping definitions
 }
 
 // NewParser creates a new YANG parser
 func NewParser(yangDir string) *Parser {
 	return &Parser{
-		yangDir:  yangDir,
-		features: make(map[string]*model.Feature),
-		typedefs: make(map[string]*Typedef),
+		yangDir:   yangDir,
+		features:  make(map[string]*model.Feature),
+		typedefs:  make(map[string]*Typedef),
+		groupings: make(map[string]*Grouping),
 	}
 }
 
@@ -50,25 +52,182 @@ func (p *Parser) Parse() error {
 		return fmt.Errorf("no YANG files found in %s", p.yangDir)
 	}
 
+	// Read all files into memory for two-pass parsing
+	fileLines := make(map[string][]string, len(yangFiles))
 	for _, yangFile := range yangFiles {
-		if err := p.parseFile(yangFile); err != nil {
-			// Log error but continue with other files
-			fmt.Printf("Warning: failed to parse %s: %v\n", yangFile, err)
+		lines, err := p.readLines(yangFile)
+		if err != nil {
+			fmt.Printf("Warning: failed to read %s: %v\n", yangFile, err)
+			continue
+		}
+		fileLines[yangFile] = lines
+	}
+
+	// Phase 1: collect all typedefs and groupings from every file
+	for _, yangFile := range yangFiles {
+		lines, ok := fileLines[yangFile]
+		if !ok {
+			continue
+		}
+		if err := p.collectTypesAndGroupings(yangFile, lines); err != nil {
+			fmt.Printf("Warning: failed to collect types from %s: %v\n", yangFile, err)
+		}
+	}
+
+	// Phase 2: parse features from every file, expanding `uses` via collected groupings
+	for _, yangFile := range yangFiles {
+		lines, ok := fileLines[yangFile]
+		if !ok {
+			continue
+		}
+		if err := p.parseFeaturesFromLines(yangFile, lines); err != nil {
+			fmt.Printf("Warning: failed to parse features from %s: %v\n", yangFile, err)
 		}
 	}
 
 	return nil
 }
 
-// parseFile parses a single YANG file
-func (p *Parser) parseFile(filePath string) error {
-	file, err := os.Open(filePath)
+// readLines reads a YANG file and returns its lines as a string slice.
+func (p *Parser) readLines(filePath string) ([]string, error) {
+	f, err := os.Open(filePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer file.Close()
+	defer f.Close()
 
-	scanner := bufio.NewScanner(file)
+	var lines []string
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		lines = append(lines, sc.Text())
+	}
+	return lines, sc.Err()
+}
+
+// collectTypesAndGroupings does a first pass over a file to collect typedef and grouping definitions.
+func (p *Parser) collectTypesAndGroupings(filePath string, lines []string) error {
+	scanner := newSliceScanner(lines)
+	var currentModule string
+	braceDepth := 0
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		trimmed := strings.TrimSpace(line)
+
+		if strings.HasPrefix(trimmed, "//") || strings.HasPrefix(trimmed, "#") || trimmed == "" {
+			continue
+		}
+
+		braceDepth += strings.Count(line, "{")
+		braceDepth -= strings.Count(line, "}")
+
+		if strings.HasPrefix(trimmed, "module ") {
+			currentModule = extractModuleName(trimmed)
+			continue
+		}
+
+		// Collect typedef at module level.
+		// braceDepth is 2 here: 1 from module { + 1 from typedef {
+		if strings.HasPrefix(trimmed, "typedef ") && braceDepth == 2 {
+			typedef := p.parseTypedef(scanner, trimmed, currentModule)
+			braceDepth-- // parseTypedef consumed the closing }
+			if typedef != nil {
+				p.typedefs[typedef.Name] = typedef
+				if currentModule != "" {
+					p.typedefs[currentModule+":"+typedef.Name] = typedef
+				}
+			}
+			continue
+		}
+
+		// Collect grouping at module level.
+		// braceDepth is 2 here: 1 from module { + 1 from grouping {
+		if strings.HasPrefix(trimmed, "grouping ") && braceDepth == 2 {
+			grouping := p.parseGroupingBlock(scanner, trimmed, currentModule)
+			braceDepth-- // parseGroupingBlock consumed the closing }
+			if grouping != nil {
+				p.groupings[grouping.Name] = grouping
+				if currentModule != "" {
+					p.groupings[currentModule+":"+grouping.Name] = grouping
+				}
+			}
+			continue
+		}
+	}
+
+	return nil
+}
+
+// parseGroupingBlock parses a grouping { ... } block and returns a Grouping.
+func (p *Parser) parseGroupingBlock(scanner lineScanner, groupingLine string, currentModule string) *Grouping {
+	name := extractGroupingName(groupingLine)
+	if name == "" {
+		return nil
+	}
+
+	grouping := &Grouping{Name: name}
+	depth := 0
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		trimmed := strings.TrimSpace(line)
+
+		if strings.HasPrefix(trimmed, "//") || strings.HasPrefix(trimmed, "#") || trimmed == "" {
+			continue
+		}
+
+		depth += strings.Count(line, "{")
+		depth -= strings.Count(line, "}")
+
+		if depth < 0 {
+			break // end of grouping block
+		}
+
+		if strings.HasPrefix(trimmed, "leaf ") {
+			// Opening { already counted; parseLeaf will consume closing } — compensate
+			depth -= strings.Count(trimmed, "{")
+			param := p.parseLeaf(scanner, trimmed)
+			grouping.Params = append(grouping.Params, param)
+		} else if strings.HasPrefix(trimmed, "leaf-list ") {
+			depth -= strings.Count(trimmed, "{")
+			param := p.parseLeafList(scanner, trimmed)
+			grouping.Params = append(grouping.Params, param)
+		} else if strings.HasPrefix(trimmed, "container ") {
+			depth -= strings.Count(trimmed, "{")
+			param := p.parseNestedContainer(scanner, trimmed)
+			grouping.Params = append(grouping.Params, param)
+		} else if strings.HasPrefix(trimmed, "list ") {
+			depth -= strings.Count(trimmed, "{")
+			param := p.parseNestedList(scanner, trimmed)
+			grouping.Params = append(grouping.Params, param)
+		} else if strings.HasPrefix(trimmed, "uses ") {
+			usesName := extractUsesName(trimmed)
+			if usesName != "" {
+				grouping.UsesRefs = append(grouping.UsesRefs, usesName)
+			}
+			// If uses has its own block, consume it
+			if strings.Contains(trimmed, "{") && !strings.Contains(trimmed, "}") {
+				blockDepth := 1
+				for scanner.Scan() {
+					bl := scanner.Text()
+					blockDepth += strings.Count(bl, "{")
+					blockDepth -= strings.Count(bl, "}")
+					depth -= strings.Count(bl, "{")
+					depth += strings.Count(bl, "}")
+					if blockDepth <= 0 {
+						break
+					}
+				}
+			}
+		}
+	}
+
+	return grouping
+}
+
+// parseFeaturesFromLines is the second-pass parser that reads features and expands `uses`.
+func (p *Parser) parseFeaturesFromLines(filePath string, lines []string) error {
+	scanner := newSliceScanner(lines)
 	var currentModule string
 	var currentFeature *model.Feature
 	var inFeature bool
@@ -94,18 +253,16 @@ func (p *Parser) parseFile(filePath string) error {
 			continue
 		}
 
-		// Parse typedef (collect type definitions for later resolution)
+		// Skip typedef in second pass (already collected)
 		if strings.HasPrefix(trimmed, "typedef ") && !inFeature {
-			typedef := p.parseTypedef(scanner, trimmed, currentModule)
-			if typedef != nil {
-				// Register with both short name and module-prefixed name
-				p.typedefs[typedef.Name] = typedef
-				if currentModule != "" {
-					p.typedefs[currentModule+":"+typedef.Name] = typedef
-				}
-			}
+			braceDepth -= strings.Count(trimmed, "{")
+			p.parseTypedef(scanner, trimmed, currentModule) // consume the block
 			continue
 		}
+
+		// Do NOT skip `grouping` blocks in the second pass — let the parser naturally
+		// find any container/list defined inside them, just as in the original single-pass.
+		// The `grouping` keyword itself doesn't start or end a feature; braceDepth tracks it.
 
 		// Parse container or list (both represent features)
 		if (strings.HasPrefix(trimmed, "container ") || strings.HasPrefix(trimmed, "list ")) && !inFeature {
@@ -133,6 +290,7 @@ func (p *Parser) parseFile(filePath string) error {
 
 		// Parse leaf (parameter)
 		if inFeature && strings.HasPrefix(trimmed, "leaf ") {
+			braceDepth -= strings.Count(trimmed, "{")
 			param := p.parseLeaf(scanner, trimmed)
 			if currentFeature != nil {
 				currentFeature.Parameters = append(currentFeature.Parameters, param.ToModelParameter())
@@ -142,6 +300,7 @@ func (p *Parser) parseFile(filePath string) error {
 
 		// Parse leaf-list (array parameter)
 		if inFeature && strings.HasPrefix(trimmed, "leaf-list ") {
+			braceDepth -= strings.Count(trimmed, "{")
 			param := p.parseLeafList(scanner, trimmed)
 			if currentFeature != nil {
 				currentFeature.Parameters = append(currentFeature.Parameters, param.ToModelParameter())
@@ -151,6 +310,7 @@ func (p *Parser) parseFile(filePath string) error {
 
 		// Parse nested container (nested parameter group)
 		if inFeature && strings.HasPrefix(trimmed, "container ") {
+			braceDepth -= strings.Count(trimmed, "{")
 			param := p.parseNestedContainer(scanner, trimmed)
 			if currentFeature != nil {
 				currentFeature.Parameters = append(currentFeature.Parameters, param.ToModelParameter())
@@ -160,9 +320,33 @@ func (p *Parser) parseFile(filePath string) error {
 
 		// Parse nested list (array of nested parameter groups)
 		if inFeature && strings.HasPrefix(trimmed, "list ") {
+			braceDepth -= strings.Count(trimmed, "{")
 			param := p.parseNestedList(scanner, trimmed)
 			if currentFeature != nil {
 				currentFeature.Parameters = append(currentFeature.Parameters, param.ToModelParameter())
+			}
+			continue
+		}
+
+		// Expand `uses` inside a feature by resolving the referenced grouping
+		if inFeature && strings.HasPrefix(trimmed, "uses ") {
+			usesName := extractUsesName(trimmed)
+			if usesName != "" && currentFeature != nil {
+				p.expandGrouping(usesName, currentFeature, make(map[string]bool))
+			}
+			// If uses has its own block, consume it (conditions/augmentations)
+			if strings.Contains(trimmed, "{") && !strings.Contains(trimmed, "}") {
+				blockDepth := 1
+				for scanner.Scan() {
+					bl := scanner.Text()
+					blockDepth += strings.Count(bl, "{")
+					blockDepth -= strings.Count(bl, "}")
+					braceDepth += strings.Count(bl, "{")
+					braceDepth -= strings.Count(bl, "}")
+					if blockDepth <= 0 {
+						break
+					}
+				}
 			}
 			continue
 		}
@@ -182,11 +366,58 @@ func (p *Parser) parseFile(filePath string) error {
 		p.features[currentFeature.Name] = currentFeature
 	}
 
-	return scanner.Err()
+	return nil
+}
+
+// expandGrouping recursively expands a grouping's parameters into a feature.
+func (p *Parser) expandGrouping(name string, feature *model.Feature, visited map[string]bool) {
+	key := normalizeGroupingName(name)
+	if visited[key] {
+		return // cycle detection
+	}
+	visited[key] = true
+
+	grouping := p.lookupGrouping(name)
+	if grouping == nil {
+		return
+	}
+
+	// Add direct parameters
+	for _, param := range grouping.Params {
+		feature.Parameters = append(feature.Parameters, param.ToModelParameter())
+	}
+
+	// Recursively expand nested uses
+	for _, ref := range grouping.UsesRefs {
+		p.expandGrouping(ref, feature, visited)
+	}
+}
+
+// lookupGrouping finds a grouping by name, trying prefixed and unprefixed forms.
+func (p *Parser) lookupGrouping(name string) *Grouping {
+	if g, ok := p.groupings[name]; ok {
+		return g
+	}
+	// Strip module prefix (e.g. "port-poe:grp-port-poe" → "grp-port-poe")
+	if idx := strings.Index(name, ":"); idx >= 0 {
+		short := name[idx+1:]
+		if g, ok := p.groupings[short]; ok {
+			return g
+		}
+	}
+	return nil
+}
+
+// normalizeGroupingName strips prefix for cycle-detection keys.
+func normalizeGroupingName(name string) string {
+	if idx := strings.Index(name, ":"); idx >= 0 {
+		return name[idx+1:]
+	}
+	return name
 }
 
 // parseLeaf parses a leaf statement and returns a Parameter
-func (p *Parser) parseLeaf(scanner *bufio.Scanner, leafLine string) Parameter {
+func (p *Parser) parseLeaf(scanner lineScanner, leafLine string) Parameter {
 	param := Parameter{
 		Name:        extractLeafName(leafLine),
 		Constraints: []model.Constraint{},
@@ -321,7 +552,7 @@ func (p *Parser) parseLeaf(scanner *bufio.Scanner, leafLine string) Parameter {
 }
 
 // parseLeafList parses a leaf-list statement
-func (p *Parser) parseLeafList(scanner *bufio.Scanner, leafListLine string) Parameter {
+func (p *Parser) parseLeafList(scanner lineScanner, leafListLine string) Parameter {
 	param := Parameter{
 		Name:        extractLeafName(leafListLine),
 		IsArray:     true,
@@ -363,7 +594,7 @@ func (p *Parser) parseLeafList(scanner *bufio.Scanner, leafListLine string) Para
 }
 
 // parseNestedContainer parses a nested container within a feature
-func (p *Parser) parseNestedContainer(scanner *bufio.Scanner, containerLine string) Parameter {
+func (p *Parser) parseNestedContainer(scanner lineScanner, containerLine string) Parameter {
 	param := Parameter{
 		Name:             extractContainerName(containerLine),
 		YangType:         "container",
@@ -419,7 +650,7 @@ func (p *Parser) parseNestedContainer(scanner *bufio.Scanner, containerLine stri
 }
 
 // parseNestedList parses a nested list within a feature
-func (p *Parser) parseNestedList(scanner *bufio.Scanner, listLine string) Parameter {
+func (p *Parser) parseNestedList(scanner lineScanner, listLine string) Parameter {
 	param := Parameter{
 		Name:             extractListName(listLine),
 		YangType:         "list",
@@ -496,7 +727,7 @@ func (p *Parser) parseNestedList(scanner *bufio.Scanner, listLine string) Parame
 }
 
 // parseTypedef parses a typedef statement and returns a Typedef
-func (p *Parser) parseTypedef(scanner *bufio.Scanner, typedefLine string, currentModule string) *Typedef {
+func (p *Parser) parseTypedef(scanner lineScanner, typedefLine string, currentModule string) *Typedef {
 	typedefName := extractTypedefName(typedefLine)
 	if typedefName == "" {
 		return nil
@@ -637,7 +868,7 @@ func (p *Parser) resolveTypedef(typeName string) *Typedef {
 }
 
 // parseInlineTypeConstraints parses constraints within type definition
-func (p *Parser) parseInlineTypeConstraints(scanner *bufio.Scanner, param *Parameter) {
+func (p *Parser) parseInlineTypeConstraints(scanner lineScanner, param *Parameter) {
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 
@@ -697,6 +928,25 @@ func (p *Parser) GetFeatures() map[string]*model.Feature {
 }
 
 // Helper functions for parsing YANG syntax
+
+func extractGroupingName(line string) string {
+	re := regexp.MustCompile(`grouping\s+(\S+)`)
+	matches := re.FindStringSubmatch(line)
+	if len(matches) > 1 {
+		return strings.TrimSuffix(matches[1], "{")
+	}
+	return ""
+}
+
+// extractUsesName extracts the grouping name from a `uses grp-name;` or `uses prefix:grp-name {` line.
+func extractUsesName(line string) string {
+	re := regexp.MustCompile(`uses\s+(\S+?)[\s{;]`)
+	matches := re.FindStringSubmatch(line + " ")
+	if len(matches) > 1 {
+		return strings.TrimSuffix(strings.TrimSuffix(matches[1], ";"), "{")
+	}
+	return ""
+}
 
 func extractModuleName(line string) string {
 	re := regexp.MustCompile(`module\s+(\S+)`)

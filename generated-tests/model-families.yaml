@@ -1,0 +1,476 @@
+version: "1.0"
+generatedAt: "2026-04-21T22:13:57+05:30"
+sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
+sourceRESTAPI: ./qaopenapi.yaml
+sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
+features:
+    - featureName: model-families
+      featurePath: /inventory/model-families
+      profileType: configuration
+      description: ""
+      tests:
+        boundary: []
+        functional:
+            - testCaseID: TCXM_2461
+              featureName: model-families
+              priority: P2
+              type: functional
+              description: List all model-families resources
+              isDeploymentTest: false
+              steps:
+                - name: listAllResources
+                  description: List all model-families resources
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+            - testCaseID: TCXM_2462
+              featureName: model-families
+              priority: P0
+              type: functional
+              description: Create model-families and schedule deployment to device
+              scopeType: device
+              targetType: device
+              deploymentMethod: scheduled
+              isDeploymentTest: true
+              steps:
+                - name: createmodel-families
+                  description: Create model-families configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /inventory/model-families
+                    name: TestProfile-Additional
+                    objectType: model-families
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: model-families
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeploymentTodevice
+                  description: Schedule deployment to device at 2026-04-21T17:43:57Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-21T17:43:57Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+            - testCaseID: TCXM_2463
+              featureName: model-families
+              priority: P0
+              type: functional
+              description: Create model-families and schedule deployment to site
+              scopeType: site
+              targetType: site
+              deploymentMethod: scheduled
+              isDeploymentTest: true
+              steps:
+                - name: createmodel-families
+                  description: Create model-families configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /inventory/model-families
+                    name: TestProfile-Additional
+                    objectType: model-families
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: model-families
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeploymentTosite
+                  description: Schedule deployment to site at 2026-04-21T17:43:57Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-21T17:43:57Z"
+                    sites:
+                        - test-site-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+            - testCaseID: TCXM_2464
+              featureName: model-families
+              priority: P1
+              type: functional
+              description: Edit deployment schedule for model-families on device
+              isDeploymentTest: true
+              steps:
+                - name: createmodel-families
+                  description: Create model-families configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /inventory/model-families
+                    name: TestProfile-Additional
+                    objectType: model-families
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: model-families
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleInitialDeployment
+                  description: Schedule initial deployment
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-21T17:43:57Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+                - name: editDeploymentSchedule
+                  description: Edit deployment schedule to 2026-04-21T18:43:57Z
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-21T18:43:57Z"
+                    devices:
+                        - test-device-001
+                    timezone: UTC
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: "200"
+            - testCaseID: TCXM_2465
+              featureName: model-families
+              priority: P1
+              type: functional
+              description: Clear deployment schedule for model-families on site
+              isDeploymentTest: true
+              steps:
+                - name: createmodel-families
+                  description: Create model-families configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /inventory/model-families
+                    name: TestProfile-Additional
+                    objectType: model-families
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: model-families
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: scheduleDeployment
+                  description: Schedule deployment
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    deployAt: "2026-04-21T17:43:57Z"
+                    sites:
+                        - test-site-001
+                    timezone: UTC
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: "202"
+                - name: clearDeploymentSchedule
+                  description: Clear the deployment schedule
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/sites/deploy/clear-schedule
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    sites:
+                        - test-site-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: "200"
+            - testCaseID: TCXM_2466
+              featureName: model-families
+              priority: P1
+              type: functional
+              description: Clone model-families configuration profile
+              isDeploymentTest: false
+              steps:
+                - name: createmodel-families
+                  description: Create model-families configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /inventory/model-families
+                    name: TestProfile-Additional
+                    objectType: model-families
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: model-families
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: cloneProfile
+                  description: Clone the configuration profile
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/clone
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    newProfileName: TestProfile-Additional-Cloned
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+            - testCaseID: TCXM_2467
+              featureName: model-families
+              priority: P1
+              type: functional
+              description: Clone model-families feature object
+              isDeploymentTest: false
+              steps:
+                - name: createmodel-families
+                  description: Create model-families configuration
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /inventory/model-families
+                    name: TestProfile-Additional
+                    objectType: model-families
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: test-value
+                          type: model-families
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+                - name: cloneFeatureObject
+                  description: Clone model-families feature object
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestProfile-Additional/feature/object/clone
+                  pathParams:
+                    name: TestProfile-Additional
+                  body:
+                    featurePath: /inventory/model-families
+                    newId: cloned-object-1
+                    objectType: model-families
+                    sourceId: original-object-1
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: "201"
+        negative: []
+        performance:
+            - testCaseID: TCXM_2468
+              featureName: model-families
+              priority: P3
+              type: performance
+              description: 'Performance test: list model-families 10 times'
+              isDeploymentTest: false
+              steps:
+                - name: list0
+                  description: List iteration 0
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list1
+                  description: List iteration 1
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list2
+                  description: List iteration 2
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list3
+                  description: List iteration 3
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list4
+                  description: List iteration 4
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list5
+                  description: List iteration 5
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list6
+                  description: List iteration 6
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list7
+                  description: List iteration 7
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list8
+                  description: List iteration 8
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list9
+                  description: List iteration 9
+                  method: GET
+                  api: REST
+                  path: /inventory/model-families
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+              metadata:
+                concurrency: 5
+                iterations: 10
+                operation: list
+        scale: []

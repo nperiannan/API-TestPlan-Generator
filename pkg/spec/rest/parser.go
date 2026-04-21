@@ -423,12 +423,12 @@ func (p *Parser) extractServiceProfileFeatures() {
 		featurePath     string // featurePath value in API request body
 	}{
 		{"vlan", "/l2-service-feature"},                        // extreme-intent-vlan.yang (list vlan)
-		{"vrf", "/vrf-feature"},                               // extreme-intent-vrf.yang (list vrf)
-		{"router-group", "/router-group-feature"},             // extreme-intent-router-group.yang (list router-group)
-		{"common-settings", "/global-feature"},                // extreme-intent-global.yang (list common-settings)
+		{"vrf", "/vrf-feature"},                                // extreme-intent-vrf.yang (list vrf)
+		{"router-group", "/router-group-feature"},              // extreme-intent-router-group.yang (list router-group)
+		{"common-settings", "/global-feature"},                 // extreme-intent-global.yang (list common-settings)
 		{"virtual-routing-domain", "/virtual-service-feature"}, // extreme-intent-virtual-routing-domain.yang
-		{"static-route", "/virtual-service-feature"},          // extreme-intent-static-route.yang (under virtual service)
-		{"ip-subnet", "/l2-service-feature"},                  // extreme-intent-ip-subnet.yang (under l2-service)
+		{"static-route", "/virtual-service-feature"},           // extreme-intent-static-route.yang (under virtual service)
+		{"ip-subnet", "/l2-service-feature"},                   // extreme-intent-ip-subnet.yang (under l2-service)
 	}
 
 	for _, sf := range serviceFeatures {

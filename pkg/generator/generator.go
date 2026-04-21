@@ -235,11 +235,12 @@ func (g *Generator) generateFeatureTestGroup(feature *model.Feature, paths []*mo
 foundFeaturePath:
 
 	group := &model.FeatureTestGroup{
-		FeatureName: feature.Name,
-		FeaturePath: headerFeaturePath,
-		ProfileType: primaryPath.ProfileType,
-		Description: feature.Description,
-		Tests:       make(map[model.TestCategory][]model.TestCase),
+		FeatureName:       feature.Name,
+		FeaturePath:       headerFeaturePath,
+		ProfileType:       primaryPath.ProfileType,
+		BlueprintCategory: primaryPath.BlueprintCategory,
+		Description:       feature.Description,
+		Tests:             make(map[model.TestCategory][]model.TestCase),
 	}
 
 	// Generate tests for each category

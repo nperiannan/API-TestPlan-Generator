@@ -1,37 +1,29 @@
-featurePath: /wlan-feature
-profileType: configuration
+featurePath: /vrf-feature
+profileType: service
 test:
     testCaseID: TCXM_1006
-    featureName: wlan
+    featureName: vrf
     priority: P0
     type: functional
-    description: Create wlan, scope to device, target to device, deploy, and verify on NOS devices
+    description: Create vrf, scope to device, target to device, deploy, and verify on NOS devices
     scopeType: device
     targetType: device
     deploymentMethod: immediate
     isDeploymentTest: true
     steps:
-        - name: createwlan
-          description: Create wlan configuration
+        - name: createvrf
+          description: Create vrf configuration
           method: POST
           api: REST
-          path: /configuration-profile/{name}/feature/object/modify
+          path: /service-profile/{name}/feature/object/modify
           body:
-            featurePath: /wlan-feature
+            featurePath: /vrf-feature
             name: TestProfile
-            objectType: wlan
+            objectType: vrf
             objects:
                 - operation: add
-                  properties:
-                    - name: ssid
-                      origin: CC
-                      type: string
-                      value: testValue
-                    - name: security-type
-                      origin: CC
-                      type: string
-                      value: testValue
-                  type: wlan
+                  properties: []
+                  type: vrf
             operation: add
           expectedStatus: 201
           validations:
@@ -41,7 +33,7 @@ test:
           description: Retrieve created profile
           method: POST
           api: REST
-          path: /configuration-profile/{name}/feature/object/retrieve
+          path: /service-profile/{name}/feature/object/retrieve
           pathParams:
             profileName: TestProfile
           expectedStatus: 200
@@ -104,3 +96,18 @@ test:
               path: $.status
               expected: SUCCESS
           timeout: 300
+        - name: verifyNosConfigFordevice
+          description: Verify configuration on NOS devices in device
+          method: GET
+          api: NOSAPI
+          path: /v0/configuration/spbm/l3vsn/vrf/{vr_name}/filter-isid-list
+          pathParams:
+            deviceId: test-scope-001
+            siteGroupId: test-scope-001
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+            - type: nosConfigMatchesExpected
+              description: Verify NOS device configuration matches expected state
+          devicesScope: device

@@ -98,11 +98,12 @@ type TestSuite struct {
 
 // FeatureTestGroup groups all tests for a single feature path
 type FeatureTestGroup struct {
-	FeatureName string                      `yaml:"featureName"`
-	FeaturePath string                      `yaml:"featurePath"`
-	ProfileType ProfileType                 `yaml:"profileType"`
-	Description string                      `yaml:"description"`
-	Tests       map[TestCategory][]TestCase `yaml:"tests"`
+	FeatureName       string                      `yaml:"featureName"`
+	FeaturePath       string                      `yaml:"featurePath"`
+	ProfileType       ProfileType                 `yaml:"profileType"`
+	BlueprintCategory BlueprintCategory           `yaml:"blueprintCategory,omitempty"`
+	Description       string                      `yaml:"description"`
+	Tests             map[TestCategory][]TestCase `yaml:"tests"`
 }
 
 // TestCase represents a single test case with metadata and steps

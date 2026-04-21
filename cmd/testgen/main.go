@@ -180,6 +180,12 @@ func run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to write HTML report: %w", err)
 	}
 
+	// Generate timestamped summary HTML
+	fmt.Println("Generating summary report...")
+	if err := writer.WriteSummaryHTML(suite); err != nil {
+		return fmt.Errorf("failed to write summary HTML: %w", err)
+	}
+
 	fmt.Println()
 	fmt.Println("=================================================")
 	fmt.Println("Test generation completed successfully!")
