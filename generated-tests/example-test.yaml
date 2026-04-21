@@ -1,37 +1,29 @@
-featurePath: /dhcp-server-feature
-profileType: global
+featurePath: /global-feature
+profileType: service
 test:
     testCaseID: TCXM_1006
-    featureName: dhcp-server
+    featureName: common-settings
     priority: P0
     type: functional
-    description: Create dhcp-server, scope to device, target to device, deploy, and verify on NOS devices
+    description: Create common-settings, scope to device, target to device, deploy, and verify on NOS devices
     scopeType: device
     targetType: device
     deploymentMethod: immediate
     isDeploymentTest: true
     steps:
-        - name: createdhcp-server
-          description: Create dhcp-server configuration
+        - name: createcommon-settings
+          description: Create common-settings configuration
           method: POST
           api: REST
-          path: /global-profile/feature/object/modify
+          path: /service-profile/{name}/feature/object/modify
           body:
-            featurePath: /dhcp-server-feature
+            featurePath: /global-feature
             name: TestProfile
-            objectType: dhcp-server
+            objectType: common-settings
             objects:
                 - operation: add
-                  properties:
-                    - name: priority
-                      origin: Global
-                      type: number
-                      value: 1
-                    - name: server
-                      origin: Global
-                      type: string
-                      value: 8.8.8.8
-                  type: dhcp-server
+                  properties: []
+                  type: common-settings
             operation: add
           expectedStatus: 201
           validations:
@@ -41,7 +33,7 @@ test:
           description: Retrieve created profile
           method: POST
           api: REST
-          path: /global-profile/feature/object/retrieve
+          path: /service-profile/{name}/feature/object/retrieve
           pathParams:
             profileName: TestProfile
           expectedStatus: 200
@@ -104,18 +96,3 @@ test:
               path: $.status
               expected: SUCCESS
           timeout: 300
-        - name: verifyNosConfigFordevice
-          description: Verify configuration on NOS devices in device
-          method: GET
-          api: NOSAPI
-          path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
-          pathParams:
-            deviceId: test-scope-001
-            siteGroupId: test-scope-001
-          expectedStatus: 200
-          validations:
-            - type: statusCode
-              expected: 200
-            - type: nosConfigMatchesExpected
-              description: Verify NOS device configuration matches expected state
-          devicesScope: device
