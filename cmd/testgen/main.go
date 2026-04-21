@@ -318,6 +318,16 @@ func linkFeaturesWithPaths(features map[string]*model.Feature, paths map[string]
 				fp.Feature = feature
 				continue
 			}
+			// Feature not found in YANG parser output (may have no parseable parameters,
+			// or be a sub-list inside a grouping). Create a synthetic Feature so the
+			// generator can produce tests for it from the explicit path registration.
+			synthetic := &model.Feature{
+				Name:       fp.FeatureName,
+				Parameters: []model.Parameter{},
+			}
+			features[fp.FeatureName] = synthetic
+			fp.Feature = synthetic
+			continue
 		}
 
 		// Try to find matching feature with multiple strategies

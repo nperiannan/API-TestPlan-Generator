@@ -50,7 +50,7 @@ Write-Host ""
     --nosapi-spec "$nosapiSpec" `
     --out-dir "$outDir" `
     --features "" `
-    --feature-categories "global-profile,wired-blueprint,service-profile" `
+    --feature-categories "global-profile,wired-blueprint,wireless-blueprint,service-profile" `
     --include-categories "functional,boundary,negative,scale,performance" `
     --scope-types "site-group,device" `
     --target-types "site-group,device" `

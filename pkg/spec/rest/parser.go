@@ -284,8 +284,11 @@ func (p *Parser) extractFeaturesFromSchemas() error {
 	// Scan ServiceProfile schema for L2Feature (VLAN) and other service features
 	p.extractServiceProfileFeatures()
 
-	// Scan ConfigurationProfile/Blueprint schemas for wired/wireless features
+	// Scan ConfigurationProfile/Blueprint schemas for wired features
 	p.extractConfigurationProfileFeatures()
+
+	// Scan ConfigurationProfile/Blueprint schemas for wireless features
+	p.extractWirelessProfileFeatures()
 
 	return nil
 }
@@ -419,10 +422,13 @@ func (p *Parser) extractServiceProfileFeatures() {
 		yangFeatureName string // YANG list name for exact linking
 		featurePath     string // featurePath value in API request body
 	}{
-		{"vlan", "/l2-service-feature"},           // extreme-intent-vlan.yang (list vlan)
-		{"vrf", "/vrf-feature"},                   // extreme-intent-vrf.yang (list vrf)
-		{"router-group", "/router-group-feature"}, // extreme-intent-router-group.yang (list router-group)
-		{"common-settings", "/global-feature"},    // extreme-intent-global.yang (list common-settings)
+		{"vlan", "/l2-service-feature"},                        // extreme-intent-vlan.yang (list vlan)
+		{"vrf", "/vrf-feature"},                               // extreme-intent-vrf.yang (list vrf)
+		{"router-group", "/router-group-feature"},             // extreme-intent-router-group.yang (list router-group)
+		{"common-settings", "/global-feature"},                // extreme-intent-global.yang (list common-settings)
+		{"virtual-routing-domain", "/virtual-service-feature"}, // extreme-intent-virtual-routing-domain.yang
+		{"static-route", "/virtual-service-feature"},          // extreme-intent-static-route.yang (under virtual service)
+		{"ip-subnet", "/l2-service-feature"},                  // extreme-intent-ip-subnet.yang (under l2-service)
 	}
 
 	for _, sf := range serviceFeatures {
@@ -503,8 +509,10 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 	//   spbm-global-feature   → extreme-intent-fabric-spbm     (list fabric-spbm-global-settings-config)
 	//   spbm-instance         → extreme-intent-fabric-spbm     (list fabric-spbm-instance)
 	//   isis-feature          → extreme-intent-fabric-spbm     (list fabric-isis-global-config)
-	//   auto-sense-feature    → extreme-intent-fabric-auto-sense (list fabric-auto-sense-global)
+	//   auto-sense-feature    → extreme-intent-fabric-auto-sense (list fabric-auto-sense-global, fabric-auto-sense-fabric-attachment, fabric-auto-sense-isis)
 	//   device-profile-feature→ extreme-intent-device-profile  (list device-profile)
+	//   snmp-feature          → extreme-intent-snmp.yang       (list snmp-global-config, snmp-access-config, snmp-v3-access-config)
+	//   isis-global-feature   → extreme-intent-isis.yang       (list isis-global-config)
 	wiredNestedFeatures := []struct {
 		yangFeatureName string // must match YANG list name for exact linking in linkFeaturesWithPaths
 		featurePath     string // the featurePath value sent in the API request body
@@ -515,12 +523,23 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 		// /network-feature/fabric-feature/spbm-global-feature
 		{"fabric-spbm-global-settings-config", "/network-feature/fabric-feature/spbm-global-feature", "spbm-global"},
 		{"fabric-spbm-instance", "/network-feature/fabric-feature/spbm-global-feature", "spbm-instance"},
-		// /network-feature/fabric-feature/isis-feature
+		// /network-feature/fabric-feature/isis-feature (fabric-specific ISIS, from extreme-intent-fabric-spbm.yang)
 		{"fabric-isis-global-config", "/network-feature/fabric-feature/isis-feature", "isis"},
-		// /network-feature/fabric-feature/auto-sense-feature
+		// /network-feature/fabric-feature/isis-feature (global ISIS, from extreme-intent-isis.yang)
+		{"isis-global-config", "/network-feature/fabric-feature/isis-feature", "isis"},
+		// /network-feature/fabric-feature/auto-sense-feature (all sub-features)
 		{"fabric-auto-sense-global", "/network-feature/fabric-feature/auto-sense-feature", "auto-sense"},
+		{"fabric-auto-sense-fabric-attach", "/network-feature/fabric-feature/auto-sense-feature", "auto-sense-fabric"},
+		{"fabric-auto-sense-isis", "/network-feature/fabric-feature/auto-sense-feature", "auto-sense-isis"},
 		// /infrastructure-feature/device-profile-feature
 		{"device-profile", "/infrastructure-feature/device-profile-feature", "device-profile"},
+		// /infrastructure-feature/snmp-feature (from extreme-intent-snmp.yang)
+		{"snmp-global-config", "/infrastructure-feature/snmp-feature", "snmp-global"},
+		{"snmp-access-config", "/infrastructure-feature/snmp-feature", "snmp-trap"},
+		{"snmp-v3-access-config", "/infrastructure-feature/snmp-feature", "snmp-v3-user"},
+		// /infrastructure-feature/qos-feature (QoS policy configuration)
+		{"qos-global-config", "/infrastructure-feature/qos-feature", "qos-policy"},
+		{"qos-classifier-profile-config", "/infrastructure-feature/qos-feature", "qos-policy"},
 	}
 
 	for _, cf := range wiredNestedFeatures {
@@ -622,6 +641,126 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 			OperationType:     model.OperationTypeDeploy,
 		}
 		p.paths[fmt.Sprintf("POST /configuration-profile/%s/deploy", cf.yangFeatureName)] = fpDeploy
+	}
+}
+
+// extractWirelessProfileFeatures extracts features from the Wireless Blueprint schema.
+// Source: extreme-wireless-blueprint.yang + qaopenapi.yaml (feature/object endpoints).
+// These use the same /configuration-profile/{name}/feature/object/* API paths as wired,
+// but with BlueprintCategoryWireless and wireless-specific featurePaths.
+func (p *Parser) extractWirelessProfileFeatures() {
+	// Wireless blueprint nested features.
+	// Mapping: yangFeatureName (YANG list name) → API featurePath → objectType
+	//   wireless-network-feature → extreme-intent-wireless-wlan.yang (list wlan)  → /wlan-feature
+	wirelessNestedFeatures := []struct {
+		yangFeatureName string
+		featurePath     string
+		objectType      string
+	}{
+		// /wlan-feature (from extreme-wireless-blueprint.yang → wireless-network-feature)
+		{"wlan", "/wlan-feature", "wlan"},
+		// wlan-security is a sub-object of wlan, same featurePath different objectType
+		{"wlan-security", "/wlan-feature", "wlan-security"},
+	}
+
+	for _, wf := range wirelessNestedFeatures {
+		profileNameParam := model.PathParameter{
+			Name:        "name",
+			Type:        "string",
+			Description: "Configuration profile name",
+			Required:    true,
+		}
+		featurePathParam := model.PathParameter{
+			Name:        "featurePath",
+			Type:        "string",
+			Description: "Nested feature path in the wireless blueprint hierarchy",
+			Required:    true,
+			FixedValue:  wf.featurePath,
+		}
+
+		// READ: POST /configuration-profile/{name}/feature/object/retrieve
+		fpRead := &model.FeaturePath{
+			FeatureName:       wf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWireless,
+			HTTPMethod:        "POST",
+			Path:              "/configuration-profile/{name}/feature/object/retrieve",
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeRead,
+		}
+		p.paths[fmt.Sprintf("READ /wireless-profile/%s", wf.yangFeatureName)] = fpRead
+
+		// CREATE: POST /configuration-profile/{name}/feature/object/modify
+		fpCreate := &model.FeaturePath{
+			FeatureName:       wf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWireless,
+			HTTPMethod:        "POST",
+			Path:              "/configuration-profile/{name}/feature/object/modify",
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeCreate,
+		}
+		p.paths[fmt.Sprintf("POST /wireless-profile/%s", wf.yangFeatureName)] = fpCreate
+
+		// UPDATE: POST /configuration-profile/{name}/feature/object/modify
+		fpUpdate := &model.FeaturePath{
+			FeatureName:       wf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWireless,
+			HTTPMethod:        "POST",
+			Path:              "/configuration-profile/{name}/feature/object/modify",
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeUpdate,
+		}
+		p.paths[fmt.Sprintf("PUT /wireless-profile/%s", wf.yangFeatureName)] = fpUpdate
+
+		// DELETE: POST /configuration-profile/{name}/feature/object/delete
+		fpDelete := &model.FeaturePath{
+			FeatureName:       wf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWireless,
+			HTTPMethod:        "POST",
+			Path:              "/configuration-profile/{name}/feature/object/delete",
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeDelete,
+		}
+		p.paths[fmt.Sprintf("DELETE /wireless-profile/%s", wf.yangFeatureName)] = fpDelete
+
+		// SCOPE: PUT /configuration-profile/{name}/scope
+		fpScope := &model.FeaturePath{
+			FeatureName:       wf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWireless,
+			HTTPMethod:        "PUT",
+			Path:              "/configuration-profile/{name}/scope",
+			PathParams:        []model.PathParameter{profileNameParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeScope,
+		}
+		p.paths[fmt.Sprintf("PUT /wireless-profile/%s/scope", wf.yangFeatureName)] = fpScope
+
+		// TARGET: PUT /configuration-profile/{name}/target
+		fpTarget := &model.FeaturePath{
+			FeatureName:       wf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWireless,
+			HTTPMethod:        "PUT",
+			Path:              "/configuration-profile/{name}/target",
+			PathParams:        []model.PathParameter{profileNameParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeTarget,
+		}
+		p.paths[fmt.Sprintf("PUT /wireless-profile/%s/target", wf.yangFeatureName)] = fpTarget
+
+		// DEPLOY: POST /configuration-profile/{name}/sites/deploy
+		fpDeploy := &model.FeaturePath{
+			FeatureName:       wf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWireless,
+			HTTPMethod:        "POST",
+			Path:              "/configuration-profile/{name}/sites/deploy",
+			PathParams:        []model.PathParameter{profileNameParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeDeploy,
+		}
+		p.paths[fmt.Sprintf("POST /wireless-profile/%s/deploy", wf.yangFeatureName)] = fpDeploy
 	}
 }
 

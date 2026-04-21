@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-04-21T20:38:27+05:30"
+generatedAt: "2026-04-21T21:03:03+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_5177
+            - testCaseID: TCXM_3543
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P0
               type: functional
@@ -22,7 +22,7 @@ features:
                   description: Create sample-multi-level-features-wireless-blueprint
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     name: TestResource
                   expectedStatus: 201
@@ -30,7 +30,33 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_5178
+                - name: verifyCreation
+                  description: Verify resource was created
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify HTTP status code is 200
+                    - type: jsonPathExists
+                      path: $.objects
+                      description: Verify response contains objects array
+                    - type: jsonPathExists
+                      path: $.featurePath
+                      description: Verify response contains feature path
+                    - type: jsonPathExists
+                      path: $.objectType
+                      description: Verify response contains object type
+                    - type: jsonPathEquals
+                      path: $.objects[0].properties[?(@.name=='features')].value
+                      expected: testValue
+                      description: Verify 'features' value is 'testValue' as set during create
+            - testCaseID: TCXM_3544
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P2
               type: functional
@@ -41,7 +67,7 @@ features:
                   description: Create sample-multi-level-features-wireless-blueprint (first attempt)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     name: TestResource
                   expectedStatus: 201
@@ -52,14 +78,14 @@ features:
                   description: Create same sample-multi-level-features-wireless-blueprint again (idempotent check)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     name: TestResource
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_5179
+            - testCaseID: TCXM_3545
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P0
               type: functional
@@ -73,13 +99,24 @@ features:
                   description: Create sample-multi-level-features-wireless-blueprint configuration
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     name: TestProfile
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
+                - name: getProfile
+                  description: Retrieve created profile
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    profileName: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
                 - name: scopeProfileTodevice
                   description: Scope profile to device
                   method: POST
@@ -136,7 +173,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5180
+            - testCaseID: TCXM_3546
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -149,14 +186,14 @@ features:
                   description: Create sample-multi-level-features-wireless-blueprint configuration
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     name: TestProfile-Simple
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_5181
+            - testCaseID: TCXM_3547
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -167,14 +204,28 @@ features:
                   description: Create sample-multi-level-features-wireless-blueprint providing only required YANG fields
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body: {}
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
                       description: Verify resource is created with required fields only
-            - testCaseID: TCXM_5182
+                - name: verifyCreatedWithRequiredOnly
+                  description: Verify resource exists and required field values match what was sent on creation
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify HTTP 200 for resource read
+                    - type: jsonPathExists
+                      path: $.objects
+                      description: Verify response contains objects array
+            - testCaseID: TCXM_3548
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -185,7 +236,7 @@ features:
                   description: Create sample-multi-level-features-wireless-blueprint providing all YANG-defined fields including optional
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     features: testValue
                   expectedStatus: 201
@@ -193,7 +244,28 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify resource is created with all fields
-            - testCaseID: TCXM_5183
+                - name: verifyAllFieldsPersisted
+                  description: Verify all fields (required + optional) are persisted with correct values
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify HTTP 200 for resource read
+                    - type: jsonPathExists
+                      path: $.objects
+                      description: Verify response contains objects array
+                    - type: jsonPathExists
+                      path: $.objects[0].properties[?(@.name=='features')]
+                      description: Verify field 'features' is present in GET response
+                    - type: jsonPathEquals
+                      path: $.objects[0].properties[?(@.name=='features')].value
+                      expected: testValue
+                      description: Verify field 'features' has value 'testValue' as sent on create
+            - testCaseID: TCXM_3549
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P2
               type: functional
@@ -204,7 +276,7 @@ features:
                   description: Create sample-multi-level-features-wireless-blueprint with optional field 'features'=testValue explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     features: testValue
                   expectedStatus: 201
@@ -212,7 +284,25 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify resource is created when optional field 'features' is provided
-            - testCaseID: TCXM_5184
+                - name: verify_optional_features_persisted
+                  description: GET sample-multi-level-features-wireless-blueprint and verify optional field 'features' was persisted with value 'testValue'
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify HTTP 200
+                    - type: jsonPathExists
+                      path: $.objects[0].properties[?(@.name=='features')]
+                      description: Verify optional field 'features' is present in GET response
+                    - type: jsonPathEquals
+                      path: $.objects[0].properties[?(@.name=='features')].value
+                      expected: testValue
+                      description: Verify optional field 'features' value is 'testValue' as set on create
+            - testCaseID: TCXM_3550
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -223,7 +313,7 @@ features:
                   description: 'Create sample-multi-level-features-wireless-blueprint with YANG type ''container'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     features: testValue
                     name: TestResource
@@ -232,7 +322,22 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify features type 'container' value is accepted
-            - testCaseID: TCXM_5185
+                - name: verifycontainerTypeValue_v1
+                  description: Verify 'features' field persisted with YANG type 'container' value testValue
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify HTTP 200
+                    - type: jsonPathEquals
+                      path: $.features
+                      expected: testValue
+                      description: Verify 'features' YANG type 'container' value is persisted
+            - testCaseID: TCXM_3551
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -243,7 +348,7 @@ features:
                   description: 'Create sample-multi-level-features-wireless-blueprint with YANG type ''container'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     features: testValue
                     name: TestResource
@@ -252,7 +357,22 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify features type 'container' value is accepted
-            - testCaseID: TCXM_5186
+                - name: verifycontainerTypeValue_v2
+                  description: Verify 'features' field persisted with YANG type 'container' value testValue
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify HTTP 200
+                    - type: jsonPathEquals
+                      path: $.features
+                      expected: testValue
+                      description: Verify 'features' YANG type 'container' value is persisted
+            - testCaseID: TCXM_3552
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -263,7 +383,7 @@ features:
                   description: 'Create sample-multi-level-features-wireless-blueprint with YANG type ''string'' value: test-value-1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     label: test-value-1
                     name: TestResource
@@ -272,7 +392,22 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify label type 'string' value is accepted
-            - testCaseID: TCXM_5187
+                - name: verifystringTypeValue_v1
+                  description: Verify 'label' field persisted with YANG type 'string' value test-value-1
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify HTTP 200
+                    - type: jsonPathEquals
+                      path: $.label
+                      expected: test-value-1
+                      description: Verify 'label' YANG type 'string' value is persisted
+            - testCaseID: TCXM_3553
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -283,7 +418,7 @@ features:
                   description: 'Create sample-multi-level-features-wireless-blueprint with YANG type ''string'' value: test-value-2'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     label: test-value-2
                     name: TestResource
@@ -292,7 +427,22 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify label type 'string' value is accepted
-            - testCaseID: TCXM_5188
+                - name: verifystringTypeValue_v2
+                  description: Verify 'label' field persisted with YANG type 'string' value test-value-2
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify HTTP 200
+                    - type: jsonPathEquals
+                      path: $.label
+                      expected: test-value-2
+                      description: Verify 'label' YANG type 'string' value is persisted
+            - testCaseID: TCXM_3554
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -303,7 +453,7 @@ features:
                   description: 'Create sample-multi-level-features-wireless-blueprint with YANG type ''boolean'' value: true'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     enabled: true
                     name: TestResource
@@ -312,7 +462,22 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify enabled type 'boolean' value is accepted
-            - testCaseID: TCXM_5189
+                - name: verifybooleanTypeValue_v1
+                  description: Verify 'enabled' field persisted with YANG type 'boolean' value true
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify HTTP 200
+                    - type: jsonPathEquals
+                      path: $.enabled
+                      expected: true
+                      description: Verify 'enabled' YANG type 'boolean' value is persisted
+            - testCaseID: TCXM_3555
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -323,7 +488,7 @@ features:
                   description: 'Create sample-multi-level-features-wireless-blueprint with YANG type ''boolean'' value: false'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     enabled: false
                     name: TestResource
@@ -332,7 +497,22 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify enabled type 'boolean' value is accepted
-            - testCaseID: TCXM_5190
+                - name: verifybooleanTypeValue_v2
+                  description: Verify 'enabled' field persisted with YANG type 'boolean' value false
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify HTTP 200
+                    - type: jsonPathEquals
+                      path: $.enabled
+                      expected: false
+                      description: Verify 'enabled' YANG type 'boolean' value is persisted
+            - testCaseID: TCXM_3556
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -384,7 +564,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5191
+            - testCaseID: TCXM_3557
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -436,7 +616,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5192
+            - testCaseID: TCXM_3558
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -488,7 +668,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5193
+            - testCaseID: TCXM_3559
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -540,7 +720,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5194
+            - testCaseID: TCXM_3560
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -592,7 +772,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5195
+            - testCaseID: TCXM_3561
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -644,7 +824,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5196
+            - testCaseID: TCXM_3562
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -697,7 +877,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5197
+            - testCaseID: TCXM_3563
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -750,7 +930,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5198
+            - testCaseID: TCXM_3564
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -803,7 +983,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5199
+            - testCaseID: TCXM_3565
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -856,7 +1036,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5200
+            - testCaseID: TCXM_3566
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -909,7 +1089,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5201
+            - testCaseID: TCXM_3567
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -962,7 +1142,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5202
+            - testCaseID: TCXM_3568
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1016,7 +1196,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5203
+            - testCaseID: TCXM_3569
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1070,7 +1250,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5204
+            - testCaseID: TCXM_3570
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1124,7 +1304,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5205
+            - testCaseID: TCXM_3571
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1178,7 +1358,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5206
+            - testCaseID: TCXM_3572
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1232,7 +1412,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5207
+            - testCaseID: TCXM_3573
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1286,7 +1466,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5208
+            - testCaseID: TCXM_3574
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1340,7 +1520,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5209
+            - testCaseID: TCXM_3575
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1394,7 +1574,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5210
+            - testCaseID: TCXM_3576
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1448,7 +1628,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5211
+            - testCaseID: TCXM_3577
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1502,7 +1682,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5212
+            - testCaseID: TCXM_3578
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1555,7 +1735,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5213
+            - testCaseID: TCXM_3579
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1608,7 +1788,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5214
+            - testCaseID: TCXM_3580
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1661,7 +1841,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5215
+            - testCaseID: TCXM_3581
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P0
               type: functional
@@ -1677,7 +1857,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve-v2
+                    featurePath: /configuration-profile/{name}/target-query/feature/{featureId}
                     name: TestProfile-Additional
                     objectType: sample-multi-level-features-wireless-blueprint
                     objects:
@@ -1694,14 +1874,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-21T16:08:27Z
+                  description: Schedule deployment to device at 2026-04-21T16:33:03Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:08:27Z"
+                    deployAt: "2026-04-21T16:33:03Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -1709,7 +1889,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5216
+            - testCaseID: TCXM_3582
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P0
               type: functional
@@ -1725,7 +1905,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve-v2
+                    featurePath: /configuration-profile/{name}/target-query/feature/{featureId}
                     name: TestProfile-Additional
                     objectType: sample-multi-level-features-wireless-blueprint
                     objects:
@@ -1742,14 +1922,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-21T16:08:27Z
+                  description: Schedule deployment to site at 2026-04-21T16:33:03Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:08:27Z"
+                    deployAt: "2026-04-21T16:33:03Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -1757,7 +1937,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5217
+            - testCaseID: TCXM_3583
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1770,7 +1950,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve-v2
+                    featurePath: /configuration-profile/{name}/target-query/feature/{featureId}
                     name: TestProfile-Additional
                     objectType: sample-multi-level-features-wireless-blueprint
                     objects:
@@ -1794,7 +1974,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:08:27Z"
+                    deployAt: "2026-04-21T16:33:03Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -1803,14 +1983,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-21T17:08:27Z
+                  description: Edit deployment schedule to 2026-04-21T17:33:03Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T17:08:27Z"
+                    deployAt: "2026-04-21T17:33:03Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -1818,7 +1998,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5218
+            - testCaseID: TCXM_3584
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1831,7 +2011,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve-v2
+                    featurePath: /configuration-profile/{name}/target-query/feature/{featureId}
                     name: TestProfile-Additional
                     objectType: sample-multi-level-features-wireless-blueprint
                     objects:
@@ -1855,7 +2035,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:08:27Z"
+                    deployAt: "2026-04-21T16:33:03Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -1877,7 +2057,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5219
+            - testCaseID: TCXM_3585
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1890,7 +2070,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve-v2
+                    featurePath: /configuration-profile/{name}/target-query/feature/{featureId}
                     name: TestProfile-Additional
                     objectType: sample-multi-level-features-wireless-blueprint
                     objects:
@@ -1919,7 +2099,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5220
+            - testCaseID: TCXM_3586
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: functional
@@ -1932,7 +2112,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve-v2
+                    featurePath: /configuration-profile/{name}/target-query/feature/{featureId}
                     name: TestProfile-Additional
                     objectType: sample-multi-level-features-wireless-blueprint
                     objects:
@@ -1956,7 +2136,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve-v2
+                    featurePath: /configuration-profile/{name}/target-query/feature/{featureId}
                     newId: cloned-object-1
                     objectType: sample-multi-level-features-wireless-blueprint
                     sourceId: original-object-1
@@ -1965,7 +2145,7 @@ features:
                     - type: statusCode
                       expected: "201"
         negative:
-            - testCaseID: TCXM_5221
+            - testCaseID: TCXM_3587
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P2
               type: negative
@@ -1976,14 +2156,14 @@ features:
                   description: Create sample-multi-level-features-wireless-blueprint without optional field 'features' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body: {}
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'features' is omitted
-            - testCaseID: TCXM_5222
+            - testCaseID: TCXM_3588
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: negative
@@ -1994,7 +2174,7 @@ features:
                   description: Attempt to create without operation field
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   body:
                     name: TestResource
                   expectedStatus: 400
@@ -2003,7 +2183,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5223
+            - testCaseID: TCXM_3589
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P1
               type: negative
@@ -2014,7 +2194,7 @@ features:
                   description: Attempt to delete sample-multi-level-features-wireless-blueprint 'does-not-exist-9999' which was never created
                   method: DELETE
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve-v2
+                  path: /configuration-profile/{name}/feature/object/override/retrieve
                   pathParams:
                     name: does-not-exist-9999
                   body:
@@ -2025,7 +2205,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_5227
+            - testCaseID: TCXM_3593
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P3
               type: performance
@@ -2186,8 +2366,169 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
+            - testCaseID: TCXM_3594
+              featureName: sample-multi-level-features-wireless-blueprint
+              priority: P3
+              type: performance
+              description: 'Performance test: read sample-multi-level-features-wireless-blueprint 10 times'
+              isDeploymentTest: false
+              steps:
+                - name: read0
+                  description: Read iteration 0
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read1
+                  description: Read iteration 1
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read2
+                  description: Read iteration 2
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read3
+                  description: Read iteration 3
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read4
+                  description: Read iteration 4
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read5
+                  description: Read iteration 5
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read6
+                  description: Read iteration 6
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read7
+                  description: Read iteration 7
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read8
+                  description: Read iteration 8
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+                - name: read9
+                  description: Read iteration 9
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve-by-id
+                  pathParams:
+                    name: TestResource
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: responseTimeUnder
+                      expected: 1000
+                      description: Response time should be under 1 second
+                  timeout: 5
+              metadata:
+                concurrency: 5
+                iterations: 10
+                operation: read
         scale:
-            - testCaseID: TCXM_5224
+            - testCaseID: TCXM_3590
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P2
               type: scale
@@ -3296,7 +3637,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_5225
+            - testCaseID: TCXM_3591
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P2
               type: scale
@@ -3437,7 +3778,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_5226
+            - testCaseID: TCXM_3592
               featureName: sample-multi-level-features-wireless-blueprint
               priority: P2
               type: scale

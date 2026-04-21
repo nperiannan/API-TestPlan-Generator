@@ -1,57 +1,73 @@
 version: "1.0"
-generatedAt: "2026-04-21T20:58:03+05:30"
+generatedAt: "2026-04-21T21:02:34+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
 features:
-    - featureName: feature-one-list
-      featurePath: /network-feature/fabric-feature/auto-sense-feature
-      profileType: configuration
+    - featureName: stp-global-config
+      featurePath: /global-profile
+      profileType: global
       description: ""
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_4415
-              featureName: feature-one-list
+            - testCaseID: TCXM_4006
+              featureName: stp-global-config
+              priority: P2
+              type: functional
+              description: List all stp-global-config resources
+              isDeploymentTest: false
+              steps:
+                - name: listAllResources
+                  description: List all stp-global-config resources
+                  method: GET
+                  api: REST
+                  path: /global-profile
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+            - testCaseID: TCXM_4007
+              featureName: stp-global-config
               priority: P0
               type: functional
-              description: Create feature-one-list and schedule deployment to device
+              description: Create stp-global-config and schedule deployment to device
               scopeType: device
               targetType: device
               deploymentMethod: scheduled
               isDeploymentTest: true
               steps:
-                - name: createfeature-one-list
-                  description: Create feature-one-list configuration
+                - name: createstp-global-config
+                  description: Create stp-global-config configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: feature-one-list
+                    objectType: stp-global-config
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: asset-device-id
                               origin: Global
                               type: string
                               value: test-value
-                          type: feature-one-list
+                          type: stp-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-21T16:28:04Z
+                  description: Schedule deployment to device at 2026-04-21T16:32:35Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:28:04Z"
+                    deployAt: "2026-04-21T16:32:35Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -59,47 +75,47 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_4416
-              featureName: feature-one-list
+            - testCaseID: TCXM_4008
+              featureName: stp-global-config
               priority: P0
               type: functional
-              description: Create feature-one-list and schedule deployment to site
+              description: Create stp-global-config and schedule deployment to site
               scopeType: site
               targetType: site
               deploymentMethod: scheduled
               isDeploymentTest: true
               steps:
-                - name: createfeature-one-list
-                  description: Create feature-one-list configuration
+                - name: createstp-global-config
+                  description: Create stp-global-config configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: feature-one-list
+                    objectType: stp-global-config
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: asset-device-id
                               origin: Global
                               type: string
                               value: test-value
-                          type: feature-one-list
+                          type: stp-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-21T16:28:04Z
+                  description: Schedule deployment to site at 2026-04-21T16:32:35Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:28:04Z"
+                    deployAt: "2026-04-21T16:32:35Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -107,30 +123,30 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_4417
-              featureName: feature-one-list
+            - testCaseID: TCXM_4009
+              featureName: stp-global-config
               priority: P1
               type: functional
-              description: Edit deployment schedule for feature-one-list on device
+              description: Edit deployment schedule for stp-global-config on device
               isDeploymentTest: true
               steps:
-                - name: createfeature-one-list
-                  description: Create feature-one-list configuration
+                - name: createstp-global-config
+                  description: Create stp-global-config configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: feature-one-list
+                    objectType: stp-global-config
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: asset-device-id
                               origin: Global
                               type: string
                               value: test-value
-                          type: feature-one-list
+                          type: stp-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
@@ -144,7 +160,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:28:04Z"
+                    deployAt: "2026-04-21T16:32:35Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -153,14 +169,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-21T17:28:04Z
+                  description: Edit deployment schedule to 2026-04-21T17:32:35Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T17:28:04Z"
+                    deployAt: "2026-04-21T17:32:35Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -168,30 +184,30 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_4418
-              featureName: feature-one-list
+            - testCaseID: TCXM_4010
+              featureName: stp-global-config
               priority: P1
               type: functional
-              description: Clear deployment schedule for feature-one-list on site
+              description: Clear deployment schedule for stp-global-config on site
               isDeploymentTest: true
               steps:
-                - name: createfeature-one-list
-                  description: Create feature-one-list configuration
+                - name: createstp-global-config
+                  description: Create stp-global-config configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: feature-one-list
+                    objectType: stp-global-config
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: asset-device-id
                               origin: Global
                               type: string
                               value: test-value
-                          type: feature-one-list
+                          type: stp-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
@@ -205,7 +221,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-21T16:28:04Z"
+                    deployAt: "2026-04-21T16:32:35Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -227,30 +243,30 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_4419
-              featureName: feature-one-list
+            - testCaseID: TCXM_4011
+              featureName: stp-global-config
               priority: P1
               type: functional
-              description: Clone feature-one-list configuration profile
+              description: Clone stp-global-config configuration profile
               isDeploymentTest: false
               steps:
-                - name: createfeature-one-list
-                  description: Create feature-one-list configuration
+                - name: createstp-global-config
+                  description: Create stp-global-config configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: feature-one-list
+                    objectType: stp-global-config
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: asset-device-id
                               origin: Global
                               type: string
                               value: test-value
-                          type: feature-one-list
+                          type: stp-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
@@ -269,46 +285,46 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_4420
-              featureName: feature-one-list
+            - testCaseID: TCXM_4012
+              featureName: stp-global-config
               priority: P1
               type: functional
-              description: Clone feature-one-list feature object
+              description: Clone stp-global-config feature object
               isDeploymentTest: false
               steps:
-                - name: createfeature-one-list
-                  description: Create feature-one-list configuration
+                - name: createstp-global-config
+                  description: Create stp-global-config configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: feature-one-list
+                    objectType: stp-global-config
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: asset-device-id
                               origin: Global
                               type: string
                               value: test-value
-                          type: feature-one-list
+                          type: stp-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: "201"
                 - name: cloneFeatureObject
-                  description: Clone feature-one-list feature object
+                  description: Clone stp-global-config feature object
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/feature/object/clone
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /global-profile
                     newId: cloned-object-1
-                    objectType: feature-one-list
+                    objectType: stp-global-config
                     sourceId: original-object-1
                   expectedStatus: 201
                   validations:
@@ -316,165 +332,145 @@ features:
                       expected: "201"
         negative: []
         performance:
-            - testCaseID: TCXM_4421
-              featureName: feature-one-list
+            - testCaseID: TCXM_4013
+              featureName: stp-global-config
               priority: P3
               type: performance
-              description: 'Performance test: read feature-one-list 10 times'
+              description: 'Performance test: list stp-global-config 10 times'
               isDeploymentTest: false
               steps:
-                - name: read0
-                  description: Read iteration 0
-                  method: POST
+                - name: list0
+                  description: List iteration 0
+                  method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  path: /global-profile
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read1
-                  description: Read iteration 1
-                  method: POST
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list1
+                  description: List iteration 1
+                  method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  path: /global-profile
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read2
-                  description: Read iteration 2
-                  method: POST
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list2
+                  description: List iteration 2
+                  method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  path: /global-profile
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read3
-                  description: Read iteration 3
-                  method: POST
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list3
+                  description: List iteration 3
+                  method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  path: /global-profile
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read4
-                  description: Read iteration 4
-                  method: POST
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list4
+                  description: List iteration 4
+                  method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  path: /global-profile
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read5
-                  description: Read iteration 5
-                  method: POST
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list5
+                  description: List iteration 5
+                  method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  path: /global-profile
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read6
-                  description: Read iteration 6
-                  method: POST
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list6
+                  description: List iteration 6
+                  method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  path: /global-profile
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read7
-                  description: Read iteration 7
-                  method: POST
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list7
+                  description: List iteration 7
+                  method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  path: /global-profile
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read8
-                  description: Read iteration 8
-                  method: POST
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list8
+                  description: List iteration 8
+                  method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  path: /global-profile
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read9
-                  description: Read iteration 9
-                  method: POST
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
+                - name: list9
+                  description: List iteration 9
+                  method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  path: /global-profile
                   expectedStatus: 200
                   validations:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
+                      expected: 3000
+                      description: Response time should be under 3 seconds
+                  timeout: 10
               metadata:
                 concurrency: 5
                 iterations: 10
-                operation: read
+                operation: list
         scale: []
