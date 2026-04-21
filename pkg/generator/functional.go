@@ -11,20 +11,33 @@ import (
 func (g *Generator) generateFunctionalTests(feature *model.Feature, paths []*model.FeaturePath) []model.TestCase {
 	var tests []model.TestCase
 
-	// Find CRUD operations
+	// Find CRUD operations.
+	// Prefer paths with BlueprintCategory set (explicitly registered for this feature via
+	// exact FeatureName match) over paths that arrived via fuzzy matching.
 	var createPath, readPath, updatePath, deletePath *model.FeaturePath
 	var scopePaths, targetPaths, deployPaths []*model.FeaturePath
+
+	preferPath := func(current, candidate *model.FeaturePath) *model.FeaturePath {
+		if current == nil {
+			return candidate
+		}
+		// Explicit (BlueprintCategory != "") beats fuzzy (BlueprintCategory == "")
+		if candidate.BlueprintCategory != "" && current.BlueprintCategory == "" {
+			return candidate
+		}
+		return current
+	}
 
 	for _, path := range paths {
 		switch path.OperationType {
 		case model.OperationTypeCreate:
-			createPath = path
+			createPath = preferPath(createPath, path)
 		case model.OperationTypeRead:
-			readPath = path
+			readPath = preferPath(readPath, path)
 		case model.OperationTypeUpdate:
-			updatePath = path
+			updatePath = preferPath(updatePath, path)
 		case model.OperationTypeDelete:
-			deletePath = path
+			deletePath = preferPath(deletePath, path)
 		case model.OperationTypeScope:
 			scopePaths = append(scopePaths, path)
 		case model.OperationTypeTarget:
@@ -348,10 +361,15 @@ func (g *Generator) generateSampleBody(feature *model.Feature, schema interface{
 	return body
 }
 
-// generateDeepScannedBody generates the proper body format for deep-scanned features
+// generateDeepScannedBody generates the proper body format for deep-scanned features.
 // Format: { "featurePath": "...", "objectType": "...", "operation": "add", "objects": [...] }
+// origin is "CC" for wired/service-profile features and "Global" for global-profile features.
 func (g *Generator) generateDeepScannedBody(feature *model.Feature, featurePath string, objectType string) map[string]interface{} {
-	// Build properties array from feature parameters
+	return g.generateDeepScannedBodyWithOrigin(feature, featurePath, objectType, "CC")
+}
+
+// generateDeepScannedBodyWithOrigin builds a deep-scanned body with an explicit origin value.
+func (g *Generator) generateDeepScannedBodyWithOrigin(feature *model.Feature, featurePath string, objectType string, origin string) map[string]interface{} {
 	properties := []map[string]interface{}{}
 
 	for _, param := range feature.Parameters {
@@ -360,19 +378,17 @@ func (g *Generator) generateDeepScannedBody(feature *model.Feature, featurePath 
 				"name":   param.Name,
 				"type":   g.mapYangTypeToJsonType(param.GoType),
 				"value":  g.getSampleValue(param),
-				"origin": "Global",
+				"origin": origin,
 			})
 		}
 	}
 
-	// Build the object
 	object := map[string]interface{}{
 		"type":       objectType,
 		"operation":  "add",
 		"properties": properties,
 	}
 
-	// Build final body structure
 	return map[string]interface{}{
 		"featurePath": featurePath,
 		"objectType":  objectType,
@@ -397,30 +413,34 @@ func (g *Generator) mapYangTypeToJsonType(yangType string) string {
 	}
 }
 
-// generateRequestBody generates the appropriate request body format
-// For deep-scanned features (global-profile, wired-blueprint, service-profile), use the special format
-// For regular features, use the simple format
+// generateRequestBody generates the appropriate request body format.
+// For deep-scanned features (global-profile, wired-blueprint, service-profile), use the special format.
+// For regular features, use the simple format.
 func (g *Generator) generateRequestBody(feature *model.Feature, featurePath *model.FeaturePath) map[string]interface{} {
-	// Check if this is a deep-scanned feature with BlueprintCategory set
 	if featurePath.BlueprintCategory != "" {
-		// Get the featurePath value from PathParams
 		var fpValue string
-		var objectType string = feature.Name
+		// objectType defaults to feature name but is overridable via an "objectType" PathParam FixedValue
+		objectType := feature.Name
 
 		for _, param := range featurePath.PathParams {
 			if param.Name == "featurePath" && param.FixedValue != "" {
 				fpValue = param.FixedValue
-				break
+			}
+			if param.Name == "objectType" && param.FixedValue != "" {
+				objectType = param.FixedValue
 			}
 		}
 
-		// If we have a featurePath value, generate deep-scanned body
 		if fpValue != "" {
-			return g.generateDeepScannedBody(feature, fpValue, objectType)
+			// Choose correct origin: "Global" for global-profile, "CC" for wired/service profile
+			origin := "CC"
+			if featurePath.BlueprintCategory == model.BlueprintCategoryGlobal {
+				origin = "Global"
+			}
+			return g.generateDeepScannedBodyWithOrigin(feature, fpValue, objectType, origin)
 		}
 	}
 
-	// Otherwise, use regular sample body
 	return g.generateSampleBody(feature, featurePath.RequestSchema)
 }
 

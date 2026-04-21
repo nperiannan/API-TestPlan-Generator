@@ -193,7 +193,28 @@ func (g *Generator) generateFeatureTestGroup(feature *model.Feature, paths []*mo
 		return nil
 	}
 
-	primaryPath := paths[0]
+	// Sort paths so explicitly registered paths (BlueprintCategory != "") come LAST.
+	// Most path-selector loops use "last wins" (createPath = path each iteration),
+	// so explicit registrations will override fuzzy-matched ones automatically.
+	sorted := make([]*model.FeaturePath, len(paths))
+	copy(sorted, paths)
+	// Stable sort: fuzzy paths first, explicit paths last
+	i, j := 0, len(sorted)-1
+	tmp := make([]*model.FeaturePath, 0, len(sorted))
+	fuzzy := make([]*model.FeaturePath, 0, len(sorted))
+	for _, fp := range sorted {
+		if fp.BlueprintCategory != "" {
+			tmp = append(tmp, fp)
+		} else {
+			fuzzy = append(fuzzy, fp)
+		}
+	}
+	sorted = append(fuzzy, tmp...)
+	_ = i
+	_ = j
+	paths = sorted
+
+	primaryPath := paths[len(paths)-1] // use the explicit path for metadata if available
 
 	group := &model.FeatureTestGroup{
 		FeatureName: feature.Name,

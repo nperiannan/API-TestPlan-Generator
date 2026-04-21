@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-04-21T01:11:58+05:30"
+generatedAt: "2026-04-21T17:31:14+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_1317
+            - testCaseID: TCXM_2855
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -33,7 +33,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1318
+            - testCaseID: TCXM_2856
               featureName: l3-service-end-point
               priority: P2
               type: functional
@@ -68,7 +68,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1319
+            - testCaseID: TCXM_2857
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -148,7 +148,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1320
+            - testCaseID: TCXM_2858
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -171,7 +171,185 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1321
+            - testCaseID: TCXM_2859
+              featureName: l3-service-end-point
+              priority: P1
+              type: functional
+              description: Create l3-service-end-point with required fields only (verify optional fields are optional per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithRequiredFieldsOnly
+                  description: Create l3-service-end-point providing only required YANG fields
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    l3-service-id: testValue
+                    vrf-name: VR-Mgmt
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created with required fields only
+            - testCaseID: TCXM_2860
+              featureName: l3-service-end-point
+              priority: P1
+              type: functional
+              description: Create l3-service-end-point with all fields (required + optional) per YANG model definition
+              isDeploymentTest: false
+              steps:
+                - name: createWithAllFields
+                  description: Create l3-service-end-point providing all YANG-defined fields including optional
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    device-l3-isid-name: test-resource
+                    l3-service-id: testValue
+                    vrf-id: VR-Mgmt
+                    vrf-name: VR-Mgmt
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created with all fields
+            - testCaseID: TCXM_2861
+              featureName: l3-service-end-point
+              priority: P2
+              type: functional
+              description: 'Verify optional field ''device-l3-isid-name'' is accepted and persisted when provided (YANG type: string)'
+              isDeploymentTest: false
+              steps:
+                - name: createWith_optional_device_l3_isid_name
+                  description: Create l3-service-end-point with optional field 'device-l3-isid-name'=test-resource explicitly provided
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    device-l3-isid-name: test-resource
+                    l3-service-id: testValue
+                    vrf-name: VR-Mgmt
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created when optional field 'device-l3-isid-name' is provided
+            - testCaseID: TCXM_2862
+              featureName: l3-service-end-point
+              priority: P2
+              type: functional
+              description: 'Verify optional field ''vrf-id'' is accepted and persisted when provided (YANG type: leafref)'
+              isDeploymentTest: false
+              steps:
+                - name: createWith_optional_vrf_id
+                  description: Create l3-service-end-point with optional field 'vrf-id'=VR-Mgmt explicitly provided
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    l3-service-id: testValue
+                    vrf-id: VR-Mgmt
+                    vrf-name: VR-Mgmt
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created when optional field 'vrf-id' is provided
+            - testCaseID: TCXM_2863
+              featureName: l3-service-end-point
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'leafref' for field 'device-id' with value variation 1 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithleafrefType_v1
+                  description: 'Create l3-service-end-point with YANG type ''leafref'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    l3-service-id: testValue
+                    name: TestResource
+                    vrf-name: VR-Mgmt
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify device-id type 'leafref' value is accepted
+            - testCaseID: TCXM_2864
+              featureName: l3-service-end-point
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'leafref' for field 'device-id' with value variation 2 (testValue)
+              isDeploymentTest: false
+              steps:
+                - name: createWithleafrefType_v2
+                  description: 'Create l3-service-end-point with YANG type ''leafref'' value: testValue'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    l3-service-id: testValue
+                    name: TestResource
+                    vrf-name: VR-Mgmt
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify device-id type 'leafref' value is accepted
+            - testCaseID: TCXM_2865
+              featureName: l3-service-end-point
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'string' for field 'device-l3-isid-name' with value variation 1 (test-value-1)
+              isDeploymentTest: false
+              steps:
+                - name: createWithstringType_v1
+                  description: 'Create l3-service-end-point with YANG type ''string'' value: test-value-1'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    device-l3-isid-name: test-value-1
+                    l3-service-id: testValue
+                    name: TestResource
+                    vrf-name: VR-Mgmt
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify device-l3-isid-name type 'string' value is accepted
+            - testCaseID: TCXM_2866
+              featureName: l3-service-end-point
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'string' for field 'device-l3-isid-name' with value variation 2 (test-value-2)
+              isDeploymentTest: false
+              steps:
+                - name: createWithstringType_v2
+                  description: 'Create l3-service-end-point with YANG type ''string'' value: test-value-2'
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    device-l3-isid-name: test-value-2
+                    l3-service-id: testValue
+                    name: TestResource
+                    vrf-name: VR-Mgmt
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify device-l3-isid-name type 'string' value is accepted
+            - testCaseID: TCXM_2867
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -226,7 +404,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1322
+            - testCaseID: TCXM_2868
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -281,7 +459,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1323
+            - testCaseID: TCXM_2869
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -336,7 +514,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1324
+            - testCaseID: TCXM_2870
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -391,7 +569,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1325
+            - testCaseID: TCXM_2871
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -446,7 +624,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1326
+            - testCaseID: TCXM_2872
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -501,7 +679,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1327
+            - testCaseID: TCXM_2873
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -556,7 +734,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1328
+            - testCaseID: TCXM_2874
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -611,7 +789,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1329
+            - testCaseID: TCXM_2875
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -666,7 +844,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1330
+            - testCaseID: TCXM_2876
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -721,7 +899,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1331
+            - testCaseID: TCXM_2877
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -776,7 +954,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1332
+            - testCaseID: TCXM_2878
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -831,7 +1009,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1333
+            - testCaseID: TCXM_2879
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -886,7 +1064,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1334
+            - testCaseID: TCXM_2880
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -941,7 +1119,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1335
+            - testCaseID: TCXM_2881
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -996,7 +1174,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1336
+            - testCaseID: TCXM_2882
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1051,7 +1229,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1337
+            - testCaseID: TCXM_2883
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1106,7 +1284,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1338
+            - testCaseID: TCXM_2884
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1161,7 +1339,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1339
+            - testCaseID: TCXM_2885
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1216,7 +1394,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1340
+            - testCaseID: TCXM_2886
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1271,7 +1449,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1341
+            - testCaseID: TCXM_2887
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1326,7 +1504,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1342
+            - testCaseID: TCXM_2888
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1381,7 +1559,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1343
+            - testCaseID: TCXM_2889
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1436,7 +1614,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1344
+            - testCaseID: TCXM_2890
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1491,7 +1669,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1345
+            - testCaseID: TCXM_2891
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1546,7 +1724,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1346
+            - testCaseID: TCXM_2892
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1601,7 +1779,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1347
+            - testCaseID: TCXM_2893
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1656,7 +1834,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1348
+            - testCaseID: TCXM_2894
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1711,7 +1889,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1349
+            - testCaseID: TCXM_2895
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1766,7 +1944,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1350
+            - testCaseID: TCXM_2896
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -1821,7 +1999,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1351
+            - testCaseID: TCXM_2897
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -1876,7 +2054,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1352
+            - testCaseID: TCXM_2898
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -1931,7 +2109,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1353
+            - testCaseID: TCXM_2899
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -1986,7 +2164,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1354
+            - testCaseID: TCXM_2900
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2041,7 +2219,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1355
+            - testCaseID: TCXM_2901
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2096,7 +2274,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1356
+            - testCaseID: TCXM_2902
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2151,7 +2329,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1357
+            - testCaseID: TCXM_2903
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2207,7 +2385,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1358
+            - testCaseID: TCXM_2904
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2263,7 +2441,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1359
+            - testCaseID: TCXM_2905
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2319,7 +2497,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1360
+            - testCaseID: TCXM_2906
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2375,7 +2553,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1361
+            - testCaseID: TCXM_2907
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2431,7 +2609,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1362
+            - testCaseID: TCXM_2908
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2487,7 +2665,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1363
+            - testCaseID: TCXM_2909
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2544,7 +2722,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1364
+            - testCaseID: TCXM_2910
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2601,7 +2779,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1365
+            - testCaseID: TCXM_2911
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2658,7 +2836,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1366
+            - testCaseID: TCXM_2912
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2715,7 +2893,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1367
+            - testCaseID: TCXM_2913
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2772,7 +2950,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1368
+            - testCaseID: TCXM_2914
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2829,7 +3007,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1369
+            - testCaseID: TCXM_2915
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2884,7 +3062,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1370
+            - testCaseID: TCXM_2916
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2939,7 +3117,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1371
+            - testCaseID: TCXM_2917
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -2994,7 +3172,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1372
+            - testCaseID: TCXM_2918
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3050,7 +3228,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1373
+            - testCaseID: TCXM_2919
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3106,7 +3284,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1374
+            - testCaseID: TCXM_2920
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3162,7 +3340,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1375
+            - testCaseID: TCXM_2921
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3218,7 +3396,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1376
+            - testCaseID: TCXM_2922
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3274,7 +3452,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1377
+            - testCaseID: TCXM_2923
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3330,7 +3508,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1378
+            - testCaseID: TCXM_2924
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3386,7 +3564,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1379
+            - testCaseID: TCXM_2925
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3442,7 +3620,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1380
+            - testCaseID: TCXM_2926
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3498,7 +3676,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1381
+            - testCaseID: TCXM_2927
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3554,7 +3732,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1382
+            - testCaseID: TCXM_2928
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3610,7 +3788,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1383
+            - testCaseID: TCXM_2929
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3666,7 +3844,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1384
+            - testCaseID: TCXM_2930
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3723,7 +3901,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1385
+            - testCaseID: TCXM_2931
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3780,7 +3958,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1386
+            - testCaseID: TCXM_2932
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3837,7 +4015,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1387
+            - testCaseID: TCXM_2933
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3892,7 +4070,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1388
+            - testCaseID: TCXM_2934
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -3947,7 +4125,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1389
+            - testCaseID: TCXM_2935
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -4002,7 +4180,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1390
+            - testCaseID: TCXM_2936
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -4035,14 +4213,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-20T20:41:58Z
+                  description: Schedule deployment to device at 2026-04-21T13:01:15Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-20T20:41:58Z"
+                    deployAt: "2026-04-21T13:01:15Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -4050,7 +4228,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_1391
+            - testCaseID: TCXM_2937
               featureName: l3-service-end-point
               priority: P0
               type: functional
@@ -4083,14 +4261,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-20T20:41:58Z
+                  description: Schedule deployment to site at 2026-04-21T13:01:15Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-20T20:41:58Z"
+                    deployAt: "2026-04-21T13:01:15Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -4098,7 +4276,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_1392
+            - testCaseID: TCXM_2938
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -4135,7 +4313,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-20T20:41:58Z"
+                    deployAt: "2026-04-21T13:01:15Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -4144,14 +4322,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-20T21:41:58Z
+                  description: Edit deployment schedule to 2026-04-21T14:01:15Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-20T21:41:58Z"
+                    deployAt: "2026-04-21T14:01:15Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -4159,7 +4337,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_1393
+            - testCaseID: TCXM_2939
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -4196,7 +4374,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-20T20:41:58Z"
+                    deployAt: "2026-04-21T13:01:15Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -4218,7 +4396,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_1394
+            - testCaseID: TCXM_2940
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -4260,7 +4438,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_1395
+            - testCaseID: TCXM_2941
               featureName: l3-service-end-point
               priority: P1
               type: functional
@@ -4306,15 +4484,15 @@ features:
                     - type: statusCode
                       expected: "201"
         negative:
-            - testCaseID: TCXM_1396
+            - testCaseID: TCXM_2942
               featureName: l3-service-end-point
               priority: P1
               type: negative
-              description: Test creation without required field device-id
+              description: 'Negative test: create l3-service-end-point without required field ''device-id'' — expect 4xx validation error'
               isDeploymentTest: false
               steps:
-                - name: testMissingRequired
-                  description: Attempt to create without device-id
+                - name: createWithout_device_id
+                  description: Attempt to create l3-service-end-point without required field 'device-id'
                   method: POST
                   api: REST
                   path: /service-profiles
@@ -4326,15 +4504,19 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1397
+                      description: Verify server rejects request missing required field 'device-id' with 400 Bad Request
+                    - type: jsonPathExists
+                      path: $.error
+                      description: Verify error response body contains error details for missing 'device-id'
+            - testCaseID: TCXM_2943
               featureName: l3-service-end-point
               priority: P1
               type: negative
-              description: Test creation without required field l3-service-id
+              description: 'Negative test: create l3-service-end-point without required field ''l3-service-id'' — expect 4xx validation error'
               isDeploymentTest: false
               steps:
-                - name: testMissingRequired
-                  description: Attempt to create without l3-service-id
+                - name: createWithout_l3_service_id
+                  description: Attempt to create l3-service-end-point without required field 'l3-service-id'
                   method: POST
                   api: REST
                   path: /service-profiles
@@ -4346,15 +4528,19 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1398
+                      description: Verify server rejects request missing required field 'l3-service-id' with 400 Bad Request
+                    - type: jsonPathExists
+                      path: $.error
+                      description: Verify error response body contains error details for missing 'l3-service-id'
+            - testCaseID: TCXM_2944
               featureName: l3-service-end-point
               priority: P1
               type: negative
-              description: Test creation without required field vrf-name
+              description: 'Negative test: create l3-service-end-point without required field ''vrf-name'' — expect 4xx validation error'
               isDeploymentTest: false
               steps:
-                - name: testMissingRequired
-                  description: Attempt to create without vrf-name
+                - name: createWithout_vrf_name
+                  description: Attempt to create l3-service-end-point without required field 'vrf-name'
                   method: POST
                   api: REST
                   path: /service-profiles
@@ -4366,7 +4552,11 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1399
+                      description: Verify server rejects request missing required field 'vrf-name' with 400 Bad Request
+                    - type: jsonPathExists
+                      path: $.error
+                      description: Verify error response body contains error details for missing 'vrf-name'
+            - testCaseID: TCXM_2945
               featureName: l3-service-end-point
               priority: P1
               type: negative
@@ -4389,7 +4579,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1400
+            - testCaseID: TCXM_2946
               featureName: l3-service-end-point
               priority: P1
               type: negative
@@ -4412,7 +4602,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1401
+            - testCaseID: TCXM_2947
               featureName: l3-service-end-point
               priority: P1
               type: negative
@@ -4435,7 +4625,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1402
+            - testCaseID: TCXM_2948
               featureName: l3-service-end-point
               priority: P1
               type: negative
@@ -4458,7 +4648,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1403
+            - testCaseID: TCXM_2949
               featureName: l3-service-end-point
               priority: P1
               type: negative
@@ -4481,7 +4671,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1404
+            - testCaseID: TCXM_2950
               featureName: l3-service-end-point
               priority: P1
               type: negative
@@ -4504,7 +4694,49 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1405
+            - testCaseID: TCXM_2951
+              featureName: l3-service-end-point
+              priority: P2
+              type: negative
+              description: Verify optional field 'device-l3-isid-name' can be omitted — server must accept without it (non-required per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithout_optional_device_l3_isid_name
+                  description: Create l3-service-end-point without optional field 'device-l3-isid-name' — server must accept (201)
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    l3-service-id: testValue
+                    vrf-name: VR-Mgmt
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify server accepts request when optional field 'device-l3-isid-name' is omitted
+            - testCaseID: TCXM_2952
+              featureName: l3-service-end-point
+              priority: P2
+              type: negative
+              description: Verify optional field 'vrf-id' can be omitted — server must accept without it (non-required per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithout_optional_vrf_id
+                  description: Create l3-service-end-point without optional field 'vrf-id' — server must accept (201)
+                  method: POST
+                  api: REST
+                  path: /service-profiles
+                  body:
+                    device-id: testValue
+                    l3-service-id: testValue
+                    vrf-name: VR-Mgmt
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify server accepts request when optional field 'vrf-id' is omitted
+            - testCaseID: TCXM_2953
               featureName: l3-service-end-point
               priority: P1
               type: negative
@@ -4527,8 +4759,29 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
+            - testCaseID: TCXM_2954
+              featureName: l3-service-end-point
+              priority: P1
+              type: negative
+              description: Verify deleting non-existent l3-service-end-point returns 404
+              isDeploymentTest: false
+              steps:
+                - name: deleteNonExistent
+                  description: Attempt to delete l3-service-end-point 'does-not-exist-9999' which was never created
+                  method: DELETE
+                  api: REST
+                  path: /service-profiles
+                  pathParams:
+                    name: does-not-exist-9999
+                  body:
+                    name: does-not-exist-9999
+                    operation: delete
+                  expectedStatus: 404
+                  validations:
+                    - type: statusCode
+                      expected: 404
         performance:
-            - testCaseID: TCXM_1410
+            - testCaseID: TCXM_2959
               featureName: l3-service-end-point
               priority: P3
               type: performance
@@ -4720,7 +4973,7 @@ features:
                 iterations: 10
                 operation: create
         scale:
-            - testCaseID: TCXM_1406
+            - testCaseID: TCXM_2955
               featureName: l3-service-end-point
               priority: P2
               type: scale
@@ -6129,7 +6382,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_1407
+            - testCaseID: TCXM_2956
               featureName: l3-service-end-point
               priority: P2
               type: scale
@@ -6152,7 +6405,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_1408
+            - testCaseID: TCXM_2957
               featureName: l3-service-end-point
               priority: P2
               type: scale
@@ -6326,7 +6579,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_1409
+            - testCaseID: TCXM_2958
               featureName: l3-service-end-point
               priority: P2
               type: scale

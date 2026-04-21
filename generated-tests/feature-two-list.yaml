@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-04-21T01:55:22+05:30"
+generatedAt: "2026-04-21T17:31:14+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
@@ -10,7 +10,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_5508
+            - testCaseID: TCXM_4812
               featureName: feature-two-list
               priority: P2
               type: boundary
@@ -30,7 +30,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_5509
+            - testCaseID: TCXM_4813
               featureName: feature-two-list
               priority: P2
               type: boundary
@@ -50,7 +50,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_5510
+            - testCaseID: TCXM_4814
               featureName: feature-two-list
               priority: P2
               type: boundary
@@ -70,7 +70,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_5511
+            - testCaseID: TCXM_4815
               featureName: feature-two-list
               priority: P2
               type: boundary
@@ -91,7 +91,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_5427
+            - testCaseID: TCXM_4719
               featureName: feature-two-list
               priority: P0
               type: functional
@@ -110,19 +110,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-                - name: verifyCreation
-                  description: Verify resource was created
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                      description: Verify HTTP status code is 200
-            - testCaseID: TCXM_5428
+            - testCaseID: TCXM_4720
               featureName: feature-two-list
               priority: P2
               type: functional
@@ -151,7 +139,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_5429
+            - testCaseID: TCXM_4721
               featureName: feature-two-list
               priority: P0
               type: functional
@@ -172,17 +160,6 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-                - name: getProfile
-                  description: Retrieve created profile
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    profileName: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
                 - name: scopeProfileTodevice
                   description: Scope profile to device
                   method: POST
@@ -239,7 +216,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5430
+            - testCaseID: TCXM_4722
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -259,7 +236,243 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_5431
+            - testCaseID: TCXM_4723
+              featureName: feature-two-list
+              priority: P1
+              type: functional
+              description: Create feature-two-list with required fields only (verify optional fields are optional per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithRequiredFieldsOnly
+                  description: Create feature-two-list providing only required YANG fields
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body: {}
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created with required fields only
+            - testCaseID: TCXM_4724
+              featureName: feature-two-list
+              priority: P1
+              type: functional
+              description: Create feature-two-list with all fields (required + optional) per YANG model definition
+              isDeploymentTest: false
+              steps:
+                - name: createWithAllFields
+                  description: Create feature-two-list providing all YANG-defined fields including optional
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-1: testValue
+                    leaf-2: 100
+                    leaf-3: ""
+                    leaf-4: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created with all fields
+            - testCaseID: TCXM_4725
+              featureName: feature-two-list
+              priority: P2
+              type: functional
+              description: 'Verify optional field ''leaf-1'' is accepted and persisted when provided (YANG type: string)'
+              isDeploymentTest: false
+              steps:
+                - name: createWith_optional_leaf_1
+                  description: Create feature-two-list with optional field 'leaf-1'=testValue explicitly provided
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-1: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created when optional field 'leaf-1' is provided
+            - testCaseID: TCXM_4726
+              featureName: feature-two-list
+              priority: P2
+              type: functional
+              description: 'Verify optional field ''leaf-2'' is accepted and persisted when provided (YANG type: int32)'
+              isDeploymentTest: false
+              steps:
+                - name: createWith_optional_leaf_2
+                  description: Create feature-two-list with optional field 'leaf-2'=100 explicitly provided
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-2: 100
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created when optional field 'leaf-2' is provided
+            - testCaseID: TCXM_4727
+              featureName: feature-two-list
+              priority: P2
+              type: functional
+              description: 'Verify optional field ''leaf-3'' is accepted and persisted when provided (YANG type: boolean)'
+              isDeploymentTest: false
+              steps:
+                - name: createWith_optional_leaf_3
+                  description: Create feature-two-list with optional field 'leaf-3'= explicitly provided
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-3: ""
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created when optional field 'leaf-3' is provided
+            - testCaseID: TCXM_4728
+              featureName: feature-two-list
+              priority: P2
+              type: functional
+              description: 'Verify optional field ''leaf-4'' is accepted and persisted when provided (YANG type: string)'
+              isDeploymentTest: false
+              steps:
+                - name: createWith_optional_leaf_4
+                  description: Create feature-two-list with optional field 'leaf-4'=testValue explicitly provided
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-4: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify resource is created when optional field 'leaf-4' is provided
+            - testCaseID: TCXM_4729
+              featureName: feature-two-list
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'string' for field 'leaf-1' with value variation 1 (test-value-1)
+              isDeploymentTest: false
+              steps:
+                - name: createWithstringType_v1
+                  description: 'Create feature-two-list with YANG type ''string'' value: test-value-1'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-1: test-value-1
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify leaf-1 type 'string' value is accepted
+            - testCaseID: TCXM_4730
+              featureName: feature-two-list
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'string' for field 'leaf-1' with value variation 2 (test-value-2)
+              isDeploymentTest: false
+              steps:
+                - name: createWithstringType_v2
+                  description: 'Create feature-two-list with YANG type ''string'' value: test-value-2'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-1: test-value-2
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify leaf-1 type 'string' value is accepted
+            - testCaseID: TCXM_4731
+              featureName: feature-two-list
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'int32' for field 'leaf-2' with value variation 1 (1)
+              isDeploymentTest: false
+              steps:
+                - name: createWithint32Type_v1
+                  description: 'Create feature-two-list with YANG type ''int32'' value: 1'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-2: 1
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify leaf-2 type 'int32' value is accepted
+            - testCaseID: TCXM_4732
+              featureName: feature-two-list
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'int32' for field 'leaf-2' with value variation 2 (100)
+              isDeploymentTest: false
+              steps:
+                - name: createWithint32Type_v2
+                  description: 'Create feature-two-list with YANG type ''int32'' value: 100'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-2: 100
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify leaf-2 type 'int32' value is accepted
+            - testCaseID: TCXM_4733
+              featureName: feature-two-list
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'boolean' for field 'leaf-3' with value variation 1 (true)
+              isDeploymentTest: false
+              steps:
+                - name: createWithbooleanType_v1
+                  description: 'Create feature-two-list with YANG type ''boolean'' value: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-3: true
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify leaf-3 type 'boolean' value is accepted
+            - testCaseID: TCXM_4734
+              featureName: feature-two-list
+              priority: P1
+              type: functional
+              description: Verify YANG datatype 'boolean' for field 'leaf-3' with value variation 2 (false)
+              isDeploymentTest: false
+              steps:
+                - name: createWithbooleanType_v2
+                  description: 'Create feature-two-list with YANG type ''boolean'' value: false'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    leaf-3: false
+                    name: TestResource
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify leaf-3 type 'boolean' value is accepted
+            - testCaseID: TCXM_4735
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -311,7 +524,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5432
+            - testCaseID: TCXM_4736
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -363,7 +576,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5433
+            - testCaseID: TCXM_4737
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -415,7 +628,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5434
+            - testCaseID: TCXM_4738
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -467,7 +680,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5435
+            - testCaseID: TCXM_4739
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -519,7 +732,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5436
+            - testCaseID: TCXM_4740
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -571,7 +784,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5437
+            - testCaseID: TCXM_4741
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -624,7 +837,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5438
+            - testCaseID: TCXM_4742
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -677,7 +890,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5439
+            - testCaseID: TCXM_4743
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -730,7 +943,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5440
+            - testCaseID: TCXM_4744
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -783,7 +996,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5441
+            - testCaseID: TCXM_4745
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -836,7 +1049,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5442
+            - testCaseID: TCXM_4746
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -889,7 +1102,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5443
+            - testCaseID: TCXM_4747
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -943,7 +1156,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5444
+            - testCaseID: TCXM_4748
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -997,7 +1210,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5445
+            - testCaseID: TCXM_4749
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1051,7 +1264,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5446
+            - testCaseID: TCXM_4750
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1105,7 +1318,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5447
+            - testCaseID: TCXM_4751
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1159,7 +1372,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5448
+            - testCaseID: TCXM_4752
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1213,7 +1426,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5449
+            - testCaseID: TCXM_4753
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1268,7 +1481,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5450
+            - testCaseID: TCXM_4754
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1323,7 +1536,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5451
+            - testCaseID: TCXM_4755
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1378,7 +1591,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5452
+            - testCaseID: TCXM_4756
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1433,7 +1646,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5453
+            - testCaseID: TCXM_4757
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1488,7 +1701,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5454
+            - testCaseID: TCXM_4758
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1543,7 +1756,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5455
+            - testCaseID: TCXM_4759
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1599,7 +1812,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5456
+            - testCaseID: TCXM_4760
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1655,7 +1868,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5457
+            - testCaseID: TCXM_4761
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1711,7 +1924,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5458
+            - testCaseID: TCXM_4762
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1767,7 +1980,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5459
+            - testCaseID: TCXM_4763
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1823,7 +2036,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5460
+            - testCaseID: TCXM_4764
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1879,7 +2092,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5461
+            - testCaseID: TCXM_4765
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1895,7 +2108,6 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
-                    featurePath: Resource-A
                     name: Resource-A
                   body:
                     name: Resource-A
@@ -1934,7 +2146,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5462
+            - testCaseID: TCXM_4766
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -1950,7 +2162,6 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
-                    featurePath: Resource-B
                     name: Resource-B
                   body:
                     name: Resource-B
@@ -1989,7 +2200,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5463
+            - testCaseID: TCXM_4767
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2005,7 +2216,6 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
-                    featurePath: Resource-C
                     name: Resource-C
                   body:
                     name: Resource-C
@@ -2044,7 +2254,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5464
+            - testCaseID: TCXM_4768
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2060,7 +2270,6 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
-                    featurePath: Resource-Alpha
                     name: Resource-Alpha
                   body:
                     name: Resource-Alpha
@@ -2099,7 +2308,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5465
+            - testCaseID: TCXM_4769
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2115,7 +2324,6 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
-                    featurePath: Resource-Beta
                     name: Resource-Beta
                   body:
                     name: Resource-Beta
@@ -2154,7 +2362,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5466
+            - testCaseID: TCXM_4770
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2170,7 +2378,6 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
-                    featurePath: Resource-Gamma
                     name: Resource-Gamma
                   body:
                     name: Resource-Gamma
@@ -2209,7 +2416,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5467
+            - testCaseID: TCXM_4771
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2225,7 +2432,6 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
-                    featurePath: Resource-Delta
                     name: Resource-Delta
                   body:
                     name: Resource-Delta
@@ -2264,7 +2470,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5468
+            - testCaseID: TCXM_4772
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2280,7 +2486,6 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
-                    featurePath: Resource-Epsilon
                     name: Resource-Epsilon
                   body:
                     name: Resource-Epsilon
@@ -2319,7 +2524,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5469
+            - testCaseID: TCXM_4773
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2335,7 +2540,6 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
-                    featurePath: Resource-Test1
                     name: Resource-Test1
                   body:
                     name: Resource-Test1
@@ -2374,7 +2578,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5470
+            - testCaseID: TCXM_4774
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2390,7 +2594,6 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
                   pathParams:
-                    featurePath: Resource-Test2
                     name: Resource-Test2
                   body:
                     name: Resource-Test2
@@ -2429,7 +2632,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5471
+            - testCaseID: TCXM_4775
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2482,7 +2685,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5472
+            - testCaseID: TCXM_4776
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2535,7 +2738,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5473
+            - testCaseID: TCXM_4777
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2588,7 +2791,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5474
+            - testCaseID: TCXM_4778
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2641,7 +2844,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5475
+            - testCaseID: TCXM_4779
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2695,7 +2898,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5476
+            - testCaseID: TCXM_4780
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2749,7 +2952,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5477
+            - testCaseID: TCXM_4781
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2803,7 +3006,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5478
+            - testCaseID: TCXM_4782
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2857,7 +3060,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5479
+            - testCaseID: TCXM_4783
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2911,7 +3114,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5480
+            - testCaseID: TCXM_4784
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -2965,7 +3168,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5481
+            - testCaseID: TCXM_4785
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3019,7 +3222,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5482
+            - testCaseID: TCXM_4786
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3073,7 +3276,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5483
+            - testCaseID: TCXM_4787
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3127,7 +3330,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5484
+            - testCaseID: TCXM_4788
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3181,7 +3384,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5485
+            - testCaseID: TCXM_4789
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3235,7 +3438,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5486
+            - testCaseID: TCXM_4790
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3289,7 +3492,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5487
+            - testCaseID: TCXM_4791
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3343,7 +3546,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5488
+            - testCaseID: TCXM_4792
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3397,7 +3600,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5489
+            - testCaseID: TCXM_4793
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3451,7 +3654,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5490
+            - testCaseID: TCXM_4794
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3505,7 +3708,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5491
+            - testCaseID: TCXM_4795
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3559,7 +3762,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5492
+            - testCaseID: TCXM_4796
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3613,7 +3816,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5493
+            - testCaseID: TCXM_4797
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3666,7 +3869,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5494
+            - testCaseID: TCXM_4798
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3719,7 +3922,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5495
+            - testCaseID: TCXM_4799
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3772,7 +3975,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5496
+            - testCaseID: TCXM_4800
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3825,7 +4028,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5497
+            - testCaseID: TCXM_4801
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3878,7 +4081,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5498
+            - testCaseID: TCXM_4802
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3931,7 +4134,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5499
+            - testCaseID: TCXM_4803
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -3984,7 +4187,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5500
+            - testCaseID: TCXM_4804
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -4037,7 +4240,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5501
+            - testCaseID: TCXM_4805
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -4090,7 +4293,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5502
+            - testCaseID: TCXM_4806
               featureName: feature-two-list
               priority: P0
               type: functional
@@ -4123,14 +4326,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-20T21:25:23Z
+                  description: Schedule deployment to device at 2026-04-21T13:01:15Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-20T21:25:23Z"
+                    deployAt: "2026-04-21T13:01:15Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -4138,7 +4341,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5503
+            - testCaseID: TCXM_4807
               featureName: feature-two-list
               priority: P0
               type: functional
@@ -4171,14 +4374,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-20T21:25:23Z
+                  description: Schedule deployment to site at 2026-04-21T13:01:15Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-20T21:25:23Z"
+                    deployAt: "2026-04-21T13:01:15Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -4186,7 +4389,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5504
+            - testCaseID: TCXM_4808
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -4223,7 +4426,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-20T21:25:23Z"
+                    deployAt: "2026-04-21T13:01:15Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -4232,14 +4435,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-20T22:25:23Z
+                  description: Edit deployment schedule to 2026-04-21T14:01:15Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-20T22:25:23Z"
+                    deployAt: "2026-04-21T14:01:15Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -4247,7 +4450,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5505
+            - testCaseID: TCXM_4809
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -4284,7 +4487,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-20T21:25:23Z"
+                    deployAt: "2026-04-21T13:01:15Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -4306,7 +4509,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5506
+            - testCaseID: TCXM_4810
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -4348,7 +4551,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5507
+            - testCaseID: TCXM_4811
               featureName: feature-two-list
               priority: P1
               type: functional
@@ -4394,7 +4597,7 @@ features:
                     - type: statusCode
                       expected: "201"
         negative:
-            - testCaseID: TCXM_5512
+            - testCaseID: TCXM_4816
               featureName: feature-two-list
               priority: P1
               type: negative
@@ -4413,7 +4616,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_5513
+            - testCaseID: TCXM_4817
               featureName: feature-two-list
               priority: P1
               type: negative
@@ -4432,7 +4635,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_5514
+            - testCaseID: TCXM_4818
               featureName: feature-two-list
               priority: P1
               type: negative
@@ -4451,7 +4654,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_5515
+            - testCaseID: TCXM_4819
               featureName: feature-two-list
               priority: P1
               type: negative
@@ -4470,7 +4673,79 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_5516
+            - testCaseID: TCXM_4820
+              featureName: feature-two-list
+              priority: P2
+              type: negative
+              description: Verify optional field 'leaf-1' can be omitted — server must accept without it (non-required per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithout_optional_leaf_1
+                  description: Create feature-two-list without optional field 'leaf-1' — server must accept (201)
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body: {}
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify server accepts request when optional field 'leaf-1' is omitted
+            - testCaseID: TCXM_4821
+              featureName: feature-two-list
+              priority: P2
+              type: negative
+              description: Verify optional field 'leaf-2' can be omitted — server must accept without it (non-required per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithout_optional_leaf_2
+                  description: Create feature-two-list without optional field 'leaf-2' — server must accept (201)
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body: {}
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify server accepts request when optional field 'leaf-2' is omitted
+            - testCaseID: TCXM_4822
+              featureName: feature-two-list
+              priority: P2
+              type: negative
+              description: Verify optional field 'leaf-3' can be omitted — server must accept without it (non-required per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithout_optional_leaf_3
+                  description: Create feature-two-list without optional field 'leaf-3' — server must accept (201)
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body: {}
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify server accepts request when optional field 'leaf-3' is omitted
+            - testCaseID: TCXM_4823
+              featureName: feature-two-list
+              priority: P2
+              type: negative
+              description: Verify optional field 'leaf-4' can be omitted — server must accept without it (non-required per YANG model)
+              isDeploymentTest: false
+              steps:
+                - name: createWithout_optional_leaf_4
+                  description: Create feature-two-list without optional field 'leaf-4' — server must accept (201)
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body: {}
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify server accepts request when optional field 'leaf-4' is omitted
+            - testCaseID: TCXM_4824
               featureName: feature-two-list
               priority: P1
               type: negative
@@ -4491,7 +4766,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5517
+            - testCaseID: TCXM_4825
               featureName: feature-two-list
               priority: P1
               type: negative
@@ -4511,7 +4786,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5518
+            - testCaseID: TCXM_4826
               featureName: feature-two-list
               priority: P1
               type: negative
@@ -4533,7 +4808,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_5523
+            - testCaseID: TCXM_4831
               featureName: feature-two-list
               priority: P3
               type: performance
@@ -4694,169 +4969,8 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_5524
-              featureName: feature-two-list
-              priority: P3
-              type: performance
-              description: 'Performance test: read feature-two-list 10 times'
-              isDeploymentTest: false
-              steps:
-                - name: read0
-                  description: Read iteration 0
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read1
-                  description: Read iteration 1
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read2
-                  description: Read iteration 2
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read3
-                  description: Read iteration 3
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read4
-                  description: Read iteration 4
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read5
-                  description: Read iteration 5
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read6
-                  description: Read iteration 6
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read7
-                  description: Read iteration 7
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read8
-                  description: Read iteration 8
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-                - name: read9
-                  description: Read iteration 9
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: responseTimeUnder
-                      expected: 1000
-                      description: Response time should be under 1 second
-                  timeout: 5
-              metadata:
-                concurrency: 5
-                iterations: 10
-                operation: read
         scale:
-            - testCaseID: TCXM_5519
+            - testCaseID: TCXM_4827
               featureName: feature-two-list
               priority: P2
               type: scale
@@ -5965,7 +6079,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_5520
+            - testCaseID: TCXM_4828
               featureName: feature-two-list
               priority: P2
               type: scale
@@ -5985,7 +6099,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_5521
+            - testCaseID: TCXM_4829
               featureName: feature-two-list
               priority: P2
               type: scale
@@ -6126,7 +6240,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_5522
+            - testCaseID: TCXM_4830
               featureName: feature-two-list
               priority: P2
               type: scale

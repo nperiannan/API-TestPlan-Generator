@@ -1,38 +1,28 @@
-featurePath: /configuration-profile/{name}/feature/object/retrieve
+featurePath: /configuration-profile/{name}/sites/deploy
 profileType: configuration
 test:
     testCaseID: TCXM_1002
-    featureName: user-profile-policy-config
+    featureName: radio-profile-config
     priority: P0
     type: functional
-    description: Create user-profile-policy-config, scope to device, target to device, deploy, and verify on NOS devices
+    description: Create radio-profile-config, scope to device, target to device, deploy, and verify on NOS devices
     scopeType: device
     targetType: device
     deploymentMethod: immediate
     isDeploymentTest: true
     steps:
-        - name: createuser-profile-policy-config
-          description: Create user-profile-policy-config configuration
+        - name: createradio-profile-config
+          description: Create radio-profile-config configuration
           method: POST
           api: REST
-          path: /configuration-profile/{name}/feature/object/override/create-modify
+          path: /configuration-profile/{name}/feature/object/override/retrieve
           body:
+            asset-device-id: testValue
             name: TestProfile
           expectedStatus: 201
           validations:
             - type: statusCode
               expected: 201
-        - name: getProfile
-          description: Retrieve created profile
-          method: GET
-          api: REST
-          path: /configuration-profile/{name}/feature/object/retrieve
-          pathParams:
-            profileName: TestProfile
-          expectedStatus: 200
-          validations:
-            - type: statusCode
-              expected: 200
         - name: scopeProfileTodevice
           description: Scope profile to device
           method: POST

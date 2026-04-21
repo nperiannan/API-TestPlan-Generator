@@ -412,206 +412,216 @@ func (p *Parser) extractGlobalProfileFeatures() {
 // extractServiceProfileFeatures extracts features from ServiceProfile schema
 // Features from extreme-service-profile-blueprint.yang
 func (p *Parser) extractServiceProfileFeatures() {
+	// Service profile nested features.
+	// yangFeatureName must match the YANG list name from the respective intent module.
+	// Source: extreme-service-profile-blueprint.yang + qaopenapi.yaml
 	serviceFeatures := []struct {
-		name        string
-		featurePath string
+		yangFeatureName string // YANG list name for exact linking
+		featurePath     string // featurePath value in API request body
 	}{
-		{"l2-service-feature", "/l2-service-feature"},     // VLAN configuration (uses extreme-intent-vlan.yang)
-		{"vrf-feature", "/vrf-feature"},                   // Virtual Routing and Forwarding
-		{"router-group-feature", "/router-group-feature"}, // Router group configuration
-		{"global-feature", "/global-feature"},             // Advanced/Global settings
+		{"vlan", "/l2-service-feature"},                    // extreme-intent-vlan.yang (list vlan)
+		{"vrf", "/vrf-feature"},                            // extreme-intent-vrf.yang (list vrf)
+		{"router-group", "/router-group-feature"},          // extreme-intent-router-group.yang (list router-group)
+		{"common-settings", "/global-feature"},             // extreme-intent-global.yang (list common-settings)
 	}
 
 	for _, sf := range serviceFeatures {
-		// Service profile features use /service-profile/{name}/feature/object/* paths
-
-		// Retrieve
-		fp := &model.FeaturePath{
-			FeatureName:       sf.name,                        // Set the YANG feature name for linkage
-			BlueprintCategory: model.BlueprintCategoryService, // Mark as service-profile feature
-			HTTPMethod:        "GET",
-			Path:              "/service-profile/{name}/feature/object/retrieve",
-			PathParams: []model.PathParameter{
-				{
-					Name:        "name",
-					Type:        "string",
-					Description: "Service profile name",
-					Required:    true,
-				},
-				{
-					Name:        "featurePath",
-					Type:        "string",
-					Description: "Path to the feature",
-					Required:    true,
-				},
-			},
-			ProfileType:   model.ProfileTypeService,
-			OperationType: model.OperationTypeRead,
+		profileNameParam := model.PathParameter{
+			Name:        "name",
+			Type:        "string",
+			Description: "Service profile name",
+			Required:    true,
 		}
-		p.paths[fmt.Sprintf("GET /service-profile/%s", sf.name)] = fp
+		featurePathParam := model.PathParameter{
+			Name:        "featurePath",
+			Type:        "string",
+			Description: "Nested feature path in the service profile hierarchy",
+			Required:    true,
+			FixedValue:  sf.featurePath,
+		}
 
-		// Modify
-		fp2 := &model.FeaturePath{
-			FeatureName:       sf.name,                        // Set the YANG feature name for linkage
-			BlueprintCategory: model.BlueprintCategoryService, // Mark as service-profile feature
+		// READ
+		fpRead := &model.FeaturePath{
+			FeatureName:       sf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryService,
+			HTTPMethod:        "POST",
+			Path:              "/service-profile/{name}/feature/object/retrieve",
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeService,
+			OperationType:     model.OperationTypeRead,
+		}
+		p.paths[fmt.Sprintf("READ /service-profile/%s", sf.yangFeatureName)] = fpRead
+
+		// CREATE
+		fpCreate := &model.FeaturePath{
+			FeatureName:       sf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryService,
 			HTTPMethod:        "POST",
 			Path:              "/service-profile/{name}/feature/object/modify",
-			PathParams: []model.PathParameter{
-				{
-					Name:        "name",
-					Type:        "string",
-					Description: "Service profile name",
-					Required:    true,
-				},
-				{
-					Name:        "featurePath",
-					Type:        "string",
-					Description: "Path to the feature",
-					Required:    true,
-				},
-			},
-			ProfileType:   model.ProfileTypeService,
-			OperationType: model.OperationTypeCreate,
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeService,
+			OperationType:     model.OperationTypeCreate,
 		}
-		p.paths[fmt.Sprintf("POST /service-profile/%s", sf.name)] = fp2
+		p.paths[fmt.Sprintf("POST /service-profile/%s", sf.yangFeatureName)] = fpCreate
+
+		// UPDATE
+		fpUpdate := &model.FeaturePath{
+			FeatureName:       sf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryService,
+			HTTPMethod:        "POST",
+			Path:              "/service-profile/{name}/feature/object/modify",
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeService,
+			OperationType:     model.OperationTypeUpdate,
+		}
+		p.paths[fmt.Sprintf("PUT /service-profile/%s", sf.yangFeatureName)] = fpUpdate
+
+		// DELETE
+		fpDelete := &model.FeaturePath{
+			FeatureName:       sf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryService,
+			HTTPMethod:        "POST",
+			Path:              "/service-profile/{name}/feature/object/delete",
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeService,
+			OperationType:     model.OperationTypeDelete,
+		}
+		p.paths[fmt.Sprintf("DELETE /service-profile/%s", sf.yangFeatureName)] = fpDelete
 	}
 }
 
-// extractConfigurationProfileFeatures extracts features from ConfigurationProfile/Blueprint schemas
-// Features from wired blueprint, wireless blueprint, global blueprint
+// extractConfigurationProfileFeatures extracts features from ConfigurationProfile/Blueprint schemas.
+// These map to the nested featurePath hierarchy defined in extreme-wired-blueprint.yang.
+// The yangFeatureName MUST match the YANG list node name so linkFeaturesWithPaths() can do an
+// exact match and avoid incorrect fuzzy linking to unrelated API paths.
 func (p *Parser) extractConfigurationProfileFeatures() {
-	// Wired blueprint features
-	wiredFeatures := []struct {
-		name        string
-		featurePath string
+	// Wired blueprint nested features.
+	// Source: extreme-wired-blueprint.yang + qaopenapi.yaml (feature/object endpoints).
+	//
+	// Mapping: yangFeatureName (YANG list name) → API featurePath → API objectType
+	//   port-feature          → extreme-intent-port.yang       (list port)
+	//   spbm-global-feature   → extreme-intent-fabric-spbm     (list fabric-spbm-global-settings-config)
+	//   spbm-instance         → extreme-intent-fabric-spbm     (list fabric-spbm-instance)
+	//   isis-feature          → extreme-intent-fabric-spbm     (list fabric-isis-global-config)
+	//   auto-sense-feature    → extreme-intent-fabric-auto-sense (list fabric-auto-sense-global)
+	//   device-profile-feature→ extreme-intent-device-profile  (list device-profile)
+	wiredNestedFeatures := []struct {
+		yangFeatureName string // must match YANG list name for exact linking in linkFeaturesWithPaths
+		featurePath     string // the featurePath value sent in the API request body
+		objectType      string // the objectType value sent in the API request body
 	}{
-		{"vlan", "/VLAN"},
-		{"port-mapping", "/Port Configuration"},
-		{"lag-config", "/LAG Configuration"},
-		{"acl", "/ACL"},
-		{"qos", "/QoS"},
+		// /network-feature/interface-feature/port-feature
+		{"port", "/network-feature/interface-feature/port-feature", "port"},
+		// /network-feature/fabric-feature/spbm-global-feature
+		{"fabric-spbm-global-settings-config", "/network-feature/fabric-feature/spbm-global-feature", "spbm-global"},
+		{"fabric-spbm-instance", "/network-feature/fabric-feature/spbm-global-feature", "spbm-instance"},
+		// /network-feature/fabric-feature/isis-feature
+		{"fabric-isis-global-config", "/network-feature/fabric-feature/isis-feature", "isis"},
+		// /network-feature/fabric-feature/auto-sense-feature
+		{"fabric-auto-sense-global", "/network-feature/fabric-feature/auto-sense-feature", "auto-sense"},
+		// /infrastructure-feature/device-profile-feature
+		{"device-profile", "/infrastructure-feature/device-profile-feature", "device-profile"},
 	}
 
-	// Wireless blueprint features (optional - can be enabled later with --feature-categories)
-	// wirelessFeatures := []struct{
-	// 	name string
-	// 	featurePath string
-	// }{
-	// 	{"wireless-ssid", "/Wireless/SSID"},
-	// 	{"wireless-radio", "/Wireless/Radio"},
-	// }
-
-	// Process wired features
-	for _, cf := range wiredFeatures {
-		// Configuration profile features use /configuration-profile/{name}/feature/object/* paths
-
-		// Retrieve
-		fp := &model.FeaturePath{
-			FeatureName:       cf.name,                      // Set the YANG feature name for linkage
-			BlueprintCategory: model.BlueprintCategoryWired, // Mark as wired-blueprint feature
-			HTTPMethod:        "GET",
-			Path:              "/configuration-profile/{name}/feature/object/retrieve",
-			PathParams: []model.PathParameter{
-				{
-					Name:        "name",
-					Type:        "string",
-					Description: "Configuration profile name",
-					Required:    true,
-				},
-				{
-					Name:        "featurePath",
-					Type:        "string",
-					Description: "Path to the feature",
-					Required:    true,
-				},
-			},
-			ProfileType:   model.ProfileTypeConfiguration,
-			OperationType: model.OperationTypeRead,
+	for _, cf := range wiredNestedFeatures {
+		// PathParam entries shared by retrieve/modify/delete (profile name + featurePath fixed value)
+		profileNameParam := model.PathParameter{
+			Name:        "name",
+			Type:        "string",
+			Description: "Configuration profile name",
+			Required:    true,
 		}
-		p.paths[fmt.Sprintf("GET /configuration-profile/%s", cf.name)] = fp
+		featurePathParam := model.PathParameter{
+			Name:        "featurePath",
+			Type:        "string",
+			Description: "Nested feature path in the wired blueprint hierarchy",
+			Required:    true,
+			FixedValue:  cf.featurePath, // fixed value tells body-builder what featurePath to embed
+		}
 
-		// Modify
-		fp2 := &model.FeaturePath{
-			FeatureName:       cf.name,                      // Set the YANG feature name for linkage
-			BlueprintCategory: model.BlueprintCategoryWired, // Mark as wired-blueprint feature
+		// READ: POST /configuration-profile/{name}/feature/object/retrieve
+		fpRead := &model.FeaturePath{
+			FeatureName:       cf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWired,
+			HTTPMethod:        "POST",
+			Path:              "/configuration-profile/{name}/feature/object/retrieve",
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeRead,
+		}
+		p.paths[fmt.Sprintf("READ /configuration-profile/%s", cf.yangFeatureName)] = fpRead
+
+		// CREATE: POST /configuration-profile/{name}/feature/object/modify  (operation=add)
+		fpCreate := &model.FeaturePath{
+			FeatureName:       cf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWired,
 			HTTPMethod:        "POST",
 			Path:              "/configuration-profile/{name}/feature/object/modify",
-			PathParams: []model.PathParameter{
-				{
-					Name:        "name",
-					Type:        "string",
-					Description: "Configuration profile name",
-					Required:    true,
-				},
-				{
-					Name:        "featurePath",
-					Type:        "string",
-					Description: "Path to the feature",
-					Required:    true,
-				},
-			},
-			ProfileType:   model.ProfileTypeConfiguration,
-			OperationType: model.OperationTypeCreate,
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeCreate,
 		}
-		p.paths[fmt.Sprintf("POST /configuration-profile/%s", cf.name)] = fp2
+		p.paths[fmt.Sprintf("POST /configuration-profile/%s", cf.yangFeatureName)] = fpCreate
 
-		// Deployment paths for configuration features
-		// Scope
+		// UPDATE: POST /configuration-profile/{name}/feature/object/modify  (operation=update)
+		fpUpdate := &model.FeaturePath{
+			FeatureName:       cf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWired,
+			HTTPMethod:        "POST",
+			Path:              "/configuration-profile/{name}/feature/object/modify",
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeUpdate,
+		}
+		p.paths[fmt.Sprintf("PUT /configuration-profile/%s", cf.yangFeatureName)] = fpUpdate
+
+		// DELETE: POST /configuration-profile/{name}/feature/object/delete
+		fpDelete := &model.FeaturePath{
+			FeatureName:       cf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWired,
+			HTTPMethod:        "POST",
+			Path:              "/configuration-profile/{name}/feature/object/delete",
+			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeDelete,
+		}
+		p.paths[fmt.Sprintf("DELETE /configuration-profile/%s", cf.yangFeatureName)] = fpDelete
+
+		// SCOPE: PUT /configuration-profile/{name}/scope
 		fpScope := &model.FeaturePath{
-			FeatureName:       cf.name,                      // Set the YANG feature name for linkage
-			BlueprintCategory: model.BlueprintCategoryWired, // Mark as wired-blueprint feature
+			FeatureName:       cf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWired,
 			HTTPMethod:        "PUT",
 			Path:              "/configuration-profile/{name}/scope",
-			PathParams: []model.PathParameter{
-				{
-					Name:        "name",
-					Type:        "string",
-					Description: "Configuration profile name",
-					Required:    true,
-				},
-			},
-			ProfileType:   model.ProfileTypeConfiguration,
-			OperationType: model.OperationTypeScope,
+			PathParams:        []model.PathParameter{profileNameParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeScope,
 		}
-		p.paths[fmt.Sprintf("PUT /configuration-profile/%s/scope", cf.name)] = fpScope
+		p.paths[fmt.Sprintf("PUT /configuration-profile/%s/scope", cf.yangFeatureName)] = fpScope
 
-		// Target
+		// TARGET: PUT /configuration-profile/{name}/target
 		fpTarget := &model.FeaturePath{
-			FeatureName:       cf.name,                      // Set the YANG feature name for linkage
-			BlueprintCategory: model.BlueprintCategoryWired, // Mark as wired-blueprint feature
+			FeatureName:       cf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWired,
 			HTTPMethod:        "PUT",
 			Path:              "/configuration-profile/{name}/target",
-			PathParams: []model.PathParameter{
-				{
-					Name:        "name",
-					Type:        "string",
-					Description: "Configuration profile name",
-					Required:    true,
-				},
-			},
-			ProfileType:   model.ProfileTypeConfiguration,
-			OperationType: model.OperationTypeTarget,
+			PathParams:        []model.PathParameter{profileNameParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeTarget,
 		}
-		p.paths[fmt.Sprintf("PUT /configuration-profile/%s/target", cf.name)] = fpTarget
+		p.paths[fmt.Sprintf("PUT /configuration-profile/%s/target", cf.yangFeatureName)] = fpTarget
 
-		// Deploy
+		// DEPLOY: POST /configuration-profile/{name}/sites/deploy
 		fpDeploy := &model.FeaturePath{
-			FeatureName:       cf.name,                      // Set the YANG feature name for linkage
-			BlueprintCategory: model.BlueprintCategoryWired, // Mark as wired-blueprint feature
+			FeatureName:       cf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWired,
 			HTTPMethod:        "POST",
-			Path:              "/configuration-profile/{name}/deploy",
-			PathParams: []model.PathParameter{
-				{
-					Name:        "name",
-					Type:        "string",
-					Description: "Configuration profile name",
-					Required:    true,
-				},
-			},
-			ProfileType:   model.ProfileTypeConfiguration,
-			OperationType: model.OperationTypeDeploy,
+			Path:              "/configuration-profile/{name}/sites/deploy",
+			PathParams:        []model.PathParameter{profileNameParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeDeploy,
 		}
-		p.paths[fmt.Sprintf("POST /configuration-profile/%s/deploy", cf.name)] = fpDeploy
+		p.paths[fmt.Sprintf("POST /configuration-profile/%s/deploy", cf.yangFeatureName)] = fpDeploy
 	}
 }
 
