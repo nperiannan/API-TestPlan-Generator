@@ -1,0 +1,121 @@
+featurePath: /dhcp-server-feature
+profileType: global
+test:
+    testCaseID: TCXM_1006
+    featureName: dhcp-server
+    priority: P0
+    type: functional
+    description: Create dhcp-server, scope to device, target to device, deploy, and verify on NOS devices
+    scopeType: device
+    targetType: device
+    deploymentMethod: immediate
+    isDeploymentTest: true
+    steps:
+        - name: createdhcp-server
+          description: Create dhcp-server configuration
+          method: POST
+          api: REST
+          path: /global-profile/feature/object/modify
+          body:
+            featurePath: /dhcp-server-feature
+            name: TestProfile
+            objectType: dhcp-server
+            objects:
+                - operation: add
+                  properties:
+                    - name: priority
+                      origin: Global
+                      type: number
+                      value: 1
+                    - name: server
+                      origin: Global
+                      type: string
+                      value: 8.8.8.8
+                  type: dhcp-server
+            operation: add
+          expectedStatus: 201
+          validations:
+            - type: statusCode
+              expected: 201
+        - name: getProfile
+          description: Retrieve created profile
+          method: POST
+          api: REST
+          path: /global-profile/feature/object/retrieve
+          pathParams:
+            profileName: TestProfile
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+        - name: scopeProfileTodevice
+          description: Scope profile to device
+          method: POST
+          api: REST
+          path: /global-profile/TestProfile/scope
+          pathParams:
+            profileName: TestProfile
+          body:
+            scopeId: test-scope-001
+            scopeType: device
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+        - name: targetProfileTodevice
+          description: Target profile to device
+          method: POST
+          api: REST
+          path: /global-profile/TestProfile/target
+          pathParams:
+            profileName: TestProfile
+          body:
+            targetId: test-scope-001
+            targetType: device
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+        - name: deployProfileTodevice
+          description: Deploy profile to device
+          method: POST
+          api: REST
+          path: /global-profile/TestProfile/deploy
+          pathParams:
+            profileName: TestProfile
+          body:
+            deploymentMethod: immediate
+          expectedStatus: 202
+          validations:
+            - type: statusCode
+              expected: 202
+        - name: checkDeploymentStatus
+          description: Verify deployment status
+          method: GET
+          api: REST
+          path: /global-profile/TestProfile/deployment/status
+          pathParams:
+            profileName: TestProfile
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+            - type: jsonPathEquals
+              path: $.status
+              expected: SUCCESS
+          timeout: 300
+        - name: verifyNosConfigFordevice
+          description: Verify configuration on NOS devices in device
+          method: GET
+          api: NOSAPI
+          path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
+          pathParams:
+            deviceId: test-scope-001
+            siteGroupId: test-scope-001
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+            - type: nosConfigMatchesExpected
+              description: Verify NOS device configuration matches expected state
+          devicesScope: device
