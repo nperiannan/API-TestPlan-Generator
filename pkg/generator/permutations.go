@@ -61,6 +61,7 @@ func (g *Generator) generatePermutationTests(feature *model.Feature, paths []*mo
 	tests = append(tests, g.generatePathParamVariations(feature, createPath, readPath)...)
 	tests = append(tests, g.generateBoundaryValuePermutations(feature, createPath, readPath)...)
 	tests = append(tests, g.generateEnumValuePermutations(feature, createPath, readPath)...)
+	tests = append(tests, g.generateEnumCrossProductTests(feature, createPath, readPath)...)
 	tests = append(tests, g.generateCombinedParamPermutations(feature, createPath, readPath)...)
 	tests = append(tests, g.generateDataTypeVariations(feature, createPath, readPath)...)
 
@@ -571,6 +572,141 @@ func (g *Generator) generateStringOfLength(length int) string {
 		result += "a"
 	}
 	return result
+}
+
+// generateEnumCrossProductTests generates test cases for every cartesian-product combination
+// of values across all pairs of enum parameters in the feature. For example, if a feature has
+// power-mode (4 values) and poe-priority (3 values), this produces 4×3=12 non-deployment tests
+// plus 4×3×2=24 deployment tests (device scope + site scope).
+//
+// To avoid combinatorial explosion when a feature has many enum fields, only the first 4 enum
+// parameters are considered (capped at 4), and pairings are limited to C(4,2)=6 pairs.
+func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, createPath, readPath *model.FeaturePath) []model.TestCase {
+	var tests []model.TestCase
+
+	if createPath == nil {
+		return tests
+	}
+
+	// Collect all enum parameters (up to first 4 to cap explosion)
+	allEnumParams := g.collectEnumParameters(feature.Parameters, "")
+	if len(allEnumParams) < 2 {
+		return tests
+	}
+	if len(allEnumParams) > 4 {
+		allEnumParams = allEnumParams[:4]
+	}
+
+	deploymentLevels := getDeploymentLevels()
+
+	// For every unique pair of enum parameters, generate the full cross-product
+	for i := 0; i < len(allEnumParams); i++ {
+		for j := i + 1; j < len(allEnumParams); j++ {
+			ep1 := allEnumParams[i]
+			ep2 := allEnumParams[j]
+
+			for _, v1 := range ep1.enumValues {
+				for _, v2 := range ep2.enumValues {
+					// 1. Non-deployment: create + verify both values persisted
+					tc := model.TestCase{
+						TestCaseID:       g.nextTestID(),
+						FeatureName:      feature.Name,
+						Priority:         model.TestPriorityP1,
+						Type:             model.TestCategoryFunctional,
+						Description:      fmt.Sprintf("Create %s with %s=%s and %s=%s, verify both values persisted", feature.Name, ep1.name, v1, ep2.name, v2),
+						IsDeploymentTest: false,
+						Steps:            []model.TestStep{},
+					}
+
+					body := g.generateRequestBody(feature, createPath)
+					resourceName := fmt.Sprintf("TestResource-%s%s-%s%s", ep1.name, v1, ep2.name, v2)
+					body["name"] = resourceName
+					g.setBodyParameterValue(body, ep1.fullPath, v1)
+					g.setBodyParameterValue(body, ep2.fullPath, v2)
+
+					tc.Steps = append(tc.Steps, model.TestStep{
+						Name:           fmt.Sprintf("createWith_%s_%s_AND_%s_%s", ep1.name, v1, ep2.name, v2),
+						Description:    fmt.Sprintf("Create with %s=%s and %s=%s", ep1.name, v1, ep2.name, v2),
+						Method:         createPath.HTTPMethod,
+						API:            model.APITypeREST,
+						Path:           createPath.Path,
+						Body:           body,
+						ExpectedStatus: 201,
+						Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 201}},
+					})
+
+					if readPath != nil {
+						readBody := map[string]interface{}{
+							"featurePath": readPath.Path,
+							"objectType":  feature.Name,
+						}
+						tc.Steps = append(tc.Steps, model.TestStep{
+							Name:           "verifyBothFieldsPersisted",
+							Description:    fmt.Sprintf("GET and verify %s=%s and %s=%s are both persisted", ep1.name, v1, ep2.name, v2),
+							Method:         readPath.HTTPMethod,
+							API:            model.APITypeREST,
+							Path:           readPath.Path,
+							Body:           readBody,
+							ExpectedStatus: 200,
+							Validations: []model.Validation{
+								{Type: model.ValidationTypeStatusCode, Expected: 200},
+								{
+									Type:        model.ValidationTypeJSONPathEquals,
+									Path:        fmt.Sprintf("$.objects[0].properties[?(@.name=='%s')].value", ep1.name),
+									Expected:    v1,
+									Description: fmt.Sprintf("Verify %s=%s", ep1.name, v1),
+								},
+								{
+									Type:        model.ValidationTypeJSONPathEquals,
+									Path:        fmt.Sprintf("$.objects[0].properties[?(@.name=='%s')].value", ep2.name),
+									Expected:    v2,
+									Description: fmt.Sprintf("Verify %s=%s", ep2.name, v2),
+								},
+							},
+						})
+					}
+					tests = append(tests, tc)
+
+					// 2. Deployment test for each scope (device, site) for this combination
+					for _, level := range deploymentLevels {
+						dtc := model.TestCase{
+							TestCaseID:       g.nextTestID(),
+							FeatureName:      feature.Name,
+							Priority:         model.TestPriorityP0,
+							Type:             model.TestCategoryFunctional,
+							Description:      fmt.Sprintf("Deploy %s with %s=%s and %s=%s to %s and verify on NOS", feature.Name, ep1.name, v1, ep2.name, v2, level.targetType),
+							ScopeType:        level.scopeType,
+							TargetType:       level.targetType,
+							DeploymentMethod: model.DeploymentMethodImmediate,
+							IsDeploymentTest: true,
+							Steps:            []model.TestStep{},
+						}
+
+						deployBody := g.generateRequestBody(feature, createPath)
+						deployResourceName := fmt.Sprintf("TestResource-%s%s-%s%s-%s", ep1.name, v1, ep2.name, v2, level.targetType)
+						deployBody["name"] = deployResourceName
+						g.setBodyParameterValue(deployBody, ep1.fullPath, v1)
+						g.setBodyParameterValue(deployBody, ep2.fullPath, v2)
+
+						dtc.Steps = append(dtc.Steps, model.TestStep{
+							Name:           fmt.Sprintf("createWith_%s_%s_AND_%s_%s", ep1.name, v1, ep2.name, v2),
+							Description:    fmt.Sprintf("Create with %s=%s and %s=%s", ep1.name, v1, ep2.name, v2),
+							Method:         createPath.HTTPMethod,
+							API:            model.APITypeREST,
+							Path:           createPath.Path,
+							Body:           deployBody,
+							ExpectedStatus: 201,
+							Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 201}},
+						})
+						g.addDeploymentSteps(&dtc, feature, deployResourceName, level.scopeType, level.targetType)
+						tests = append(tests, dtc)
+					}
+				}
+			}
+		}
+	}
+
+	return tests
 }
 
 // generateCombinedParamPermutations generates tests with combinations of multiple parameters
