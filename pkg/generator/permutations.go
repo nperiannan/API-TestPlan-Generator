@@ -579,6 +579,11 @@ func (g *Generator) generateStringOfLength(length int) string {
 // power-mode (4 values) and poe-priority (3 values), this produces 4×3=12 non-deployment tests
 // plus 4×3×2=24 deployment tests (device scope + site scope).
 //
+// Priority rule: non-deployment combination tests are marked P3 because the corresponding
+// deployment tests (P0) cover the same field-value combination more thoroughly — they verify
+// both the API acceptance AND the NOS device state. The P3 non-deployment tests remain useful
+// for fast API-layer regression runs where deployment infrastructure is unavailable.
+//
 // To avoid combinatorial explosion when a feature has many enum fields, only the first 4 enum
 // parameters are considered (capped at 4), and pairings are limited to C(4,2)=6 pairs.
 func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, createPath, readPath *model.FeaturePath) []model.TestCase {
@@ -607,13 +612,16 @@ func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, create
 
 			for _, v1 := range ep1.enumValues {
 				for _, v2 := range ep2.enumValues {
-					// 1. Non-deployment: create + verify both values persisted
+					// 1. Non-deployment: create + verify both values persisted.
+					// Priority P3: the deployment tests below cover the same combination
+					// more thoroughly (API + NOS verification). These P3 tests are retained
+					// for fast API-layer regression runs without deployment infrastructure.
 					tc := model.TestCase{
 						TestCaseID:       g.nextTestID(),
 						FeatureName:      feature.Name,
-						Priority:         model.TestPriorityP1,
+						Priority:         model.TestPriorityP3,
 						Type:             model.TestCategoryFunctional,
-						Description:      fmt.Sprintf("Create %s with %s=%s and %s=%s, verify both values persisted", feature.Name, ep1.name, v1, ep2.name, v2),
+						Description:      fmt.Sprintf("Create %s with %s=%s and %s=%s, verify both values persisted (P3: covered by deployment test)", feature.Name, ep1.name, v1, ep2.name, v2),
 						IsDeploymentTest: false,
 						Steps:            []model.TestStep{},
 					}

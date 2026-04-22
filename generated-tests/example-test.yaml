@@ -1,28 +1,61 @@
-featurePath: /global-profile/feature/object/retrieve
-profileType: global
+featurePath: /infrastructure-feature/snmp-feature
+profileType: configuration
 test:
-    testCaseID: TCXM_1002
-    featureName: os-object-global-config
+    testCaseID: TCXM_1006
+    featureName: snmp-v3-access-config
     priority: P0
     type: functional
-    description: Create os-object-global-config, scope to device, target to device, deploy, and verify on NOS devices
+    description: Create snmp-v3-access-config, scope to device, target to device, deploy, and verify on NOS devices
     scopeType: device
     targetType: device
     deploymentMethod: immediate
     isDeploymentTest: true
     steps:
-        - name: createos-object-global-config
-          description: Create os-object-global-config configuration
+        - name: createsnmp-v3-access-config
+          description: Create snmp-v3-access-config configuration
           method: POST
           api: REST
-          path: /global-profile/feature/object/retrieve
+          path: /configuration-profile/{name}/feature/object/modify
           body:
-            asset-device-id: testValue
+            featurePath: /infrastructure-feature/snmp-feature
             name: TestProfile
+            objectType: snmp-v3-access-config
+            objects:
+                - operation: add
+                  properties:
+                    - name: priority
+                      origin: CC
+                      type: number
+                      value: 1
+                    - name: username
+                      origin: CC
+                      type: string
+                      value: test-resource
+                    - name: access-level
+                      origin: CC
+                      type: string
+                      value: testValue
+                    - name: security-level
+                      origin: CC
+                      type: string
+                      value: testValue
+                  type: snmp-v3-access-config
+            operation: add
           expectedStatus: 201
           validations:
             - type: statusCode
               expected: 201
+        - name: getProfile
+          description: Retrieve created profile
+          method: POST
+          api: REST
+          path: /configuration-profile/{name}/feature/object/retrieve
+          pathParams:
+            profileName: TestProfile
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
         - name: scopeProfileTodevice
           description: Scope profile to device
           method: POST

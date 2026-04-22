@@ -1,17 +1,17 @@
 version: "1.0"
-generatedAt: "2026-04-22T17:30:11+05:30"
+generatedAt: "2026-04-23T00:56:35+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
 features:
     - featureName: wireless-device-profile-ethernet-configuration
-      featurePath: /configuration-profile/{name}/target-query/object/{objectId}
+      featurePath: /configuration-profile/{name}/edit
       profileType: configuration
       description: ""
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_8885
+            - testCaseID: TCXM_6671
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -22,7 +22,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: testValue
@@ -31,22 +31,11 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-                    - type: jsonPathExists
-                      path: $[0].id
-                      description: Verify response contains created object ID
-                    - type: jsonPathEquals
-                      path: $[0].status
-                      expected: success
-                      description: Verify operation status is 'success'
-                    - type: jsonPathEquals
-                      path: $[0].operation
-                      expected: create
-                      description: Verify operation type is 'create'
                 - name: verifyCreation
                   description: Verify resource was created
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   pathParams:
                     name: TestResource
                   body: {}
@@ -123,7 +112,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='allowed-vlans')].value
                       expected: testValue
                       description: Verify 'allowed-vlans' value is 'testValue' as set during create
-            - testCaseID: TCXM_8886
+            - testCaseID: TCXM_6672
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -164,7 +153,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_8887
+            - testCaseID: TCXM_6673
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -175,7 +164,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration (first attempt)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: testValue
@@ -187,7 +176,7 @@ features:
                   description: Create same wireless-device-profile-ethernet-configuration again (idempotent check)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: testValue
@@ -195,7 +184,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_8888
+            - testCaseID: TCXM_6674
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -209,7 +198,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration configuration
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestProfile
                     port: testValue
@@ -221,7 +210,7 @@ features:
                   description: Retrieve created profile
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   pathParams:
                     profileName: TestProfile
                   expectedStatus: 200
@@ -284,7 +273,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8889
+            - testCaseID: TCXM_6675
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -297,7 +286,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration configuration
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestProfile-Simple
                     port: testValue
@@ -305,7 +294,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_8890
+            - testCaseID: TCXM_6676
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -316,7 +305,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration providing only required YANG fields
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -328,7 +317,7 @@ features:
                   description: Verify resource exists and required field values match what was sent on creation
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -345,7 +334,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='port')].value
                       expected: testValue
                       description: Verify required field 'port' has value 'testValue' as created
-            - testCaseID: TCXM_8891
+            - testCaseID: TCXM_6677
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -356,7 +345,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration providing all YANG-defined fields including optional
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     allowed-vlans: testValue
                     configuration-name: test-resource
@@ -381,7 +370,7 @@ features:
                   description: Verify all fields (required + optional) are persisted with correct values
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -489,7 +478,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='allowed-vlans')].value
                       expected: testValue
                       description: Verify field 'allowed-vlans' has value 'testValue' as sent on create
-            - testCaseID: TCXM_8892
+            - testCaseID: TCXM_6678
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -500,7 +489,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'id'=testValue explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     id: testValue
                     port: testValue
@@ -513,7 +502,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'id' was persisted with value 'testValue'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -527,7 +516,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='id')].value
                       expected: testValue
                       description: Verify optional field 'id' value is 'testValue' as set on create
-            - testCaseID: TCXM_8893
+            - testCaseID: TCXM_6679
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -538,7 +527,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'created-at'=testValue explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     created-at: testValue
                     port: testValue
@@ -551,7 +540,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'created-at' was persisted with value 'testValue'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -565,7 +554,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='created-at')].value
                       expected: testValue
                       description: Verify optional field 'created-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_8894
+            - testCaseID: TCXM_6680
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -576,7 +565,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'updated-at'=testValue explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                     updated-at: testValue
@@ -589,7 +578,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'updated-at' was persisted with value 'testValue'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -603,7 +592,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='updated-at')].value
                       expected: testValue
                       description: Verify optional field 'updated-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_8895
+            - testCaseID: TCXM_6681
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -614,7 +603,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'deleted-at'=testValue explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     deleted-at: testValue
                     port: testValue
@@ -627,7 +616,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'deleted-at' was persisted with value 'testValue'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -641,7 +630,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='deleted-at')].value
                       expected: testValue
                       description: Verify optional field 'deleted-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_8896
+            - testCaseID: TCXM_6682
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -652,7 +641,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'customer-id'=100 explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     customer-id: 100
                     port: testValue
@@ -665,7 +654,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'customer-id' was persisted with value '100'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -679,7 +668,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='customer-id')].value
                       expected: 100
                       description: Verify optional field 'customer-id' value is '100' as set on create
-            - testCaseID: TCXM_8897
+            - testCaseID: TCXM_6683
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -690,7 +679,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'owner-id'=100 explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     owner-id: 100
                     port: testValue
@@ -703,7 +692,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'owner-id' was persisted with value '100'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -717,7 +706,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='owner-id')].value
                       expected: 100
                       description: Verify optional field 'owner-id' value is '100' as set on create
-            - testCaseID: TCXM_8898
+            - testCaseID: TCXM_6684
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -728,7 +717,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'enabled'=true explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     enabled: true
                     port: testValue
@@ -741,7 +730,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'enabled' was persisted with value 'true'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -755,7 +744,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: true
                       description: Verify optional field 'enabled' value is 'true' as set on create
-            - testCaseID: TCXM_8899
+            - testCaseID: TCXM_6685
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -766,7 +755,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'poe-passthrough'= explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     poe-passthrough: ""
                     port: testValue
@@ -779,7 +768,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'poe-passthrough' was persisted with value ''
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -793,7 +782,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='poe-passthrough')].value
                       expected: ""
                       description: Verify optional field 'poe-passthrough' value is '' as set on create
-            - testCaseID: TCXM_8900
+            - testCaseID: TCXM_6686
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -804,7 +793,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'port-type'=testValue explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                     port-type: testValue
@@ -817,7 +806,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'port-type' was persisted with value 'testValue'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -831,7 +820,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='port-type')].value
                       expected: testValue
                       description: Verify optional field 'port-type' value is 'testValue' as set on create
-            - testCaseID: TCXM_8901
+            - testCaseID: TCXM_6687
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -842,7 +831,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'configuration-name'=test-resource explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     configuration-name: test-resource
                     port: testValue
@@ -855,7 +844,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'configuration-name' was persisted with value 'test-resource'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -869,7 +858,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='configuration-name')].value
                       expected: test-resource
                       description: Verify optional field 'configuration-name' value is 'test-resource' as set on create
-            - testCaseID: TCXM_8902
+            - testCaseID: TCXM_6688
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -880,7 +869,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'description'=8.8.8.8 explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     description: 8.8.8.8
                     port: testValue
@@ -893,7 +882,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'description' was persisted with value '8.8.8.8'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -907,7 +896,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='description')].value
                       expected: 8.8.8.8
                       description: Verify optional field 'description' value is '8.8.8.8' as set on create
-            - testCaseID: TCXM_8903
+            - testCaseID: TCXM_6689
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -918,7 +907,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'untagged-vlan'=testValue explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                     untagged-vlan: testValue
@@ -931,7 +920,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'untagged-vlan' was persisted with value 'testValue'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -945,7 +934,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='untagged-vlan')].value
                       expected: testValue
                       description: Verify optional field 'untagged-vlan' value is 'testValue' as set on create
-            - testCaseID: TCXM_8904
+            - testCaseID: TCXM_6690
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: functional
@@ -956,7 +945,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration with optional field 'allowed-vlans'=testValue explicitly provided
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     allowed-vlans: testValue
                     port: testValue
@@ -969,7 +958,7 @@ features:
                   description: GET wireless-device-profile-ethernet-configuration and verify optional field 'allowed-vlans' was persisted with value 'testValue'
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -983,7 +972,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='allowed-vlans')].value
                       expected: testValue
                       description: Verify optional field 'allowed-vlans' value is 'testValue' as set on create
-            - testCaseID: TCXM_8905
+            - testCaseID: TCXM_6691
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -994,7 +983,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''ietf-yang:uuid'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     id: testValue
                     name: TestResource
@@ -1008,7 +997,7 @@ features:
                   description: Verify 'id' field persisted with YANG type 'ietf-yang:uuid' value testValue
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1019,7 +1008,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_8906
+            - testCaseID: TCXM_6692
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1030,7 +1019,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''ietf-yang:uuid'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     id: testValue
                     name: TestResource
@@ -1044,7 +1033,7 @@ features:
                   description: Verify 'id' field persisted with YANG type 'ietf-yang:uuid' value testValue
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1055,7 +1044,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_8907
+            - testCaseID: TCXM_6693
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1066,7 +1055,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''ietf-yang:date-and-time'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     created-at: testValue
                     name: TestResource
@@ -1080,7 +1069,7 @@ features:
                   description: Verify 'created-at' field persisted with YANG type 'ietf-yang:date-and-time' value testValue
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1091,7 +1080,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_8908
+            - testCaseID: TCXM_6694
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1102,7 +1091,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''ietf-yang:date-and-time'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     created-at: testValue
                     name: TestResource
@@ -1116,7 +1105,7 @@ features:
                   description: Verify 'created-at' field persisted with YANG type 'ietf-yang:date-and-time' value testValue
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1127,7 +1116,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_8909
+            - testCaseID: TCXM_6695
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1138,7 +1127,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''common-types:gorm-deleted-at'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     deleted-at: testValue
                     name: TestResource
@@ -1152,7 +1141,7 @@ features:
                   description: Verify 'deleted-at' field persisted with YANG type 'common-types:gorm-deleted-at' value testValue
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1163,7 +1152,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_8910
+            - testCaseID: TCXM_6696
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1174,7 +1163,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''common-types:gorm-deleted-at'' value: testValue'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     deleted-at: testValue
                     name: TestResource
@@ -1188,7 +1177,7 @@ features:
                   description: Verify 'deleted-at' field persisted with YANG type 'common-types:gorm-deleted-at' value testValue
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1199,7 +1188,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_8911
+            - testCaseID: TCXM_6697
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1210,7 +1199,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''uint32'' value: 1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     customer-id: 1
                     name: TestResource
@@ -1224,7 +1213,7 @@ features:
                   description: Verify 'customer-id' field persisted with YANG type 'uint32' value 1
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1235,7 +1224,7 @@ features:
                       path: $.customer-id
                       expected: 1
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_8912
+            - testCaseID: TCXM_6698
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1246,7 +1235,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''uint32'' value: 100'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     customer-id: 100
                     name: TestResource
@@ -1260,7 +1249,7 @@ features:
                   description: Verify 'customer-id' field persisted with YANG type 'uint32' value 100
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1271,7 +1260,7 @@ features:
                       path: $.customer-id
                       expected: 100
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_8913
+            - testCaseID: TCXM_6699
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1282,7 +1271,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''int-types:ethernet-ports-enum'' value: ethernet-port-1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: ethernet-port-1
@@ -1295,7 +1284,7 @@ features:
                   description: Verify 'port' field persisted with YANG type 'int-types:ethernet-ports-enum' value ethernet-port-1
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1306,7 +1295,7 @@ features:
                       path: $.port
                       expected: ethernet-port-1
                       description: Verify 'port' YANG type 'int-types:ethernet-ports-enum' value is persisted
-            - testCaseID: TCXM_8914
+            - testCaseID: TCXM_6700
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1317,7 +1306,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''int-types:ethernet-ports-enum'' value: ethernet-port-2'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: ethernet-port-2
@@ -1330,7 +1319,7 @@ features:
                   description: Verify 'port' field persisted with YANG type 'int-types:ethernet-ports-enum' value ethernet-port-2
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1341,7 +1330,7 @@ features:
                       path: $.port
                       expected: ethernet-port-2
                       description: Verify 'port' YANG type 'int-types:ethernet-ports-enum' value is persisted
-            - testCaseID: TCXM_8915
+            - testCaseID: TCXM_6701
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1352,7 +1341,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''boolean'' value: true'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     enabled: true
                     name: TestResource
@@ -1366,7 +1355,7 @@ features:
                   description: Verify 'enabled' field persisted with YANG type 'boolean' value true
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1377,7 +1366,7 @@ features:
                       path: $.enabled
                       expected: true
                       description: Verify 'enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_8916
+            - testCaseID: TCXM_6702
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1388,7 +1377,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''boolean'' value: false'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     enabled: false
                     name: TestResource
@@ -1402,7 +1391,7 @@ features:
                   description: Verify 'enabled' field persisted with YANG type 'boolean' value false
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1413,7 +1402,7 @@ features:
                       path: $.enabled
                       expected: false
                       description: Verify 'enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_8917
+            - testCaseID: TCXM_6703
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1424,7 +1413,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''int-types:port-type-enum'' value: access'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: testValue
@@ -1438,7 +1427,7 @@ features:
                   description: Verify 'port-type' field persisted with YANG type 'int-types:port-type-enum' value access
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1449,7 +1438,7 @@ features:
                       path: $.port-type
                       expected: access
                       description: Verify 'port-type' YANG type 'int-types:port-type-enum' value is persisted
-            - testCaseID: TCXM_8918
+            - testCaseID: TCXM_6704
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1460,7 +1449,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''int-types:port-type-enum'' value: trunk'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: testValue
@@ -1474,7 +1463,7 @@ features:
                   description: Verify 'port-type' field persisted with YANG type 'int-types:port-type-enum' value trunk
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1485,7 +1474,7 @@ features:
                       path: $.port-type
                       expected: trunk
                       description: Verify 'port-type' YANG type 'int-types:port-type-enum' value is persisted
-            - testCaseID: TCXM_8919
+            - testCaseID: TCXM_6705
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1496,7 +1485,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''string'' value: test-value-1'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     configuration-name: test-value-1
                     name: TestResource
@@ -1510,7 +1499,7 @@ features:
                   description: Verify 'configuration-name' field persisted with YANG type 'string' value test-value-1
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1521,7 +1510,7 @@ features:
                       path: $.configuration-name
                       expected: test-value-1
                       description: Verify 'configuration-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_8920
+            - testCaseID: TCXM_6706
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1532,7 +1521,7 @@ features:
                   description: 'Create wireless-device-profile-ethernet-configuration with YANG type ''string'' value: test-value-2'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     configuration-name: test-value-2
                     name: TestResource
@@ -1546,7 +1535,7 @@ features:
                   description: Verify 'configuration-name' field persisted with YANG type 'string' value test-value-2
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1557,7 +1546,7 @@ features:
                       path: $.configuration-name
                       expected: test-value-2
                       description: Verify 'configuration-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_8921
+            - testCaseID: TCXM_6707
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -1568,7 +1557,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without 'poe-passthrough' field to trigger YANG default ()
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -1580,7 +1569,7 @@ features:
                   description: 'Read back wireless-device-profile-ethernet-configuration and verify ''poe-passthrough'' equals YANG default value '
                   method: GET
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/overrides
+                  path: /configuration-profile/{name}
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -1591,7 +1580,7 @@ features:
                       path: $.poe-passthrough
                       expected: ""
                       description: 'Verify ''poe-passthrough'' equals YANG-defined default value '
-            - testCaseID: TCXM_8922
+            - testCaseID: TCXM_6708
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -1644,7 +1633,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8923
+            - testCaseID: TCXM_6709
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -1697,7 +1686,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8924
+            - testCaseID: TCXM_6710
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -1750,7 +1739,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8925
+            - testCaseID: TCXM_6711
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -1803,7 +1792,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8926
+            - testCaseID: TCXM_6712
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -1856,7 +1845,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8927
+            - testCaseID: TCXM_6713
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -1909,7 +1898,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8928
+            - testCaseID: TCXM_6714
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -1962,7 +1951,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8929
+            - testCaseID: TCXM_6715
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -2015,7 +2004,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8930
+            - testCaseID: TCXM_6716
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -2068,7 +2057,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8931
+            - testCaseID: TCXM_6717
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -2121,7 +2110,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8932
+            - testCaseID: TCXM_6718
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2174,7 +2163,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8933
+            - testCaseID: TCXM_6719
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2227,7 +2216,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8934
+            - testCaseID: TCXM_6720
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2280,7 +2269,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8935
+            - testCaseID: TCXM_6721
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2333,7 +2322,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8936
+            - testCaseID: TCXM_6722
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2386,7 +2375,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8937
+            - testCaseID: TCXM_6723
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2439,7 +2428,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8938
+            - testCaseID: TCXM_6724
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2493,7 +2482,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8939
+            - testCaseID: TCXM_6725
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2547,7 +2536,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8940
+            - testCaseID: TCXM_6726
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2601,7 +2590,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8941
+            - testCaseID: TCXM_6727
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2655,7 +2644,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8942
+            - testCaseID: TCXM_6728
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2709,7 +2698,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8943
+            - testCaseID: TCXM_6729
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2763,7 +2752,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8944
+            - testCaseID: TCXM_6730
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2818,7 +2807,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8945
+            - testCaseID: TCXM_6731
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2873,7 +2862,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8946
+            - testCaseID: TCXM_6732
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2928,7 +2917,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8947
+            - testCaseID: TCXM_6733
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -2983,7 +2972,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8948
+            - testCaseID: TCXM_6734
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3038,7 +3027,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8949
+            - testCaseID: TCXM_6735
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3093,7 +3082,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8950
+            - testCaseID: TCXM_6736
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3149,7 +3138,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8951
+            - testCaseID: TCXM_6737
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3205,7 +3194,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8952
+            - testCaseID: TCXM_6738
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3261,7 +3250,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8953
+            - testCaseID: TCXM_6739
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3317,7 +3306,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8954
+            - testCaseID: TCXM_6740
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3373,7 +3362,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8955
+            - testCaseID: TCXM_6741
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3429,7 +3418,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8956
+            - testCaseID: TCXM_6742
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3486,7 +3475,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8957
+            - testCaseID: TCXM_6743
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3543,7 +3532,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8958
+            - testCaseID: TCXM_6744
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3600,7 +3589,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8959
+            - testCaseID: TCXM_6745
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3657,7 +3646,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8960
+            - testCaseID: TCXM_6746
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3714,7 +3703,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8961
+            - testCaseID: TCXM_6747
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3771,7 +3760,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8962
+            - testCaseID: TCXM_6748
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3829,7 +3818,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8963
+            - testCaseID: TCXM_6749
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3887,7 +3876,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8964
+            - testCaseID: TCXM_6750
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -3945,7 +3934,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8965
+            - testCaseID: TCXM_6751
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4003,7 +3992,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8966
+            - testCaseID: TCXM_6752
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4061,7 +4050,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8967
+            - testCaseID: TCXM_6753
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4119,7 +4108,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8968
+            - testCaseID: TCXM_6754
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4174,7 +4163,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8969
+            - testCaseID: TCXM_6755
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4229,7 +4218,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8970
+            - testCaseID: TCXM_6756
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4284,7 +4273,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8971
+            - testCaseID: TCXM_6757
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4339,7 +4328,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8972
+            - testCaseID: TCXM_6758
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4394,7 +4383,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8973
+            - testCaseID: TCXM_6759
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4449,7 +4438,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8974
+            - testCaseID: TCXM_6760
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4504,7 +4493,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8975
+            - testCaseID: TCXM_6761
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4559,7 +4548,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8976
+            - testCaseID: TCXM_6762
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4614,7 +4603,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8977
+            - testCaseID: TCXM_6763
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4669,7 +4658,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8978
+            - testCaseID: TCXM_6764
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4722,7 +4711,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8979
+            - testCaseID: TCXM_6765
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4775,7 +4764,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8980
+            - testCaseID: TCXM_6766
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4828,7 +4817,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8981
+            - testCaseID: TCXM_6767
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4882,7 +4871,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8982
+            - testCaseID: TCXM_6768
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -4936,11 +4925,11 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8983
+            - testCaseID: TCXM_6769
               featureName: wireless-device-profile-ethernet-configuration
-              priority: P1
+              priority: P3
               type: functional
-              description: Create wireless-device-profile-ethernet-configuration with port=ethernet-port-1 and port-type=access, verify both values persisted
+              description: 'Create wireless-device-profile-ethernet-configuration with port=ethernet-port-1 and port-type=access, verify both values persisted (P3: covered by deployment test)'
               isDeploymentTest: false
               steps:
                 - name: createWith_port_ethernet-port-1_AND_port-type_access
@@ -4976,7 +4965,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='port-type')].value
                       expected: access
                       description: Verify port-type=access
-            - testCaseID: TCXM_8984
+            - testCaseID: TCXM_6770
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5030,7 +5019,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8985
+            - testCaseID: TCXM_6771
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5084,11 +5073,11 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8986
+            - testCaseID: TCXM_6772
               featureName: wireless-device-profile-ethernet-configuration
-              priority: P1
+              priority: P3
               type: functional
-              description: Create wireless-device-profile-ethernet-configuration with port=ethernet-port-1 and port-type=trunk, verify both values persisted
+              description: 'Create wireless-device-profile-ethernet-configuration with port=ethernet-port-1 and port-type=trunk, verify both values persisted (P3: covered by deployment test)'
               isDeploymentTest: false
               steps:
                 - name: createWith_port_ethernet-port-1_AND_port-type_trunk
@@ -5124,7 +5113,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='port-type')].value
                       expected: trunk
                       description: Verify port-type=trunk
-            - testCaseID: TCXM_8987
+            - testCaseID: TCXM_6773
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5178,7 +5167,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8988
+            - testCaseID: TCXM_6774
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5232,11 +5221,11 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8989
+            - testCaseID: TCXM_6775
               featureName: wireless-device-profile-ethernet-configuration
-              priority: P1
+              priority: P3
               type: functional
-              description: Create wireless-device-profile-ethernet-configuration with port=ethernet-port-2 and port-type=access, verify both values persisted
+              description: 'Create wireless-device-profile-ethernet-configuration with port=ethernet-port-2 and port-type=access, verify both values persisted (P3: covered by deployment test)'
               isDeploymentTest: false
               steps:
                 - name: createWith_port_ethernet-port-2_AND_port-type_access
@@ -5272,7 +5261,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='port-type')].value
                       expected: access
                       description: Verify port-type=access
-            - testCaseID: TCXM_8990
+            - testCaseID: TCXM_6776
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5326,7 +5315,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8991
+            - testCaseID: TCXM_6777
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5380,11 +5369,11 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8992
+            - testCaseID: TCXM_6778
               featureName: wireless-device-profile-ethernet-configuration
-              priority: P1
+              priority: P3
               type: functional
-              description: Create wireless-device-profile-ethernet-configuration with port=ethernet-port-2 and port-type=trunk, verify both values persisted
+              description: 'Create wireless-device-profile-ethernet-configuration with port=ethernet-port-2 and port-type=trunk, verify both values persisted (P3: covered by deployment test)'
               isDeploymentTest: false
               steps:
                 - name: createWith_port_ethernet-port-2_AND_port-type_trunk
@@ -5420,7 +5409,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='port-type')].value
                       expected: trunk
                       description: Verify port-type=trunk
-            - testCaseID: TCXM_8993
+            - testCaseID: TCXM_6779
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5474,7 +5463,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8994
+            - testCaseID: TCXM_6780
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5528,11 +5517,11 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8995
+            - testCaseID: TCXM_6781
               featureName: wireless-device-profile-ethernet-configuration
-              priority: P1
+              priority: P3
               type: functional
-              description: Create wireless-device-profile-ethernet-configuration with port=ethernet-port-3 and port-type=access, verify both values persisted
+              description: 'Create wireless-device-profile-ethernet-configuration with port=ethernet-port-3 and port-type=access, verify both values persisted (P3: covered by deployment test)'
               isDeploymentTest: false
               steps:
                 - name: createWith_port_ethernet-port-3_AND_port-type_access
@@ -5568,7 +5557,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='port-type')].value
                       expected: access
                       description: Verify port-type=access
-            - testCaseID: TCXM_8996
+            - testCaseID: TCXM_6782
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5622,7 +5611,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8997
+            - testCaseID: TCXM_6783
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5676,11 +5665,11 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_8998
+            - testCaseID: TCXM_6784
               featureName: wireless-device-profile-ethernet-configuration
-              priority: P1
+              priority: P3
               type: functional
-              description: Create wireless-device-profile-ethernet-configuration with port=ethernet-port-3 and port-type=trunk, verify both values persisted
+              description: 'Create wireless-device-profile-ethernet-configuration with port=ethernet-port-3 and port-type=trunk, verify both values persisted (P3: covered by deployment test)'
               isDeploymentTest: false
               steps:
                 - name: createWith_port_ethernet-port-3_AND_port-type_trunk
@@ -5716,7 +5705,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='port-type')].value
                       expected: trunk
                       description: Verify port-type=trunk
-            - testCaseID: TCXM_8999
+            - testCaseID: TCXM_6785
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5770,7 +5759,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9000
+            - testCaseID: TCXM_6786
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -5824,7 +5813,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9001
+            - testCaseID: TCXM_6787
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -5879,7 +5868,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9002
+            - testCaseID: TCXM_6788
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -5934,7 +5923,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9003
+            - testCaseID: TCXM_6789
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -5989,7 +5978,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9004
+            - testCaseID: TCXM_6790
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6044,7 +6033,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9005
+            - testCaseID: TCXM_6791
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6099,7 +6088,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9006
+            - testCaseID: TCXM_6792
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6154,7 +6143,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9007
+            - testCaseID: TCXM_6793
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6209,7 +6198,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9008
+            - testCaseID: TCXM_6794
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6264,7 +6253,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9009
+            - testCaseID: TCXM_6795
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6319,7 +6308,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9010
+            - testCaseID: TCXM_6796
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6374,7 +6363,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9011
+            - testCaseID: TCXM_6797
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6429,7 +6418,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9012
+            - testCaseID: TCXM_6798
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6484,7 +6473,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9013
+            - testCaseID: TCXM_6799
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6539,7 +6528,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9014
+            - testCaseID: TCXM_6800
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6594,7 +6583,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9015
+            - testCaseID: TCXM_6801
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6649,7 +6638,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9016
+            - testCaseID: TCXM_6802
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6704,7 +6693,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9017
+            - testCaseID: TCXM_6803
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6759,7 +6748,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9018
+            - testCaseID: TCXM_6804
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -6814,169 +6803,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9019
-              featureName: wireless-device-profile-ethernet-configuration
-              priority: P1
-              type: functional
-              description: Deploy and verify wireless-device-profile-ethernet-configuration with bool value variation 1 for 'enabled'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/edit
-                  body:
-                    enabled: true
-                    name: TestResource-enabled-Typebool-V1
-                    port: testValue
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enabled-Typebool-V1/devices/deploy
-                  pathParams:
-                    name: TestResource-enabled-Typebool-V1
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enabled-Typebool-V1/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-enabled-Typebool-V1
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_9020
-              featureName: wireless-device-profile-ethernet-configuration
-              priority: P1
-              type: functional
-              description: Deploy and verify wireless-device-profile-ethernet-configuration with bool value variation 2 for 'enabled'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with bool type variation: false'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/edit
-                  body:
-                    enabled: false
-                    name: TestResource-enabled-Typebool-V2
-                    port: testValue
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enabled-Typebool-V2/devices/deploy
-                  pathParams:
-                    name: TestResource-enabled-Typebool-V2
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enabled-Typebool-V2/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-enabled-Typebool-V2
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_9021
-              featureName: wireless-device-profile-ethernet-configuration
-              priority: P1
-              type: functional
-              description: Deploy and verify wireless-device-profile-ethernet-configuration with bool value variation 3 for 'enabled'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/edit
-                  body:
-                    enabled: true
-                    name: TestResource-enabled-Typebool-V3
-                    port: testValue
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enabled-Typebool-V3/devices/deploy
-                  pathParams:
-                    name: TestResource-enabled-Typebool-V3
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-enabled-Typebool-V3/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-enabled-Typebool-V3
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_9022
+            - testCaseID: TCXM_6805
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7030,7 +6857,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9023
+            - testCaseID: TCXM_6806
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7084,7 +6911,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9024
+            - testCaseID: TCXM_6807
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7138,7 +6965,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9025
+            - testCaseID: TCXM_6808
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7192,7 +7019,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9026
+            - testCaseID: TCXM_6809
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7246,7 +7073,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9027
+            - testCaseID: TCXM_6810
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7300,7 +7127,169 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9028
+            - testCaseID: TCXM_6811
+              featureName: wireless-device-profile-ethernet-configuration
+              priority: P1
+              type: functional
+              description: Deploy and verify wireless-device-profile-ethernet-configuration with bool value variation 1 for 'enabled'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/edit
+                  body:
+                    enabled: true
+                    name: TestResource-enabled-Typebool-V1
+                    port: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_6812
+              featureName: wireless-device-profile-ethernet-configuration
+              priority: P1
+              type: functional
+              description: Deploy and verify wireless-device-profile-ethernet-configuration with bool value variation 2 for 'enabled'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with bool type variation: false'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/edit
+                  body:
+                    enabled: false
+                    name: TestResource-enabled-Typebool-V2
+                    port: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_6813
+              featureName: wireless-device-profile-ethernet-configuration
+              priority: P1
+              type: functional
+              description: Deploy and verify wireless-device-profile-ethernet-configuration with bool value variation 3 for 'enabled'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/edit
+                  body:
+                    enabled: true
+                    name: TestResource-enabled-Typebool-V3
+                    port: testValue
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-enabled-Typebool-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-enabled-Typebool-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_6814
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -7316,7 +7305,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profiles/deploy
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
                     name: TestProfile-Additional
                     objectType: wireless-device-profile-ethernet-configuration
                     objects:
@@ -7333,14 +7322,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-22T13:00:15Z
+                  description: Schedule deployment to device at 2026-04-22T20:26:37Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-22T13:00:15Z"
+                    deployAt: "2026-04-22T20:26:37Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -7348,7 +7337,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_9029
+            - testCaseID: TCXM_6815
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -7364,7 +7353,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profiles/deploy
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
                     name: TestProfile-Additional
                     objectType: wireless-device-profile-ethernet-configuration
                     objects:
@@ -7381,14 +7370,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-22T13:00:15Z
+                  description: Schedule deployment to site at 2026-04-22T20:26:37Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-22T13:00:15Z"
+                    deployAt: "2026-04-22T20:26:37Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -7396,7 +7385,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_9030
+            - testCaseID: TCXM_6816
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7409,7 +7398,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profiles/deploy
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
                     name: TestProfile-Additional
                     objectType: wireless-device-profile-ethernet-configuration
                     objects:
@@ -7433,7 +7422,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-22T13:00:15Z"
+                    deployAt: "2026-04-22T20:26:37Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -7442,14 +7431,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-22T14:00:15Z
+                  description: Edit deployment schedule to 2026-04-22T21:26:37Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-22T14:00:15Z"
+                    deployAt: "2026-04-22T21:26:37Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -7457,7 +7446,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_9031
+            - testCaseID: TCXM_6817
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7470,7 +7459,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profiles/deploy
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
                     name: TestProfile-Additional
                     objectType: wireless-device-profile-ethernet-configuration
                     objects:
@@ -7494,7 +7483,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-22T13:00:15Z"
+                    deployAt: "2026-04-22T20:26:37Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -7516,7 +7505,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_9032
+            - testCaseID: TCXM_6818
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7529,7 +7518,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profiles/deploy
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
                     name: TestProfile-Additional
                     objectType: wireless-device-profile-ethernet-configuration
                     objects:
@@ -7558,7 +7547,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_9033
+            - testCaseID: TCXM_6819
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7571,7 +7560,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profiles/deploy
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
                     name: TestProfile-Additional
                     objectType: wireless-device-profile-ethernet-configuration
                     objects:
@@ -7595,7 +7584,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /configuration-profiles/deploy
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
                     newId: cloned-object-1
                     objectType: wireless-device-profile-ethernet-configuration
                     sourceId: original-object-1
@@ -7603,7 +7592,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_9034
+            - testCaseID: TCXM_6820
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7616,7 +7605,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profiles/deploy
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
                     name: TestProfile-Additional-ConflictDetect
                     objectType: wireless-device-profile-ethernet-configuration
                     objects:
@@ -7696,7 +7685,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_9035
+            - testCaseID: TCXM_6821
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -7709,7 +7698,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profiles/deploy
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
                     name: TestProfile-Additional-ConflictCC
                     objectType: wireless-device-profile-ethernet-configuration
                     objects:
@@ -7837,7 +7826,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_9036
+            - testCaseID: TCXM_6822
               featureName: wireless-device-profile-ethernet-configuration
               priority: P0
               type: functional
@@ -7850,7 +7839,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profiles/deploy
+                    featurePath: /configuration-profile/{name}/sites/deploy/edit-schedule
                     name: TestProfile-Additional-ConflictDD
                     objectType: wireless-device-profile-ethernet-configuration
                     objects:
@@ -7946,7 +7935,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_9037
+            - testCaseID: TCXM_6823
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -7976,7 +7965,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_9038
+            - testCaseID: TCXM_6824
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: functional
@@ -8008,7 +7997,7 @@ features:
                     - type: statusCode
                       expected: 200
         negative:
-            - testCaseID: TCXM_9039
+            - testCaseID: TCXM_6825
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: negative
@@ -8019,7 +8008,7 @@ features:
                   description: Attempt to create wireless-device-profile-ethernet-configuration without required field 'port'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                   expectedStatus: 400
@@ -8030,7 +8019,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'port'
-            - testCaseID: TCXM_9040
+            - testCaseID: TCXM_6826
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: negative
@@ -8041,7 +8030,7 @@ features:
                   description: Attempt to create with invalid port
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: INVALID_ENUM_VALUE
@@ -8049,7 +8038,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9041
+            - testCaseID: TCXM_6827
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: negative
@@ -8060,7 +8049,7 @@ features:
                   description: Attempt to create with invalid port-type
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: testValue
@@ -8069,7 +8058,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9042
+            - testCaseID: TCXM_6828
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: negative
@@ -8080,7 +8069,7 @@ features:
                   description: 'Attempt to create with invalid pattern for deleted-at (value: ''!!!INVALID-PATTERN@@@'')'
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     deleted-at: '!!!INVALID-PATTERN@@@'
                     name: TestResource
@@ -8089,7 +8078,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9043
+            - testCaseID: TCXM_6829
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: negative
@@ -8100,7 +8089,7 @@ features:
                   description: Attempt to create with empty port field
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: ""
@@ -8110,7 +8099,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_9044
+            - testCaseID: TCXM_6830
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: negative
@@ -8121,7 +8110,7 @@ features:
                   description: Attempt to create with null port
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: null
@@ -8131,7 +8120,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_9045
+            - testCaseID: TCXM_6831
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8142,7 +8131,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'id' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8150,7 +8139,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'id' is omitted
-            - testCaseID: TCXM_9046
+            - testCaseID: TCXM_6832
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8161,7 +8150,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'created-at' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8169,7 +8158,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'created-at' is omitted
-            - testCaseID: TCXM_9047
+            - testCaseID: TCXM_6833
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8180,7 +8169,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'updated-at' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8188,7 +8177,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'updated-at' is omitted
-            - testCaseID: TCXM_9048
+            - testCaseID: TCXM_6834
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8199,7 +8188,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'deleted-at' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8207,7 +8196,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'deleted-at' is omitted
-            - testCaseID: TCXM_9049
+            - testCaseID: TCXM_6835
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8218,7 +8207,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'customer-id' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8226,7 +8215,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'customer-id' is omitted
-            - testCaseID: TCXM_9050
+            - testCaseID: TCXM_6836
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8237,7 +8226,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'owner-id' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8245,7 +8234,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'owner-id' is omitted
-            - testCaseID: TCXM_9051
+            - testCaseID: TCXM_6837
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8256,7 +8245,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'enabled' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8264,7 +8253,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enabled' is omitted
-            - testCaseID: TCXM_9052
+            - testCaseID: TCXM_6838
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8275,7 +8264,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'poe-passthrough' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8283,7 +8272,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'poe-passthrough' is omitted
-            - testCaseID: TCXM_9053
+            - testCaseID: TCXM_6839
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8294,7 +8283,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'port-type' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8302,7 +8291,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'port-type' is omitted
-            - testCaseID: TCXM_9054
+            - testCaseID: TCXM_6840
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8313,7 +8302,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'configuration-name' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8321,7 +8310,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'configuration-name' is omitted
-            - testCaseID: TCXM_9055
+            - testCaseID: TCXM_6841
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8332,7 +8321,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'description' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8340,7 +8329,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'description' is omitted
-            - testCaseID: TCXM_9056
+            - testCaseID: TCXM_6842
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8351,7 +8340,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'untagged-vlan' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8359,7 +8348,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'untagged-vlan' is omitted
-            - testCaseID: TCXM_9057
+            - testCaseID: TCXM_6843
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: negative
@@ -8370,7 +8359,7 @@ features:
                   description: Create wireless-device-profile-ethernet-configuration without optional field 'allowed-vlans' — server must accept (201)
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     port: testValue
                   expectedStatus: 201
@@ -8378,7 +8367,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'allowed-vlans' is omitted
-            - testCaseID: TCXM_9058
+            - testCaseID: TCXM_6844
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: negative
@@ -8389,7 +8378,7 @@ features:
                   description: Attempt to create without operation field
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/clone
+                  path: /configuration-profile/{name}/feature/object/override/remove
                   body:
                     name: TestResource
                     port: testValue
@@ -8399,7 +8388,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_9059
+            - testCaseID: TCXM_6845
               featureName: wireless-device-profile-ethernet-configuration
               priority: P1
               type: negative
@@ -8421,7 +8410,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_9065
+            - testCaseID: TCXM_6851
               featureName: wireless-device-profile-ethernet-configuration
               priority: P3
               type: performance
@@ -8592,7 +8581,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_9066
+            - testCaseID: TCXM_6852
               featureName: wireless-device-profile-ethernet-configuration
               priority: P3
               type: performance
@@ -8753,7 +8742,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_9067
+            - testCaseID: TCXM_6853
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: performance
@@ -9013,7 +9002,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_9068
+            - testCaseID: TCXM_6854
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: performance
@@ -9196,7 +9185,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_9060
+            - testCaseID: TCXM_6846
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: scale
@@ -10405,7 +10394,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_9061
+            - testCaseID: TCXM_6847
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: scale
@@ -10426,7 +10415,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_9062
+            - testCaseID: TCXM_6848
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: scale
@@ -11648,7 +11637,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_9063
+            - testCaseID: TCXM_6849
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: scale
@@ -11800,7 +11789,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_9064
+            - testCaseID: TCXM_6850
               featureName: wireless-device-profile-ethernet-configuration
               priority: P2
               type: scale
