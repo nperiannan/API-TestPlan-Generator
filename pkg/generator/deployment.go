@@ -135,7 +135,7 @@ func (g *Generator) generateDeploymentTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP0,
+		Priority:         model.TestPriorityP1,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create %s, scope to %s, target to %s, deploy, and verify on NOS devices", feature.Name, scopeType, targetType),
 		ScopeType:        scopeType,
@@ -377,7 +377,7 @@ func (g *Generator) generateFullDeploymentTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP0,
+		Priority:         model.TestPriorityP1,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create %s, scope to %s, target to %s, deploy, and verify on NOS devices", feature.Name, scopeType, targetType),
 		ScopeType:        scopeType,
@@ -562,7 +562,7 @@ func (g *Generator) generateSimplifiedDeploymentTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create %s and verify configuration on NOS devices (without explicit scope/target/deploy)", feature.Name),
 		ScopeType:        scopeType,

@@ -101,7 +101,7 @@ func (g *Generator) generateRequiredParamPermutations(feature *model.Feature, cr
 				tc := model.TestCase{
 					TestCaseID:       g.nextTestID(),
 					FeatureName:      feature.Name,
-					Priority:         model.TestPriorityP0,
+					Priority:         model.TestPriorityP1,
 					Type:             model.TestCategoryFunctional,
 					Description:      fmt.Sprintf("Create %s with valid value variation %d for required param '%s', scope to %s, target to %s, deploy and verify", feature.Name, variation, param.Name, level.scopeType, level.targetType),
 					ScopeType:        level.scopeType,
@@ -179,7 +179,7 @@ func (g *Generator) generateOptionalParamPermutations(feature *model.Feature, cr
 				tc := model.TestCase{
 					TestCaseID:       g.nextTestID(),
 					FeatureName:      feature.Name,
-					Priority:         model.TestPriorityP1,
+					Priority:         model.TestPriorityP2,
 					Type:             model.TestCategoryFunctional,
 					Description:      fmt.Sprintf("Deploy and verify %s with %d optional parameters (variation %d), scope to %s, target to %s", feature.Name, numOptional, variation, level.scopeType, level.targetType),
 					ScopeType:        level.scopeType,
@@ -246,7 +246,7 @@ func (g *Generator) generatePathParamVariations(feature *model.Feature, createPa
 		tc := model.TestCase{
 			TestCaseID:       g.nextTestID(),
 			FeatureName:      feature.Name,
-			Priority:         model.TestPriorityP1,
+			Priority:         model.TestPriorityP2,
 			Type:             model.TestCategoryFunctional,
 			Description:      fmt.Sprintf("Deploy and verify %s with path param variation %d (%s)", feature.Name, i+1, resourceID),
 			ScopeType:        model.ScopeTypeDevice,
@@ -328,7 +328,7 @@ func (g *Generator) generateBoundaryTest(feature *model.Feature, createPath, rea
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Deploy and verify %s with %s boundary value for '%s'", feature.Name, boundaryType, param.Name),
 		ScopeType:        model.ScopeTypeDevice,
@@ -383,7 +383,7 @@ func (g *Generator) generateEnumValuePermutations(feature *model.Feature, create
 			tc := model.TestCase{
 				TestCaseID:       g.nextTestID(),
 				FeatureName:      feature.Name,
-				Priority:         model.TestPriorityP1,
+				Priority:         model.TestPriorityP2,
 				Type:             model.TestCategoryFunctional,
 				Description:      fmt.Sprintf("Deploy and verify %s with enum value '%s' for '%s'", feature.Name, enumVal, enumParam.fullPath),
 				ScopeType:        model.ScopeTypeDevice,
@@ -619,7 +619,7 @@ func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, create
 					tc := model.TestCase{
 						TestCaseID:       g.nextTestID(),
 						FeatureName:      feature.Name,
-						Priority:         model.TestPriorityP3,
+						Priority:         model.TestPriorityP4,
 						Type:             model.TestCategoryFunctional,
 						Description:      fmt.Sprintf("Create %s with %s=%s and %s=%s, verify both values persisted (P3: covered by deployment test)", feature.Name, ep1.name, v1, ep2.name, v2),
 						IsDeploymentTest: false,
@@ -680,7 +680,7 @@ func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, create
 						dtc := model.TestCase{
 							TestCaseID:       g.nextTestID(),
 							FeatureName:      feature.Name,
-							Priority:         model.TestPriorityP0,
+							Priority:         model.TestPriorityP1,
 							Type:             model.TestCategoryFunctional,
 							Description:      fmt.Sprintf("Deploy %s with %s=%s and %s=%s to %s and verify on NOS", feature.Name, ep1.name, v1, ep2.name, v2, level.targetType),
 							ScopeType:        level.scopeType,
@@ -737,7 +737,7 @@ func (g *Generator) generateCombinedParamPermutations(feature *model.Feature, cr
 				tc := model.TestCase{
 					TestCaseID:       g.nextTestID(),
 					FeatureName:      feature.Name,
-					Priority:         model.TestPriorityP1,
+					Priority:         model.TestPriorityP2,
 					Type:             model.TestCategoryFunctional,
 					Description:      fmt.Sprintf("Deploy and verify %s with combined values for '%s' and '%s' (var %d)", feature.Name, param1.Name, param2.Name, variation),
 					ScopeType:        model.ScopeTypeDevice,
@@ -802,7 +802,7 @@ func (g *Generator) generateDataTypeVariations(feature *model.Feature, createPat
 			tc := model.TestCase{
 				TestCaseID:       g.nextTestID(),
 				FeatureName:      feature.Name,
-				Priority:         model.TestPriorityP1,
+				Priority:         model.TestPriorityP2,
 				Type:             model.TestCategoryFunctional,
 				Description:      fmt.Sprintf("Deploy and verify %s with %s value variation %d for '%s'", feature.Name, dataType, variation, param.Name),
 				ScopeType:        model.ScopeTypeDevice,

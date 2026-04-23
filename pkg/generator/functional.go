@@ -159,7 +159,7 @@ func (g *Generator) generateBasicCreateTest(feature *model.Feature, createPath, 
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP0,
+		Priority:         model.TestPriorityP1,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create a %s and verify it exists", feature.Name),
 		IsDeploymentTest: false,
@@ -204,7 +204,7 @@ func (g *Generator) generateBasicUpdateTest(feature *model.Feature, updatePath, 
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create, update, and verify %s (independent test)", feature.Name),
 		IsDeploymentTest: false,
@@ -278,7 +278,7 @@ func (g *Generator) generateBasicDeleteTest(feature *model.Feature, deletePath *
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create and delete a %s (independent test)", feature.Name),
 		IsDeploymentTest: false,
@@ -536,7 +536,7 @@ func (g *Generator) generateFullCRUDLifecycleTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP2,
+		Priority:         model.TestPriorityP3,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Full CRUD lifecycle test for %s (Create -> Read -> Update -> Read -> Delete)", feature.Name),
 		IsDeploymentTest: false,
@@ -648,7 +648,7 @@ func (g *Generator) generateListAllResourcesTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP2,
+		Priority:         model.TestPriorityP3,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("List all %s resources", feature.Name),
 		IsDeploymentTest: false,
@@ -706,7 +706,7 @@ func (g *Generator) generatePartialUpdateTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP2,
+		Priority:         model.TestPriorityP3,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Partial update test for %s (only update specific fields)", feature.Name),
 		IsDeploymentTest: false,
@@ -796,7 +796,7 @@ func (g *Generator) generateIdempotentCreateTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP2,
+		Priority:         model.TestPriorityP3,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Idempotent create test for %s (creating same resource twice)", feature.Name),
 		IsDeploymentTest: false,
@@ -848,7 +848,7 @@ func (g *Generator) generateSubObjectCreateTest(feature *model.Feature, subObjTy
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      fmt.Sprintf("%s/%s", feature.Name, subObjName),
-		Priority:         model.TestPriorityP0,
+		Priority:         model.TestPriorityP1,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create a %s (sub-object type: %s) and verify it exists", subObjName, feature.Name),
 		IsDeploymentTest: false,
@@ -907,7 +907,7 @@ func (g *Generator) generateSubObjectUpdateTest(feature *model.Feature, subObjTy
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      fmt.Sprintf("%s/%s", feature.Name, subObjName),
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create, update, and verify %s (sub-object type)", subObjName),
 		IsDeploymentTest: false,
@@ -991,7 +991,7 @@ func (g *Generator) generateSubObjectDeleteTest(feature *model.Feature, subObjTy
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      fmt.Sprintf("%s/%s", feature.Name, subObjName),
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create and delete %s (sub-object type)", subObjName),
 		IsDeploymentTest: false,
@@ -1136,7 +1136,7 @@ func (g *Generator) generateCreateWithRequiredFieldsOnlyTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create %s with required fields only (verify optional fields are optional per YANG model)", feature.Name),
 		IsDeploymentTest: false,
@@ -1228,7 +1228,7 @@ func (g *Generator) generateCreateWithAllFieldsTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create %s with all fields (required + optional) per YANG model definition", feature.Name),
 		IsDeploymentTest: false,
@@ -1318,7 +1318,7 @@ func (g *Generator) generateDefaultValueTests(
 		tc := model.TestCase{
 			TestCaseID:       g.nextTestID(),
 			FeatureName:      feature.Name,
-			Priority:         model.TestPriorityP1,
+			Priority:         model.TestPriorityP2,
 			Type:             model.TestCategoryFunctional,
 			Description:      fmt.Sprintf("Verify YANG default value for '%s' is applied when field is omitted (expected default: %v)", param.Name, param.DefaultValue),
 			IsDeploymentTest: false,
@@ -1418,7 +1418,7 @@ func (g *Generator) generateYANGDatatypeNonDeploymentTests(
 			tc := model.TestCase{
 				TestCaseID:       g.nextTestID(),
 				FeatureName:      feature.Name,
-				Priority:         model.TestPriorityP1,
+				Priority:         model.TestPriorityP2,
 				Type:             model.TestCategoryFunctional,
 				Description:      fmt.Sprintf("Verify YANG datatype '%s' for field '%s' with value variation %d (%v)", yangType, param.Name, variation, value),
 				IsDeploymentTest: false,
@@ -1735,7 +1735,7 @@ func (g *Generator) generateOptionalFieldInclusionTests(
 		tc := model.TestCase{
 			TestCaseID:       g.nextTestID(),
 			FeatureName:      feature.Name,
-			Priority:         model.TestPriorityP2,
+			Priority:         model.TestPriorityP3,
 			Type:             model.TestCategoryFunctional,
 			Description:      fmt.Sprintf("Verify optional field '%s' is accepted and persisted when provided (YANG type: %s)", param.Name, param.YangType),
 			IsDeploymentTest: false,

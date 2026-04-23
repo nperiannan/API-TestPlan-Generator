@@ -57,7 +57,7 @@ func (g *Generator) generateScheduledDeploymentTest(feature *model.Feature, fp *
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP0,
+		Priority:         model.TestPriorityP1,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Create %s and schedule deployment to %s", feature.Name, targetType),
 		ScopeType:        model.ScopeType(targetType), // Use targetType as scopeType for consistency
@@ -119,7 +119,7 @@ func (g *Generator) generateEditScheduleTest(feature *model.Feature, fp *model.F
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Edit deployment schedule for %s on %s", feature.Name, targetType),
 		IsDeploymentTest: true,
@@ -215,7 +215,7 @@ func (g *Generator) generateClearScheduleTest(feature *model.Feature, fp *model.
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Clear deployment schedule for %s on %s", feature.Name, targetType),
 		IsDeploymentTest: true,
@@ -307,7 +307,7 @@ func (g *Generator) generateCloneProfileTest(feature *model.Feature, fp *model.F
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryFunctional,
 		Description: fmt.Sprintf("Clone %s configuration profile", feature.Name),
 		Steps:       []model.TestStep{},
@@ -348,7 +348,7 @@ func (g *Generator) generateCloneObjectTest(feature *model.Feature, fp *model.Fe
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryFunctional,
 		Description: fmt.Sprintf("Clone %s feature object", feature.Name),
 		Steps:       []model.TestStep{},
@@ -457,7 +457,7 @@ func (g *Generator) generateConflictDetectionTest(feature *model.Feature, fp *mo
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("[Conflict Detection] Deploy %s, simulate out-of-band device change via NOSAPI (deviceValue ≠ previousDeployedValue), verify conflict detected via GET /conflicts", feature.Name),
 		IsDeploymentTest: true,
@@ -548,7 +548,7 @@ func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp 
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP0,
+		Priority:         model.TestPriorityP1,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("[Conflict Resolution CC] %s: detect conflict → resolve acceptCloud (cloud wins) → re-deploy → verify cleared", feature.Name),
 		IsDeploymentTest: true,
@@ -681,7 +681,7 @@ func (g *Generator) generateConflictResolutionDDTest(feature *model.Feature, fp 
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP0,
+		Priority:         model.TestPriorityP1,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("[Conflict Resolution DD] %s: detect conflict → resolve acceptDevice (device wins) → verify cloud baseline updated and conflict cleared (no re-deploy needed)", feature.Name),
 		IsDeploymentTest: true,

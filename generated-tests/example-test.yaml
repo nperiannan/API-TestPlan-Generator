@@ -1,45 +1,30 @@
-featurePath: /infrastructure-feature/snmp-feature
-profileType: configuration
+featurePath: /l2-service-feature
+profileType: service
 test:
     testCaseID: TCXM_1006
-    featureName: snmp-v3-access-config
-    priority: P0
+    featureName: ip-subnet
+    priority: P1
+    automation: Automatable
     type: functional
-    description: Create snmp-v3-access-config, scope to device, target to device, deploy, and verify on NOS devices
+    description: Create ip-subnet, scope to device, target to device, deploy, and verify on NOS devices
     scopeType: device
     targetType: device
     deploymentMethod: immediate
     isDeploymentTest: true
     steps:
-        - name: createsnmp-v3-access-config
-          description: Create snmp-v3-access-config configuration
+        - name: createip-subnet
+          description: Create ip-subnet configuration
           method: POST
           api: REST
-          path: /configuration-profile/{name}/feature/object/modify
+          path: /service-profile/{name}/feature/object/modify
           body:
-            featurePath: /infrastructure-feature/snmp-feature
+            featurePath: /l2-service-feature
             name: TestProfile
-            objectType: snmp-v3-access-config
+            objectType: ip-subnet
             objects:
                 - operation: add
-                  properties:
-                    - name: priority
-                      origin: CC
-                      type: number
-                      value: 1
-                    - name: username
-                      origin: CC
-                      type: string
-                      value: test-resource
-                    - name: access-level
-                      origin: CC
-                      type: string
-                      value: testValue
-                    - name: security-level
-                      origin: CC
-                      type: string
-                      value: testValue
-                  type: snmp-v3-access-config
+                  properties: []
+                  type: ip-subnet
             operation: add
           expectedStatus: 201
           validations:
@@ -49,7 +34,7 @@ test:
           description: Retrieve created profile
           method: POST
           api: REST
-          path: /configuration-profile/{name}/feature/object/retrieve
+          path: /service-profile/{name}/feature/object/retrieve
           pathParams:
             profileName: TestProfile
           expectedStatus: 200

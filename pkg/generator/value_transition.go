@@ -83,7 +83,7 @@ func (g *Generator) generateEnumTransitionTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Verify %s can transition '%s' from '%s' to '%s' and back (round-trip)", feature.Name, param.Name, valA, valB),
 		IsDeploymentTest: false,
@@ -200,7 +200,7 @@ func (g *Generator) generateWellKnownValueTransitionTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Verify %s can change '%s' from '%s' to '%s'", feature.Name, param.Name, valA, valB),
 		IsDeploymentTest: false,
@@ -267,7 +267,7 @@ func (g *Generator) generateKeyFieldTransitionTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryFunctional,
 		Description: fmt.Sprintf(
 			"Verify %s can switch key field '%s' from '%s' to '%s' (delete + recreate, since it is a list key)",
@@ -341,7 +341,7 @@ func (g *Generator) generateKeyFieldCoexistenceTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryFunctional,
 		Description: fmt.Sprintf(
 			"Verify %s entries with '%s'='%s' and '%s'='%s' can coexist simultaneously",
@@ -405,7 +405,7 @@ func (g *Generator) generatePriorityChangeTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP2,
+		Priority:         model.TestPriorityP3,
 		Type:             model.TestCategoryFunctional,
 		Description:      fmt.Sprintf("Verify %s priority field '%s' can be changed from low to high and high to low", feature.Name, param.Name),
 		IsDeploymentTest: false,

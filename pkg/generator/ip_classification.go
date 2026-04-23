@@ -115,7 +115,7 @@ func (g *Generator) generateIPPositiveTests(
 		tc := model.TestCase{
 			TestCaseID:  g.nextTestID(),
 			FeatureName: feature.Name,
-			Priority:    model.TestPriorityP2,
+			Priority:    model.TestPriorityP3,
 			Type:        model.TestCategoryFunctional,
 			Description: fmt.Sprintf("Verify %s accepts %s IP for '%s': %s (%s)",
 				feature.Name, ipCase.label, param.Name, ipCase.value, ipCase.description),
@@ -176,7 +176,7 @@ func (g *Generator) generateIPNegativeTests(
 		tc := model.TestCase{
 			TestCaseID:  g.nextTestID(),
 			FeatureName: feature.Name,
-			Priority:    model.TestPriorityP1,
+			Priority:    model.TestPriorityP2,
 			Type:        model.TestCategoryNegative,
 			Description: fmt.Sprintf("Verify %s rejects invalid IP '%s' for '%s': %s",
 				feature.Name, ipCase.value, param.Name, ipCase.description),

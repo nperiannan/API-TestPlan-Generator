@@ -63,7 +63,7 @@ func (g *Generator) generateMultipleInstancesTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryScale,
 		Description: fmt.Sprintf("Create %d instances of %s", g.config.ScaleFactor, feature.Name),
 		Steps:       []model.TestStep{},
@@ -126,7 +126,7 @@ func (g *Generator) generateLargeListTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryScale,
 		Description: fmt.Sprintf("Create %s with large list (%d items)", feature.Name, g.config.ScaleFactor),
 		Steps:       []model.TestStep{},
@@ -246,7 +246,7 @@ func (g *Generator) generateCreatePerformanceTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP3,
+		Priority:    model.TestPriorityP4,
 		Type:        model.TestCategoryPerformance,
 		Description: fmt.Sprintf("Performance test: create %d instances of %s", g.config.PerformanceIterations, feature.Name),
 		Steps:       []model.TestStep{},
@@ -297,7 +297,7 @@ func (g *Generator) generateReadPerformanceTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP3,
+		Priority:    model.TestPriorityP4,
 		Type:        model.TestCategoryPerformance,
 		Description: fmt.Sprintf("Performance test: read %s %d times", feature.Name, g.config.PerformanceIterations),
 		Steps:       []model.TestStep{},
@@ -345,7 +345,7 @@ func (g *Generator) generateListPerformanceTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP3,
+		Priority:    model.TestPriorityP4,
 		Type:        model.TestCategoryPerformance,
 		Description: fmt.Sprintf("Performance test: list %s %d times", feature.Name, g.config.PerformanceIterations),
 		Steps:       []model.TestStep{},
@@ -391,7 +391,7 @@ func (g *Generator) generateMultiDeviceDeploymentTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryScale,
 		Description: fmt.Sprintf("Deploy %s to multiple devices simultaneously", feature.Name),
 		Steps:       []model.TestStep{},
@@ -456,7 +456,7 @@ func (g *Generator) generateRapidUpdatesTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryScale,
 		Description: fmt.Sprintf("Test rapid consecutive updates to %s", feature.Name),
 		Steps:       []model.TestStep{},
@@ -522,7 +522,7 @@ func (g *Generator) generateMaxCapacityTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryScale,
 		Description: fmt.Sprintf("Test maximum capacity for %s (create to maximum allowed)", feature.Name),
 		Steps:       []model.TestStep{},
@@ -572,7 +572,7 @@ func (g *Generator) generateUpdatePerformanceTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryPerformance,
 		Description: fmt.Sprintf("Performance test for %s update operations", feature.Name),
 		Steps:       []model.TestStep{},
@@ -644,7 +644,7 @@ func (g *Generator) generateDeletePerformanceTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryPerformance,
 		Description: fmt.Sprintf("Performance test for %s delete operations", feature.Name),
 		Steps:       []model.TestStep{},
@@ -712,7 +712,7 @@ func (g *Generator) generateDeploymentPerformanceTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryPerformance,
 		Description: fmt.Sprintf("Performance test for %s deployment operations", feature.Name),
 		Steps:       []model.TestStep{},

@@ -61,10 +61,20 @@ const (
 type TestPriority string
 
 const (
-	TestPriorityP0 TestPriority = "P0"
 	TestPriorityP1 TestPriority = "P1"
 	TestPriorityP2 TestPriority = "P2"
 	TestPriorityP3 TestPriority = "P3"
+	TestPriorityP4 TestPriority = "P4"
+)
+
+// AutomationType represents whether a test case can/should be automated
+type AutomationType string
+
+const (
+	AutomationTypeAutomatable    AutomationType = "Automatable"
+	AutomationTypeNotAutomatable AutomationType = "Not Automatable"
+	AutomationTypeNotRequired    AutomationType = "Automation Not Required"
+	AutomationTypeRequired       AutomationType = "Automation Required"
 )
 
 // APIType represents which API surface is being tested
@@ -111,6 +121,7 @@ type TestCase struct {
 	TestCaseID       string                 `yaml:"testCaseID"`
 	FeatureName      string                 `yaml:"featureName"`
 	Priority         TestPriority           `yaml:"priority"`
+	Automation       AutomationType         `yaml:"automation"`
 	Type             TestCategory           `yaml:"type"`
 	Description      string                 `yaml:"description"`
 	ScopeType        ScopeType              `yaml:"scopeType,omitempty"`

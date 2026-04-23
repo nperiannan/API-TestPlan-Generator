@@ -67,7 +67,7 @@ func (g *Generator) generateStringLengthBoundaryTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryBoundary,
 		Description: fmt.Sprintf("Test %s parameter with %s constraint", param.Name, constraint.Type),
 		Steps:       []model.TestStep{},
@@ -127,7 +127,7 @@ func (g *Generator) generateNumericBoundaryTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryBoundary,
 		Description: fmt.Sprintf("Test %s parameter with %s constraint", param.Name, constraint.Type),
 		Steps:       []model.TestStep{},
@@ -162,7 +162,7 @@ func (g *Generator) generateArrayBoundaryTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP2,
+		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryBoundary,
 		Description: fmt.Sprintf("Test %s array with %s constraint", param.Name, constraint.Type),
 		Steps:       []model.TestStep{},
@@ -339,7 +339,7 @@ func (g *Generator) generateMissingRequiredFieldTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP1,
+		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryNegative,
 		Description:      fmt.Sprintf("Negative test: create %s without required field '%s' — expect 4xx validation error", feature.Name, param.Name),
 		IsDeploymentTest: false,
@@ -385,7 +385,7 @@ func (g *Generator) generateInvalidEnumTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: fmt.Sprintf("Test %s with invalid enum value", param.Name),
 		Steps:       []model.TestStep{},
@@ -436,7 +436,7 @@ func (g *Generator) generatePatternViolationTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: fmt.Sprintf("Test %s with pattern violation", param.Name),
 		Steps:       []model.TestStep{},
@@ -505,7 +505,7 @@ func (g *Generator) generateDeleteNonExistentTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: fmt.Sprintf("Verify deleting non-existent %s returns 404", feature.Name),
 		Steps:       []model.TestStep{},
@@ -600,7 +600,7 @@ func (g *Generator) generateExceedMaxLengthTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: fmt.Sprintf("Test %s exceeding max length", param.Name),
 		Steps:       []model.TestStep{},
@@ -641,7 +641,7 @@ func (g *Generator) generateBelowMinLengthTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: fmt.Sprintf("Test %s below min length", param.Name),
 		Steps:       []model.TestStep{},
@@ -685,7 +685,7 @@ func (g *Generator) generateBelowMinValueTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: fmt.Sprintf("Test %s value below minimum (%v)", param.Name, constraint.Value),
 		Steps:       []model.TestStep{},
@@ -728,7 +728,7 @@ func (g *Generator) generateAboveMaxValueTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: fmt.Sprintf("Test %s value above maximum (%v)", param.Name, constraint.Value),
 		Steps:       []model.TestStep{},
@@ -770,7 +770,7 @@ func (g *Generator) generateEmptyValueTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: fmt.Sprintf("Test with empty %s field", param.Name),
 		Steps:       []model.TestStep{},
@@ -811,7 +811,7 @@ func (g *Generator) generateNullValueTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: fmt.Sprintf("Test with null %s value", param.Name),
 		Steps:       []model.TestStep{},
@@ -852,7 +852,7 @@ func (g *Generator) generateInvalidTypeTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: fmt.Sprintf("Test with invalid %s type (string instead of number)", param.Name),
 		Steps:       []model.TestStep{},
@@ -892,7 +892,7 @@ func (g *Generator) generateMissingOperationTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: "Test with missing operation field",
 		Steps:       []model.TestStep{},
@@ -933,7 +933,7 @@ func (g *Generator) generateDeployWithoutScopeTest(
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
 		FeatureName: feature.Name,
-		Priority:    model.TestPriorityP1,
+		Priority:    model.TestPriorityP2,
 		Type:        model.TestCategoryNegative,
 		Description: "Test deployment without scoping",
 		Steps:       []model.TestStep{},
@@ -1001,7 +1001,7 @@ func (g *Generator) generateOptionalFieldNullTest(
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP2,
+		Priority:         model.TestPriorityP3,
 		Type:             model.TestCategoryNegative,
 		Description:      fmt.Sprintf("Verify optional field '%s' can be omitted — server must accept without it (non-required per YANG model)", param.Name),
 		IsDeploymentTest: false,

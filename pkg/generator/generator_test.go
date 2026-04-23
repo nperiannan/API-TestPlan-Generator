@@ -12,7 +12,7 @@ func TestGeneratorCreation(t *testing.T) {
 	featurePaths := make(map[string]*model.FeaturePath)
 
 	// Create mock NOSAPI parser (nil for this test)
-	gen := NewGenerator(config, features, featurePaths, nil)
+	gen := NewGenerator(config, features, featurePaths, nil, nil)
 
 	if gen == nil {
 		t.Fatal("NewGenerator returned nil")
@@ -32,7 +32,7 @@ func TestNextTestID(t *testing.T) {
 	config.TestIDPrefix = "TEST"
 	config.StartingIDNumber = 1
 
-	gen := NewGenerator(config, nil, nil, nil)
+	gen := NewGenerator(config, nil, nil, nil, nil)
 
 	testID1 := gen.nextTestID()
 	if testID1 != "TEST_0001" {
@@ -47,7 +47,7 @@ func TestNextTestID(t *testing.T) {
 
 func TestExtractFeatureName(t *testing.T) {
 	config := model.NewDefaultConfig()
-	gen := NewGenerator(config, nil, nil, nil)
+	gen := NewGenerator(config, nil, nil, nil, nil)
 
 	tests := []struct {
 		name     string
@@ -84,7 +84,7 @@ func TestExtractFeatureName(t *testing.T) {
 
 func TestGenerateSampleBody(t *testing.T) {
 	config := model.NewDefaultConfig()
-	gen := NewGenerator(config, nil, nil, nil)
+	gen := NewGenerator(config, nil, nil, nil, nil)
 
 	feature := &model.Feature{
 		Name: "TestFeature",
@@ -120,7 +120,7 @@ func TestGenerateSampleBody(t *testing.T) {
 
 func TestGetSampleValue(t *testing.T) {
 	config := model.NewDefaultConfig()
-	gen := NewGenerator(config, nil, nil, nil)
+	gen := NewGenerator(config, nil, nil, nil, nil)
 
 	tests := []struct {
 		name     string
