@@ -1,52 +1,48 @@
-featurePath: /radius-server-feature
-profileType: global
+featurePath: /vrf-feature
+profileType: service
 test:
     testCaseID: TCXM_1006
-    featureName: radius-server
+    featureName: vrf
     priority: P1
     automation: Automatable
     type: functional
-    description: Create radius-server, scope to device, target to device, deploy, and verify on NOS devices
+    description: Create vrf, scope to device, target to device, deploy, and verify on NOS devices
     scopeType: device
     targetType: device
     deploymentMethod: immediate
     isDeploymentTest: true
     steps:
-        - name: createradius-server
-          description: Create radius-server configuration
+        - name: createvrf
+          description: Create vrf configuration
           method: POST
           api: REST
-          path: /global-profile/feature/object/modify
+          path: /service-profile/{name}/feature/object/modify
           body:
-            featurePath: /radius-server-feature
+            featurePath: /vrf-feature
             name: TestProfile
-            objectType: radius-server
+            objectType: vrf
             objects:
                 - operation: add
-                  properties:
-                    - name: server
-                      origin: Global
-                      type: string
-                      value: 8.8.8.8
-                    - name: priority
-                      origin: Global
-                      type: number
-                      value: 1
-                  type: radius-server
+                  properties: []
+                  type: vrf
             operation: add
           expectedStatus: 201
           validations:
+            - Verify HTTP status code is 201
+          assertions:
             - type: statusCode
               expected: 201
         - name: getProfile
           description: Retrieve created profile
           method: POST
           api: REST
-          path: /global-profile/feature/object/retrieve
+          path: /service-profile/{name}/feature/object/retrieve
           pathParams:
             profileName: TestProfile
           expectedStatus: 200
           validations:
+            - Verify HTTP status code is 200
+          assertions:
             - type: statusCode
               expected: 200
         - name: scopeProfileTodevice
@@ -61,6 +57,8 @@ test:
             scopeType: device
           expectedStatus: 200
           validations:
+            - Verify HTTP status code is 200
+          assertions:
             - type: statusCode
               expected: 200
         - name: targetProfileTodevice
@@ -75,6 +73,8 @@ test:
             targetType: device
           expectedStatus: 200
           validations:
+            - Verify HTTP status code is 200
+          assertions:
             - type: statusCode
               expected: 200
         - name: deployProfileTodevice
@@ -88,6 +88,8 @@ test:
             deploymentMethod: immediate
           expectedStatus: 202
           validations:
+            - Verify HTTP status code is 202
+          assertions:
             - type: statusCode
               expected: 202
         - name: checkDeploymentStatus
@@ -99,6 +101,9 @@ test:
             profileName: TestProfile
           expectedStatus: 200
           validations:
+            - Verify HTTP status code is 200
+            - Verify '$.status' equals SUCCESS
+          assertions:
             - type: statusCode
               expected: 200
             - type: jsonPathEquals
@@ -109,12 +114,15 @@ test:
           description: Verify configuration on NOS devices in device
           method: GET
           api: NOSAPI
-          path: /v0/configuration/radius/secure-profile
+          path: /v0/configuration/vrf/{vr_name}/route
           pathParams:
             deviceId: test-scope-001
             siteGroupId: test-scope-001
           expectedStatus: 200
           validations:
+            - Verify HTTP status code is 200
+            - Verify NOS device configuration matches expected state
+          assertions:
             - type: statusCode
               expected: 200
             - type: nosConfigMatchesExpected
