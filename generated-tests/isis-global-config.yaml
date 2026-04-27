@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-04-23T08:26:39+05:30"
+generatedAt: "2026-04-27T08:31:49+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_2987
+            - testCaseID: TCXM_9216
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -38,6 +38,10 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: sys-id
+                              origin: CC
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
@@ -45,7 +49,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_2988
+            - testCaseID: TCXM_9217
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -72,6 +76,10 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: sys-name
+                              origin: CC
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
@@ -79,7 +87,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_2989
+            - testCaseID: TCXM_9218
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -106,6 +114,10 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
@@ -113,16 +125,16 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_2990
+            - testCaseID: TCXM_9219
               featureName: isis-global-config
               priority: P3
               automation: Automatable
               type: boundary
-              description: Test manual-area-address parameter with maxLength constraint
+              description: 'Boundary test: manual-area-address=''1.0.0.1'' — Minimum valid IPv4 unicast host (above 0.0.0.0/8 reserved range)'
               isDeploymentTest: false
               steps:
-                - name: testBoundary
-                  description: Test manual-area-address with maxLength
+                - name: testBoundary_IPv4MinValid
+                  description: Test manual-area-address with IPv4MinValid value '1.0.0.1'
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -140,6 +152,200 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 1.0.0.1
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_9220
+              featureName: isis-global-config
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: manual-area-address=''223.255.255.254'' — Maximum valid IPv4 unicast host (last address before multicast 224/4)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv4MaxValid
+                  description: Test manual-area-address with IPv4MaxValid value '223.255.255.254'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 223.255.255.254
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_9221
+              featureName: isis-global-config
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: manual-area-address=''2001:db8::1'' — Minimum valid IPv6 global unicast (RFC 3849 documentation prefix)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv6MinValid
+                  description: Test manual-area-address with IPv6MinValid value '2001:db8::1'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 2001:db8::1
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_9222
+              featureName: isis-global-config
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: manual-area-address=''2001:db8:ffff:ffff:ffff:ffff:ffff:fffe'' — Maximum valid IPv6 unicast within documentation prefix'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv6MaxValid
+                  description: Test manual-area-address with IPv6MaxValid value '2001:db8:ffff:ffff:ffff:ffff:ffff:fffe'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 2001:db8:ffff:ffff:ffff:ffff:ffff:fffe
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_9223
+              featureName: isis-global-config
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: manual-area-address=''a.io'' — Minimum-length FQDN (single-character label + TLD)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_FQDNMinLength
+                  description: Test manual-area-address with FQDNMinLength value 'a.io'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: a.io
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_9224
+              featureName: isis-global-config
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: manual-area-address=''aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'' — Maximum-length FQDN (253 characters per RFC 1035)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_FQDNMaxLength
+                  description: Test manual-area-address with FQDNMaxLength value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
@@ -148,7 +354,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_2802
+            - testCaseID: TCXM_9031
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -276,7 +482,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-set')].value
                       expected: testValue
                       description: Verify 'intent-set' value is 'testValue' as set during create
-            - testCaseID: TCXM_2803
+            - testCaseID: TCXM_9032
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -326,7 +532,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_2804
+            - testCaseID: TCXM_9033
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -369,7 +575,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_2805
+            - testCaseID: TCXM_9034
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -436,7 +642,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_2806
+            - testCaseID: TCXM_9035
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -479,7 +685,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_2807
+            - testCaseID: TCXM_9036
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -513,7 +719,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_2808
+            - testCaseID: TCXM_9037
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -617,7 +823,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2809
+            - testCaseID: TCXM_9038
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -653,7 +859,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2810
+            - testCaseID: TCXM_9039
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -717,7 +923,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-type')].value
                       expected: testValue
                       description: Verify required field 'area-type' has value 'testValue' as created
-            - testCaseID: TCXM_2811
+            - testCaseID: TCXM_9040
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -935,7 +1141,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-set')].value
                       expected: testValue
                       description: Verify field 'intent-set' has value 'testValue' as sent on create
-            - testCaseID: TCXM_2812
+            - testCaseID: TCXM_9041
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -993,7 +1199,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='id')].value
                       expected: testValue
                       description: Verify optional field 'id' value is 'testValue' as set on create
-            - testCaseID: TCXM_2813
+            - testCaseID: TCXM_9042
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1051,7 +1257,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='created-at')].value
                       expected: testValue
                       description: Verify optional field 'created-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_2814
+            - testCaseID: TCXM_9043
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1109,7 +1315,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='updated-at')].value
                       expected: testValue
                       description: Verify optional field 'updated-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_2815
+            - testCaseID: TCXM_9044
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1167,7 +1373,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='deleted-at')].value
                       expected: testValue
                       description: Verify optional field 'deleted-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_2816
+            - testCaseID: TCXM_9045
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1225,7 +1431,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='customer-id')].value
                       expected: 100
                       description: Verify optional field 'customer-id' value is '100' as set on create
-            - testCaseID: TCXM_2817
+            - testCaseID: TCXM_9046
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1283,7 +1489,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='owner-id')].value
                       expected: 100
                       description: Verify optional field 'owner-id' value is '100' as set on create
-            - testCaseID: TCXM_2818
+            - testCaseID: TCXM_9047
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1341,7 +1547,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='asset-device-id')].value
                       expected: testValue
                       description: Verify optional field 'asset-device-id' value is 'testValue' as set on create
-            - testCaseID: TCXM_2819
+            - testCaseID: TCXM_9048
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1399,7 +1605,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-admin-state')].value
                       expected: ""
                       description: Verify optional field 'sys-admin-state' value is '' as set on create
-            - testCaseID: TCXM_2820
+            - testCaseID: TCXM_9049
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1457,7 +1663,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-id')].value
                       expected: testValue
                       description: Verify optional field 'sys-id' value is 'testValue' as set on create
-            - testCaseID: TCXM_2821
+            - testCaseID: TCXM_9050
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1515,7 +1721,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-name')].value
                       expected: test-resource
                       description: Verify optional field 'sys-name' value is 'test-resource' as set on create
-            - testCaseID: TCXM_2822
+            - testCaseID: TCXM_9051
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1573,7 +1779,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-name')].value
                       expected: test-resource
                       description: Verify optional field 'area-name' value is 'test-resource' as set on create
-            - testCaseID: TCXM_2823
+            - testCaseID: TCXM_9052
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1631,7 +1837,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-source-address')].value
                       expected: 8.8.8.8
                       description: Verify optional field 'ip-source-address' value is '8.8.8.8' as set on create
-            - testCaseID: TCXM_2824
+            - testCaseID: TCXM_9053
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1689,7 +1895,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='manual-area-address')].value
                       expected: 8.8.8.8
                       description: Verify optional field 'manual-area-address' value is '8.8.8.8' as set on create
-            - testCaseID: TCXM_2825
+            - testCaseID: TCXM_9054
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1747,7 +1953,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-set')].value
                       expected: testValue
                       description: Verify optional field 'intent-set' value is 'testValue' as set on create
-            - testCaseID: TCXM_2826
+            - testCaseID: TCXM_9055
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1798,7 +2004,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_2827
+            - testCaseID: TCXM_9056
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1849,7 +2055,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_2828
+            - testCaseID: TCXM_9057
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1900,7 +2106,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_2829
+            - testCaseID: TCXM_9058
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1951,7 +2157,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_2830
+            - testCaseID: TCXM_9059
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2002,7 +2208,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_2831
+            - testCaseID: TCXM_9060
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2053,7 +2259,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_2832
+            - testCaseID: TCXM_9061
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2104,7 +2310,7 @@ features:
                       path: $.customer-id
                       expected: 1
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_2833
+            - testCaseID: TCXM_9062
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2155,7 +2361,7 @@ features:
                       path: $.customer-id
                       expected: 100
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_2834
+            - testCaseID: TCXM_9063
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2206,7 +2412,7 @@ features:
                       path: $.intent-device-id
                       expected: testValue
                       description: Verify 'intent-device-id' YANG type 'leafref' value is persisted
-            - testCaseID: TCXM_2835
+            - testCaseID: TCXM_9064
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2257,7 +2463,7 @@ features:
                       path: $.intent-device-id
                       expected: testValue
                       description: Verify 'intent-device-id' YANG type 'leafref' value is persisted
-            - testCaseID: TCXM_2836
+            - testCaseID: TCXM_9065
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2308,7 +2514,7 @@ features:
                       path: $.area-type
                       expected: testValue
                       description: Verify 'area-type' YANG type 'asset-types:area-type-enum' value is persisted
-            - testCaseID: TCXM_2837
+            - testCaseID: TCXM_9066
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2359,7 +2565,7 @@ features:
                       path: $.area-type
                       expected: testValue
                       description: Verify 'area-type' YANG type 'asset-types:area-type-enum' value is persisted
-            - testCaseID: TCXM_2838
+            - testCaseID: TCXM_9067
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2410,7 +2616,7 @@ features:
                       path: $.sys-admin-state
                       expected: ""
                       description: Verify 'sys-admin-state' YANG type 'asset-types:sys-admin-state-enum' value is persisted
-            - testCaseID: TCXM_2839
+            - testCaseID: TCXM_9068
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2461,7 +2667,7 @@ features:
                       path: $.sys-admin-state
                       expected: ""
                       description: Verify 'sys-admin-state' YANG type 'asset-types:sys-admin-state-enum' value is persisted
-            - testCaseID: TCXM_2840
+            - testCaseID: TCXM_9069
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2512,7 +2718,7 @@ features:
                       path: $.sys-id
                       expected: test-value-1
                       description: Verify 'sys-id' YANG type 'string' value is persisted
-            - testCaseID: TCXM_2841
+            - testCaseID: TCXM_9070
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2563,7 +2769,7 @@ features:
                       path: $.sys-id
                       expected: test-value-2
                       description: Verify 'sys-id' YANG type 'string' value is persisted
-            - testCaseID: TCXM_2842
+            - testCaseID: TCXM_9071
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2614,7 +2820,7 @@ features:
                       path: $.ip-source-address
                       expected: 192.168.1.1
                       description: Verify 'ip-source-address' YANG type 'ietf-inet:ipv4-address' value is persisted
-            - testCaseID: TCXM_2843
+            - testCaseID: TCXM_9072
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2665,7 +2871,7 @@ features:
                       path: $.ip-source-address
                       expected: 10.0.0.1
                       description: Verify 'ip-source-address' YANG type 'ietf-inet:ipv4-address' value is persisted
-            - testCaseID: TCXM_2844
+            - testCaseID: TCXM_9073
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2716,7 +2922,7 @@ features:
                       path: $.intent-set
                       expected: 1
                       description: Verify 'intent-set' YANG type 'intent-types:intent-set-isis-global-config-enum' value is persisted
-            - testCaseID: TCXM_2845
+            - testCaseID: TCXM_9074
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2767,7 +2973,7 @@ features:
                       path: $.intent-set
                       expected: 100
                       description: Verify 'intent-set' YANG type 'intent-types:intent-set-isis-global-config-enum' value is persisted
-            - testCaseID: TCXM_2846
+            - testCaseID: TCXM_9075
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -2818,7 +3024,7 @@ features:
                       path: $.sys-admin-state
                       expected: ""
                       description: 'Verify ''sys-admin-state'' equals YANG-defined default value '
-            - testCaseID: TCXM_2847
+            - testCaseID: TCXM_9076
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -2886,7 +3092,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2848
+            - testCaseID: TCXM_9077
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -2954,7 +3160,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2849
+            - testCaseID: TCXM_9078
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3022,7 +3228,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2850
+            - testCaseID: TCXM_9079
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3090,7 +3296,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2851
+            - testCaseID: TCXM_9080
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3158,7 +3364,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2852
+            - testCaseID: TCXM_9081
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3226,7 +3432,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2853
+            - testCaseID: TCXM_9082
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3294,7 +3500,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2854
+            - testCaseID: TCXM_9083
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3362,7 +3568,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2855
+            - testCaseID: TCXM_9084
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3430,7 +3636,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2856
+            - testCaseID: TCXM_9085
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3498,7 +3704,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2857
+            - testCaseID: TCXM_9086
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3566,7 +3772,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2858
+            - testCaseID: TCXM_9087
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3634,7 +3840,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2859
+            - testCaseID: TCXM_9088
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3702,7 +3908,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2860
+            - testCaseID: TCXM_9089
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3770,7 +3976,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2861
+            - testCaseID: TCXM_9090
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3838,7 +4044,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2862
+            - testCaseID: TCXM_9091
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3906,7 +4112,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2863
+            - testCaseID: TCXM_9092
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3974,7 +4180,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2864
+            - testCaseID: TCXM_9093
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -4042,7 +4248,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2865
+            - testCaseID: TCXM_9094
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -4110,7 +4316,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2866
+            - testCaseID: TCXM_9095
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -4178,7 +4384,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2867
+            - testCaseID: TCXM_9096
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4246,7 +4452,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2868
+            - testCaseID: TCXM_9097
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4314,7 +4520,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2869
+            - testCaseID: TCXM_9098
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4382,7 +4588,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2870
+            - testCaseID: TCXM_9099
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4450,7 +4656,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2871
+            - testCaseID: TCXM_9100
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4518,7 +4724,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2872
+            - testCaseID: TCXM_9101
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4586,7 +4792,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2873
+            - testCaseID: TCXM_9102
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4654,7 +4860,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2874
+            - testCaseID: TCXM_9103
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4722,7 +4928,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2875
+            - testCaseID: TCXM_9104
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4790,7 +4996,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2876
+            - testCaseID: TCXM_9105
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4858,7 +5064,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2877
+            - testCaseID: TCXM_9106
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4926,7 +5132,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2878
+            - testCaseID: TCXM_9107
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4994,7 +5200,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2879
+            - testCaseID: TCXM_9108
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5062,7 +5268,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2880
+            - testCaseID: TCXM_9109
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5130,7 +5336,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2881
+            - testCaseID: TCXM_9110
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5198,7 +5404,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2882
+            - testCaseID: TCXM_9111
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5266,7 +5472,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2883
+            - testCaseID: TCXM_9112
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5334,7 +5540,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2884
+            - testCaseID: TCXM_9113
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5402,7 +5608,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2885
+            - testCaseID: TCXM_9114
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5470,7 +5676,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2886
+            - testCaseID: TCXM_9115
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5538,7 +5744,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2887
+            - testCaseID: TCXM_9116
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5606,7 +5812,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2888
+            - testCaseID: TCXM_9117
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5674,7 +5880,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2889
+            - testCaseID: TCXM_9118
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5742,7 +5948,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2890
+            - testCaseID: TCXM_9119
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5810,7 +6016,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2891
+            - testCaseID: TCXM_9120
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5878,7 +6084,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2892
+            - testCaseID: TCXM_9121
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5946,7 +6152,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2893
+            - testCaseID: TCXM_9122
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6014,7 +6220,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2894
+            - testCaseID: TCXM_9123
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6082,7 +6288,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2895
+            - testCaseID: TCXM_9124
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6150,7 +6356,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2896
+            - testCaseID: TCXM_9125
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6218,7 +6424,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2897
+            - testCaseID: TCXM_9126
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6286,7 +6492,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2898
+            - testCaseID: TCXM_9127
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6354,7 +6560,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2899
+            - testCaseID: TCXM_9128
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6422,7 +6628,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2900
+            - testCaseID: TCXM_9129
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6490,7 +6696,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2901
+            - testCaseID: TCXM_9130
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6558,7 +6764,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2902
+            - testCaseID: TCXM_9131
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6626,7 +6832,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2903
+            - testCaseID: TCXM_9132
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6697,7 +6903,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2904
+            - testCaseID: TCXM_9133
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6768,7 +6974,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2905
+            - testCaseID: TCXM_9134
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6839,7 +7045,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2906
+            - testCaseID: TCXM_9135
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6910,7 +7116,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2907
+            - testCaseID: TCXM_9136
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6981,7 +7187,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2908
+            - testCaseID: TCXM_9137
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7052,7 +7258,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2909
+            - testCaseID: TCXM_9138
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7123,7 +7329,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2910
+            - testCaseID: TCXM_9139
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7194,7 +7400,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2911
+            - testCaseID: TCXM_9140
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7265,7 +7471,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2912
+            - testCaseID: TCXM_9141
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7336,7 +7542,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2913
+            - testCaseID: TCXM_9142
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7404,7 +7610,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2914
+            - testCaseID: TCXM_9143
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7472,7 +7678,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2915
+            - testCaseID: TCXM_9144
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7540,7 +7746,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2916
+            - testCaseID: TCXM_9145
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7608,7 +7814,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2917
+            - testCaseID: TCXM_9146
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7678,7 +7884,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2918
+            - testCaseID: TCXM_9147
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7748,7 +7954,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2919
+            - testCaseID: TCXM_9148
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7818,7 +8024,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2920
+            - testCaseID: TCXM_9149
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7888,7 +8094,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2921
+            - testCaseID: TCXM_9150
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7958,7 +8164,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2922
+            - testCaseID: TCXM_9151
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8028,7 +8234,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2923
+            - testCaseID: TCXM_9152
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8098,7 +8304,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2924
+            - testCaseID: TCXM_9153
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8168,7 +8374,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2925
+            - testCaseID: TCXM_9154
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8238,7 +8444,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2926
+            - testCaseID: TCXM_9155
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8308,7 +8514,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2927
+            - testCaseID: TCXM_9156
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8378,7 +8584,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2928
+            - testCaseID: TCXM_9157
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8448,7 +8654,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2929
+            - testCaseID: TCXM_9158
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8518,7 +8724,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2930
+            - testCaseID: TCXM_9159
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8588,7 +8794,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2931
+            - testCaseID: TCXM_9160
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8658,7 +8864,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2932
+            - testCaseID: TCXM_9161
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8728,7 +8934,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2933
+            - testCaseID: TCXM_9162
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8798,7 +9004,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2934
+            - testCaseID: TCXM_9163
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8868,415 +9074,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2935
-              featureName: isis-global-config
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify isis-global-config with string value variation 1 for 'id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with string type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  body:
-                    featurePath: /network-feature/fabric-feature/isis-feature
-                    name: TestResource-id-Typestring-V1
-                    objectType: isis-global-config
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: intent-device-id
-                              origin: CC
-                              type: string
-                              value: testValue
-                            - name: area-type
-                              origin: CC
-                              type: string
-                              value: testValue
-                          type: isis-global-config
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V1/devices/deploy
-                  pathParams:
-                    name: TestResource-id-Typestring-V1
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V1/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-id-Typestring-V1
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2936
-              featureName: isis-global-config
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify isis-global-config with string value variation 2 for 'id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with string type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  body:
-                    featurePath: /network-feature/fabric-feature/isis-feature
-                    name: TestResource-id-Typestring-V2
-                    objectType: isis-global-config
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: intent-device-id
-                              origin: CC
-                              type: string
-                              value: testValue
-                            - name: area-type
-                              origin: CC
-                              type: string
-                              value: testValue
-                          type: isis-global-config
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V2/devices/deploy
-                  pathParams:
-                    name: TestResource-id-Typestring-V2
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V2/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-id-Typestring-V2
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2937
-              featureName: isis-global-config
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify isis-global-config with string value variation 3 for 'id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with string type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  body:
-                    featurePath: /network-feature/fabric-feature/isis-feature
-                    name: TestResource-id-Typestring-V3
-                    objectType: isis-global-config
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: intent-device-id
-                              origin: CC
-                              type: string
-                              value: testValue
-                            - name: area-type
-                              origin: CC
-                              type: string
-                              value: testValue
-                          type: isis-global-config
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V3/devices/deploy
-                  pathParams:
-                    name: TestResource-id-Typestring-V3
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V3/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-id-Typestring-V3
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2938
-              featureName: isis-global-config
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify isis-global-config with uint32 value variation 1 for 'customer-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with uint32 type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  body:
-                    featurePath: /network-feature/fabric-feature/isis-feature
-                    name: TestResource-customer-id-Typeuint32-V1
-                    objectType: isis-global-config
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: intent-device-id
-                              origin: CC
-                              type: string
-                              value: testValue
-                            - name: area-type
-                              origin: CC
-                              type: string
-                              value: testValue
-                          type: isis-global-config
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V1/devices/deploy
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V1
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V1/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V1
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2939
-              featureName: isis-global-config
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify isis-global-config with uint32 value variation 2 for 'customer-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with uint32 type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  body:
-                    featurePath: /network-feature/fabric-feature/isis-feature
-                    name: TestResource-customer-id-Typeuint32-V2
-                    objectType: isis-global-config
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: intent-device-id
-                              origin: CC
-                              type: string
-                              value: testValue
-                            - name: area-type
-                              origin: CC
-                              type: string
-                              value: testValue
-                          type: isis-global-config
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V2/devices/deploy
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V2
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V2/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V2
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2940
-              featureName: isis-global-config
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify isis-global-config with uint32 value variation 3 for 'customer-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with uint32 type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  body:
-                    featurePath: /network-feature/fabric-feature/isis-feature
-                    name: TestResource-customer-id-Typeuint32-V3
-                    objectType: isis-global-config
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: intent-device-id
-                              origin: CC
-                              type: string
-                              value: testValue
-                            - name: area-type
-                              origin: CC
-                              type: string
-                              value: testValue
-                          type: isis-global-config
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V3/devices/deploy
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V3
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V3/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V3
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2941
+            - testCaseID: TCXM_9164
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9344,7 +9142,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2942
+            - testCaseID: TCXM_9165
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9412,7 +9210,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2943
+            - testCaseID: TCXM_9166
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9480,7 +9278,415 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2944
+            - testCaseID: TCXM_9167
+              featureName: isis-global-config
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify isis-global-config with string value variation 1 for 'id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with string type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    name: TestResource-id-Typestring-V1
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-id-Typestring-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-id-Typestring-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_9168
+              featureName: isis-global-config
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify isis-global-config with string value variation 2 for 'id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with string type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    name: TestResource-id-Typestring-V2
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-id-Typestring-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-id-Typestring-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_9169
+              featureName: isis-global-config
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify isis-global-config with string value variation 3 for 'id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with string type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    name: TestResource-id-Typestring-V3
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-id-Typestring-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-id-Typestring-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_9170
+              featureName: isis-global-config
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify isis-global-config with uint32 value variation 1 for 'customer-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with uint32 type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    name: TestResource-customer-id-Typeuint32-V1
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_9171
+              featureName: isis-global-config
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify isis-global-config with uint32 value variation 2 for 'customer-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with uint32 type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    name: TestResource-customer-id-Typeuint32-V2
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_9172
+              featureName: isis-global-config
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify isis-global-config with uint32 value variation 3 for 'customer-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with uint32 type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    name: TestResource-customer-id-Typeuint32-V3
+                    objectType: isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_9173
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -9497,7 +9703,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/modify
                     name: TestProfile-Additional
                     objectType: isis-global-config
                     objects:
@@ -9514,14 +9720,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-23T03:56:40Z
+                  description: Schedule deployment to device at 2026-04-27T04:01:50Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:40Z"
+                    deployAt: "2026-04-27T04:01:50Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9529,7 +9735,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2945
+            - testCaseID: TCXM_9174
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -9546,7 +9752,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/modify
                     name: TestProfile-Additional
                     objectType: isis-global-config
                     objects:
@@ -9563,14 +9769,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-23T03:56:40Z
+                  description: Schedule deployment to site at 2026-04-27T04:01:50Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:40Z"
+                    deployAt: "2026-04-27T04:01:50Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -9578,7 +9784,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2946
+            - testCaseID: TCXM_9175
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9592,7 +9798,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/modify
                     name: TestProfile-Additional
                     objectType: isis-global-config
                     objects:
@@ -9616,7 +9822,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:40Z"
+                    deployAt: "2026-04-27T04:01:50Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9625,14 +9831,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-23T04:56:40Z
+                  description: Edit deployment schedule to 2026-04-27T05:01:50Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T04:56:40Z"
+                    deployAt: "2026-04-27T05:01:50Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9640,7 +9846,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2947
+            - testCaseID: TCXM_9176
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9654,7 +9860,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/modify
                     name: TestProfile-Additional
                     objectType: isis-global-config
                     objects:
@@ -9678,7 +9884,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:40Z"
+                    deployAt: "2026-04-27T04:01:50Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -9700,7 +9906,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2948
+            - testCaseID: TCXM_9177
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9714,7 +9920,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/modify
                     name: TestProfile-Additional
                     objectType: isis-global-config
                     objects:
@@ -9743,7 +9949,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2949
+            - testCaseID: TCXM_9178
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9757,7 +9963,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/modify
                     name: TestProfile-Additional
                     objectType: isis-global-config
                     objects:
@@ -9781,7 +9987,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/modify
                     newId: cloned-object-1
                     objectType: isis-global-config
                     sourceId: original-object-1
@@ -9789,7 +9995,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2950
+            - testCaseID: TCXM_9179
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9803,7 +10009,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/modify
                     name: TestProfile-Additional-ConflictDetect
                     objectType: isis-global-config
                     objects:
@@ -9883,7 +10089,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_2951
+            - testCaseID: TCXM_9180
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -9897,7 +10103,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/modify
                     name: TestProfile-Additional-ConflictCC
                     objectType: isis-global-config
                     objects:
@@ -10025,7 +10231,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_2952
+            - testCaseID: TCXM_9181
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -10039,7 +10245,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/retrieve
+                    featurePath: /configuration-profile/{name}/feature/object/modify
                     name: TestProfile-Additional-ConflictDD
                     objectType: isis-global-config
                     objects:
@@ -10135,7 +10341,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_2953
+            - testCaseID: TCXM_9182
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10163,13 +10369,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 10.0.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2954
+            - testCaseID: TCXM_9183
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10197,13 +10407,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 10.255.255.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2955
+            - testCaseID: TCXM_9184
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10231,13 +10445,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 172.16.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2956
+            - testCaseID: TCXM_9185
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10265,13 +10483,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 172.31.255.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2957
+            - testCaseID: TCXM_9186
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10299,13 +10521,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 192.168.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2958
+            - testCaseID: TCXM_9187
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10333,13 +10559,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 192.168.255.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2959
+            - testCaseID: TCXM_9188
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10367,13 +10597,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 127.0.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2960
+            - testCaseID: TCXM_9189
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10401,13 +10635,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 8.8.8.8
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2961
+            - testCaseID: TCXM_9190
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10435,13 +10673,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 1.1.1.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2962
+            - testCaseID: TCXM_9191
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10469,13 +10711,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 208.67.222.222
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2963
+            - testCaseID: TCXM_9192
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10503,13 +10749,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 198.51.100.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2964
+            - testCaseID: TCXM_9193
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10537,13 +10787,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 2001:4860:4860::8888
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2965
+            - testCaseID: TCXM_9194
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10571,13 +10825,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 2606:4700:4700::1111
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2966
+            - testCaseID: TCXM_9195
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10605,13 +10863,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: ::1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2967
+            - testCaseID: TCXM_9196
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10639,13 +10901,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: fe80::1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2968
+            - testCaseID: TCXM_9197
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10673,13 +10939,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: dns.google.com
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2969
+            - testCaseID: TCXM_9198
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10707,13 +10977,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: ns1.example.org
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2970
+            - testCaseID: TCXM_9199
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10741,13 +11015,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 10.0.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2971
+            - testCaseID: TCXM_9200
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10775,13 +11053,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 10.255.255.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2972
+            - testCaseID: TCXM_9201
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10809,13 +11091,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 172.16.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2973
+            - testCaseID: TCXM_9202
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10843,13 +11129,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 172.31.255.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2974
+            - testCaseID: TCXM_9203
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10877,13 +11167,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 192.168.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2975
+            - testCaseID: TCXM_9204
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10911,13 +11205,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 192.168.255.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2976
+            - testCaseID: TCXM_9205
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10945,13 +11243,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 127.0.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2977
+            - testCaseID: TCXM_9206
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -10979,13 +11281,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 8.8.8.8
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2978
+            - testCaseID: TCXM_9207
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11013,13 +11319,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 1.1.1.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2979
+            - testCaseID: TCXM_9208
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11047,13 +11357,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 208.67.222.222
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2980
+            - testCaseID: TCXM_9209
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11081,13 +11395,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 198.51.100.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2981
+            - testCaseID: TCXM_9210
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11115,13 +11433,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 2001:4860:4860::8888
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2982
+            - testCaseID: TCXM_9211
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11149,13 +11471,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 2606:4700:4700::1111
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2983
+            - testCaseID: TCXM_9212
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11183,13 +11509,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: ::1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2984
+            - testCaseID: TCXM_9213
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11217,13 +11547,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: fe80::1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2985
+            - testCaseID: TCXM_9214
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11251,13 +11585,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: dns.google.com
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2986
+            - testCaseID: TCXM_9215
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11285,6 +11623,10 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: ns1.example.org
                           type: isis-global-config
                     operation: add
                   expectedStatus: 201
@@ -11292,7 +11634,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_2991
+            - testCaseID: TCXM_9225
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11325,7 +11667,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'intent-device-id'
-            - testCaseID: TCXM_2992
+            - testCaseID: TCXM_9226
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11358,7 +11700,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'area-type'
-            - testCaseID: TCXM_2993
+            - testCaseID: TCXM_9227
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11385,13 +11727,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: deleted-at
+                              origin: CC
+                              type: string
+                              value: '!!!INVALID-PATTERN@@@'
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2994
+            - testCaseID: TCXM_9228
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11418,13 +11764,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: sys-id
+                              origin: CC
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopq
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2995
+            - testCaseID: TCXM_9229
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11451,13 +11801,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: sys-name
+                              origin: CC
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopq
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2996
+            - testCaseID: TCXM_9230
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11484,13 +11838,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopq
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2997
+            - testCaseID: TCXM_9231
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11517,13 +11875,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopq
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2998
+            - testCaseID: TCXM_9232
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11558,7 +11920,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2999
+            - testCaseID: TCXM_9233
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11593,7 +11955,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3000
+            - testCaseID: TCXM_9234
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11628,7 +11990,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3001
+            - testCaseID: TCXM_9235
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11663,7 +12025,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3002
+            - testCaseID: TCXM_9236
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11697,7 +12059,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'id' is omitted
-            - testCaseID: TCXM_3003
+            - testCaseID: TCXM_9237
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11731,7 +12093,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'created-at' is omitted
-            - testCaseID: TCXM_3004
+            - testCaseID: TCXM_9238
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11765,7 +12127,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'updated-at' is omitted
-            - testCaseID: TCXM_3005
+            - testCaseID: TCXM_9239
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11799,7 +12161,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'deleted-at' is omitted
-            - testCaseID: TCXM_3006
+            - testCaseID: TCXM_9240
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11833,7 +12195,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'customer-id' is omitted
-            - testCaseID: TCXM_3007
+            - testCaseID: TCXM_9241
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11867,7 +12229,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'owner-id' is omitted
-            - testCaseID: TCXM_3008
+            - testCaseID: TCXM_9242
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11901,7 +12263,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'asset-device-id' is omitted
-            - testCaseID: TCXM_3009
+            - testCaseID: TCXM_9243
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11935,7 +12297,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'sys-admin-state' is omitted
-            - testCaseID: TCXM_3010
+            - testCaseID: TCXM_9244
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -11969,7 +12331,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'sys-id' is omitted
-            - testCaseID: TCXM_3011
+            - testCaseID: TCXM_9245
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -12003,7 +12365,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'sys-name' is omitted
-            - testCaseID: TCXM_3012
+            - testCaseID: TCXM_9246
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -12037,7 +12399,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'area-name' is omitted
-            - testCaseID: TCXM_3013
+            - testCaseID: TCXM_9247
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -12071,7 +12433,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'ip-source-address' is omitted
-            - testCaseID: TCXM_3014
+            - testCaseID: TCXM_9248
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -12105,7 +12467,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'manual-area-address' is omitted
-            - testCaseID: TCXM_3015
+            - testCaseID: TCXM_9249
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -12139,7 +12501,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'intent-set' is omitted
-            - testCaseID: TCXM_3016
+            - testCaseID: TCXM_9250
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12173,7 +12535,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3017
+            - testCaseID: TCXM_9251
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12195,7 +12557,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_3018
+            - testCaseID: TCXM_9252
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12223,13 +12585,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 256.0.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3019
+            - testCaseID: TCXM_9253
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12257,13 +12623,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 999.999.999.999
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3020
+            - testCaseID: TCXM_9254
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12291,13 +12661,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: -1.0.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3021
+            - testCaseID: TCXM_9255
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12325,13 +12699,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 192.168.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3022
+            - testCaseID: TCXM_9256
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12359,13 +12737,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: "10.0"
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3023
+            - testCaseID: TCXM_9257
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12393,13 +12775,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: not-an-ip-address
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3024
+            - testCaseID: TCXM_9258
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12427,13 +12813,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: ""
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3025
+            - testCaseID: TCXM_9259
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12461,13 +12851,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: '   '
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3026
+            - testCaseID: TCXM_9260
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12495,13 +12889,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 8.8.8.8:53
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3027
+            - testCaseID: TCXM_9261
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12529,13 +12927,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 192.168.1.0/24
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3028
+            - testCaseID: TCXM_9262
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12563,13 +12965,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 192.168.1.0
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3029
+            - testCaseID: TCXM_9263
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12597,13 +13003,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 255.255.255.255
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3030
+            - testCaseID: TCXM_9264
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12631,13 +13041,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: ff00::1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3031
+            - testCaseID: TCXM_9265
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12665,13 +13079,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: zzzz::1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3032
+            - testCaseID: TCXM_9266
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12699,13 +13117,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: ip-source-address
+                              origin: CC
+                              type: string
+                              value: 010.0.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3033
+            - testCaseID: TCXM_9267
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12733,13 +13155,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 256.0.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3034
+            - testCaseID: TCXM_9268
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12767,13 +13193,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 999.999.999.999
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3035
+            - testCaseID: TCXM_9269
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12801,13 +13231,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: -1.0.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3036
+            - testCaseID: TCXM_9270
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12835,13 +13269,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 192.168.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3037
+            - testCaseID: TCXM_9271
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12869,13 +13307,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: "10.0"
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3038
+            - testCaseID: TCXM_9272
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12903,13 +13345,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: not-an-ip-address
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3039
+            - testCaseID: TCXM_9273
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12937,13 +13383,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: ""
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3040
+            - testCaseID: TCXM_9274
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12971,13 +13421,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: '   '
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3041
+            - testCaseID: TCXM_9275
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13005,13 +13459,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 8.8.8.8:53
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3042
+            - testCaseID: TCXM_9276
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13039,13 +13497,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 192.168.1.0/24
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3043
+            - testCaseID: TCXM_9277
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13073,13 +13535,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 192.168.1.0
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3044
+            - testCaseID: TCXM_9278
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13107,13 +13573,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 255.255.255.255
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3045
+            - testCaseID: TCXM_9279
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13141,13 +13611,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: ff00::1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3046
+            - testCaseID: TCXM_9280
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13175,13 +13649,17 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: zzzz::1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3047
+            - testCaseID: TCXM_9281
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13209,6 +13687,10 @@ features:
                               origin: CC
                               type: string
                               value: testValue
+                            - name: manual-area-address
+                              origin: CC
+                              type: string
+                              value: 010.0.0.1
                           type: isis-global-config
                     operation: add
                   expectedStatus: 400
@@ -13216,7 +13698,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_3053
+            - testCaseID: TCXM_9287
               featureName: isis-global-config
               priority: P4
               automation: Automatable
@@ -13528,7 +14010,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_3054
+            - testCaseID: TCXM_9288
               featureName: isis-global-config
               priority: P4
               automation: Automatable
@@ -13690,7 +14172,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_3055
+            - testCaseID: TCXM_9289
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -14037,7 +14519,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_3056
+            - testCaseID: TCXM_9290
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -14438,7 +14920,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_3057
+            - testCaseID: TCXM_9291
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -14636,7 +15118,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_3048
+            - testCaseID: TCXM_9282
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -17246,7 +17728,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_3049
+            - testCaseID: TCXM_9283
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -17382,7 +17864,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_3050
+            - testCaseID: TCXM_9284
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -18619,7 +19101,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_3051
+            - testCaseID: TCXM_9285
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -18926,7 +19408,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_3052
+            - testCaseID: TCXM_9286
               featureName: isis-global-config
               priority: P3
               automation: Automatable

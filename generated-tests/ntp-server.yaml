@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-04-23T08:26:39+05:30"
+generatedAt: "2026-04-27T08:31:49+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
@@ -11,16 +11,16 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_9686
+            - testCaseID: TCXM_6080
               featureName: ntp-server
               priority: P3
               automation: Automatable
               type: boundary
-              description: Test server parameter with minLength constraint
+              description: 'Boundary test: server=''1.0.0.1'' — Minimum valid IPv4 unicast host (above 0.0.0.0/8 reserved range)'
               isDeploymentTest: false
               steps:
-                - name: testBoundary
-                  description: Test server with minLength
+                - name: testBoundary_IPv4MinValid
+                  description: Test server with IPv4MinValid value '1.0.0.1'
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
@@ -37,7 +37,7 @@ features:
                             - name: server
                               origin: Global
                               type: string
-                              value: 0.0.0.0
+                              value: 1.0.0.1
                           type: ntp-server
                     operation: add
                   expectedStatus: 201
@@ -45,16 +45,16 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_9687
+            - testCaseID: TCXM_6081
               featureName: ntp-server
               priority: P3
               automation: Automatable
               type: boundary
-              description: Test server parameter with maxLength constraint
+              description: 'Boundary test: server=''223.255.255.254'' — Maximum valid IPv4 unicast host (last address before multicast 224/4)'
               isDeploymentTest: false
               steps:
-                - name: testBoundary
-                  description: Test server with maxLength
+                - name: testBoundary_IPv4MaxValid
+                  description: Test server with IPv4MaxValid value '223.255.255.254'
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
@@ -71,7 +71,7 @@ features:
                             - name: server
                               origin: Global
                               type: string
-                              value: 255.255.255.255
+                              value: 223.255.255.254
                           type: ntp-server
                     operation: add
                   expectedStatus: 201
@@ -79,7 +79,143 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_9688
+            - testCaseID: TCXM_6082
+              featureName: ntp-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''2001:db8::1'' — Minimum valid IPv6 global unicast (RFC 3849 documentation prefix)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv6MinValid
+                  description: Test server with IPv6MinValid value '2001:db8::1'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /ntp-server-feature
+                    objectType: ntp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 2001:db8::1
+                          type: ntp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_6083
+              featureName: ntp-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''2001:db8:ffff:ffff:ffff:ffff:ffff:fffe'' — Maximum valid IPv6 unicast within documentation prefix'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv6MaxValid
+                  description: Test server with IPv6MaxValid value '2001:db8:ffff:ffff:ffff:ffff:ffff:fffe'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /ntp-server-feature
+                    objectType: ntp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 2001:db8:ffff:ffff:ffff:ffff:ffff:fffe
+                          type: ntp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_6084
+              featureName: ntp-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''a.io'' — Minimum-length FQDN (single-character label + TLD)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_FQDNMinLength
+                  description: Test server with FQDNMinLength value 'a.io'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /ntp-server-feature
+                    objectType: ntp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: a.io
+                          type: ntp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_6085
+              featureName: ntp-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'' — Maximum-length FQDN (253 characters per RFC 1035)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_FQDNMaxLength
+                  description: Test server with FQDNMaxLength value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /ntp-server-feature
+                    objectType: ntp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+                          type: ntp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_6086
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -106,6 +242,10 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: authentication
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ab
                           type: ntp-server
                     operation: add
                   expectedStatus: 201
@@ -113,7 +253,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_9689
+            - testCaseID: TCXM_6087
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -140,6 +280,10 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEF
                           type: ntp-server
                     operation: add
                   expectedStatus: 201
@@ -148,7 +292,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_9530
+            - testCaseID: TCXM_5924
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -252,7 +396,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify 'vr-name' value is 'VR-Mgmt' as set during create
-            - testCaseID: TCXM_9531
+            - testCaseID: TCXM_5925
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -302,7 +446,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_9532
+            - testCaseID: TCXM_5926
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -345,7 +489,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_9533
+            - testCaseID: TCXM_5927
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -412,7 +556,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_9534
+            - testCaseID: TCXM_5928
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -455,7 +599,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_9535
+            - testCaseID: TCXM_5929
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -489,7 +633,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_9536
+            - testCaseID: TCXM_5930
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -608,7 +752,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9537
+            - testCaseID: TCXM_5931
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -659,7 +803,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9538
+            - testCaseID: TCXM_5932
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -723,7 +867,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify required field 'server' has value '8.8.8.8' as created
-            - testCaseID: TCXM_9539
+            - testCaseID: TCXM_5933
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -875,7 +1019,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify field 'vr-name' has value 'VR-Mgmt' as sent on create
-            - testCaseID: TCXM_9540
+            - testCaseID: TCXM_5934
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -933,7 +1077,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='id')].value
                       expected: testValue
                       description: Verify optional field 'id' value is 'testValue' as set on create
-            - testCaseID: TCXM_9541
+            - testCaseID: TCXM_5935
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -991,7 +1135,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='created-at')].value
                       expected: testValue
                       description: Verify optional field 'created-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_9542
+            - testCaseID: TCXM_5936
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -1049,7 +1193,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='updated-at')].value
                       expected: testValue
                       description: Verify optional field 'updated-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_9543
+            - testCaseID: TCXM_5937
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -1107,7 +1251,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='deleted-at')].value
                       expected: testValue
                       description: Verify optional field 'deleted-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_9544
+            - testCaseID: TCXM_5938
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -1165,7 +1309,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='customer-id')].value
                       expected: 100
                       description: Verify optional field 'customer-id' value is '100' as set on create
-            - testCaseID: TCXM_9545
+            - testCaseID: TCXM_5939
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -1223,7 +1367,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='owner-id')].value
                       expected: 100
                       description: Verify optional field 'owner-id' value is '100' as set on create
-            - testCaseID: TCXM_9546
+            - testCaseID: TCXM_5940
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -1281,7 +1425,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='authentication')].value
                       expected: testValue
                       description: Verify optional field 'authentication' value is 'testValue' as set on create
-            - testCaseID: TCXM_9547
+            - testCaseID: TCXM_5941
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -1339,7 +1483,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify optional field 'vr-name' value is 'VR-Mgmt' as set on create
-            - testCaseID: TCXM_9548
+            - testCaseID: TCXM_5942
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1390,7 +1534,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_9549
+            - testCaseID: TCXM_5943
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1441,7 +1585,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_9550
+            - testCaseID: TCXM_5944
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1492,7 +1636,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_9551
+            - testCaseID: TCXM_5945
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1543,7 +1687,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_9552
+            - testCaseID: TCXM_5946
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1594,7 +1738,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_9553
+            - testCaseID: TCXM_5947
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1645,7 +1789,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_9554
+            - testCaseID: TCXM_5948
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1696,7 +1840,7 @@ features:
                       path: $.customer-id
                       expected: 1
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_9555
+            - testCaseID: TCXM_5949
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1747,7 +1891,7 @@ features:
                       path: $.customer-id
                       expected: 100
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_9556
+            - testCaseID: TCXM_5950
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1798,7 +1942,7 @@ features:
                       path: $.priority
                       expected: 1
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_9557
+            - testCaseID: TCXM_5951
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1849,7 +1993,7 @@ features:
                       path: $.priority
                       expected: 100
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_9558
+            - testCaseID: TCXM_5952
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1900,7 +2044,7 @@ features:
                       path: $.server
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_9559
+            - testCaseID: TCXM_5953
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1951,7 +2095,7 @@ features:
                       path: $.server
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_9560
+            - testCaseID: TCXM_5954
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2034,7 +2178,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9561
+            - testCaseID: TCXM_5955
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2102,7 +2246,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9562
+            - testCaseID: TCXM_5956
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2185,7 +2329,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9563
+            - testCaseID: TCXM_5957
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2253,7 +2397,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9564
+            - testCaseID: TCXM_5958
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2336,7 +2480,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9565
+            - testCaseID: TCXM_5959
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2404,7 +2548,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9566
+            - testCaseID: TCXM_5960
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2487,7 +2631,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9567
+            - testCaseID: TCXM_5961
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2555,7 +2699,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9568
+            - testCaseID: TCXM_5962
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2638,7 +2782,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9569
+            - testCaseID: TCXM_5963
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2706,7 +2850,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9570
+            - testCaseID: TCXM_5964
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2789,7 +2933,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9571
+            - testCaseID: TCXM_5965
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2857,7 +3001,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9572
+            - testCaseID: TCXM_5966
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2940,7 +3084,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9573
+            - testCaseID: TCXM_5967
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3008,7 +3152,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9574
+            - testCaseID: TCXM_5968
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3091,7 +3235,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9575
+            - testCaseID: TCXM_5969
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3159,7 +3303,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9576
+            - testCaseID: TCXM_5970
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3242,7 +3386,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9577
+            - testCaseID: TCXM_5971
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3310,7 +3454,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9578
+            - testCaseID: TCXM_5972
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3393,7 +3537,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9579
+            - testCaseID: TCXM_5973
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3461,7 +3605,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9580
+            - testCaseID: TCXM_5974
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3544,7 +3688,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9581
+            - testCaseID: TCXM_5975
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3612,7 +3756,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9582
+            - testCaseID: TCXM_5976
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3695,7 +3839,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9583
+            - testCaseID: TCXM_5977
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3763,7 +3907,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9584
+            - testCaseID: TCXM_5978
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3846,7 +3990,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9585
+            - testCaseID: TCXM_5979
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3914,7 +4058,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9586
+            - testCaseID: TCXM_5980
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3997,7 +4141,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9587
+            - testCaseID: TCXM_5981
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4065,7 +4209,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9588
+            - testCaseID: TCXM_5982
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4148,7 +4292,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9589
+            - testCaseID: TCXM_5983
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4216,7 +4360,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9590
+            - testCaseID: TCXM_5984
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4299,7 +4443,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9591
+            - testCaseID: TCXM_5985
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4367,7 +4511,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9592
+            - testCaseID: TCXM_5986
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4450,7 +4594,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9593
+            - testCaseID: TCXM_5987
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4518,7 +4662,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9594
+            - testCaseID: TCXM_5988
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4601,7 +4745,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9595
+            - testCaseID: TCXM_5989
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4669,7 +4813,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9596
+            - testCaseID: TCXM_5990
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4752,7 +4896,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9597
+            - testCaseID: TCXM_5991
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4820,7 +4964,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9598
+            - testCaseID: TCXM_5992
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4903,7 +5047,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9599
+            - testCaseID: TCXM_5993
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4971,7 +5115,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9600
+            - testCaseID: TCXM_5994
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5054,7 +5198,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9601
+            - testCaseID: TCXM_5995
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5122,7 +5266,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9602
+            - testCaseID: TCXM_5996
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5205,7 +5349,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9603
+            - testCaseID: TCXM_5997
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5273,7 +5417,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9604
+            - testCaseID: TCXM_5998
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5356,7 +5500,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9605
+            - testCaseID: TCXM_5999
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5424,7 +5568,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9606
+            - testCaseID: TCXM_6000
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5507,7 +5651,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9607
+            - testCaseID: TCXM_6001
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5575,7 +5719,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9608
+            - testCaseID: TCXM_6002
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5658,7 +5802,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9609
+            - testCaseID: TCXM_6003
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5726,7 +5870,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9610
+            - testCaseID: TCXM_6004
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5809,7 +5953,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9611
+            - testCaseID: TCXM_6005
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5877,7 +6021,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9612
+            - testCaseID: TCXM_6006
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5960,7 +6104,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9613
+            - testCaseID: TCXM_6007
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6028,7 +6172,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9614
+            - testCaseID: TCXM_6008
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6111,7 +6255,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9615
+            - testCaseID: TCXM_6009
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6179,7 +6323,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_9616
+            - testCaseID: TCXM_6010
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6264,7 +6408,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9617
+            - testCaseID: TCXM_6011
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6349,7 +6493,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9618
+            - testCaseID: TCXM_6012
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6434,7 +6578,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9619
+            - testCaseID: TCXM_6013
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6519,7 +6663,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9620
+            - testCaseID: TCXM_6014
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6604,7 +6748,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9621
+            - testCaseID: TCXM_6015
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6689,7 +6833,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9622
+            - testCaseID: TCXM_6016
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6774,7 +6918,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9623
+            - testCaseID: TCXM_6017
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6859,7 +7003,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9624
+            - testCaseID: TCXM_6018
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6944,7 +7088,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9625
+            - testCaseID: TCXM_6019
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7029,7 +7173,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9626
+            - testCaseID: TCXM_6020
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7112,7 +7256,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9627
+            - testCaseID: TCXM_6021
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7195,7 +7339,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9628
+            - testCaseID: TCXM_6022
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7278,7 +7422,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9629
+            - testCaseID: TCXM_6023
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7361,7 +7505,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9630
+            - testCaseID: TCXM_6024
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7446,7 +7590,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9631
+            - testCaseID: TCXM_6025
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7531,7 +7675,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9632
+            - testCaseID: TCXM_6026
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7616,7 +7760,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9633
+            - testCaseID: TCXM_6027
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7701,7 +7845,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9634
+            - testCaseID: TCXM_6028
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7786,7 +7930,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9635
+            - testCaseID: TCXM_6029
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7871,7 +8015,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9636
+            - testCaseID: TCXM_6030
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7956,7 +8100,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9637
+            - testCaseID: TCXM_6031
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8041,7 +8185,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9638
+            - testCaseID: TCXM_6032
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8126,7 +8270,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9639
+            - testCaseID: TCXM_6033
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8211,7 +8355,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9640
+            - testCaseID: TCXM_6034
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8296,7 +8440,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9641
+            - testCaseID: TCXM_6035
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8381,7 +8525,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9642
+            - testCaseID: TCXM_6036
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8466,7 +8610,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9643
+            - testCaseID: TCXM_6037
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8551,7 +8695,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9644
+            - testCaseID: TCXM_6038
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8636,7 +8780,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9645
+            - testCaseID: TCXM_6039
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8721,7 +8865,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9646
+            - testCaseID: TCXM_6040
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8806,7 +8950,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9647
+            - testCaseID: TCXM_6041
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8891,7 +9035,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9648
+            - testCaseID: TCXM_6042
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8974,7 +9118,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9649
+            - testCaseID: TCXM_6043
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9057,7 +9201,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9650
+            - testCaseID: TCXM_6044
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9140,7 +9284,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9651
+            - testCaseID: TCXM_6045
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9223,7 +9367,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9652
+            - testCaseID: TCXM_6046
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9306,7 +9450,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9653
+            - testCaseID: TCXM_6047
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9389,7 +9533,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9654
+            - testCaseID: TCXM_6048
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9472,7 +9616,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9655
+            - testCaseID: TCXM_6049
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9555,7 +9699,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9656
+            - testCaseID: TCXM_6050
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9638,7 +9782,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_9657
+            - testCaseID: TCXM_6051
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -9672,14 +9816,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-23T03:56:44Z
+                  description: Schedule deployment to device at 2026-04-27T04:01:50Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:44Z"
+                    deployAt: "2026-04-27T04:01:50Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9687,7 +9831,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_9658
+            - testCaseID: TCXM_6052
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -9721,14 +9865,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-23T03:56:44Z
+                  description: Schedule deployment to site at 2026-04-27T04:01:50Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:44Z"
+                    deployAt: "2026-04-27T04:01:50Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -9736,7 +9880,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_9659
+            - testCaseID: TCXM_6053
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9774,7 +9918,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:44Z"
+                    deployAt: "2026-04-27T04:01:50Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9783,14 +9927,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-23T04:56:44Z
+                  description: Edit deployment schedule to 2026-04-27T05:01:50Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T04:56:44Z"
+                    deployAt: "2026-04-27T05:01:50Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9798,7 +9942,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_9660
+            - testCaseID: TCXM_6054
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9836,7 +9980,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:44Z"
+                    deployAt: "2026-04-27T04:01:50Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -9858,7 +10002,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_9661
+            - testCaseID: TCXM_6055
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9901,7 +10045,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_9662
+            - testCaseID: TCXM_6056
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9947,7 +10091,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_9663
+            - testCaseID: TCXM_6057
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -10041,7 +10185,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_9664
+            - testCaseID: TCXM_6058
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -10183,7 +10327,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_9665
+            - testCaseID: TCXM_6059
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -10293,7 +10437,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_9666
+            - testCaseID: TCXM_6060
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -10394,7 +10538,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_9667
+            - testCaseID: TCXM_6061
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -10511,7 +10655,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 204
-            - testCaseID: TCXM_9668
+            - testCaseID: TCXM_6062
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10612,7 +10756,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_9669
+            - testCaseID: TCXM_6063
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10646,7 +10790,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9670
+            - testCaseID: TCXM_6064
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10680,7 +10824,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9671
+            - testCaseID: TCXM_6065
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10714,7 +10858,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9672
+            - testCaseID: TCXM_6066
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10748,7 +10892,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9673
+            - testCaseID: TCXM_6067
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10782,7 +10926,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9674
+            - testCaseID: TCXM_6068
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10816,7 +10960,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9675
+            - testCaseID: TCXM_6069
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10850,7 +10994,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9676
+            - testCaseID: TCXM_6070
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10884,7 +11028,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9677
+            - testCaseID: TCXM_6071
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10918,7 +11062,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9678
+            - testCaseID: TCXM_6072
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10952,7 +11096,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9679
+            - testCaseID: TCXM_6073
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10986,7 +11130,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9680
+            - testCaseID: TCXM_6074
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11020,7 +11164,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9681
+            - testCaseID: TCXM_6075
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11054,7 +11198,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9682
+            - testCaseID: TCXM_6076
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11088,7 +11232,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9683
+            - testCaseID: TCXM_6077
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11122,7 +11266,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9684
+            - testCaseID: TCXM_6078
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11156,7 +11300,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_9685
+            - testCaseID: TCXM_6079
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11191,7 +11335,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_9690
+            - testCaseID: TCXM_6088
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11224,7 +11368,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'priority'
-            - testCaseID: TCXM_9691
+            - testCaseID: TCXM_6089
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11257,7 +11401,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'server'
-            - testCaseID: TCXM_9692
+            - testCaseID: TCXM_6090
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11284,13 +11428,17 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: deleted-at
+                              origin: Global
+                              type: string
+                              value: '!!!INVALID-PATTERN@@@'
                           type: ntp-server
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9693
+            - testCaseID: TCXM_6091
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11323,7 +11471,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9694
+            - testCaseID: TCXM_6092
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11350,13 +11498,17 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: 123-starts-with-digit
                           type: ntp-server
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9695
+            - testCaseID: TCXM_6093
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11389,7 +11541,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9696
+            - testCaseID: TCXM_6094
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11416,13 +11568,17 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: authentication
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijkl
                           type: ntp-server
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9697
+            - testCaseID: TCXM_6095
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11449,13 +11605,17 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP
                           type: ntp-server
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9698
+            - testCaseID: TCXM_6096
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11488,7 +11648,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9699
+            - testCaseID: TCXM_6097
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11523,7 +11683,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_9700
+            - testCaseID: TCXM_6098
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11558,7 +11718,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_9701
+            - testCaseID: TCXM_6099
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11593,7 +11753,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_9702
+            - testCaseID: TCXM_6100
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11628,7 +11788,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_9703
+            - testCaseID: TCXM_6101
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11662,7 +11822,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'id' is omitted
-            - testCaseID: TCXM_9704
+            - testCaseID: TCXM_6102
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11696,7 +11856,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'created-at' is omitted
-            - testCaseID: TCXM_9705
+            - testCaseID: TCXM_6103
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11730,7 +11890,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'updated-at' is omitted
-            - testCaseID: TCXM_9706
+            - testCaseID: TCXM_6104
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11764,7 +11924,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'deleted-at' is omitted
-            - testCaseID: TCXM_9707
+            - testCaseID: TCXM_6105
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11798,7 +11958,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'customer-id' is omitted
-            - testCaseID: TCXM_9708
+            - testCaseID: TCXM_6106
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11832,7 +11992,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'owner-id' is omitted
-            - testCaseID: TCXM_9709
+            - testCaseID: TCXM_6107
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11866,7 +12026,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'authentication' is omitted
-            - testCaseID: TCXM_9710
+            - testCaseID: TCXM_6108
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11900,7 +12060,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vr-name' is omitted
-            - testCaseID: TCXM_9711
+            - testCaseID: TCXM_6109
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11934,7 +12094,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_9712
+            - testCaseID: TCXM_6110
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11956,7 +12116,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_9713
+            - testCaseID: TCXM_6111
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11990,7 +12150,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9714
+            - testCaseID: TCXM_6112
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12024,7 +12184,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9715
+            - testCaseID: TCXM_6113
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12058,7 +12218,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9716
+            - testCaseID: TCXM_6114
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12092,7 +12252,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9717
+            - testCaseID: TCXM_6115
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12126,7 +12286,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9718
+            - testCaseID: TCXM_6116
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12160,7 +12320,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9719
+            - testCaseID: TCXM_6117
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12194,7 +12354,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9720
+            - testCaseID: TCXM_6118
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12228,7 +12388,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9721
+            - testCaseID: TCXM_6119
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12262,7 +12422,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9722
+            - testCaseID: TCXM_6120
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12296,7 +12456,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9723
+            - testCaseID: TCXM_6121
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12330,7 +12490,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9724
+            - testCaseID: TCXM_6122
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12364,7 +12524,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9725
+            - testCaseID: TCXM_6123
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12398,7 +12558,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9726
+            - testCaseID: TCXM_6124
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12432,7 +12592,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_9727
+            - testCaseID: TCXM_6125
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12467,7 +12627,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_9732
+            - testCaseID: TCXM_6130
               featureName: ntp-server
               priority: P4
               automation: Automatable
@@ -12779,7 +12939,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_9733
+            - testCaseID: TCXM_6131
               featureName: ntp-server
               priority: P4
               automation: Automatable
@@ -12941,7 +13101,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_9734
+            - testCaseID: TCXM_6132
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -13288,7 +13448,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_9735
+            - testCaseID: TCXM_6133
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -13690,7 +13850,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_9728
+            - testCaseID: TCXM_6126
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -16300,7 +16460,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_9729
+            - testCaseID: TCXM_6127
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -16335,7 +16495,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_9730
+            - testCaseID: TCXM_6128
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -16642,7 +16802,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_9731
+            - testCaseID: TCXM_6129
               featureName: ntp-server
               priority: P3
               automation: Automatable

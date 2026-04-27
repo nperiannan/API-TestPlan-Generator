@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-04-23T08:26:39+05:30"
+generatedAt: "2026-04-27T08:31:49+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
@@ -11,16 +11,16 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_3705
+            - testCaseID: TCXM_2144
               featureName: dns-server
               priority: P3
               automation: Automatable
               type: boundary
-              description: Test server parameter with minLength constraint
+              description: 'Boundary test: server=''1.0.0.1'' — Minimum valid IPv4 unicast host (above 0.0.0.0/8 reserved range)'
               isDeploymentTest: false
               steps:
-                - name: testBoundary
-                  description: Test server with minLength
+                - name: testBoundary_IPv4MinValid
+                  description: Test server with IPv4MinValid value '1.0.0.1'
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
@@ -37,7 +37,7 @@ features:
                             - name: server
                               origin: Global
                               type: string
-                              value: 0.0.0.0
+                              value: 1.0.0.1
                           type: dns-server
                     operation: add
                   expectedStatus: 201
@@ -45,16 +45,16 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_3706
+            - testCaseID: TCXM_2145
               featureName: dns-server
               priority: P3
               automation: Automatable
               type: boundary
-              description: Test server parameter with maxLength constraint
+              description: 'Boundary test: server=''223.255.255.254'' — Maximum valid IPv4 unicast host (last address before multicast 224/4)'
               isDeploymentTest: false
               steps:
-                - name: testBoundary
-                  description: Test server with maxLength
+                - name: testBoundary_IPv4MaxValid
+                  description: Test server with IPv4MaxValid value '223.255.255.254'
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
@@ -71,7 +71,7 @@ features:
                             - name: server
                               origin: Global
                               type: string
-                              value: 255.255.255.255
+                              value: 223.255.255.254
                           type: dns-server
                     operation: add
                   expectedStatus: 201
@@ -79,7 +79,143 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_3707
+            - testCaseID: TCXM_2146
+              featureName: dns-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''2001:db8::1'' — Minimum valid IPv6 global unicast (RFC 3849 documentation prefix)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv6MinValid
+                  description: Test server with IPv6MinValid value '2001:db8::1'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dns-server-feature
+                    objectType: dns-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 2001:db8::1
+                          type: dns-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_2147
+              featureName: dns-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''2001:db8:ffff:ffff:ffff:ffff:ffff:fffe'' — Maximum valid IPv6 unicast within documentation prefix'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv6MaxValid
+                  description: Test server with IPv6MaxValid value '2001:db8:ffff:ffff:ffff:ffff:ffff:fffe'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dns-server-feature
+                    objectType: dns-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 2001:db8:ffff:ffff:ffff:ffff:ffff:fffe
+                          type: dns-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_2148
+              featureName: dns-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''a.io'' — Minimum-length FQDN (single-character label + TLD)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_FQDNMinLength
+                  description: Test server with FQDNMinLength value 'a.io'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dns-server-feature
+                    objectType: dns-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: a.io
+                          type: dns-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_2149
+              featureName: dns-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'' — Maximum-length FQDN (253 characters per RFC 1035)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_FQDNMaxLength
+                  description: Test server with FQDNMaxLength value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dns-server-feature
+                    objectType: dns-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+                          type: dns-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_2150
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -106,6 +242,10 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEF
                           type: dns-server
                     operation: add
                   expectedStatus: 201
@@ -114,7 +254,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_3548
+            - testCaseID: TCXM_1987
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -214,7 +354,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify 'vr-name' value is 'VR-Mgmt' as set during create
-            - testCaseID: TCXM_3549
+            - testCaseID: TCXM_1988
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -264,7 +404,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3550
+            - testCaseID: TCXM_1989
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -307,7 +447,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_3551
+            - testCaseID: TCXM_1990
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -374,7 +514,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3552
+            - testCaseID: TCXM_1991
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -417,7 +557,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3553
+            - testCaseID: TCXM_1992
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -451,7 +591,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3554
+            - testCaseID: TCXM_1993
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -570,7 +710,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3555
+            - testCaseID: TCXM_1994
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -621,7 +761,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3556
+            - testCaseID: TCXM_1995
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -685,7 +825,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify required field 'server' has value '8.8.8.8' as created
-            - testCaseID: TCXM_3557
+            - testCaseID: TCXM_1996
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -826,7 +966,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify field 'vr-name' has value 'VR-Mgmt' as sent on create
-            - testCaseID: TCXM_3558
+            - testCaseID: TCXM_1997
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -884,7 +1024,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='id')].value
                       expected: testValue
                       description: Verify optional field 'id' value is 'testValue' as set on create
-            - testCaseID: TCXM_3559
+            - testCaseID: TCXM_1998
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -942,7 +1082,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='created-at')].value
                       expected: testValue
                       description: Verify optional field 'created-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_3560
+            - testCaseID: TCXM_1999
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -1000,7 +1140,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='updated-at')].value
                       expected: testValue
                       description: Verify optional field 'updated-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_3561
+            - testCaseID: TCXM_2000
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -1058,7 +1198,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='deleted-at')].value
                       expected: testValue
                       description: Verify optional field 'deleted-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_3562
+            - testCaseID: TCXM_2001
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -1116,7 +1256,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='customer-id')].value
                       expected: 100
                       description: Verify optional field 'customer-id' value is '100' as set on create
-            - testCaseID: TCXM_3563
+            - testCaseID: TCXM_2002
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -1174,7 +1314,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='owner-id')].value
                       expected: 100
                       description: Verify optional field 'owner-id' value is '100' as set on create
-            - testCaseID: TCXM_3564
+            - testCaseID: TCXM_2003
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -1232,7 +1372,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify optional field 'vr-name' value is 'VR-Mgmt' as set on create
-            - testCaseID: TCXM_3565
+            - testCaseID: TCXM_2004
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1283,7 +1423,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_3566
+            - testCaseID: TCXM_2005
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1334,7 +1474,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_3567
+            - testCaseID: TCXM_2006
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1385,7 +1525,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_3568
+            - testCaseID: TCXM_2007
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1436,7 +1576,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_3569
+            - testCaseID: TCXM_2008
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1487,7 +1627,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_3570
+            - testCaseID: TCXM_2009
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1538,7 +1678,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_3571
+            - testCaseID: TCXM_2010
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1589,7 +1729,7 @@ features:
                       path: $.customer-id
                       expected: 1
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_3572
+            - testCaseID: TCXM_2011
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1640,7 +1780,7 @@ features:
                       path: $.customer-id
                       expected: 100
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_3573
+            - testCaseID: TCXM_2012
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1691,7 +1831,7 @@ features:
                       path: $.priority
                       expected: 1
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_3574
+            - testCaseID: TCXM_2013
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1742,7 +1882,7 @@ features:
                       path: $.priority
                       expected: 100
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_3575
+            - testCaseID: TCXM_2014
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1793,7 +1933,7 @@ features:
                       path: $.server
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_3576
+            - testCaseID: TCXM_2015
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1844,7 +1984,7 @@ features:
                       path: $.server
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_3577
+            - testCaseID: TCXM_2016
               featureName: dns-server/dns-suffix
               priority: P1
               automation: Automatable
@@ -1885,7 +2025,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3578
+            - testCaseID: TCXM_2017
               featureName: dns-server/dns-suffix
               priority: P2
               automation: Automatable
@@ -1950,7 +2090,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3579
+            - testCaseID: TCXM_2018
               featureName: dns-server/dns-suffix
               priority: P2
               automation: Automatable
@@ -1992,7 +2132,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3580
+            - testCaseID: TCXM_2019
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2075,7 +2215,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3581
+            - testCaseID: TCXM_2020
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2143,7 +2283,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3582
+            - testCaseID: TCXM_2021
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2226,7 +2366,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3583
+            - testCaseID: TCXM_2022
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2294,7 +2434,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3584
+            - testCaseID: TCXM_2023
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2377,7 +2517,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3585
+            - testCaseID: TCXM_2024
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2445,7 +2585,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3586
+            - testCaseID: TCXM_2025
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2528,7 +2668,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3587
+            - testCaseID: TCXM_2026
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2596,7 +2736,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3588
+            - testCaseID: TCXM_2027
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2679,7 +2819,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3589
+            - testCaseID: TCXM_2028
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2747,7 +2887,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3590
+            - testCaseID: TCXM_2029
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2830,7 +2970,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3591
+            - testCaseID: TCXM_2030
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2898,7 +3038,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3592
+            - testCaseID: TCXM_2031
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2981,7 +3121,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3593
+            - testCaseID: TCXM_2032
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3049,7 +3189,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3594
+            - testCaseID: TCXM_2033
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3132,7 +3272,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3595
+            - testCaseID: TCXM_2034
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3200,7 +3340,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3596
+            - testCaseID: TCXM_2035
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3283,7 +3423,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3597
+            - testCaseID: TCXM_2036
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3351,7 +3491,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3598
+            - testCaseID: TCXM_2037
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3434,7 +3574,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3599
+            - testCaseID: TCXM_2038
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3502,7 +3642,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3600
+            - testCaseID: TCXM_2039
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3585,7 +3725,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3601
+            - testCaseID: TCXM_2040
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3653,7 +3793,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3602
+            - testCaseID: TCXM_2041
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3736,7 +3876,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3603
+            - testCaseID: TCXM_2042
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3804,7 +3944,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3604
+            - testCaseID: TCXM_2043
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3887,7 +4027,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3605
+            - testCaseID: TCXM_2044
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3955,7 +4095,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3606
+            - testCaseID: TCXM_2045
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4038,7 +4178,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3607
+            - testCaseID: TCXM_2046
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4106,7 +4246,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3608
+            - testCaseID: TCXM_2047
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4189,7 +4329,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3609
+            - testCaseID: TCXM_2048
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4257,7 +4397,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3610
+            - testCaseID: TCXM_2049
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4340,7 +4480,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3611
+            - testCaseID: TCXM_2050
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4408,7 +4548,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3612
+            - testCaseID: TCXM_2051
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4491,7 +4631,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3613
+            - testCaseID: TCXM_2052
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4559,7 +4699,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3614
+            - testCaseID: TCXM_2053
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4642,7 +4782,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3615
+            - testCaseID: TCXM_2054
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4710,7 +4850,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3616
+            - testCaseID: TCXM_2055
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4793,7 +4933,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3617
+            - testCaseID: TCXM_2056
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4861,7 +5001,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3618
+            - testCaseID: TCXM_2057
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4944,7 +5084,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3619
+            - testCaseID: TCXM_2058
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5012,7 +5152,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3620
+            - testCaseID: TCXM_2059
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5095,7 +5235,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3621
+            - testCaseID: TCXM_2060
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5163,7 +5303,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3622
+            - testCaseID: TCXM_2061
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5246,7 +5386,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3623
+            - testCaseID: TCXM_2062
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5314,7 +5454,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3624
+            - testCaseID: TCXM_2063
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5397,7 +5537,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3625
+            - testCaseID: TCXM_2064
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5465,7 +5605,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3626
+            - testCaseID: TCXM_2065
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5548,7 +5688,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3627
+            - testCaseID: TCXM_2066
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5616,7 +5756,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3628
+            - testCaseID: TCXM_2067
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5699,7 +5839,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3629
+            - testCaseID: TCXM_2068
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5767,7 +5907,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3630
+            - testCaseID: TCXM_2069
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5850,7 +5990,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3631
+            - testCaseID: TCXM_2070
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5918,7 +6058,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3632
+            - testCaseID: TCXM_2071
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6001,7 +6141,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3633
+            - testCaseID: TCXM_2072
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6069,7 +6209,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3634
+            - testCaseID: TCXM_2073
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6152,7 +6292,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3635
+            - testCaseID: TCXM_2074
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6220,7 +6360,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3636
+            - testCaseID: TCXM_2075
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6305,7 +6445,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3637
+            - testCaseID: TCXM_2076
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6390,7 +6530,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3638
+            - testCaseID: TCXM_2077
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6475,7 +6615,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3639
+            - testCaseID: TCXM_2078
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6560,7 +6700,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3640
+            - testCaseID: TCXM_2079
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6645,7 +6785,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3641
+            - testCaseID: TCXM_2080
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6730,7 +6870,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3642
+            - testCaseID: TCXM_2081
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6815,7 +6955,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3643
+            - testCaseID: TCXM_2082
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6900,7 +7040,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3644
+            - testCaseID: TCXM_2083
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6985,7 +7125,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3645
+            - testCaseID: TCXM_2084
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7070,7 +7210,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3646
+            - testCaseID: TCXM_2085
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7153,7 +7293,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3647
+            - testCaseID: TCXM_2086
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7236,7 +7376,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3648
+            - testCaseID: TCXM_2087
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7319,7 +7459,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3649
+            - testCaseID: TCXM_2088
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7404,7 +7544,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3650
+            - testCaseID: TCXM_2089
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7489,7 +7629,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3651
+            - testCaseID: TCXM_2090
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7574,7 +7714,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3652
+            - testCaseID: TCXM_2091
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7659,7 +7799,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3653
+            - testCaseID: TCXM_2092
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7744,7 +7884,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3654
+            - testCaseID: TCXM_2093
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7829,7 +7969,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3655
+            - testCaseID: TCXM_2094
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7914,7 +8054,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3656
+            - testCaseID: TCXM_2095
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7999,7 +8139,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3657
+            - testCaseID: TCXM_2096
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8084,7 +8224,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3658
+            - testCaseID: TCXM_2097
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8169,7 +8309,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3659
+            - testCaseID: TCXM_2098
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8254,7 +8394,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3660
+            - testCaseID: TCXM_2099
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8339,7 +8479,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3661
+            - testCaseID: TCXM_2100
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8424,7 +8564,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3662
+            - testCaseID: TCXM_2101
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8509,7 +8649,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3663
+            - testCaseID: TCXM_2102
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8594,7 +8734,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3664
+            - testCaseID: TCXM_2103
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8679,7 +8819,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3665
+            - testCaseID: TCXM_2104
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8764,7 +8904,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3666
+            - testCaseID: TCXM_2105
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8849,256 +8989,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3667
-              featureName: dns-server
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify dns-server with string value variation 1 for 'id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with string type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dns-server-feature
-                    name: TestResource-id-Typestring-V1
-                    objectType: dns-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: dns-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V1/devices/deploy
-                  pathParams:
-                    name: TestResource-id-Typestring-V1
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V1/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-id-Typestring-V1
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/configuration/dns
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_3668
-              featureName: dns-server
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify dns-server with string value variation 2 for 'id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with string type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dns-server-feature
-                    name: TestResource-id-Typestring-V2
-                    objectType: dns-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: dns-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V2/devices/deploy
-                  pathParams:
-                    name: TestResource-id-Typestring-V2
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V2/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-id-Typestring-V2
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/configuration/dns
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_3669
-              featureName: dns-server
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify dns-server with string value variation 3 for 'id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with string type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dns-server-feature
-                    name: TestResource-id-Typestring-V3
-                    objectType: dns-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: dns-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V3/devices/deploy
-                  pathParams:
-                    name: TestResource-id-Typestring-V3
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-id-Typestring-V3/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-id-Typestring-V3
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/configuration/dns
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_3670
+            - testCaseID: TCXM_2106
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9181,7 +9072,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3671
+            - testCaseID: TCXM_2107
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9264,7 +9155,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3672
+            - testCaseID: TCXM_2108
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9347,7 +9238,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3673
+            - testCaseID: TCXM_2109
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9430,7 +9321,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3674
+            - testCaseID: TCXM_2110
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9513,7 +9404,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3675
+            - testCaseID: TCXM_2111
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9596,7 +9487,256 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_3676
+            - testCaseID: TCXM_2112
+              featureName: dns-server
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify dns-server with string value variation 1 for 'id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with string type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dns-server-feature
+                    name: TestResource-id-Typestring-V1
+                    objectType: dns-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                          type: dns-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-id-Typestring-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-id-Typestring-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/dns
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_2113
+              featureName: dns-server
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify dns-server with string value variation 2 for 'id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with string type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dns-server-feature
+                    name: TestResource-id-Typestring-V2
+                    objectType: dns-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                          type: dns-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-id-Typestring-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-id-Typestring-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/dns
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_2114
+              featureName: dns-server
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify dns-server with string value variation 3 for 'id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with string type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dns-server-feature
+                    name: TestResource-id-Typestring-V3
+                    objectType: dns-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                          type: dns-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-id-Typestring-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-id-Typestring-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-id-Typestring-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/dns
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_2115
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -9613,7 +9753,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /global-profile/feature/object/modify
+                    featurePath: /global-profile/feature/object/delete
                     name: TestProfile-Additional
                     objectType: dns-server
                     objects:
@@ -9630,14 +9770,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-23T03:56:41Z
+                  description: Schedule deployment to device at 2026-04-27T04:01:49Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:41Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9645,7 +9785,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_3677
+            - testCaseID: TCXM_2116
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -9662,7 +9802,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /global-profile/feature/object/modify
+                    featurePath: /global-profile/feature/object/delete
                     name: TestProfile-Additional
                     objectType: dns-server
                     objects:
@@ -9679,14 +9819,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-23T03:56:41Z
+                  description: Schedule deployment to site at 2026-04-27T04:01:49Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:41Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -9694,7 +9834,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_3678
+            - testCaseID: TCXM_2117
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9708,7 +9848,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /global-profile/feature/object/modify
+                    featurePath: /global-profile/feature/object/delete
                     name: TestProfile-Additional
                     objectType: dns-server
                     objects:
@@ -9732,7 +9872,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:41Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9741,14 +9881,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-23T04:56:41Z
+                  description: Edit deployment schedule to 2026-04-27T05:01:49Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T04:56:41Z"
+                    deployAt: "2026-04-27T05:01:49Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9756,7 +9896,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_3679
+            - testCaseID: TCXM_2118
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9770,7 +9910,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /global-profile/feature/object/modify
+                    featurePath: /global-profile/feature/object/delete
                     name: TestProfile-Additional
                     objectType: dns-server
                     objects:
@@ -9794,7 +9934,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:41Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -9816,7 +9956,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_3680
+            - testCaseID: TCXM_2119
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9830,7 +9970,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /global-profile/feature/object/modify
+                    featurePath: /global-profile/feature/object/delete
                     name: TestProfile-Additional
                     objectType: dns-server
                     objects:
@@ -9859,7 +9999,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_3681
+            - testCaseID: TCXM_2120
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9873,7 +10013,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /global-profile/feature/object/modify
+                    featurePath: /global-profile/feature/object/delete
                     name: TestProfile-Additional
                     objectType: dns-server
                     objects:
@@ -9897,7 +10037,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /global-profile/feature/object/modify
+                    featurePath: /global-profile/feature/object/delete
                     newId: cloned-object-1
                     objectType: dns-server
                     sourceId: original-object-1
@@ -9905,7 +10045,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_3682
+            - testCaseID: TCXM_2121
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9919,7 +10059,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /global-profile/feature/object/modify
+                    featurePath: /global-profile/feature/object/delete
                     name: TestProfile-Additional-ConflictDetect
                     objectType: dns-server
                     objects:
@@ -9999,7 +10139,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_3683
+            - testCaseID: TCXM_2122
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -10013,7 +10153,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /global-profile/feature/object/modify
+                    featurePath: /global-profile/feature/object/delete
                     name: TestProfile-Additional-ConflictCC
                     objectType: dns-server
                     objects:
@@ -10141,7 +10281,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_3684
+            - testCaseID: TCXM_2123
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -10155,7 +10295,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /global-profile/feature/object/modify
+                    featurePath: /global-profile/feature/object/delete
                     name: TestProfile-Additional-ConflictDD
                     objectType: dns-server
                     objects:
@@ -10251,7 +10391,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_3685
+            - testCaseID: TCXM_2124
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10352,7 +10492,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3686
+            - testCaseID: TCXM_2125
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10469,7 +10609,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 204
-            - testCaseID: TCXM_3687
+            - testCaseID: TCXM_2126
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10570,7 +10710,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_3688
+            - testCaseID: TCXM_2127
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10604,7 +10744,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3689
+            - testCaseID: TCXM_2128
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10638,7 +10778,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3690
+            - testCaseID: TCXM_2129
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10672,7 +10812,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3691
+            - testCaseID: TCXM_2130
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10706,7 +10846,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3692
+            - testCaseID: TCXM_2131
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10740,7 +10880,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3693
+            - testCaseID: TCXM_2132
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10774,7 +10914,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3694
+            - testCaseID: TCXM_2133
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10808,7 +10948,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3695
+            - testCaseID: TCXM_2134
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10842,7 +10982,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3696
+            - testCaseID: TCXM_2135
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10876,7 +11016,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3697
+            - testCaseID: TCXM_2136
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10910,7 +11050,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3698
+            - testCaseID: TCXM_2137
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10944,7 +11084,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3699
+            - testCaseID: TCXM_2138
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10978,7 +11118,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3700
+            - testCaseID: TCXM_2139
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11012,7 +11152,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3701
+            - testCaseID: TCXM_2140
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11046,7 +11186,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3702
+            - testCaseID: TCXM_2141
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11080,7 +11220,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3703
+            - testCaseID: TCXM_2142
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11114,7 +11254,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_3704
+            - testCaseID: TCXM_2143
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11149,7 +11289,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_3708
+            - testCaseID: TCXM_2151
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11182,7 +11322,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'priority'
-            - testCaseID: TCXM_3709
+            - testCaseID: TCXM_2152
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11215,7 +11355,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'server'
-            - testCaseID: TCXM_3710
+            - testCaseID: TCXM_2153
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11242,13 +11382,17 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: deleted-at
+                              origin: Global
+                              type: string
+                              value: '!!!INVALID-PATTERN@@@'
                           type: dns-server
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3711
+            - testCaseID: TCXM_2154
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11281,7 +11425,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3712
+            - testCaseID: TCXM_2155
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11308,13 +11452,17 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: 123-starts-with-digit
                           type: dns-server
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3713
+            - testCaseID: TCXM_2156
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11347,7 +11495,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3714
+            - testCaseID: TCXM_2157
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11374,13 +11522,17 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP
                           type: dns-server
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3715
+            - testCaseID: TCXM_2158
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11413,7 +11565,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3716
+            - testCaseID: TCXM_2159
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11448,7 +11600,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3717
+            - testCaseID: TCXM_2160
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11483,7 +11635,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3718
+            - testCaseID: TCXM_2161
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11518,7 +11670,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3719
+            - testCaseID: TCXM_2162
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11553,7 +11705,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3720
+            - testCaseID: TCXM_2163
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11587,7 +11739,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'id' is omitted
-            - testCaseID: TCXM_3721
+            - testCaseID: TCXM_2164
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11621,7 +11773,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'created-at' is omitted
-            - testCaseID: TCXM_3722
+            - testCaseID: TCXM_2165
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11655,7 +11807,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'updated-at' is omitted
-            - testCaseID: TCXM_3723
+            - testCaseID: TCXM_2166
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11689,7 +11841,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'deleted-at' is omitted
-            - testCaseID: TCXM_3724
+            - testCaseID: TCXM_2167
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11723,7 +11875,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'customer-id' is omitted
-            - testCaseID: TCXM_3725
+            - testCaseID: TCXM_2168
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11757,7 +11909,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'owner-id' is omitted
-            - testCaseID: TCXM_3726
+            - testCaseID: TCXM_2169
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11791,7 +11943,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vr-name' is omitted
-            - testCaseID: TCXM_3727
+            - testCaseID: TCXM_2170
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11825,7 +11977,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3728
+            - testCaseID: TCXM_2171
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11847,7 +11999,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_3729
+            - testCaseID: TCXM_2172
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11881,7 +12033,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3730
+            - testCaseID: TCXM_2173
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11915,7 +12067,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3731
+            - testCaseID: TCXM_2174
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11949,7 +12101,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3732
+            - testCaseID: TCXM_2175
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11983,7 +12135,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3733
+            - testCaseID: TCXM_2176
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12017,7 +12169,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3734
+            - testCaseID: TCXM_2177
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12051,7 +12203,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3735
+            - testCaseID: TCXM_2178
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12085,7 +12237,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3736
+            - testCaseID: TCXM_2179
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12119,7 +12271,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3737
+            - testCaseID: TCXM_2180
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12153,7 +12305,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3738
+            - testCaseID: TCXM_2181
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12187,7 +12339,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3739
+            - testCaseID: TCXM_2182
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12221,7 +12373,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3740
+            - testCaseID: TCXM_2183
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12255,7 +12407,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3741
+            - testCaseID: TCXM_2184
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12289,7 +12441,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3742
+            - testCaseID: TCXM_2185
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12323,7 +12475,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3743
+            - testCaseID: TCXM_2186
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -12358,7 +12510,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_3748
+            - testCaseID: TCXM_2191
               featureName: dns-server
               priority: P4
               automation: Automatable
@@ -12670,7 +12822,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_3749
+            - testCaseID: TCXM_2192
               featureName: dns-server
               priority: P4
               automation: Automatable
@@ -12832,7 +12984,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_3750
+            - testCaseID: TCXM_2193
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -13179,7 +13331,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_3751
+            - testCaseID: TCXM_2194
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -13581,7 +13733,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_3744
+            - testCaseID: TCXM_2187
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -16191,7 +16343,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_3745
+            - testCaseID: TCXM_2188
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -16226,7 +16378,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_3746
+            - testCaseID: TCXM_2189
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -16533,7 +16685,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_3747
+            - testCaseID: TCXM_2190
               featureName: dns-server
               priority: P3
               automation: Automatable

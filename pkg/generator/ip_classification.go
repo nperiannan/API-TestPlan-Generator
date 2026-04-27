@@ -125,7 +125,7 @@ func (g *Generator) generateIPPositiveTests(
 
 		body := g.generateRequestBody(feature, createPath)
 		body["name"] = fmt.Sprintf("TestResource-IP-%s", ipCase.label)
-		g.setBodyParameterValue(body, param.Name, ipCase.value)
+		g.setOrAddBodyParameter(body, param, ipCase.value)
 
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name:           fmt.Sprintf("createWith%s", ipCase.label),
@@ -186,7 +186,7 @@ func (g *Generator) generateIPNegativeTests(
 
 		body := g.generateRequestBody(feature, createPath)
 		body["name"] = fmt.Sprintf("TestResource-BadIP-%s", ipCase.label)
-		g.setBodyParameterValue(body, param.Name, ipCase.value)
+		g.setOrAddBodyParameter(body, param, ipCase.value)
 
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name:           fmt.Sprintf("attemptWith%s", ipCase.label),
@@ -227,11 +227,32 @@ func (g *Generator) collectIPParameters(params []model.Parameter) []model.Parame
 func isIPParameter(param model.Parameter) bool {
 	lower := strings.ToLower(param.Name)
 
-	// Name-based heuristics
-	ipNameHints := []string{"server", "address", "-ip", "ip-", "host", "gateway",
+	// Disqualifiers — names with these substrings are clearly not IP/host
+	// fields even when they share a token like "server" with one (e.g.
+	// "auth-server-secret", "accounting-server-port").
+	nonIPHints := []string{"secret", "password", "passwd", "port", "-key", "key-",
+		"-id", "id-", "-name", "name-", "-type", "type-", "domain-name",
+		"community", "token", "username", "user-name", "shared-key", "hash",
+		"timeout", "interval", "retries", "count", "duration", "encrypted",
+		"enable", "enabled", "disable", "disabled", "mode"}
+	for _, bad := range nonIPHints {
+		if strings.Contains(lower, bad) {
+			return false
+		}
+	}
+
+	// Name-based heuristics: tokens that strongly imply an address-style
+	// field. We match against dash-delimited tokens to avoid false hits
+	// inside other words (e.g. "shared-key" containing "key").
+	tokens := strings.Split(lower, "-")
+	tokenSet := make(map[string]bool, len(tokens))
+	for _, t := range tokens {
+		tokenSet[t] = true
+	}
+	ipTokens := []string{"server", "address", "ip", "host", "gateway",
 		"nameserver", "dns", "ntp", "syslog", "radius", "tacacs"}
-	for _, hint := range ipNameHints {
-		if strings.Contains(lower, hint) {
+	for _, t := range ipTokens {
+		if tokenSet[t] {
 			return true
 		}
 	}
@@ -248,4 +269,71 @@ func isIPParameter(param model.Parameter) bool {
 	}
 
 	return false
+}
+
+// ── IP boundary cases ─────────────────────────────────────────────────────────
+//
+// For string fields that accept an IP address / hostname, generic
+// minLength / maxLength boundary values are not meaningful — and the
+// "edge" IPv4 values 0.0.0.0 (network) and 255.255.255.255 (broadcast)
+// are not valid host addresses. The cases below cover the smallest and
+// largest semantically valid IPv4 unicast, IPv6 unicast and FQDN values,
+// plus FQDN length boundaries.
+var ipBoundaryCases = []ipTestCase{
+	{"IPv4MinValid", "1.0.0.1", "Minimum valid IPv4 unicast host (above 0.0.0.0/8 reserved range)"},
+	{"IPv4MaxValid", "223.255.255.254", "Maximum valid IPv4 unicast host (last address before multicast 224/4)"},
+	{"IPv6MinValid", "2001:db8::1", "Minimum valid IPv6 global unicast (RFC 3849 documentation prefix)"},
+	{"IPv6MaxValid", "2001:db8:ffff:ffff:ffff:ffff:ffff:fffe", "Maximum valid IPv6 unicast within documentation prefix"},
+	{"FQDNMinLength", "a.io", "Minimum-length FQDN (single-character label + TLD)"},
+	{"FQDNMaxLength", buildMaxLengthFQDN(), "Maximum-length FQDN (253 characters per RFC 1035)"},
+}
+
+// buildMaxLengthFQDN returns a 253-character FQDN built from labels of
+// length 63 (the per-label DNS limit) joined with dots.
+func buildMaxLengthFQDN() string {
+	label63 := strings.Repeat("a", 63)
+	// 63 + 1 + 63 + 1 + 63 + 1 + 61 = 253
+	return label63 + "." + label63 + "." + label63 + "." + strings.Repeat("b", 61)
+}
+
+// generateIPBoundaryTests produces boundary test cases for an IP-typed
+// string parameter, covering valid IPv4, IPv6 and FQDN edge values.
+// Used in place of generic string-length boundary tests for IP fields.
+func (g *Generator) generateIPBoundaryTests(
+	feature *model.Feature,
+	param model.Parameter,
+	createPath *model.FeaturePath,
+) []model.TestCase {
+	var tests []model.TestCase
+
+	for _, ipCase := range ipBoundaryCases {
+		tc := model.TestCase{
+			TestCaseID:  g.nextTestID(),
+			FeatureName: feature.Name,
+			Priority:    model.TestPriorityP3,
+			Type:        model.TestCategoryBoundary,
+			Description: fmt.Sprintf("Boundary test: %s='%s' — %s",
+				param.Name, ipCase.value, ipCase.description),
+			IsDeploymentTest: false,
+			Steps:            []model.TestStep{},
+		}
+
+		body := g.generateRequestBody(feature, createPath)
+		g.setOrAddBodyParameter(body, param, ipCase.value)
+
+		tc.Steps = append(tc.Steps, model.TestStep{
+			Name:           fmt.Sprintf("testBoundary_%s", ipCase.label),
+			Description:    fmt.Sprintf("Test %s with %s value '%s'", param.Name, ipCase.label, ipCase.value),
+			Method:         createPath.HTTPMethod,
+			API:            model.APITypeREST,
+			Path:           createPath.Path,
+			Body:           body,
+			ExpectedStatus: 201,
+			Validations:    g.generateResponseValidations(feature, createPath, 201),
+		})
+
+		tests = append(tests, tc)
+	}
+
+	return tests
 }

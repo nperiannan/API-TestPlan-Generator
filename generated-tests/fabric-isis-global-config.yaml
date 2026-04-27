@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-04-23T08:26:39+05:30"
+generatedAt: "2026-04-27T08:31:49+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_1788
+            - testCaseID: TCXM_2355
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -29,7 +29,11 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: sys-id
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
@@ -37,7 +41,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1789
+            - testCaseID: TCXM_2356
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -55,7 +59,11 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: sys-name
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
@@ -63,7 +71,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1790
+            - testCaseID: TCXM_2357
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -81,7 +89,11 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: area-name
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
@@ -89,16 +101,16 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1791
+            - testCaseID: TCXM_2358
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
               type: boundary
-              description: Test manual-area-address parameter with maxLength constraint
+              description: 'Boundary test: manual-area-address=''1.0.0.1'' — Minimum valid IPv4 unicast host (above 0.0.0.0/8 reserved range)'
               isDeploymentTest: false
               steps:
-                - name: testBoundary
-                  description: Test manual-area-address with maxLength
+                - name: testBoundary_IPv4MinValid
+                  description: Test manual-area-address with IPv4MinValid value '1.0.0.1'
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -107,7 +119,161 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 1.0.0.1
+                          type: fabric-isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_2359
+              featureName: fabric-isis-global-config
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: manual-area-address=''223.255.255.254'' — Maximum valid IPv4 unicast host (last address before multicast 224/4)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv4MaxValid
+                  description: Test manual-area-address with IPv4MaxValid value '223.255.255.254'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: fabric-isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 223.255.255.254
+                          type: fabric-isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_2360
+              featureName: fabric-isis-global-config
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: manual-area-address=''2001:db8::1'' — Minimum valid IPv6 global unicast (RFC 3849 documentation prefix)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv6MinValid
+                  description: Test manual-area-address with IPv6MinValid value '2001:db8::1'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: fabric-isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 2001:db8::1
+                          type: fabric-isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_2361
+              featureName: fabric-isis-global-config
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: manual-area-address=''2001:db8:ffff:ffff:ffff:ffff:ffff:fffe'' — Maximum valid IPv6 unicast within documentation prefix'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv6MaxValid
+                  description: Test manual-area-address with IPv6MaxValid value '2001:db8:ffff:ffff:ffff:ffff:ffff:fffe'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: fabric-isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 2001:db8:ffff:ffff:ffff:ffff:ffff:fffe
+                          type: fabric-isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_2362
+              featureName: fabric-isis-global-config
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: manual-area-address=''a.io'' — Minimum-length FQDN (single-character label + TLD)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_FQDNMinLength
+                  description: Test manual-area-address with FQDNMinLength value 'a.io'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: fabric-isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: a.io
+                          type: fabric-isis-global-config
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_2363
+              featureName: fabric-isis-global-config
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: manual-area-address=''aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'' — Maximum-length FQDN (253 characters per RFC 1035)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_FQDNMaxLength
+                  description: Test manual-area-address with FQDNMaxLength value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: fabric-isis-global-config
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
@@ -116,7 +282,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_1628
+            - testCaseID: TCXM_2195
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -218,7 +384,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='manual-area-address')].value
                       expected: "49.0000"
                       description: Verify 'manual-area-address' value is '49.0000' as set during create
-            - testCaseID: TCXM_1629
+            - testCaseID: TCXM_2196
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -264,7 +430,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1630
+            - testCaseID: TCXM_2197
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -305,7 +471,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_1631
+            - testCaseID: TCXM_2198
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -368,7 +534,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1632
+            - testCaseID: TCXM_2199
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -409,7 +575,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1633
+            - testCaseID: TCXM_2200
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -439,7 +605,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1634
+            - testCaseID: TCXM_2201
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -535,7 +701,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1635
+            - testCaseID: TCXM_2202
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -563,7 +729,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1636
+            - testCaseID: TCXM_2203
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -605,7 +771,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_1637
+            - testCaseID: TCXM_2204
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -790,7 +956,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='manual-area-address')].value
                       expected: "49.0000"
                       description: Verify field 'manual-area-address' has value '49.0000' as sent on create
-            - testCaseID: TCXM_1638
+            - testCaseID: TCXM_2205
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -840,7 +1006,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='id')].value
                       expected: testValue
                       description: Verify optional field 'id' value is 'testValue' as set on create
-            - testCaseID: TCXM_1639
+            - testCaseID: TCXM_2206
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -890,7 +1056,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='created-at')].value
                       expected: testValue
                       description: Verify optional field 'created-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_1640
+            - testCaseID: TCXM_2207
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -940,7 +1106,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='updated-at')].value
                       expected: testValue
                       description: Verify optional field 'updated-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_1641
+            - testCaseID: TCXM_2208
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -990,7 +1156,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='deleted-at')].value
                       expected: testValue
                       description: Verify optional field 'deleted-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_1642
+            - testCaseID: TCXM_2209
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1040,7 +1206,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='customer-id')].value
                       expected: 100
                       description: Verify optional field 'customer-id' value is '100' as set on create
-            - testCaseID: TCXM_1643
+            - testCaseID: TCXM_2210
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1090,7 +1256,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='owner-id')].value
                       expected: 100
                       description: Verify optional field 'owner-id' value is '100' as set on create
-            - testCaseID: TCXM_1644
+            - testCaseID: TCXM_2211
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1140,7 +1306,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-type')].value
                       expected: HOME
                       description: Verify optional field 'area-type' value is 'HOME' as set on create
-            - testCaseID: TCXM_1645
+            - testCaseID: TCXM_2212
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1190,7 +1356,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-admin-state')].value
                       expected: ""
                       description: Verify optional field 'sys-admin-state' value is '' as set on create
-            - testCaseID: TCXM_1646
+            - testCaseID: TCXM_2213
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1240,7 +1406,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-id')].value
                       expected: testValue
                       description: Verify optional field 'sys-id' value is 'testValue' as set on create
-            - testCaseID: TCXM_1647
+            - testCaseID: TCXM_2214
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1290,7 +1456,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-name')].value
                       expected: test-resource
                       description: Verify optional field 'sys-name' value is 'test-resource' as set on create
-            - testCaseID: TCXM_1648
+            - testCaseID: TCXM_2215
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1340,7 +1506,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-name')].value
                       expected: ""
                       description: Verify optional field 'area-name' value is '' as set on create
-            - testCaseID: TCXM_1649
+            - testCaseID: TCXM_2216
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1390,7 +1556,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-source-address')].value
                       expected: 8.8.8.8
                       description: Verify optional field 'ip-source-address' value is '8.8.8.8' as set on create
-            - testCaseID: TCXM_1650
+            - testCaseID: TCXM_2217
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1440,7 +1606,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='manual-area-address')].value
                       expected: "49.0000"
                       description: Verify optional field 'manual-area-address' value is '49.0000' as set on create
-            - testCaseID: TCXM_1651
+            - testCaseID: TCXM_2218
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1483,7 +1649,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_1652
+            - testCaseID: TCXM_2219
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1526,7 +1692,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_1653
+            - testCaseID: TCXM_2220
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1569,7 +1735,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_1654
+            - testCaseID: TCXM_2221
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1612,7 +1778,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_1655
+            - testCaseID: TCXM_2222
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1655,7 +1821,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_1656
+            - testCaseID: TCXM_2223
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1698,7 +1864,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_1657
+            - testCaseID: TCXM_2224
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1741,7 +1907,7 @@ features:
                       path: $.customer-id
                       expected: 1
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_1658
+            - testCaseID: TCXM_2225
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1784,7 +1950,7 @@ features:
                       path: $.customer-id
                       expected: 100
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_1659
+            - testCaseID: TCXM_2226
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1827,7 +1993,7 @@ features:
                       path: $.area-type
                       expected: 1
                       description: Verify 'area-type' YANG type 'intent-types:area-type-enum' value is persisted
-            - testCaseID: TCXM_1660
+            - testCaseID: TCXM_2227
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1870,7 +2036,7 @@ features:
                       path: $.area-type
                       expected: 100
                       description: Verify 'area-type' YANG type 'intent-types:area-type-enum' value is persisted
-            - testCaseID: TCXM_1661
+            - testCaseID: TCXM_2228
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1913,7 +2079,7 @@ features:
                       path: $.sys-admin-state
                       expected: 1
                       description: Verify 'sys-admin-state' YANG type 'intent-types:sys-admin-state-enum' value is persisted
-            - testCaseID: TCXM_1662
+            - testCaseID: TCXM_2229
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1956,7 +2122,7 @@ features:
                       path: $.sys-admin-state
                       expected: 100
                       description: Verify 'sys-admin-state' YANG type 'intent-types:sys-admin-state-enum' value is persisted
-            - testCaseID: TCXM_1663
+            - testCaseID: TCXM_2230
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1999,7 +2165,7 @@ features:
                       path: $.sys-id
                       expected: test-value-1
                       description: Verify 'sys-id' YANG type 'string' value is persisted
-            - testCaseID: TCXM_1664
+            - testCaseID: TCXM_2231
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2042,7 +2208,7 @@ features:
                       path: $.sys-id
                       expected: test-value-2
                       description: Verify 'sys-id' YANG type 'string' value is persisted
-            - testCaseID: TCXM_1665
+            - testCaseID: TCXM_2232
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2085,7 +2251,7 @@ features:
                       path: $.ip-source-address
                       expected: 192.168.1.1
                       description: Verify 'ip-source-address' YANG type 'ietf-inet:ipv4-address' value is persisted
-            - testCaseID: TCXM_1666
+            - testCaseID: TCXM_2233
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2128,7 +2294,7 @@ features:
                       path: $.ip-source-address
                       expected: 10.0.0.1
                       description: Verify 'ip-source-address' YANG type 'ietf-inet:ipv4-address' value is persisted
-            - testCaseID: TCXM_1667
+            - testCaseID: TCXM_2234
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2171,7 +2337,7 @@ features:
                       path: $.area-type
                       expected: HOME
                       description: Verify 'area-type' equals YANG-defined default value HOME
-            - testCaseID: TCXM_1668
+            - testCaseID: TCXM_2235
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2214,7 +2380,7 @@ features:
                       path: $.sys-admin-state
                       expected: ""
                       description: 'Verify ''sys-admin-state'' equals YANG-defined default value '
-            - testCaseID: TCXM_1669
+            - testCaseID: TCXM_2236
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2257,7 +2423,7 @@ features:
                       path: $.area-name
                       expected: ""
                       description: 'Verify ''area-name'' equals YANG-defined default value '
-            - testCaseID: TCXM_1670
+            - testCaseID: TCXM_2237
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2300,7 +2466,7 @@ features:
                       path: $.manual-area-address
                       expected: "49.0000"
                       description: Verify 'manual-area-address' equals YANG-defined default value 49.0000
-            - testCaseID: TCXM_1671
+            - testCaseID: TCXM_2238
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2360,7 +2526,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1672
+            - testCaseID: TCXM_2239
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2420,7 +2586,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1673
+            - testCaseID: TCXM_2240
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2480,7 +2646,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1674
+            - testCaseID: TCXM_2241
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2540,7 +2706,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1675
+            - testCaseID: TCXM_2242
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2600,7 +2766,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1676
+            - testCaseID: TCXM_2243
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2660,7 +2826,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1677
+            - testCaseID: TCXM_2244
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2720,7 +2886,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1678
+            - testCaseID: TCXM_2245
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2780,7 +2946,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1679
+            - testCaseID: TCXM_2246
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2840,7 +3006,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1680
+            - testCaseID: TCXM_2247
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2900,7 +3066,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1681
+            - testCaseID: TCXM_2248
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2960,7 +3126,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1682
+            - testCaseID: TCXM_2249
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3020,7 +3186,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1683
+            - testCaseID: TCXM_2250
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3080,7 +3246,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1684
+            - testCaseID: TCXM_2251
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3140,7 +3306,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1685
+            - testCaseID: TCXM_2252
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3200,7 +3366,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1686
+            - testCaseID: TCXM_2253
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3260,7 +3426,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1687
+            - testCaseID: TCXM_2254
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3320,7 +3486,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1688
+            - testCaseID: TCXM_2255
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3380,7 +3546,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1689
+            - testCaseID: TCXM_2256
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3440,7 +3606,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1690
+            - testCaseID: TCXM_2257
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3500,7 +3666,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1691
+            - testCaseID: TCXM_2258
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3560,7 +3726,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1692
+            - testCaseID: TCXM_2259
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3620,7 +3786,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1693
+            - testCaseID: TCXM_2260
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3680,7 +3846,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1694
+            - testCaseID: TCXM_2261
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3740,7 +3906,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1695
+            - testCaseID: TCXM_2262
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3800,7 +3966,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1696
+            - testCaseID: TCXM_2263
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3860,7 +4026,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1697
+            - testCaseID: TCXM_2264
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3920,7 +4086,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1698
+            - testCaseID: TCXM_2265
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3980,7 +4146,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1699
+            - testCaseID: TCXM_2266
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4040,7 +4206,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1700
+            - testCaseID: TCXM_2267
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4100,7 +4266,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1701
+            - testCaseID: TCXM_2268
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4160,7 +4326,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1702
+            - testCaseID: TCXM_2269
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4220,7 +4386,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1703
+            - testCaseID: TCXM_2270
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4280,7 +4446,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1704
+            - testCaseID: TCXM_2271
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4340,7 +4506,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1705
+            - testCaseID: TCXM_2272
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4400,7 +4566,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1706
+            - testCaseID: TCXM_2273
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4460,7 +4626,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1707
+            - testCaseID: TCXM_2274
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4523,7 +4689,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1708
+            - testCaseID: TCXM_2275
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4586,7 +4752,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1709
+            - testCaseID: TCXM_2276
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4649,7 +4815,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1710
+            - testCaseID: TCXM_2277
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4712,7 +4878,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1711
+            - testCaseID: TCXM_2278
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4775,7 +4941,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1712
+            - testCaseID: TCXM_2279
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4838,7 +5004,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1713
+            - testCaseID: TCXM_2280
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4901,7 +5067,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1714
+            - testCaseID: TCXM_2281
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4964,7 +5130,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1715
+            - testCaseID: TCXM_2282
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5027,7 +5193,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1716
+            - testCaseID: TCXM_2283
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5090,7 +5256,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1717
+            - testCaseID: TCXM_2284
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5150,7 +5316,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1718
+            - testCaseID: TCXM_2285
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5210,7 +5376,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1719
+            - testCaseID: TCXM_2286
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5270,7 +5436,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1720
+            - testCaseID: TCXM_2287
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5330,7 +5496,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1721
+            - testCaseID: TCXM_2288
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5392,7 +5558,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1722
+            - testCaseID: TCXM_2289
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5454,7 +5620,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1723
+            - testCaseID: TCXM_2290
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5516,7 +5682,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1724
+            - testCaseID: TCXM_2291
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5578,7 +5744,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1725
+            - testCaseID: TCXM_2292
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5640,7 +5806,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1726
+            - testCaseID: TCXM_2293
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5702,7 +5868,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1727
+            - testCaseID: TCXM_2294
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5764,7 +5930,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1728
+            - testCaseID: TCXM_2295
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5826,7 +5992,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1729
+            - testCaseID: TCXM_2296
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5888,7 +6054,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1730
+            - testCaseID: TCXM_2297
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5950,7 +6116,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1731
+            - testCaseID: TCXM_2298
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6012,7 +6178,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1732
+            - testCaseID: TCXM_2299
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6074,7 +6240,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1733
+            - testCaseID: TCXM_2300
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6136,7 +6302,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1734
+            - testCaseID: TCXM_2301
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6198,7 +6364,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1735
+            - testCaseID: TCXM_2302
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6260,7 +6426,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1736
+            - testCaseID: TCXM_2303
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6322,7 +6488,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1737
+            - testCaseID: TCXM_2304
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6384,7 +6550,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1738
+            - testCaseID: TCXM_2305
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6446,7 +6612,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1739
+            - testCaseID: TCXM_2306
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6506,7 +6672,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1740
+            - testCaseID: TCXM_2307
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6566,7 +6732,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1741
+            - testCaseID: TCXM_2308
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6626,7 +6792,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1742
+            - testCaseID: TCXM_2309
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6686,7 +6852,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1743
+            - testCaseID: TCXM_2310
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6746,7 +6912,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1744
+            - testCaseID: TCXM_2311
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6806,7 +6972,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1745
+            - testCaseID: TCXM_2312
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -6823,7 +6989,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/modify
+                    featurePath: /configuration-profile/{name}/sites/deploy
                     name: TestProfile-Additional
                     objectType: fabric-isis-global-config
                     objects:
@@ -6840,14 +7006,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-23T03:56:40Z
+                  description: Schedule deployment to device at 2026-04-27T04:01:49Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:40Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -6855,7 +7021,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_1746
+            - testCaseID: TCXM_2313
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -6872,7 +7038,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/modify
+                    featurePath: /configuration-profile/{name}/sites/deploy
                     name: TestProfile-Additional
                     objectType: fabric-isis-global-config
                     objects:
@@ -6889,14 +7055,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-23T03:56:40Z
+                  description: Schedule deployment to site at 2026-04-27T04:01:49Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:40Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -6904,7 +7070,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_1747
+            - testCaseID: TCXM_2314
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6918,7 +7084,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/modify
+                    featurePath: /configuration-profile/{name}/sites/deploy
                     name: TestProfile-Additional
                     objectType: fabric-isis-global-config
                     objects:
@@ -6942,7 +7108,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:40Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -6951,14 +7117,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-23T04:56:40Z
+                  description: Edit deployment schedule to 2026-04-27T05:01:49Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T04:56:40Z"
+                    deployAt: "2026-04-27T05:01:49Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -6966,7 +7132,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_1748
+            - testCaseID: TCXM_2315
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6980,7 +7146,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/modify
+                    featurePath: /configuration-profile/{name}/sites/deploy
                     name: TestProfile-Additional
                     objectType: fabric-isis-global-config
                     objects:
@@ -7004,7 +7170,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:40Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -7026,7 +7192,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_1749
+            - testCaseID: TCXM_2316
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -7040,7 +7206,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/modify
+                    featurePath: /configuration-profile/{name}/sites/deploy
                     name: TestProfile-Additional
                     objectType: fabric-isis-global-config
                     objects:
@@ -7069,7 +7235,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_1750
+            - testCaseID: TCXM_2317
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -7083,7 +7249,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/modify
+                    featurePath: /configuration-profile/{name}/sites/deploy
                     name: TestProfile-Additional
                     objectType: fabric-isis-global-config
                     objects:
@@ -7107,7 +7273,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/modify
+                    featurePath: /configuration-profile/{name}/sites/deploy
                     newId: cloned-object-1
                     objectType: fabric-isis-global-config
                     sourceId: original-object-1
@@ -7115,7 +7281,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_1751
+            - testCaseID: TCXM_2318
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -7129,7 +7295,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/modify
+                    featurePath: /configuration-profile/{name}/sites/deploy
                     name: TestProfile-Additional-ConflictDetect
                     objectType: fabric-isis-global-config
                     objects:
@@ -7209,7 +7375,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_1752
+            - testCaseID: TCXM_2319
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -7223,7 +7389,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/modify
+                    featurePath: /configuration-profile/{name}/sites/deploy
                     name: TestProfile-Additional-ConflictCC
                     objectType: fabric-isis-global-config
                     objects:
@@ -7351,7 +7517,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_1753
+            - testCaseID: TCXM_2320
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -7365,7 +7531,7 @@ features:
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
-                    featurePath: /configuration-profile/{name}/feature/object/modify
+                    featurePath: /configuration-profile/{name}/sites/deploy
                     name: TestProfile-Additional-ConflictDD
                     objectType: fabric-isis-global-config
                     objects:
@@ -7461,7 +7627,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_1754
+            - testCaseID: TCXM_2321
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7480,14 +7646,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 10.0.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1755
+            - testCaseID: TCXM_2322
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7506,14 +7676,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 10.255.255.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1756
+            - testCaseID: TCXM_2323
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7532,14 +7706,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 172.16.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1757
+            - testCaseID: TCXM_2324
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7558,14 +7736,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 172.31.255.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1758
+            - testCaseID: TCXM_2325
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7584,14 +7766,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 192.168.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1759
+            - testCaseID: TCXM_2326
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7610,14 +7796,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 192.168.255.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1760
+            - testCaseID: TCXM_2327
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7636,14 +7826,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 127.0.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1761
+            - testCaseID: TCXM_2328
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7662,14 +7856,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1762
+            - testCaseID: TCXM_2329
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7688,14 +7886,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 1.1.1.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1763
+            - testCaseID: TCXM_2330
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7714,14 +7916,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 208.67.222.222
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1764
+            - testCaseID: TCXM_2331
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7740,14 +7946,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 198.51.100.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1765
+            - testCaseID: TCXM_2332
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7766,14 +7976,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 2001:4860:4860::8888
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1766
+            - testCaseID: TCXM_2333
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7792,14 +8006,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 2606:4700:4700::1111
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1767
+            - testCaseID: TCXM_2334
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7818,14 +8036,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: ::1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1768
+            - testCaseID: TCXM_2335
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7844,14 +8066,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: fe80::1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1769
+            - testCaseID: TCXM_2336
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7870,14 +8096,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: dns.google.com
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1770
+            - testCaseID: TCXM_2337
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7896,14 +8126,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: ns1.example.org
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1771
+            - testCaseID: TCXM_2338
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7922,14 +8156,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 10.0.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1772
+            - testCaseID: TCXM_2339
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7948,14 +8186,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 10.255.255.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1773
+            - testCaseID: TCXM_2340
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -7974,14 +8216,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 172.16.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1774
+            - testCaseID: TCXM_2341
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8000,14 +8246,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 172.31.255.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1775
+            - testCaseID: TCXM_2342
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8026,14 +8276,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 192.168.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1776
+            - testCaseID: TCXM_2343
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8052,14 +8306,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 192.168.255.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1777
+            - testCaseID: TCXM_2344
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8078,14 +8336,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 127.0.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1778
+            - testCaseID: TCXM_2345
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8104,14 +8366,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1779
+            - testCaseID: TCXM_2346
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8130,14 +8396,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 1.1.1.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1780
+            - testCaseID: TCXM_2347
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8156,14 +8426,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 208.67.222.222
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1781
+            - testCaseID: TCXM_2348
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8182,14 +8456,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 198.51.100.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1782
+            - testCaseID: TCXM_2349
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8208,14 +8486,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 2001:4860:4860::8888
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1783
+            - testCaseID: TCXM_2350
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8234,14 +8516,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 2606:4700:4700::1111
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1784
+            - testCaseID: TCXM_2351
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8260,14 +8546,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: ::1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1785
+            - testCaseID: TCXM_2352
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8286,14 +8576,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: fe80::1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1786
+            - testCaseID: TCXM_2353
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8312,14 +8606,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: dns.google.com
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1787
+            - testCaseID: TCXM_2354
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8338,7 +8636,11 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: ns1.example.org
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 201
@@ -8346,7 +8648,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_1792
+            - testCaseID: TCXM_2364
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8364,14 +8666,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: deleted-at
+                              origin: Global
+                              type: string
+                              value: '!!!INVALID-PATTERN@@@'
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1793
+            - testCaseID: TCXM_2365
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8389,14 +8695,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: '!!!INVALID-PATTERN@@@'
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1794
+            - testCaseID: TCXM_2366
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8414,14 +8724,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: sys-id
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopq
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1795
+            - testCaseID: TCXM_2367
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8439,14 +8753,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: sys-name
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopq
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1796
+            - testCaseID: TCXM_2368
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8464,14 +8782,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: area-name
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopq
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1797
+            - testCaseID: TCXM_2369
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8489,14 +8811,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopq
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1798
+            - testCaseID: TCXM_2370
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8522,7 +8848,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'id' is omitted
-            - testCaseID: TCXM_1799
+            - testCaseID: TCXM_2371
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8548,7 +8874,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'created-at' is omitted
-            - testCaseID: TCXM_1800
+            - testCaseID: TCXM_2372
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8574,7 +8900,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'updated-at' is omitted
-            - testCaseID: TCXM_1801
+            - testCaseID: TCXM_2373
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8600,7 +8926,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'deleted-at' is omitted
-            - testCaseID: TCXM_1802
+            - testCaseID: TCXM_2374
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8626,7 +8952,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'customer-id' is omitted
-            - testCaseID: TCXM_1803
+            - testCaseID: TCXM_2375
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8652,7 +8978,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'owner-id' is omitted
-            - testCaseID: TCXM_1804
+            - testCaseID: TCXM_2376
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8678,7 +9004,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'area-type' is omitted
-            - testCaseID: TCXM_1805
+            - testCaseID: TCXM_2377
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8704,7 +9030,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'sys-admin-state' is omitted
-            - testCaseID: TCXM_1806
+            - testCaseID: TCXM_2378
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8730,7 +9056,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'sys-id' is omitted
-            - testCaseID: TCXM_1807
+            - testCaseID: TCXM_2379
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8756,7 +9082,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'sys-name' is omitted
-            - testCaseID: TCXM_1808
+            - testCaseID: TCXM_2380
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8782,7 +9108,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'area-name' is omitted
-            - testCaseID: TCXM_1809
+            - testCaseID: TCXM_2381
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8808,7 +9134,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'ip-source-address' is omitted
-            - testCaseID: TCXM_1810
+            - testCaseID: TCXM_2382
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -8834,7 +9160,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'manual-area-address' is omitted
-            - testCaseID: TCXM_1811
+            - testCaseID: TCXM_2383
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8860,7 +9186,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1812
+            - testCaseID: TCXM_2384
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8882,7 +9208,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_1813
+            - testCaseID: TCXM_2385
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8901,14 +9227,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 256.0.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1814
+            - testCaseID: TCXM_2386
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8927,14 +9257,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 999.999.999.999
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1815
+            - testCaseID: TCXM_2387
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8953,14 +9287,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: -1.0.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1816
+            - testCaseID: TCXM_2388
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8979,14 +9317,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 192.168.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1817
+            - testCaseID: TCXM_2389
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9005,14 +9347,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: "10.0"
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1818
+            - testCaseID: TCXM_2390
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9031,14 +9377,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: not-an-ip-address
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1819
+            - testCaseID: TCXM_2391
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9057,14 +9407,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: ""
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1820
+            - testCaseID: TCXM_2392
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9083,14 +9437,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: '   '
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1821
+            - testCaseID: TCXM_2393
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9109,14 +9467,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8:53
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1822
+            - testCaseID: TCXM_2394
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9135,14 +9497,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 192.168.1.0/24
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1823
+            - testCaseID: TCXM_2395
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9161,14 +9527,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 192.168.1.0
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1824
+            - testCaseID: TCXM_2396
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9187,14 +9557,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 255.255.255.255
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1825
+            - testCaseID: TCXM_2397
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9213,14 +9587,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: ff00::1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1826
+            - testCaseID: TCXM_2398
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9239,14 +9617,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: zzzz::1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1827
+            - testCaseID: TCXM_2399
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9265,14 +9647,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: ip-source-address
+                              origin: Global
+                              type: string
+                              value: 010.0.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1828
+            - testCaseID: TCXM_2400
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9291,14 +9677,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 256.0.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1829
+            - testCaseID: TCXM_2401
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9317,14 +9707,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 999.999.999.999
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1830
+            - testCaseID: TCXM_2402
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9343,14 +9737,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: -1.0.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1831
+            - testCaseID: TCXM_2403
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9369,14 +9767,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 192.168.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1832
+            - testCaseID: TCXM_2404
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9395,14 +9797,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: "10.0"
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1833
+            - testCaseID: TCXM_2405
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9421,14 +9827,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: not-an-ip-address
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1834
+            - testCaseID: TCXM_2406
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9447,14 +9857,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: ""
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1835
+            - testCaseID: TCXM_2407
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9473,14 +9887,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: '   '
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1836
+            - testCaseID: TCXM_2408
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9499,14 +9917,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8:53
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1837
+            - testCaseID: TCXM_2409
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9525,14 +9947,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 192.168.1.0/24
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1838
+            - testCaseID: TCXM_2410
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9551,14 +9977,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 192.168.1.0
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1839
+            - testCaseID: TCXM_2411
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9577,14 +10007,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 255.255.255.255
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1840
+            - testCaseID: TCXM_2412
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9603,14 +10037,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: ff00::1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1841
+            - testCaseID: TCXM_2413
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9629,14 +10067,18 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: zzzz::1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1842
+            - testCaseID: TCXM_2414
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9655,7 +10097,11 @@ features:
                     objectType: fabric-isis-global-config
                     objects:
                         - operation: add
-                          properties: []
+                          properties:
+                            - name: manual-area-address
+                              origin: Global
+                              type: string
+                              value: 010.0.0.1
                           type: fabric-isis-global-config
                     operation: add
                   expectedStatus: 400
@@ -9663,7 +10109,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_1848
+            - testCaseID: TCXM_2420
               featureName: fabric-isis-global-config
               priority: P4
               automation: Automatable
@@ -9895,7 +10341,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_1849
+            - testCaseID: TCXM_2421
               featureName: fabric-isis-global-config
               priority: P4
               automation: Automatable
@@ -10057,7 +10503,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_1850
+            - testCaseID: TCXM_2422
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -10316,7 +10762,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_1851
+            - testCaseID: TCXM_2423
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -10637,7 +11083,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_1852
+            - testCaseID: TCXM_2424
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -10827,7 +11273,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_1843
+            - testCaseID: TCXM_2415
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -12637,7 +13083,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_1844
+            - testCaseID: TCXM_2416
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -12664,7 +13110,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_1845
+            - testCaseID: TCXM_2417
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -13893,7 +14339,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_1846
+            - testCaseID: TCXM_2418
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -14112,7 +14558,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_1847
+            - testCaseID: TCXM_2419
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable

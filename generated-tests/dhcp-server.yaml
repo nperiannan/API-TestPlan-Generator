@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-04-23T08:26:39+05:30"
+generatedAt: "2026-04-27T08:31:49+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
@@ -11,16 +11,16 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_6023
+            - testCaseID: TCXM_1753
               featureName: dhcp-server
               priority: P3
               automation: Automatable
               type: boundary
-              description: Test server parameter with minLength constraint
+              description: 'Boundary test: server=''1.0.0.1'' — Minimum valid IPv4 unicast host (above 0.0.0.0/8 reserved range)'
               isDeploymentTest: false
               steps:
-                - name: testBoundary
-                  description: Test server with minLength
+                - name: testBoundary_IPv4MinValid
+                  description: Test server with IPv4MinValid value '1.0.0.1'
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
@@ -37,7 +37,7 @@ features:
                             - name: server
                               origin: Global
                               type: string
-                              value: 0.0.0.0
+                              value: 1.0.0.1
                           type: dhcp-server
                     operation: add
                   expectedStatus: 201
@@ -45,16 +45,16 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_6024
+            - testCaseID: TCXM_1754
               featureName: dhcp-server
               priority: P3
               automation: Automatable
               type: boundary
-              description: Test server parameter with maxLength constraint
+              description: 'Boundary test: server=''223.255.255.254'' — Maximum valid IPv4 unicast host (last address before multicast 224/4)'
               isDeploymentTest: false
               steps:
-                - name: testBoundary
-                  description: Test server with maxLength
+                - name: testBoundary_IPv4MaxValid
+                  description: Test server with IPv4MaxValid value '223.255.255.254'
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
@@ -71,7 +71,7 @@ features:
                             - name: server
                               origin: Global
                               type: string
-                              value: 255.255.255.255
+                              value: 223.255.255.254
                           type: dhcp-server
                     operation: add
                   expectedStatus: 201
@@ -79,7 +79,143 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_6025
+            - testCaseID: TCXM_1755
+              featureName: dhcp-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''2001:db8::1'' — Minimum valid IPv6 global unicast (RFC 3849 documentation prefix)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv6MinValid
+                  description: Test server with IPv6MinValid value '2001:db8::1'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dhcp-server-feature
+                    objectType: dhcp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 2001:db8::1
+                          type: dhcp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_1756
+              featureName: dhcp-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''2001:db8:ffff:ffff:ffff:ffff:ffff:fffe'' — Maximum valid IPv6 unicast within documentation prefix'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_IPv6MaxValid
+                  description: Test server with IPv6MaxValid value '2001:db8:ffff:ffff:ffff:ffff:ffff:fffe'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dhcp-server-feature
+                    objectType: dhcp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 2001:db8:ffff:ffff:ffff:ffff:ffff:fffe
+                          type: dhcp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_1757
+              featureName: dhcp-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''a.io'' — Minimum-length FQDN (single-character label + TLD)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_FQDNMinLength
+                  description: Test server with FQDNMinLength value 'a.io'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dhcp-server-feature
+                    objectType: dhcp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: a.io
+                          type: dhcp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_1758
+              featureName: dhcp-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: 'Boundary test: server=''aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'' — Maximum-length FQDN (253 characters per RFC 1035)'
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary_FQDNMaxLength
+                  description: Test server with FQDNMaxLength value 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dhcp-server-feature
+                    objectType: dhcp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+                          type: dhcp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+            - testCaseID: TCXM_1759
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -106,6 +242,10 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ab
                           type: dhcp-server
                     operation: add
                   expectedStatus: 201
@@ -114,7 +254,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_5871
+            - testCaseID: TCXM_1601
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -214,7 +354,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='name')].value
                       expected: test-resource
                       description: Verify 'name' value is 'test-resource' as set during create
-            - testCaseID: TCXM_5872
+            - testCaseID: TCXM_1602
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -264,7 +404,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_5873
+            - testCaseID: TCXM_1603
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -307,7 +447,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_5874
+            - testCaseID: TCXM_1604
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -374,7 +514,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_5875
+            - testCaseID: TCXM_1605
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -417,7 +557,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_5876
+            - testCaseID: TCXM_1606
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -451,7 +591,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_5877
+            - testCaseID: TCXM_1607
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -559,7 +699,7 @@ features:
                   description: Verify configuration on NOS devices in device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-scope-001
                     siteGroupId: test-scope-001
@@ -570,7 +710,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5878
+            - testCaseID: TCXM_1608
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -610,7 +750,7 @@ features:
                   description: Verify configuration on NOS devices in device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-scope-001
                     siteGroupId: test-scope-001
@@ -621,7 +761,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5879
+            - testCaseID: TCXM_1609
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -685,7 +825,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify required field 'server' has value '8.8.8.8' as created
-            - testCaseID: TCXM_5880
+            - testCaseID: TCXM_1610
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -826,7 +966,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='name')].value
                       expected: test-resource
                       description: Verify field 'name' has value 'test-resource' as sent on create
-            - testCaseID: TCXM_5881
+            - testCaseID: TCXM_1611
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -884,7 +1024,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='id')].value
                       expected: testValue
                       description: Verify optional field 'id' value is 'testValue' as set on create
-            - testCaseID: TCXM_5882
+            - testCaseID: TCXM_1612
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -942,7 +1082,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='created-at')].value
                       expected: testValue
                       description: Verify optional field 'created-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_5883
+            - testCaseID: TCXM_1613
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -1000,7 +1140,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='updated-at')].value
                       expected: testValue
                       description: Verify optional field 'updated-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_5884
+            - testCaseID: TCXM_1614
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -1058,7 +1198,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='deleted-at')].value
                       expected: testValue
                       description: Verify optional field 'deleted-at' value is 'testValue' as set on create
-            - testCaseID: TCXM_5885
+            - testCaseID: TCXM_1615
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -1116,7 +1256,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='customer-id')].value
                       expected: 100
                       description: Verify optional field 'customer-id' value is '100' as set on create
-            - testCaseID: TCXM_5886
+            - testCaseID: TCXM_1616
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -1174,7 +1314,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='owner-id')].value
                       expected: 100
                       description: Verify optional field 'owner-id' value is '100' as set on create
-            - testCaseID: TCXM_5887
+            - testCaseID: TCXM_1617
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -1232,7 +1372,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='name')].value
                       expected: test-resource
                       description: Verify optional field 'name' value is 'test-resource' as set on create
-            - testCaseID: TCXM_5888
+            - testCaseID: TCXM_1618
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1283,7 +1423,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_5889
+            - testCaseID: TCXM_1619
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1334,7 +1474,7 @@ features:
                       path: $.id
                       expected: testValue
                       description: Verify 'id' YANG type 'ietf-yang:uuid' value is persisted
-            - testCaseID: TCXM_5890
+            - testCaseID: TCXM_1620
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1385,7 +1525,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_5891
+            - testCaseID: TCXM_1621
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1436,7 +1576,7 @@ features:
                       path: $.created-at
                       expected: testValue
                       description: Verify 'created-at' YANG type 'ietf-yang:date-and-time' value is persisted
-            - testCaseID: TCXM_5892
+            - testCaseID: TCXM_1622
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1487,7 +1627,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_5893
+            - testCaseID: TCXM_1623
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1538,7 +1678,7 @@ features:
                       path: $.deleted-at
                       expected: testValue
                       description: Verify 'deleted-at' YANG type 'common-types:gorm-deleted-at' value is persisted
-            - testCaseID: TCXM_5894
+            - testCaseID: TCXM_1624
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1589,7 +1729,7 @@ features:
                       path: $.customer-id
                       expected: 1
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_5895
+            - testCaseID: TCXM_1625
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1640,7 +1780,7 @@ features:
                       path: $.customer-id
                       expected: 100
                       description: Verify 'customer-id' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_5896
+            - testCaseID: TCXM_1626
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1691,7 +1831,7 @@ features:
                       path: $.priority
                       expected: 1
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_5897
+            - testCaseID: TCXM_1627
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1742,7 +1882,7 @@ features:
                       path: $.priority
                       expected: 100
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_5898
+            - testCaseID: TCXM_1628
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1793,7 +1933,7 @@ features:
                       path: $.server
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_5899
+            - testCaseID: TCXM_1629
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1844,7 +1984,7 @@ features:
                       path: $.server
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_5900
+            - testCaseID: TCXM_1630
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -1916,7 +2056,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
+                  path: /v0/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -1927,7 +2067,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5901
+            - testCaseID: TCXM_1631
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -1995,7 +2135,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5902
+            - testCaseID: TCXM_1632
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2067,7 +2207,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/configuration/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2078,7 +2218,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5903
+            - testCaseID: TCXM_1633
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2146,7 +2286,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5904
+            - testCaseID: TCXM_1634
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2229,7 +2369,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5905
+            - testCaseID: TCXM_1635
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2297,7 +2437,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5906
+            - testCaseID: TCXM_1636
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2369,7 +2509,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vr
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2380,7 +2520,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5907
+            - testCaseID: TCXM_1637
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2448,7 +2588,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5908
+            - testCaseID: TCXM_1638
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2520,7 +2660,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
+                  path: /v1/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2531,7 +2671,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5909
+            - testCaseID: TCXM_1639
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2599,7 +2739,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5910
+            - testCaseID: TCXM_1640
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2671,7 +2811,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/state/dhcp-snoop
+                  path: /v0/state/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2682,7 +2822,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5911
+            - testCaseID: TCXM_1641
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2750,7 +2890,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5912
+            - testCaseID: TCXM_1642
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2822,7 +2962,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2833,7 +2973,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5913
+            - testCaseID: TCXM_1643
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2901,7 +3041,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5914
+            - testCaseID: TCXM_1644
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -2973,7 +3113,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/state/dhcp-snoop
+                  path: /v0/configuration/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -2984,7 +3124,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5915
+            - testCaseID: TCXM_1645
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -3052,7 +3192,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5916
+            - testCaseID: TCXM_1646
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -3124,7 +3264,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3135,7 +3275,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5917
+            - testCaseID: TCXM_1647
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -3203,7 +3343,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5918
+            - testCaseID: TCXM_1648
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -3275,7 +3415,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3286,7 +3426,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5919
+            - testCaseID: TCXM_1649
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -3354,7 +3494,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5920
+            - testCaseID: TCXM_1650
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3426,7 +3566,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/state/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3437,7 +3577,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5921
+            - testCaseID: TCXM_1651
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3505,7 +3645,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5922
+            - testCaseID: TCXM_1652
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3577,7 +3717,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3588,7 +3728,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5923
+            - testCaseID: TCXM_1653
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3656,7 +3796,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5924
+            - testCaseID: TCXM_1654
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3728,7 +3868,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/state/dhcp-snoop
+                  path: /v0/state/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3739,7 +3879,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5925
+            - testCaseID: TCXM_1655
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3807,7 +3947,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5926
+            - testCaseID: TCXM_1656
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3879,7 +4019,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -3890,7 +4030,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5927
+            - testCaseID: TCXM_1657
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3958,7 +4098,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5928
+            - testCaseID: TCXM_1658
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4030,7 +4170,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4041,7 +4181,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5929
+            - testCaseID: TCXM_1659
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4109,7 +4249,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5930
+            - testCaseID: TCXM_1660
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4181,7 +4321,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
+                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4192,7 +4332,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5931
+            - testCaseID: TCXM_1661
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4260,7 +4400,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5932
+            - testCaseID: TCXM_1662
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4332,7 +4472,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vr
+                  path: /v0/configuration/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4343,7 +4483,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5933
+            - testCaseID: TCXM_1663
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4411,7 +4551,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5934
+            - testCaseID: TCXM_1664
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4483,7 +4623,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4494,7 +4634,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5935
+            - testCaseID: TCXM_1665
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4562,7 +4702,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5936
+            - testCaseID: TCXM_1666
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4634,7 +4774,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/state/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4645,7 +4785,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5937
+            - testCaseID: TCXM_1667
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4713,7 +4853,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5938
+            - testCaseID: TCXM_1668
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4796,7 +4936,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5939
+            - testCaseID: TCXM_1669
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4864,7 +5004,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5940
+            - testCaseID: TCXM_1670
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4936,7 +5076,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/configuration/dhcp-relay/vlan/{vlan_id}
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -4947,7 +5087,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5941
+            - testCaseID: TCXM_1671
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5015,7 +5155,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5942
+            - testCaseID: TCXM_1672
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5087,7 +5227,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -5098,7 +5238,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5943
+            - testCaseID: TCXM_1673
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5166,7 +5306,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5944
+            - testCaseID: TCXM_1674
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5238,7 +5378,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -5249,7 +5389,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5945
+            - testCaseID: TCXM_1675
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5317,7 +5457,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5946
+            - testCaseID: TCXM_1676
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5400,7 +5540,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5947
+            - testCaseID: TCXM_1677
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5468,7 +5608,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5948
+            - testCaseID: TCXM_1678
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5540,7 +5680,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-snoop
+                  path: /v0/configuration/dhcp-relay/vlan
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -5551,7 +5691,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5949
+            - testCaseID: TCXM_1679
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5619,7 +5759,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5950
+            - testCaseID: TCXM_1680
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5691,7 +5831,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -5702,7 +5842,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5951
+            - testCaseID: TCXM_1681
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5770,7 +5910,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5952
+            - testCaseID: TCXM_1682
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5842,7 +5982,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -5853,7 +5993,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5953
+            - testCaseID: TCXM_1683
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5921,7 +6061,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5954
+            - testCaseID: TCXM_1684
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -5993,7 +6133,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6004,7 +6144,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5955
+            - testCaseID: TCXM_1685
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6072,7 +6212,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5956
+            - testCaseID: TCXM_1686
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6146,7 +6286,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-snoop
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6157,7 +6297,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5957
+            - testCaseID: TCXM_1687
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6231,7 +6371,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/configuration/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6242,7 +6382,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5958
+            - testCaseID: TCXM_1688
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6316,7 +6456,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/configuration/dhcp-relay/vlan/{vlan_id}
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6327,7 +6467,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5959
+            - testCaseID: TCXM_1689
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6401,7 +6541,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6412,7 +6552,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5960
+            - testCaseID: TCXM_1690
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6486,7 +6626,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
+                  path: /v0/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6497,7 +6637,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5961
+            - testCaseID: TCXM_1691
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6571,7 +6711,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/configuration/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6582,7 +6722,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5962
+            - testCaseID: TCXM_1692
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6656,7 +6796,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-snoop
+                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6667,7 +6807,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5963
+            - testCaseID: TCXM_1693
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6741,7 +6881,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan
+                  path: /v0/state/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6752,7 +6892,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5964
+            - testCaseID: TCXM_1694
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6826,7 +6966,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
+                  path: /v0/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6837,7 +6977,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5965
+            - testCaseID: TCXM_1695
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6911,7 +7051,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/state/dhcp-snoop
+                  path: /v0/state/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -6922,7 +7062,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5966
+            - testCaseID: TCXM_1696
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -6994,7 +7134,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/state/dhcp-snoop
+                  path: /v0/state/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7005,7 +7145,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5967
+            - testCaseID: TCXM_1697
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7088,7 +7228,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5968
+            - testCaseID: TCXM_1698
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7160,7 +7300,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vr
+                  path: /v1/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7171,7 +7311,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5969
+            - testCaseID: TCXM_1699
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7245,7 +7385,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/configuration/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7256,7 +7396,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5970
+            - testCaseID: TCXM_1700
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7330,7 +7470,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7341,7 +7481,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5971
+            - testCaseID: TCXM_1701
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7415,7 +7555,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7426,7 +7566,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5972
+            - testCaseID: TCXM_1702
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7500,7 +7640,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan
+                  path: /v0/configuration/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7511,7 +7651,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5973
+            - testCaseID: TCXM_1703
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7585,7 +7725,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-snoop
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7596,7 +7736,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5974
+            - testCaseID: TCXM_1704
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7670,7 +7810,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/state/dhcp-snoop
+                  path: /v0/state/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7681,7 +7821,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5975
+            - testCaseID: TCXM_1705
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7755,7 +7895,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7766,7 +7906,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5976
+            - testCaseID: TCXM_1706
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7840,7 +7980,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/state/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7851,7 +7991,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5977
+            - testCaseID: TCXM_1707
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -7925,7 +8065,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/state/dhcp-snoop
+                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -7936,7 +8076,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5978
+            - testCaseID: TCXM_1708
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -8010,7 +8150,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
+                  path: /v1/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -8021,7 +8161,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5979
+            - testCaseID: TCXM_1709
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -8095,7 +8235,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v1/state/dhcp-snoop
+                  path: /v0/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -8106,7 +8246,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5980
+            - testCaseID: TCXM_1710
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -8191,7 +8331,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5981
+            - testCaseID: TCXM_1711
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -8265,7 +8405,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
+                  path: /v0/configuration/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -8276,7 +8416,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5982
+            - testCaseID: TCXM_1712
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -8350,7 +8490,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -8361,7 +8501,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5983
+            - testCaseID: TCXM_1713
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -8435,7 +8575,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
+                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -8446,7 +8586,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5984
+            - testCaseID: TCXM_1714
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -8520,7 +8660,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -8531,7 +8671,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5985
+            - testCaseID: TCXM_1715
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -8605,7 +8745,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -8616,7 +8756,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5986
+            - testCaseID: TCXM_1716
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -8690,7 +8830,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -8701,505 +8841,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5987
-              featureName: dhcp-server
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify dhcp-server with uint32 value variation 1 for 'customer-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with uint32 type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dhcp-server-feature
-                    name: TestResource-customer-id-Typeuint32-V1
-                    objectType: dhcp-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: dhcp-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V1/devices/deploy
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V1
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V1/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V1
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_5988
-              featureName: dhcp-server
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify dhcp-server with uint32 value variation 2 for 'customer-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with uint32 type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dhcp-server-feature
-                    name: TestResource-customer-id-Typeuint32-V2
-                    objectType: dhcp-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: dhcp-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V2/devices/deploy
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V2
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V2/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V2
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_5989
-              featureName: dhcp-server
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify dhcp-server with uint32 value variation 3 for 'customer-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with uint32 type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dhcp-server-feature
-                    name: TestResource-customer-id-Typeuint32-V3
-                    objectType: dhcp-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: dhcp-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V3/devices/deploy
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V3
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V3/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-customer-id-Typeuint32-V3
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_5990
-              featureName: dhcp-server
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify dhcp-server with uint8 value variation 1 for 'priority'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with uint8 type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dhcp-server-feature
-                    name: TestResource-priority-Typeuint8-V1
-                    objectType: dhcp-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: value-1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: dhcp-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-priority-Typeuint8-V1/devices/deploy
-                  pathParams:
-                    name: TestResource-priority-Typeuint8-V1
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-priority-Typeuint8-V1/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-priority-Typeuint8-V1
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_5991
-              featureName: dhcp-server
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify dhcp-server with uint8 value variation 2 for 'priority'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with uint8 type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dhcp-server-feature
-                    name: TestResource-priority-Typeuint8-V2
-                    objectType: dhcp-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: value-2
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: dhcp-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-priority-Typeuint8-V2/devices/deploy
-                  pathParams:
-                    name: TestResource-priority-Typeuint8-V2
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-priority-Typeuint8-V2/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-priority-Typeuint8-V2
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vr
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_5992
-              featureName: dhcp-server
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify dhcp-server with uint8 value variation 3 for 'priority'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with uint8 type variation: <nil>'
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dhcp-server-feature
-                    name: TestResource-priority-Typeuint8-V3
-                    objectType: dhcp-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: value-3
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: dhcp-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-priority-Typeuint8-V3/devices/deploy
-                  pathParams:
-                    name: TestResource-priority-Typeuint8-V3
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/TestResource-priority-Typeuint8-V3/device/test-device-001/deploy/status
-                  pathParams:
-                    name: TestResource-priority-Typeuint8-V3
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
-                  pathParams:
-                    deviceId: test-device-001
-                    siteId: test-device-001
-                  expectedStatus: 200
-                  validations:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_5993
+            - testCaseID: TCXM_1717
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -9271,7 +8913,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/state/dhcp-snoop
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -9282,7 +8924,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5994
+            - testCaseID: TCXM_1718
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -9354,7 +8996,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-relay/vlan
+                  path: /v0/configuration/dhcp-relay/vr
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -9365,7 +9007,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5995
+            - testCaseID: TCXM_1719
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -9437,7 +9079,7 @@ features:
                   description: Verify configuration on NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/configuration/dhcp-relay/vlan/{vlan_id}
                   pathParams:
                     deviceId: test-device-001
                     siteId: test-device-001
@@ -9448,7 +9090,505 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_5996
+            - testCaseID: TCXM_1720
+              featureName: dhcp-server
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify dhcp-server with uint32 value variation 1 for 'customer-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with uint32 type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dhcp-server-feature
+                    name: TestResource-customer-id-Typeuint32-V1
+                    objectType: dhcp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                          type: dhcp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v1/state/dhcp-snoop
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_1721
+              featureName: dhcp-server
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify dhcp-server with uint32 value variation 2 for 'customer-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with uint32 type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dhcp-server-feature
+                    name: TestResource-customer-id-Typeuint32-V2
+                    objectType: dhcp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                          type: dhcp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v1/configuration/dhcp-relay/vlan/{vlan_id}
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_1722
+              featureName: dhcp-server
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify dhcp-server with uint32 value variation 3 for 'customer-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with uint32 type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dhcp-server-feature
+                    name: TestResource-customer-id-Typeuint32-V3
+                    objectType: dhcp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                          type: dhcp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-customer-id-Typeuint32-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-customer-id-Typeuint32-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v1/state/dhcp-snoop
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_1723
+              featureName: dhcp-server
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify dhcp-server with uint8 value variation 1 for 'priority'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with uint8 type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dhcp-server-feature
+                    name: TestResource-priority-Typeuint8-V1
+                    objectType: dhcp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: value-1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                          type: dhcp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-priority-Typeuint8-V1/devices/deploy
+                  pathParams:
+                    name: TestResource-priority-Typeuint8-V1
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-priority-Typeuint8-V1/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-priority-Typeuint8-V1
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v1/state/dhcp-snoop
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_1724
+              featureName: dhcp-server
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify dhcp-server with uint8 value variation 2 for 'priority'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with uint8 type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dhcp-server-feature
+                    name: TestResource-priority-Typeuint8-V2
+                    objectType: dhcp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: value-2
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                          type: dhcp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-priority-Typeuint8-V2/devices/deploy
+                  pathParams:
+                    name: TestResource-priority-Typeuint8-V2
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-priority-Typeuint8-V2/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-priority-Typeuint8-V2
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v1/configuration/dhcp-relay/vlan/{vlan_id}
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_1725
+              featureName: dhcp-server
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify dhcp-server with uint8 value variation 3 for 'priority'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with uint8 type variation: <nil>'
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dhcp-server-feature
+                    name: TestResource-priority-Typeuint8-V3
+                    objectType: dhcp-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: value-3
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                          type: dhcp-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-priority-Typeuint8-V3/devices/deploy
+                  pathParams:
+                    name: TestResource-priority-Typeuint8-V3
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-priority-Typeuint8-V3/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-priority-Typeuint8-V3
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/dhcp-relay/vr
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_1726
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -9482,14 +9622,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-23T03:56:42Z
+                  description: Schedule deployment to device at 2026-04-27T04:01:49Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:42Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9497,7 +9637,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5997
+            - testCaseID: TCXM_1727
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -9531,14 +9671,14 @@ features:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-23T03:56:42Z
+                  description: Schedule deployment to site at 2026-04-27T04:01:49Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:42Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -9546,7 +9686,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5998
+            - testCaseID: TCXM_1728
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -9584,7 +9724,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:42Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9593,14 +9733,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-23T04:56:42Z
+                  description: Edit deployment schedule to 2026-04-27T05:01:49Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T04:56:42Z"
+                    deployAt: "2026-04-27T05:01:49Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -9608,7 +9748,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5999
+            - testCaseID: TCXM_1729
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -9646,7 +9786,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-23T03:56:42Z"
+                    deployAt: "2026-04-27T04:01:49Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -9668,7 +9808,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_6000
+            - testCaseID: TCXM_1730
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -9711,7 +9851,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_6001
+            - testCaseID: TCXM_1731
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -9757,7 +9897,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_6002
+            - testCaseID: TCXM_1732
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -9822,7 +9962,7 @@ features:
                   description: Apply conflicting dhcp-server value directly on device via NOSAPI — simulates out-of-band change so deviceValue diverges from previousDeployedValue
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/dhcp-snoop
+                  path: /v0/state/dhcp-snoop
                   body:
                     action: modify
                     deviceId: test-device-001
@@ -9851,7 +9991,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_6003
+            - testCaseID: TCXM_1733
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -9900,7 +10040,7 @@ features:
                   description: Simulate out-of-band dhcp-server change on device via NOSAPI (creates conflict)
                   method: GET
                   api: NOSAPI
-                  path: /v1/state/dhcp-snoop
+                  path: /v0/configuration/dhcp-relay/vlan/{vlan_id}
                   body:
                     action: modify
                     deviceId: 550e8400-e29b-41d4-a716-446655440000
@@ -9993,7 +10133,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_6004
+            - testCaseID: TCXM_1734
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -10042,7 +10182,7 @@ features:
                   description: Simulate out-of-band dhcp-server change on device via NOSAPI (creates conflict)
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v1/state/dhcp-snoop
                   body:
                     action: modify
                     deviceId: 550e8400-e29b-41d4-a716-446655440000
@@ -10103,7 +10243,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_6005
+            - testCaseID: TCXM_1735
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10204,7 +10344,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_6006
+            - testCaseID: TCXM_1736
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10238,7 +10378,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6007
+            - testCaseID: TCXM_1737
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10272,7 +10412,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6008
+            - testCaseID: TCXM_1738
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10306,7 +10446,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6009
+            - testCaseID: TCXM_1739
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10340,7 +10480,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6010
+            - testCaseID: TCXM_1740
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10374,7 +10514,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6011
+            - testCaseID: TCXM_1741
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10408,7 +10548,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6012
+            - testCaseID: TCXM_1742
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10442,7 +10582,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6013
+            - testCaseID: TCXM_1743
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10476,7 +10616,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6014
+            - testCaseID: TCXM_1744
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10510,7 +10650,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6015
+            - testCaseID: TCXM_1745
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10544,7 +10684,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6016
+            - testCaseID: TCXM_1746
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10578,7 +10718,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6017
+            - testCaseID: TCXM_1747
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10612,7 +10752,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6018
+            - testCaseID: TCXM_1748
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10646,7 +10786,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6019
+            - testCaseID: TCXM_1749
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10680,7 +10820,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6020
+            - testCaseID: TCXM_1750
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10714,7 +10854,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6021
+            - testCaseID: TCXM_1751
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10748,7 +10888,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6022
+            - testCaseID: TCXM_1752
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -10783,7 +10923,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_6026
+            - testCaseID: TCXM_1760
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -10816,7 +10956,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'priority'
-            - testCaseID: TCXM_6027
+            - testCaseID: TCXM_1761
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -10849,7 +10989,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'server'
-            - testCaseID: TCXM_6028
+            - testCaseID: TCXM_1762
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -10876,13 +11016,17 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: deleted-at
+                              origin: Global
+                              type: string
+                              value: '!!!INVALID-PATTERN@@@'
                           type: dhcp-server
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6029
+            - testCaseID: TCXM_1763
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -10915,7 +11059,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6030
+            - testCaseID: TCXM_1764
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -10948,7 +11092,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6031
+            - testCaseID: TCXM_1765
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -10975,13 +11119,17 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: name
+                              origin: Global
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijkl
                           type: dhcp-server
                     operation: add
                   expectedStatus: 400
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6032
+            - testCaseID: TCXM_1766
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11014,7 +11162,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6033
+            - testCaseID: TCXM_1767
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11049,7 +11197,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6034
+            - testCaseID: TCXM_1768
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11084,7 +11232,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6035
+            - testCaseID: TCXM_1769
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11119,7 +11267,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6036
+            - testCaseID: TCXM_1770
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11154,7 +11302,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6037
+            - testCaseID: TCXM_1771
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -11188,7 +11336,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'id' is omitted
-            - testCaseID: TCXM_6038
+            - testCaseID: TCXM_1772
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -11222,7 +11370,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'created-at' is omitted
-            - testCaseID: TCXM_6039
+            - testCaseID: TCXM_1773
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -11256,7 +11404,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'updated-at' is omitted
-            - testCaseID: TCXM_6040
+            - testCaseID: TCXM_1774
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -11290,7 +11438,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'deleted-at' is omitted
-            - testCaseID: TCXM_6041
+            - testCaseID: TCXM_1775
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -11324,7 +11472,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'customer-id' is omitted
-            - testCaseID: TCXM_6042
+            - testCaseID: TCXM_1776
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -11358,7 +11506,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'owner-id' is omitted
-            - testCaseID: TCXM_6043
+            - testCaseID: TCXM_1777
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -11392,7 +11540,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'name' is omitted
-            - testCaseID: TCXM_6044
+            - testCaseID: TCXM_1778
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11426,7 +11574,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6045
+            - testCaseID: TCXM_1779
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11448,7 +11596,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_6046
+            - testCaseID: TCXM_1780
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11482,7 +11630,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6047
+            - testCaseID: TCXM_1781
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11516,7 +11664,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6048
+            - testCaseID: TCXM_1782
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11550,7 +11698,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6049
+            - testCaseID: TCXM_1783
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11584,7 +11732,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6050
+            - testCaseID: TCXM_1784
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11618,7 +11766,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6051
+            - testCaseID: TCXM_1785
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11652,7 +11800,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6052
+            - testCaseID: TCXM_1786
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11686,7 +11834,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6053
+            - testCaseID: TCXM_1787
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11720,7 +11868,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6054
+            - testCaseID: TCXM_1788
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11754,7 +11902,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6055
+            - testCaseID: TCXM_1789
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11788,7 +11936,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6056
+            - testCaseID: TCXM_1790
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11822,7 +11970,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6057
+            - testCaseID: TCXM_1791
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11856,7 +12004,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6058
+            - testCaseID: TCXM_1792
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11890,7 +12038,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6059
+            - testCaseID: TCXM_1793
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11924,7 +12072,7 @@ features:
                   validations:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6060
+            - testCaseID: TCXM_1794
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -11959,7 +12107,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_6065
+            - testCaseID: TCXM_1799
               featureName: dhcp-server
               priority: P4
               automation: Automatable
@@ -12271,7 +12419,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_6066
+            - testCaseID: TCXM_1800
               featureName: dhcp-server
               priority: P4
               automation: Automatable
@@ -12433,7 +12581,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_6067
+            - testCaseID: TCXM_1801
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -12780,7 +12928,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_6068
+            - testCaseID: TCXM_1802
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -13182,7 +13330,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_6061
+            - testCaseID: TCXM_1795
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -15792,7 +15940,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_6062
+            - testCaseID: TCXM_1796
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -15827,7 +15975,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_6063
+            - testCaseID: TCXM_1797
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -16134,7 +16282,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_6064
+            - testCaseID: TCXM_1798
               featureName: dhcp-server
               priority: P3
               automation: Automatable

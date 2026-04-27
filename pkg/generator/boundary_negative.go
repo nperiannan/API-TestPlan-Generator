@@ -22,13 +22,30 @@ func (g *Generator) generateBoundaryTests(feature *model.Feature, paths []*model
 
 	// Generate boundary tests for each parameter with constraints (top-level and nested)
 	allParams := collectAllParameters(feature.Parameters)
+
+	// IP-typed parameters get a dedicated set of valid IPv4 / IPv6 / FQDN
+	// boundary tests instead of generic string-length boundary tests, which
+	// are misleading for address fields. We emit them only once per param
+	// even if the YANG model declares both a minLength and a maxLength.
+	emittedIPBoundary := map[string]bool{}
+
 	for _, param := range allParams {
+		ipParam := isStringIPParameter(param)
+
 		for _, constraint := range param.Constraints {
 			switch constraint.Type {
 			case model.ConstraintTypeMinLength, model.ConstraintTypeMaxLength:
-				if createPath != nil {
-					tests = append(tests, g.generateStringLengthBoundaryTest(feature, param, constraint, createPath))
+				if createPath == nil {
+					continue
 				}
+				if ipParam {
+					if !emittedIPBoundary[param.Name] {
+						tests = append(tests, g.generateIPBoundaryTests(feature, param, createPath)...)
+						emittedIPBoundary[param.Name] = true
+					}
+					continue
+				}
+				tests = append(tests, g.generateStringLengthBoundaryTest(feature, param, constraint, createPath))
 			case model.ConstraintTypeMin, model.ConstraintTypeMax:
 				if createPath != nil {
 					tests = append(tests, g.generateNumericBoundaryTest(feature, param, constraint, createPath))
@@ -42,6 +59,16 @@ func (g *Generator) generateBoundaryTests(feature *model.Feature, paths []*model
 	}
 
 	return tests
+}
+
+// isStringIPParameter returns true when the parameter is a string-typed
+// field that accepts an IP address / hostname (used to choose IP-aware
+// boundary value generation).
+func isStringIPParameter(param model.Parameter) bool {
+	if param.GoType != "" && param.GoType != "string" {
+		return false
+	}
+	return isIPParameter(param)
 }
 
 // collectAllParameters flattens a parameter list including all nested properties.
@@ -75,30 +102,13 @@ func (g *Generator) generateStringLengthBoundaryTest(
 
 	body := g.generateRequestBody(feature, createPath)
 
-	// Check if this is an IP/server parameter and use appropriate values
-	paramNameLower := strings.ToLower(param.Name)
-	isIPParam := paramNameLower == "server" || paramNameLower == "address" ||
-		paramNameLower == "ip" || paramNameLower == "host" ||
-		strings.Contains(paramNameLower, "-server") ||
-		strings.Contains(paramNameLower, "-address")
-
 	// Set parameter to boundary value
 	if constraint.Type == model.ConstraintTypeMaxLength {
-		if isIPParam {
-			// Use maximum valid IP address for max boundary
-			g.setBodyParameterValue(body, param.Name, "255.255.255.255")
-		} else {
-			maxLen := constraint.Value.(int)
-			g.setBodyParameterValue(body, param.Name, generateString(maxLen))
-		}
+		maxLen := constraint.Value.(int)
+		g.setOrAddBodyParameter(body, param, generateString(maxLen))
 	} else if constraint.Type == model.ConstraintTypeMinLength {
-		if isIPParam {
-			// Use minimum valid IP address for min boundary
-			g.setBodyParameterValue(body, param.Name, "0.0.0.0")
-		} else {
-			minLen := constraint.Value.(int)
-			g.setBodyParameterValue(body, param.Name, generateString(minLen))
-		}
+		minLen := constraint.Value.(int)
+		g.setOrAddBodyParameter(body, param, generateString(minLen))
 	}
 
 	step := model.TestStep{
@@ -134,7 +144,7 @@ func (g *Generator) generateNumericBoundaryTest(
 	}
 
 	body := g.generateRequestBody(feature, createPath)
-	g.setBodyParameterValue(body, param.Name, constraint.Value)
+	g.setOrAddBodyParameter(body, param, constraint.Value)
 
 	step := model.TestStep{
 		Name:           "testBoundary",
@@ -175,7 +185,7 @@ func (g *Generator) generateArrayBoundaryTest(
 	for i := 0; i < count; i++ {
 		arr[i] = fmt.Sprintf("item-%d", i)
 	}
-	g.setBodyParameterValue(body, param.Name, arr)
+	g.setOrAddBodyParameter(body, param, arr)
 
 	step := model.TestStep{
 		Name:           "testBoundary",
@@ -392,7 +402,7 @@ func (g *Generator) generateInvalidEnumTest(
 	}
 
 	body := g.generateRequestBody(feature, createPath)
-	g.setBodyParameterValue(body, param.Name, "INVALID_ENUM_VALUE")
+	g.setOrAddBodyParameter(body, param, "INVALID_ENUM_VALUE")
 
 	step := model.TestStep{
 		Name:           "testInvalidEnum",
@@ -446,7 +456,7 @@ func (g *Generator) generatePatternViolationTest(
 	invalidValue := getSmartInvalidValue(param, constraint)
 
 	body := g.generateRequestBody(feature, createPath)
-	g.setBodyParameterValue(body, param.Name, invalidValue)
+	g.setOrAddBodyParameter(body, param, invalidValue)
 
 	step := model.TestStep{
 		Name:           "testPatternViolation",
@@ -608,7 +618,7 @@ func (g *Generator) generateExceedMaxLengthTest(
 
 	body := g.generateRequestBody(feature, createPath)
 	maxLen := constraint.Value.(int)
-	g.setBodyParameterValue(body, param.Name, generateString(maxLen+10)) // Exceed max length
+	g.setOrAddBodyParameter(body, param, generateString(maxLen+10)) // Exceed max length
 
 	step := model.TestStep{
 		Name:           "testExceedMaxLength",
@@ -650,9 +660,9 @@ func (g *Generator) generateBelowMinLengthTest(
 	body := g.generateRequestBody(feature, createPath)
 	minLen := constraint.Value.(int)
 	if minLen > 1 {
-		g.setBodyParameterValue(body, param.Name, generateString(minLen-1)) // Below min length
+		g.setOrAddBodyParameter(body, param, generateString(minLen-1)) // Below min length
 	} else {
-		g.setBodyParameterValue(body, param.Name, "") // Empty string
+		g.setOrAddBodyParameter(body, param, "") // Empty string
 	}
 
 	step := model.TestStep{
@@ -693,7 +703,7 @@ func (g *Generator) generateBelowMinValueTest(
 
 	body := g.generateRequestBody(feature, createPath)
 	minValue := constraint.Value.(int)
-	g.setBodyParameterValue(body, param.Name, minValue-1)
+	g.setOrAddBodyParameter(body, param, minValue-1)
 
 	step := model.TestStep{
 		Name:           "testBelowMinValue",
@@ -736,7 +746,7 @@ func (g *Generator) generateAboveMaxValueTest(
 
 	body := g.generateRequestBody(feature, createPath)
 	maxValue := constraint.Value.(int)
-	g.setBodyParameterValue(body, param.Name, maxValue+1)
+	g.setOrAddBodyParameter(body, param, maxValue+1)
 
 	step := model.TestStep{
 		Name:           "testAboveMaxValue",
@@ -777,7 +787,7 @@ func (g *Generator) generateEmptyValueTest(
 	}
 
 	body := g.generateRequestBody(feature, createPath)
-	g.setBodyParameterValue(body, param.Name, "")
+	g.setOrAddBodyParameter(body, param, "")
 
 	step := model.TestStep{
 		Name:           "testEmptyValue",
@@ -818,7 +828,7 @@ func (g *Generator) generateNullValueTest(
 	}
 
 	body := g.generateRequestBody(feature, createPath)
-	g.setBodyParameterValue(body, param.Name, nil)
+	g.setOrAddBodyParameter(body, param, nil)
 
 	step := model.TestStep{
 		Name:           "testNullValue",
@@ -859,7 +869,7 @@ func (g *Generator) generateInvalidTypeTest(
 	}
 
 	body := g.generateRequestBody(feature, createPath)
-	g.setBodyParameterValue(body, param.Name, "not-a-number")
+	g.setOrAddBodyParameter(body, param, "not-a-number")
 
 	step := model.TestStep{
 		Name:           "testInvalidType",

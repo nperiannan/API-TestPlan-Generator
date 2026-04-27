@@ -513,6 +513,54 @@ func (g *Generator) setBodyParameterValue(body map[string]interface{}, paramName
 	}
 }
 
+// setOrAddBodyParameter sets a parameter's value in the body, adding the
+// property to the deep-scanned objects[].properties array when it is not
+// already present. This is required for boundary / negative tests that
+// target an optional parameter — the generated payload must include the
+// parameter under test for the test to be meaningful.
+func (g *Generator) setOrAddBodyParameter(body map[string]interface{}, param model.Parameter, value interface{}) {
+	if objects, ok := body["objects"].([]interface{}); ok && len(objects) > 0 {
+		obj, ok := objects[0].(map[string]interface{})
+		if !ok {
+			body[param.Name] = value
+			return
+		}
+		props, ok := obj["properties"].([]map[string]interface{})
+		if !ok {
+			props = []map[string]interface{}{}
+		}
+
+		// Update in place if already present
+		for i, prop := range props {
+			if prop["name"] == param.Name {
+				props[i]["value"] = value
+				obj["properties"] = props
+				return
+			}
+		}
+
+		// Otherwise append a new property entry, inheriting origin from
+		// existing entries so global vs CC payloads stay consistent.
+		origin := "Global"
+		if len(props) > 0 {
+			if o, ok := props[0]["origin"].(string); ok && o != "" {
+				origin = o
+			}
+		}
+		props = append(props, map[string]interface{}{
+			"name":   param.Name,
+			"type":   g.mapYangTypeToJsonType(param.GoType),
+			"value":  value,
+			"origin": origin,
+		})
+		obj["properties"] = props
+		return
+	}
+
+	// Simple body format — set or add directly
+	body[param.Name] = value
+}
+
 // Helper function
 func hasScopeType(paths []*model.FeaturePath, scopeType model.ScopeType) bool {
 	for _, path := range paths {

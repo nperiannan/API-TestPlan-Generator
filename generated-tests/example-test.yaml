@@ -1,30 +1,38 @@
-featurePath: /l2-service-feature
-profileType: service
+featurePath: /radius-server-feature
+profileType: global
 test:
     testCaseID: TCXM_1006
-    featureName: ip-subnet
+    featureName: radius-server
     priority: P1
     automation: Automatable
     type: functional
-    description: Create ip-subnet, scope to device, target to device, deploy, and verify on NOS devices
+    description: Create radius-server, scope to device, target to device, deploy, and verify on NOS devices
     scopeType: device
     targetType: device
     deploymentMethod: immediate
     isDeploymentTest: true
     steps:
-        - name: createip-subnet
-          description: Create ip-subnet configuration
+        - name: createradius-server
+          description: Create radius-server configuration
           method: POST
           api: REST
-          path: /service-profile/{name}/feature/object/modify
+          path: /global-profile/feature/object/modify
           body:
-            featurePath: /l2-service-feature
+            featurePath: /radius-server-feature
             name: TestProfile
-            objectType: ip-subnet
+            objectType: radius-server
             objects:
                 - operation: add
-                  properties: []
-                  type: ip-subnet
+                  properties:
+                    - name: server
+                      origin: Global
+                      type: string
+                      value: 8.8.8.8
+                    - name: priority
+                      origin: Global
+                      type: number
+                      value: 1
+                  type: radius-server
             operation: add
           expectedStatus: 201
           validations:
@@ -34,7 +42,7 @@ test:
           description: Retrieve created profile
           method: POST
           api: REST
-          path: /service-profile/{name}/feature/object/retrieve
+          path: /global-profile/feature/object/retrieve
           pathParams:
             profileName: TestProfile
           expectedStatus: 200
@@ -97,3 +105,18 @@ test:
               path: $.status
               expected: SUCCESS
           timeout: 300
+        - name: verifyNosConfigFordevice
+          description: Verify configuration on NOS devices in device
+          method: GET
+          api: NOSAPI
+          path: /v0/configuration/radius/secure-profile
+          pathParams:
+            deviceId: test-scope-001
+            siteGroupId: test-scope-001
+          expectedStatus: 200
+          validations:
+            - type: statusCode
+              expected: 200
+            - type: nosConfigMatchesExpected
+              description: Verify NOS device configuration matches expected state
+          devicesScope: device
