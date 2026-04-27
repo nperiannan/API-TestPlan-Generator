@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/extremenetworks/testcase-generator/pkg/generator"
@@ -317,7 +318,30 @@ func parseDeploymentMethods(methods []string) []model.DeploymentMethod {
 }
 
 func linkFeaturesWithPaths(features map[string]*model.Feature, paths map[string]*model.FeaturePath) {
-	for _, fp := range paths {
+	// Sort path keys so fp.Feature assignments are made in a deterministic order.
+	pathKeys := make([]string, 0, len(paths))
+	for k := range paths {
+		pathKeys = append(pathKeys, k)
+	}
+	sort.Strings(pathKeys)
+
+	// Pre-sort feature names for the fuzzy-match loop so ties are broken
+	// consistently: prefer the longest (most specific) name; if equal length,
+	// prefer lexicographically smaller name.
+	featureNames := make([]string, 0, len(features))
+	for k := range features {
+		featureNames = append(featureNames, k)
+	}
+	sort.Slice(featureNames, func(i, j int) bool {
+		a, b := featureNames[i], featureNames[j]
+		if len(a) != len(b) {
+			return len(a) > len(b) // longer (more specific) name first
+		}
+		return a < b
+	})
+
+	for _, key := range pathKeys {
+		fp := paths[key]
 		// First, try exact match by FeatureName (for deep-scanned features)
 		if fp.FeatureName != "" {
 			if feature, exists := features[fp.FeatureName]; exists {
@@ -336,11 +360,15 @@ func linkFeaturesWithPaths(features map[string]*model.Feature, paths map[string]
 			continue
 		}
 
-		// Try to find matching feature with multiple strategies
+		// Try to find matching feature with multiple strategies.
+		// Iterate in pre-sorted (longest-name-first) order so that when two
+		// features tie on score the more specific (longer) name always wins,
+		// making the result deterministic.
 		var bestMatch *model.Feature
 		bestScore := 0
 
-		for _, feature := range features {
+		for _, name := range featureNames {
+			feature := features[name]
 			score := calculateMatchScore(fp, feature)
 			if score > bestScore {
 				bestScore = score

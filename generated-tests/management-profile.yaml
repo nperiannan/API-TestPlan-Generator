@@ -1,155 +1,171 @@
 version: "1.0"
-generatedAt: "2026-04-22T10:51:42+05:30"
+generatedAt: "2026-04-27T12:03:04+05:30"
 sourceYangDir: C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: ./qaopenapi.yaml
 sourceNOSAPI: C:\Users\nperiannan\Downloads\nos-openapi.yaml
 features:
-    - featureName: hotspot-profile-config
+    - featureName: management-profile
       featurePath: /global-profile
       profileType: global
       description: ""
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_6109
-              featureName: hotspot-profile-config
-              priority: P2
+            - testCaseID: TCXM_4204
+              featureName: management-profile
+              priority: P3
+              automation: Automatable
               type: functional
-              description: List all hotspot-profile-config resources
+              description: List all management-profile resources
               isDeploymentTest: false
               steps:
                 - name: listAllResources
-                  description: List all hotspot-profile-config resources
+                  description: List all management-profile resources
                   method: GET
                   api: REST
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                  assertions:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_6110
-              featureName: hotspot-profile-config
-              priority: P0
+            - testCaseID: TCXM_4205
+              featureName: management-profile
+              priority: P1
+              automation: Automatable
               type: functional
-              description: Create hotspot-profile-config and schedule deployment to device
+              description: Create management-profile and schedule deployment to device
               scopeType: device
               targetType: device
               deploymentMethod: scheduled
               isDeploymentTest: true
               steps:
-                - name: createhotspot-profile-config
-                  description: Create hotspot-profile-config configuration
+                - name: createmanagement-profile
+                  description: Create management-profile configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: hotspot-profile-config
+                    objectType: management-profile
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: hostname
                               origin: Global
                               type: string
-                              value: test-value
-                          type: hotspot-profile-config
+                              value: test-hostname
+                          type: management-profile
                     operation: add
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-04-22T06:21:43Z
+                  description: Schedule deployment to device at 2026-04-27T07:33:04Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-22T06:21:43Z"
+                    deployAt: "2026-04-27T07:33:04Z"
                     devices:
                         - test-device-001
                     timezone: UTC
                   expectedStatus: 202
                   validations:
+                    - Verify HTTP status code is 202
+                  assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_6111
-              featureName: hotspot-profile-config
-              priority: P0
+            - testCaseID: TCXM_4206
+              featureName: management-profile
+              priority: P1
+              automation: Automatable
               type: functional
-              description: Create hotspot-profile-config and schedule deployment to site
+              description: Create management-profile and schedule deployment to site
               scopeType: site
               targetType: site
               deploymentMethod: scheduled
               isDeploymentTest: true
               steps:
-                - name: createhotspot-profile-config
-                  description: Create hotspot-profile-config configuration
+                - name: createmanagement-profile
+                  description: Create management-profile configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: hotspot-profile-config
+                    objectType: management-profile
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: hostname
                               origin: Global
                               type: string
-                              value: test-value
-                          type: hotspot-profile-config
+                              value: test-hostname
+                          type: management-profile
                     operation: add
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-04-22T06:21:43Z
+                  description: Schedule deployment to site at 2026-04-27T07:33:04Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-22T06:21:43Z"
+                    deployAt: "2026-04-27T07:33:04Z"
                     sites:
                         - test-site-001
                     timezone: UTC
                   expectedStatus: 202
                   validations:
+                    - Verify HTTP status code is 202
+                  assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_6112
-              featureName: hotspot-profile-config
-              priority: P1
+            - testCaseID: TCXM_4207
+              featureName: management-profile
+              priority: P2
+              automation: Automatable
               type: functional
-              description: Edit deployment schedule for hotspot-profile-config on device
+              description: Edit deployment schedule for management-profile on device
               isDeploymentTest: true
               steps:
-                - name: createhotspot-profile-config
-                  description: Create hotspot-profile-config configuration
+                - name: createmanagement-profile
+                  description: Create management-profile configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: hotspot-profile-config
+                    objectType: management-profile
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: hostname
                               origin: Global
                               type: string
-                              value: test-value
-                          type: hotspot-profile-config
+                              value: test-hostname
+                          type: management-profile
                     operation: add
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleInitialDeployment
@@ -160,57 +176,64 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-22T06:21:43Z"
+                    deployAt: "2026-04-27T07:33:04Z"
                     devices:
                         - test-device-001
                     timezone: UTC
                   expectedStatus: 202
                   validations:
+                    - Verify HTTP status code is 202
+                  assertions:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-04-22T07:21:43Z
+                  description: Edit deployment schedule to 2026-04-27T08:33:04Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-22T07:21:43Z"
+                    deployAt: "2026-04-27T08:33:04Z"
                     devices:
                         - test-device-001
                     timezone: UTC
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                  assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_6113
-              featureName: hotspot-profile-config
-              priority: P1
+            - testCaseID: TCXM_4208
+              featureName: management-profile
+              priority: P2
+              automation: Automatable
               type: functional
-              description: Clear deployment schedule for hotspot-profile-config on site
+              description: Clear deployment schedule for management-profile on site
               isDeploymentTest: true
               steps:
-                - name: createhotspot-profile-config
-                  description: Create hotspot-profile-config configuration
+                - name: createmanagement-profile
+                  description: Create management-profile configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: hotspot-profile-config
+                    objectType: management-profile
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: hostname
                               origin: Global
                               type: string
-                              value: test-value
-                          type: hotspot-profile-config
+                              value: test-hostname
+                          type: management-profile
                     operation: add
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
                 - name: scheduleDeployment
@@ -221,12 +244,14 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-04-22T06:21:43Z"
+                    deployAt: "2026-04-27T07:33:04Z"
                     sites:
                         - test-site-001
                     timezone: UTC
                   expectedStatus: 202
                   validations:
+                    - Verify HTTP status code is 202
+                  assertions:
                     - type: statusCode
                       expected: "202"
                 - name: clearDeploymentSchedule
@@ -241,35 +266,40 @@ features:
                         - test-site-001
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                  assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_6114
-              featureName: hotspot-profile-config
-              priority: P1
+            - testCaseID: TCXM_4209
+              featureName: management-profile
+              priority: P2
+              automation: Automatable
               type: functional
-              description: Clone hotspot-profile-config configuration profile
+              description: Clone management-profile configuration profile
               isDeploymentTest: false
               steps:
-                - name: createhotspot-profile-config
-                  description: Create hotspot-profile-config configuration
+                - name: createmanagement-profile
+                  description: Create management-profile configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: hotspot-profile-config
+                    objectType: management-profile
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: hostname
                               origin: Global
                               type: string
-                              value: test-value
-                          type: hotspot-profile-config
+                              value: test-hostname
+                          type: management-profile
                     operation: add
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
                 - name: cloneProfile
@@ -283,39 +313,44 @@ features:
                     newProfileName: TestProfile-Additional-Cloned
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_6115
-              featureName: hotspot-profile-config
-              priority: P1
+            - testCaseID: TCXM_4210
+              featureName: management-profile
+              priority: P2
+              automation: Automatable
               type: functional
-              description: Clone hotspot-profile-config feature object
+              description: Clone management-profile feature object
               isDeploymentTest: false
               steps:
-                - name: createhotspot-profile-config
-                  description: Create hotspot-profile-config configuration
+                - name: createmanagement-profile
+                  description: Create management-profile configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     featurePath: /global-profile
                     name: TestProfile-Additional
-                    objectType: hotspot-profile-config
+                    objectType: management-profile
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: hostname
                               origin: Global
                               type: string
-                              value: test-value
-                          type: hotspot-profile-config
+                              value: test-hostname
+                          type: management-profile
                     operation: add
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
                 - name: cloneFeatureObject
-                  description: Clone hotspot-profile-config feature object
+                  description: Clone management-profile feature object
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/feature/object/clone
@@ -324,39 +359,44 @@ features:
                   body:
                     featurePath: /global-profile
                     newId: cloned-object-1
-                    objectType: hotspot-profile-config
+                    objectType: management-profile
                     sourceId: original-object-1
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_6116
-              featureName: hotspot-profile-config
-              priority: P1
+            - testCaseID: TCXM_4211
+              featureName: management-profile
+              priority: P2
+              automation: Automatable
               type: functional
-              description: '[Conflict Detection] Deploy hotspot-profile-config, simulate out-of-band device change via NOSAPI (deviceValue ≠ previousDeployedValue), verify conflict detected via GET /conflicts'
+              description: '[Conflict Detection] Deploy management-profile, simulate out-of-band device change via NOSAPI (deviceValue ≠ previousDeployedValue), verify conflict detected via GET /conflicts'
               isDeploymentTest: true
               steps:
-                - name: createhotspot-profile-config
-                  description: Create hotspot-profile-config configuration
+                - name: createmanagement-profile
+                  description: Create management-profile configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     featurePath: /global-profile
                     name: TestProfile-Additional-ConflictDetect
-                    objectType: hotspot-profile-config
+                    objectType: management-profile
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: hostname
                               origin: Global
                               type: string
-                              value: test-value
-                          type: hotspot-profile-config
+                              value: test-hostname
+                          type: management-profile
                     operation: add
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
                 - name: initialDeploy
@@ -372,6 +412,8 @@ features:
                         - test-device-001
                   expectedStatus: 202
                   validations:
+                    - Verify HTTP status code is 202
+                  assertions:
                     - type: statusCode
                       expected: 202
                 - name: checkInitialDeployStatus
@@ -384,6 +426,9 @@ features:
                     name: TestProfile-Additional-ConflictDetect
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: jsonPathEquals
@@ -391,16 +436,18 @@ features:
                       expected: SUCCESS
                   timeout: 300
                 - name: simulateOutOfBandChange
-                  description: Apply conflicting hotspot-profile-config value directly on device via NOSAPI — simulates out-of-band change so deviceValue diverges from previousDeployedValue
+                  description: Apply conflicting management-profile value directly on device via NOSAPI — simulates out-of-band change so deviceValue diverges from previousDeployedValue
                   method: POST
                   api: NOSAPI
                   path: /v0/configuration/device
                   body:
                     action: modify
                     deviceId: test-device-001
-                    feature: hotspot-profile-config
+                    feature: management-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                  assertions:
                     - type: statusCode
                       expected: 200
                 - name: getConflicts
@@ -415,6 +462,10 @@ features:
                     detailLevel: detailed
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                    - Conflicting feature path is reported
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: jsonPathEquals
@@ -423,33 +474,36 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_6117
-              featureName: hotspot-profile-config
-              priority: P0
+            - testCaseID: TCXM_4212
+              featureName: management-profile
+              priority: P1
+              automation: Automatable
               type: functional
-              description: '[Conflict Resolution CC] hotspot-profile-config: detect conflict → resolve acceptCloud (cloud wins) → re-deploy → verify cleared'
+              description: '[Conflict Resolution CC] management-profile: detect conflict → resolve acceptCloud (cloud wins) → re-deploy → verify cleared'
               isDeploymentTest: true
               steps:
-                - name: createhotspot-profile-config
-                  description: Create hotspot-profile-config configuration
+                - name: createmanagement-profile
+                  description: Create management-profile configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     featurePath: /global-profile
                     name: TestProfile-Additional-ConflictCC
-                    objectType: hotspot-profile-config
+                    objectType: management-profile
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: hostname
                               origin: Global
                               type: string
-                              value: test-value
-                          type: hotspot-profile-config
+                              value: test-hostname
+                          type: management-profile
                     operation: add
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
                 - name: initialDeploy
@@ -465,19 +519,23 @@ features:
                         - test-device-001
                   expectedStatus: 202
                   validations:
+                    - Verify HTTP status code is 202
+                  assertions:
                     - type: statusCode
                       expected: 202
                 - name: simulateOutOfBandChange
-                  description: Simulate out-of-band hotspot-profile-config change on device via NOSAPI (creates conflict)
+                  description: Simulate out-of-band management-profile change on device via NOSAPI (creates conflict)
                   method: POST
                   api: NOSAPI
                   path: /v0/configuration/device
                   body:
                     action: modify
                     deviceId: 550e8400-e29b-41d4-a716-446655440000
-                    feature: hotspot-profile-config
+                    feature: management-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                  assertions:
                     - type: statusCode
                       expected: 200
                 - name: verifyConflictExists
@@ -492,6 +550,9 @@ features:
                     detailLevel: summary
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: jsonPathEquals
@@ -508,6 +569,10 @@ features:
                           resolution: acceptCloud
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.results[0].status' equals success
+                    - numberOfConflictsResolved > 0
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: jsonPathEquals
@@ -529,6 +594,8 @@ features:
                         - test-device-001
                   expectedStatus: 202
                   validations:
+                    - Verify HTTP status code is 202
+                  assertions:
                     - type: statusCode
                       expected: 202
                 - name: checkRedeployStatus
@@ -541,6 +608,9 @@ features:
                     name: TestProfile-Additional-ConflictCC
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: jsonPathEquals
@@ -559,38 +629,44 @@ features:
                     detailLevel: summary
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals false
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_6118
-              featureName: hotspot-profile-config
-              priority: P0
+            - testCaseID: TCXM_4213
+              featureName: management-profile
+              priority: P1
+              automation: Automatable
               type: functional
-              description: '[Conflict Resolution DD] hotspot-profile-config: detect conflict → resolve acceptDevice (device wins) → verify cloud baseline updated and conflict cleared (no re-deploy needed)'
+              description: '[Conflict Resolution DD] management-profile: detect conflict → resolve acceptDevice (device wins) → verify cloud baseline updated and conflict cleared (no re-deploy needed)'
               isDeploymentTest: true
               steps:
-                - name: createhotspot-profile-config
-                  description: Create hotspot-profile-config configuration
+                - name: createmanagement-profile
+                  description: Create management-profile configuration
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     featurePath: /global-profile
                     name: TestProfile-Additional-ConflictDD
-                    objectType: hotspot-profile-config
+                    objectType: management-profile
                     objects:
                         - operation: add
                           properties:
-                            - name: name
+                            - name: hostname
                               origin: Global
                               type: string
-                              value: test-value
-                          type: hotspot-profile-config
+                              value: test-hostname
+                          type: management-profile
                     operation: add
                   expectedStatus: 201
                   validations:
+                    - Verify HTTP status code is 201
+                  assertions:
                     - type: statusCode
                       expected: "201"
                 - name: initialDeploy
@@ -606,19 +682,23 @@ features:
                         - test-device-001
                   expectedStatus: 202
                   validations:
+                    - Verify HTTP status code is 202
+                  assertions:
                     - type: statusCode
                       expected: 202
                 - name: simulateOutOfBandChange
-                  description: Simulate out-of-band hotspot-profile-config change on device via NOSAPI (creates conflict)
+                  description: Simulate out-of-band management-profile change on device via NOSAPI (creates conflict)
                   method: POST
                   api: NOSAPI
                   path: /v0/configuration/device
                   body:
                     action: modify
                     deviceId: 550e8400-e29b-41d4-a716-446655440000
-                    feature: hotspot-profile-config
+                    feature: management-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                  assertions:
                     - type: statusCode
                       expected: 200
                 - name: verifyConflictExists
@@ -633,6 +713,9 @@ features:
                     detailLevel: summary
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: jsonPathEquals
@@ -649,6 +732,10 @@ features:
                           resolution: acceptDevice
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.results[0].status' equals success
+                    - Verify response contains '$.summary.numberOfConflictsResolved'
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: jsonPathEquals
@@ -668,6 +755,9 @@ features:
                     detailLevel: summary
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals false
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: jsonPathEquals
@@ -675,11 +765,12 @@ features:
                       expected: false
         negative: []
         performance:
-            - testCaseID: TCXM_6119
-              featureName: hotspot-profile-config
-              priority: P3
+            - testCaseID: TCXM_4214
+              featureName: management-profile
+              priority: P4
+              automation: Automatable
               type: performance
-              description: 'Performance test: list hotspot-profile-config 10 times'
+              description: 'Performance test: list management-profile 10 times'
               isDeploymentTest: false
               steps:
                 - name: list0
@@ -689,6 +780,9 @@ features:
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Response time should be under 3 seconds
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
@@ -702,6 +796,9 @@ features:
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Response time should be under 3 seconds
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
@@ -715,6 +812,9 @@ features:
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Response time should be under 3 seconds
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
@@ -728,6 +828,9 @@ features:
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Response time should be under 3 seconds
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
@@ -741,6 +844,9 @@ features:
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Response time should be under 3 seconds
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
@@ -754,6 +860,9 @@ features:
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Response time should be under 3 seconds
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
@@ -767,6 +876,9 @@ features:
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Response time should be under 3 seconds
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
@@ -780,6 +892,9 @@ features:
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Response time should be under 3 seconds
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
@@ -793,6 +908,9 @@ features:
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Response time should be under 3 seconds
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder
@@ -806,6 +924,9 @@ features:
                   path: /global-profile
                   expectedStatus: 200
                   validations:
+                    - Verify HTTP status code is 200
+                    - Response time should be under 3 seconds
+                  assertions:
                     - type: statusCode
                       expected: 200
                     - type: responseTimeUnder

@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/extremenetworks/testcase-generator/pkg/model"
@@ -57,7 +58,24 @@ func (g *Generator) Generate() (*model.TestSuite, error) {
 
 	// PRIORITY 1: Generate tests for YANG features first (actual configuration features)
 	// These are features like vlan, syslog, ntp, dhcp, dns, etc.
-	for yangFeatureName, yangFeature := range g.features {
+	// Sort feature names so output is deterministic across runs.
+	yangFeatureNames := make([]string, 0, len(g.features))
+	for name := range g.features {
+		yangFeatureNames = append(yangFeatureNames, name)
+	}
+	sort.Strings(yangFeatureNames)
+
+	// Build a sorted slice of all feature paths once (avoids repeated random map walks).
+	sortedFeaturePaths := make([]*model.FeaturePath, 0, len(g.featurePaths))
+	for _, fp := range g.featurePaths {
+		sortedFeaturePaths = append(sortedFeaturePaths, fp)
+	}
+	sort.Slice(sortedFeaturePaths, func(i, j int) bool {
+		return sortedFeaturePaths[i].Path < sortedFeaturePaths[j].Path
+	})
+
+	for _, yangFeatureName := range yangFeatureNames {
+		yangFeature := g.features[yangFeatureName]
 		// Filter by feature name if configured
 		if !g.shouldIncludeFeatureByName(yangFeatureName) {
 			continue
@@ -65,7 +83,7 @@ func (g *Generator) Generate() (*model.TestSuite, error) {
 
 		// Find matching API paths for this YANG feature
 		var matchingPaths []*model.FeaturePath
-		for _, fp := range g.featurePaths {
+		for _, fp := range sortedFeaturePaths {
 			if fp.Feature != nil && fp.Feature.Name == yangFeatureName {
 				// Filter by BlueprintCategory if configured
 				if g.shouldIncludeFeature(fp) {
@@ -86,7 +104,13 @@ func (g *Generator) Generate() (*model.TestSuite, error) {
 	// PRIORITY 2: Generate tests for API endpoints that don't have YANG features
 	// but are still configuration APIs (not infrastructure)
 	featurePathGroups := g.groupFeaturePaths()
-	for groupName, paths := range featurePathGroups {
+	groupNames := make([]string, 0, len(featurePathGroups))
+	for name := range featurePathGroups {
+		groupNames = append(groupNames, name)
+	}
+	sort.Strings(groupNames)
+	for _, groupName := range groupNames {
+		paths := featurePathGroups[groupName]
 		// Skip if already handled by YANG feature
 		if g.features[groupName] != nil {
 			continue
@@ -145,7 +169,14 @@ func (g *Generator) groupFeaturePaths() map[string][]*model.FeaturePath {
 		"global-profile": true, "configuration-profile": true, "service-profile": true,
 	}
 
+	// Sort featurePaths by path before building groups for deterministic results.
+	sortedFPs := make([]*model.FeaturePath, 0, len(g.featurePaths))
 	for _, fp := range g.featurePaths {
+		sortedFPs = append(sortedFPs, fp)
+	}
+	sort.Slice(sortedFPs, func(i, j int) bool { return sortedFPs[i].Path < sortedFPs[j].Path })
+
+	for _, fp := range sortedFPs {
 		// Use YANG feature name if available
 		if fp.Feature != nil && fp.Feature.Name != "" {
 			featureName := fp.Feature.Name
@@ -211,6 +242,8 @@ func (g *Generator) generateFeatureTestGroup(feature *model.Feature, paths []*mo
 	// Sort paths so explicitly registered paths (BlueprintCategory != "") come LAST.
 	// Most path-selector loops use "last wins" (createPath = path each iteration),
 	// so explicit registrations will override fuzzy-matched ones automatically.
+	// Within each group (fuzzy / explicit) also sort by path string so the
+	// selection is fully deterministic regardless of map-iteration order.
 	sorted := make([]*model.FeaturePath, len(paths))
 	copy(sorted, paths)
 	// Stable sort: fuzzy paths first, explicit paths last
@@ -224,6 +257,9 @@ func (g *Generator) generateFeatureTestGroup(feature *model.Feature, paths []*mo
 			fuzzy = append(fuzzy, fp)
 		}
 	}
+	// Sort within each group by path for full determinism
+	sort.Slice(fuzzy, func(i, j int) bool { return fuzzy[i].Path < fuzzy[j].Path })
+	sort.Slice(tmp, func(i, j int) bool { return tmp[i].Path < tmp[j].Path })
 	sorted = append(fuzzy, tmp...)
 	_ = i
 	_ = j
