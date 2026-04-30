@@ -1,0 +1,57 @@
+# ─────────────────────────────────────────────────────────────────────
+# config.yaml — Source definitions for API Test Plan Generator
+# ─────────────────────────────────────────────────────────────────────
+# All sources are checked out into ./sources/ by checkout-sources.ps1.
+# run.ps1 reads this file to resolve input paths automatically.
+# ─────────────────────────────────────────────────────────────────────
+
+# Root directory where all sources are checked out
+sourcesDir: ./sources
+
+# ── NGC Sources ──────────────────────────────────────────────────────
+sources:
+
+  # YANG models — full directory checkout
+  yang:
+    repo: https://github.extremenetworks.com/Engineering/PlatformCommonModels.git
+    branch: cloud_platform
+    sparse: ConfigState/etc/yang
+    localDir: PlatformCommonModels
+    # Resolved path: ./sources/PlatformCommonModels/ConfigState/etc/yang
+
+  # REST OpenAPI spec (qaopenapi.yaml equivalent)
+  restSpec:
+    repo: https://github.extremenetworks.com/Engineering/PlatformServices.git
+    branch: cloud_platform
+    sparse: Configuration/src/configuration/infra/rest/openapi.yaml
+    localDir: PlatformServices
+    # Resolved path: ./sources/PlatformServices/Configuration/src/configuration/infra/rest/openapi.yaml
+
+  # NOS OpenAPI spec — place manually or add repo details when available
+  nosapiSpec:
+    # repo: <TBD>
+    # branch: <TBD>
+    # sparse: <path-to-nos-openapi.yaml>
+    localDir: nosapi
+    localFile: nos-openapi.yaml
+    # Resolved path: ./sources/nosapi/nos-openapi.yaml
+    # For now, copy the file manually:
+    #   mkdir -p sources/nosapi
+    #   cp /path/to/nos-openapi.yaml sources/nosapi/
+
+  # QA OpenAPI spec — place manually or add repo details when available
+  qaopenapi:
+    # repo: <TBD>
+    # branch: <TBD>
+    # sparse: <path-to-qaopenapi.yaml>
+    localDir: qaapi
+    localFile: qaopenapi.yaml
+    # Resolved path: ./sources/qaapi/qaopenapi.yaml
+    # For now, copy the file manually:
+    #   mkdir -p sources/qaapi
+    #   cp /path/to/qaopenapi.yaml sources/qaapi/
+
+# ── Output ───────────────────────────────────────────────────────────
+output:
+  testplansDir: ./Testplans
+  summaryReport: ./summary_report.html
