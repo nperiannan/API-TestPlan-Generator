@@ -1,111 +1,126 @@
-# API Test Case Generator
+# API Test Plan Generator
 
-A comprehensive Go library and CLI tool for auto-generating API test definitions (YAML) for network management systems. The generator derives test cases from YANG models, REST API specifications, and NOSAPI definitions.
+A Go CLI tool that auto-generates comprehensive API test plans (YAML) for Extreme Networks cloud platform features. It derives test cases from **YANG models**, **REST OpenAPI specs**, and **NOSAPI definitions**.
 
 ## Overview
 
-This tool generates complete test suites including:
+The generator produces complete test suites covering:
 
-- **Functional tests**: CRUD operations, deployment workflows with NOSAPI verification
-- **Boundary tests**: Parameter-level boundary testing based on YANG constraints
-- **Negative tests**: Invalid values, missing required fields, constraint violations
-- **Scale tests**: High-count object creation, large payloads, deeply nested structures
-- **Performance tests**: Repeated operations with timing measurements
+- **Functional tests** — CRUD operations, deployment workflows with NOSAPI verification
+- **Boundary tests** — Parameter-level boundary testing based on YANG constraints
+- **Negative tests** — Invalid values, missing required fields, constraint violations
+- **Scale tests** — High-count object creation, large payloads, deeply nested structures
+- **Performance tests** — Repeated operations with timing measurements
+- **Additional coverage** — IP classification, value transitions, pattern-based values, permutations
 
 ### Key Features
 
-- **YANG-driven**: Treats YANG models as the single source of truth for features and constraints
-- **Deployment-aware**: Supports site-group and device scoping/targeting with full deployment lifecycle
-- **NOSAPI verification**: Generates verification steps for NOS device configuration
-- **Modular architecture**: Easy to extend for new profile types, test categories, and deployment methods
-- **Rich metadata**: Every test includes unique ID, priority, type, description, and metadata
-- **Production-quality**: Type-safe, well-tested, idiomatic Go code
+- **YANG-driven** — YANG models are the single source of truth for features and constraints
+- **Deployment-aware** — Site-group and device scoping/targeting with full deployment lifecycle
+- **NOSAPI verification** — Generates verification steps against NOS device configuration
+- **Blueprint categories** — Wired, wireless, and global profile support
+- **Rich metadata** — Every test includes unique ID, priority, type, description, and metadata
+- **HTML reports** — Summary report and per-feature coverage reports
 
-## Architecture
+## Project Structure
 
 ```
-testcase-generator/
-├── cmd/testgen/           # CLI application
+API-TestPlan-Generator/
+├── cmd/testgen/                    # CLI application
 │   └── main.go
 ├── pkg/
-│   ├── model/             # Domain models and types
-│   │   ├── types.go       # Core test structure types
-│   │   ├── feature.go     # Feature and constraint types
-│   │   └── config.go      # Generator configuration
-│   ├── yang/              # YANG parser
-│   │   └── parser.go
+│   ├── model/                      # Domain models and types
+│   │   ├── types.go                # Core test structure types
+│   │   ├── feature.go              # Feature and constraint types
+│   │   ├── config.go               # Generator configuration
+│   │   └── teststep_yaml.go        # YAML serialization helpers
+│   ├── yang/                       # YANG model parser
+│   │   ├── parser.go
+│   │   └── types.go
 │   ├── spec/
-│   │   ├── rest/          # REST API spec parser
-│   │   │   └── parser.go
-│   │   └── nosapi/        # NOSAPI spec parser
+│   │   ├── rest/                   # REST OpenAPI spec parser
+│   │   │   ├── parser.go
+│   │   │   └── response_parser.go
+│   │   └── nosapi/                 # NOSAPI spec parser
 │   │       └── parser.go
-│   ├── generator/         # Test generation logic
-│   │   ├── generator.go
-│   │   ├── functional.go
-│   │   ├── deployment.go
-│   │   ├── boundary_negative.go
-│   │   └── scale_performance.go
-│   └── yamlout/           # YAML serialization
-│       └── writer.go
-├── examples/
-│   └── sample-output.yaml # Example generated test
-├── SOURCE_FILES.md        # Source file locations reference
+│   ├── generator/                  # Test generation logic
+│   │   ├── generator.go            # Main orchestrator
+│   │   ├── functional.go           # Functional test generation
+│   │   ├── deployment.go           # Deployment workflow tests
+│   │   ├── boundary_negative.go    # Boundary & negative tests
+│   │   ├── scale_performance.go    # Scale & performance tests
+│   │   ├── additional_coverage.go  # Extra coverage generators
+│   │   ├── ip_classification.go    # IP-based test generation
+│   │   ├── pattern_values.go       # Pattern/regex value generation
+│   │   ├── permutations.go         # Parameter permutation tests
+│   │   ├── response_validations.go # Response validation helpers
+│   │   ├── value_transition.go     # State transition tests
+│   │   └── coverage_report.go      # Coverage analysis
+│   └── yamlout/                    # Output writers
+│       ├── writer.go               # YAML file writer
+│       └── html_report.go          # HTML report generator
+├── config/                         # Configuration files
+│   ├── config.yaml                 # Source definitions and paths
+│   └── checkout-sources.ps1        # Automated source checkout
+├── sources/                        # Input source files (partially gitignored)
+│   ├── nosapi/                     # NOS OpenAPI spec (committed)
+│   ├── qaapi/                      # QA OpenAPI spec (committed)
+│   ├── PlatformCommonModels/       # YANG models (gitignored, cloned)
+│   └── PlatformServices/           # REST OpenAPI spec (gitignored, cloned)
+├── reports/                        # Generated HTML reports
+├── tools/                          # Utility scripts
+│   ├── yaml_to_excel.py            # Convert YAML test plans to Excel
+│   └── yaml_to_csv.py             # Convert YAML test plans to CSV
+├── generated-tests/                # Sample generated outputs (committed)
+├── run.ps1                         # Quick-start generation script
 ├── go.mod
 └── README.md
 ```
 
-## Installation
+## Quick Start
 
 ### Prerequisites
 
 - Go 1.21 or later
-- Access to YANG models directory
-- REST API OpenAPI specification (YAML)
-- NOSAPI OpenAPI specification (YAML)
+- Git (for source checkout from enterprise GitHub)
+- PowerShell (for helper scripts)
 
-### Build
+### 1. Build
 
-```bash
-# Clone or navigate to the repository
-cd "c:\Users\nperiannan\OneDrive - Extreme Networks, Inc\Desktop\Testcase generator"
-
-# Download dependencies
-go mod download
-
-# Build the CLI
+```powershell
 go build -o testgen.exe ./cmd/testgen
 ```
 
-## Usage
+### 2. Checkout Sources
 
-### Basic Usage
+Enterprise sources (YANG models, REST spec) are checked out via sparse git clone:
 
-```bash
-./testgen.exe \
-  --yang-dir "C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang" \
-  --rest-spec "C:\Natarajan\automation\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml" \
-  --nosapi-spec "C:\Users\nperiannan\Downloads\nos-openapi.yaml" \
-  --out-dir "./Testplans"
+```powershell
+.\config\checkout-sources.ps1          # First-time checkout or update
+.\config\checkout-sources.ps1 -force   # Clean re-checkout (old files backed up)
 ```
 
-### Advanced Options
+Source locations are defined in [config/config.yaml](config/config.yaml). The `nosapi` and `qaapi` specs are committed to git; `PlatformCommonModels` and `PlatformServices` are cloned from `github.extremenetworks.com` and gitignored.
 
-```bash
-./testgen.exe \
-  --yang-dir "<path-to-yang>" \
-  --rest-spec "<path-to-rest-api-spec>" \
-  --nosapi-spec "<path-to-nosapi-spec>" \
-  --out-dir "./Testplans" \
-  --include-categories functional,boundary,negative,scale,performance \
-  --scope-types site-group,device \
-  --target-types site-group,device \
-  --deployment-methods rolling,immediate \
-  --scale-factor 100 \
-  --performance-iterations 10 \
-  --performance-concurrency 5 \
-  --one-file-per-feature true \
-  --test-id-prefix TCXM \
-  --starting-id-number 1000
+### 3. Generate Test Plans
+
+```powershell
+# Using the wrapper script (recommended)
+.\run.ps1                              # Default: wired features
+.\run.ps1 -features wireless           # Wireless features only
+.\run.ps1 -features all                # All features
+.\run.ps1 -features radius-server      # Single feature
+.\run.ps1 -features "radius-server,ntp-server"  # Multiple features
+```
+
+Or run the CLI directly:
+
+```powershell
+.\testgen.exe `
+  --yang-dir "./sources/PlatformCommonModels/ConfigState/etc/yang" `
+  --rest-spec "./sources/qaapi/qaopenapi.yaml" `
+  --nosapi-spec "./sources/nosapi/nos-openapi.yaml" `
+  --out-dir "./Testplans"
 ```
 
 ### CLI Flags
@@ -117,6 +132,8 @@ go build -o testgen.exe ./cmd/testgen
 | `--nosapi-spec` | Path to NOSAPI OpenAPI spec | *Required* |
 | `--out-dir` | Output directory for generated tests | `./Testplans` |
 | `--include-categories` | Test categories to generate | `functional,boundary,negative,scale,performance` |
+| `--feature-categories` | Blueprint categories: wired, wireless, all | `wired` |
+| `--features` | Comma-separated feature filter | *(all)* |
 | `--scope-types` | Scope types for deployment tests | `site-group,device` |
 | `--target-types` | Target types for deployment tests | `site-group,device` |
 | `--deployment-methods` | Deployment methods to test | `rolling,immediate` |
@@ -127,227 +144,46 @@ go build -o testgen.exe ./cmd/testgen
 | `--test-id-prefix` | Prefix for test case IDs | `TCXM` |
 | `--starting-id-number` | Starting number for test IDs | `1000` |
 
-## Output Structure
+## Output
 
-The generator produces:
+The generator produces into `--out-dir`:
 
-1. **Individual test files** (if `--one-file-per-feature` is true): One YAML file per feature containing all test categories
-2. **test-suite.yaml** (if `--one-file-per-feature` is false): Single file with all tests
-3. **test-summary.txt**: Summary report with test counts by feature and category
-4. **example-test.yaml**: Detailed example of a deployment test
+| File | Description |
+|------|-------------|
+| `<feature>.yaml` | One YAML test plan per feature (with `--one-file-per-feature`) |
+| `test-summary.txt` | Summary with test counts by feature and category |
+| `coverage-report.json` | Machine-readable coverage data |
+| `coverage-report.txt` | Human-readable coverage report |
+| `test-coverage-report.html` | Per-feature HTML coverage report |
+| `example-test.yaml` | Example deployment test for reference |
 
-### Example Test Case Structure
+Additionally, `reports/summary_report.html` is generated with a cross-feature summary dashboard.
 
-```yaml
-testCaseID: "TCXM_1000"
-featureName: "VLAN-Configuration"
-priority: "P0"
-type: "functional"
-description: "Create configuration profile, scope to site group, deploy, and verify on NOS devices"
-scopeType: "site-group"
-targetType: "site-group"
-deploymentMethod: "immediate"
-isDeploymentTest: true
-steps:
-  - name: "createProfile"
-    method: "POST"
-    api: "REST"
-    path: "/configuration/v1/configuration-profile"
-    body: {...}
-    expectedStatus: 201
-    validations:
-      - type: "statusCode"
-        expected: 201
-  
-  - name: "scopeProfileTosite-group"
-    method: "POST"
-    api: "REST"
-    path: "/configuration/v1/configuration-profile/{profileName}/scope/site-group"
-    body: {...}
-    expectedStatus: 200
-  
-  - name: "deployProfileTosite-group"
-    method: "POST"
-    api: "REST"
-    path: "/configuration/v1/configuration-profile/{profileName}/deploy"
-    expectedStatus: 202
-  
-  - name: "checkDeploymentStatus"
-    method: "GET"
-    api: "REST"
-    path: "/configuration/v1/configuration-profile/{profileName}/deploy/status"
-    timeout: 300
-    validations:
-      - type: "jsonPathEquals"
-        path: "$.status"
-        expected: "SUCCESS"
-  
-  - name: "verifyNosConfigForsite-group"
-    method: "GET"
-    api: "NOSAPI"
-    path: "/nos/v1/site-groups/{siteGroupId}/devices/config"
-    devicesScope: "siteGroup"
-    validations:
-      - type: "nosConfigMatchesExpected"
-```
+## Source Configuration
 
-## Test Categories
+All input source paths are defined in [config/config.yaml](config/config.yaml):
 
-### Functional Tests
+- **YANG models** — Sparse-cloned from `PlatformCommonModels` (enterprise GitHub)
+- **REST OpenAPI spec** — Sparse-cloned from `PlatformServices` (enterprise GitHub)
+- **NOS OpenAPI spec** — Committed in `sources/nosapi/`
+- **QA OpenAPI spec** — Committed in `sources/qaapi/`
 
-- **CRUD operations**: Create, Read, Update, Delete with validations
-- **Deployment workflows**:
-  - Create profile → Scope → Target → Deploy → Verify deployment status → Verify NOS config
-  - Both site-group and device scenarios
-  - Deployment and non-deployment variants
-
-### Boundary Tests
-
-- Parameter-level boundaries from YANG constraints
-- String length (min/max)
-- Numeric ranges (min/max)
-- Array cardinality (minItems/maxItems)
-- Enum boundary values
-
-### Negative Tests
-
-- Missing required fields
-- Invalid enum values
-- Constraint violations
-- Invalid scope/target/deployment combinations
-- Type mismatches
-
-### Scale Tests
-
-- Multiple instances (configurable count)
-- Large lists/arrays in single objects
-- Deeply nested structures
-- High payload sizes
-
-### Performance Tests
-
-- Repeated operations with timing validations
-- Configurable iterations and concurrency
-- Response time thresholds
-- Create, Read, and List operations
-
-## Deployment Scenarios
-
-The generator creates comprehensive deployment tests including:
-
-### Site-Group Scoped Deployment
-
-1. Create configuration profile
-2. Scope to site group
-3. Target to site group
-4. Deploy with specified method
-5. Verify deployment status via REST API
-6. Verify configuration on all NOS devices in site group via NOSAPI
-
-### Device Scoped Deployment
-
-1. Create configuration profile
-2. Scope to specific device
-3. Target to device
-4. Deploy with specified method
-5. Verify deployment status via REST API
-6. Verify configuration on the specific NOS device via NOSAPI
-
-## Extension Points
-
-The library is designed for extensibility:
-
-### Adding New Profile Types
-
-1. Add new constant to `model.ProfileType`
-2. Update detection logic in `rest.Parser.detectProfileType()`
-
-### Adding New Test Categories
-
-1. Add new constant to `model.TestCategory`
-2. Implement generator function in `pkg/generator/`
-3. Wire into `Generator.generateFeatureTestGroup()`
-
-### Adding New Scope/Target Types
-
-1. Add constants to `model.ScopeType` or `model.TargetType`
-2. Update parsers and generators
-
-### Adding New Deployment Methods
-
-1. Add constant to `model.DeploymentMethod`
-2. Update deployment test generation logic
+The checkout script uses sparse git clones with `--filter=blob:none` for efficient checkout of only needed paths. On `-force`, old sources are backed up and restored if the checkout fails.
 
 ## Testing
 
-Run unit tests:
-
-```bash
-# Run all tests
-go test ./...
-
-# Run tests with coverage
-go test -cover ./...
-
-# Run specific package tests
-go test ./pkg/model
-go test ./pkg/generator
+```powershell
+go test ./...                  # Run all tests
+go test -cover ./...           # With coverage
+go test ./pkg/generator        # Specific package
 ```
 
-## Development
+## Extension Points
 
-### Code Structure
-
-- **`pkg/model/`**: Core domain models, type-safe structs
-- **`pkg/yang/`**: YANG parsing, constraint extraction
-- **`pkg/spec/rest/`**: OpenAPI parsing for REST endpoints
-- **`pkg/spec/nosapi/`**: NOSAPI endpoint parsing
-- **`pkg/generator/`**: Test generation logic, modular by category
-- **`pkg/yamlout/`**: YAML serialization, summary generation
-- **`cmd/testgen/`**: CLI application, flag parsing, orchestration
-
-### Adding New Generators
-
-1. Create new file in `pkg/generator/` (e.g., `custom.go`)
-2. Implement `generate<Category>Tests()` function
-3. Add to category switch in `generateFeatureTestGroup()`
-
-## Example: Generated Test Output
-
-See [`examples/sample-output.yaml`](examples/sample-output.yaml) for a complete example showing:
-
-- Site-group deployment test with NOSAPI verification
-- Device deployment test with NOSAPI verification
-- Boundary test for VLAN ID
-- Negative test for missing required field
-- Scale test for multiple instances
-- Performance test with timing validation
-
-## Troubleshooting
-
-### YANG Parsing Issues
-
-- Ensure YANG files use standard syntax
-- Check for valid module and container declarations
-- Verify file permissions on YANG directory
-
-### OpenAPI Parsing Issues
-
-- Validate OpenAPI spec with online validators
-- Ensure spec is OpenAPI 3.0 format
-- Check for proper schema definitions
-
-### Empty Test Output
-
-- Verify YANG files contain features
-- Check that REST API spec has valid endpoints
-- Ensure feature names match between YANG and REST spec
-
-## Future Enhancements
-
-- Support for more YANG constructs (choice, grouping, augment)
-- Advanced constraint validation (when, must statements)
-- Test execution framework integration
+- **New test categories**: Add generator in `pkg/generator/`, wire into `generator.go`
+- **New profile types**: Add to `model.ProfileType`, update `rest.Parser`
+- **New scope/target types**: Add to `model.ScopeType`/`model.TargetType`
+- **New deployment methods**: Add to `model.DeploymentMethod`
 - CI/CD pipeline integration
 - GraphQL API support
 - gRPC/Protobuf support

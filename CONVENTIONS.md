@@ -1,0 +1,136 @@
+# Project Conventions
+
+Conventions and practices for the API Test Plan Generator project.
+
+## Repository Layout
+
+```
+cmd/testgen/       — CLI entry point (main.go)
+pkg/               — All Go library packages
+config/            — Configuration files (config.yaml, checkout-sources.ps1)
+sources/           — Input source files (partially gitignored)
+reports/           — Generated HTML reports (summary_report.html)
+tools/             — Utility scripts (Python converters)
+generated-tests/   — Sample outputs committed for reference
+```
+
+### What gets committed
+
+| Directory / File | Committed | Notes |
+|------------------|-----------|-------|
+| `sources/nosapi/` | Yes | NOS OpenAPI spec |
+| `sources/qaapi/` | Yes | QA OpenAPI spec |
+| `sources/PlatformCommonModels/` | No | Cloned from enterprise GitHub |
+| `sources/PlatformServices/` | No | Cloned from enterprise GitHub |
+| `reports/` | No | Generated output |
+| `Testplans/` | No | Generated output |
+| `testgen.exe` | No | Build artifact |
+
+## Go Conventions
+
+### Module
+
+- Module path: `github.com/extremenetworks/testcase-generator`
+- Go 1.21+
+
+### Package Organization
+
+- `pkg/model/` — Domain types only, no I/O. Types are shared across all packages.
+- `pkg/yang/` — YANG file parser. Reads `.yang` files, produces `model.Feature` structs.
+- `pkg/spec/rest/` — REST OpenAPI parser. Reads OpenAPI YAML, enriches features with endpoints.
+- `pkg/spec/nosapi/` — NOSAPI parser. Reads NOSAPI spec, adds verification endpoints.
+- `pkg/generator/` — Test case generation. One file per category/concern. Main orchestrator in `generator.go`.
+- `pkg/yamlout/` — Output writers. YAML files, HTML reports, text summaries.
+- `cmd/testgen/` — CLI only. Flag parsing, wiring packages together. No business logic.
+
+### Naming
+
+- Generator files are named by what they generate: `functional.go`, `boundary_negative.go`, `scale_performance.go`, `deployment.go`
+- Helper/support files describe their concern: `ip_classification.go`, `pattern_values.go`, `permutations.go`
+- Test files use `_test.go` suffix in the same package
+
+### Error Handling
+
+- Return `fmt.Errorf("context: %w", err)` with wrapped errors
+- CLI exits with `os.Exit(1)` on fatal errors
+- Parsers use `log.Printf` for warnings (non-fatal parse issues)
+
+## Source Management
+
+### config.yaml
+
+All input source locations are defined in `config/config.yaml`. Each source entry specifies:
+
+- `repo` — Git clone URL (enterprise GitHub, omitted for committed sources)
+- `branch` — Git branch to checkout
+- `sparse` — Sparse checkout path (always a **directory**, not a file)
+- `localDir` — Directory name under `sources/`
+- `localFile` — Specific file within the sparse path (optional)
+
+### Sparse Checkout
+
+- Always use **directory-level** sparse paths, not file-level
+- Git sparse-checkout with `--filter=blob:none` for efficient clones
+- The `-force` flag backs up existing sources before re-cloning; restores on failure
+
+### checkout-sources.ps1
+
+- Located at `config/checkout-sources.ps1`, run from project root
+- Uses `$PSScriptRoot` to resolve `config.yaml` relative to itself
+- Safe re-checkout: old files are renamed to `sources.bak/`, not deleted
+- Failed checkouts restore from backup automatically
+
+## Test Generation
+
+### Test IDs
+
+- Format: `{prefix}_{number}` (e.g., `TCXM_1000`)
+- Prefix configurable via `--test-id-prefix`
+- Starting number via `--starting-id-number`
+- IDs are sequential across all features
+
+### Test Categories
+
+| Category | File | Priority |
+|----------|------|----------|
+| Functional | `functional.go` | P0–P1 |
+| Deployment | `deployment.go` | P0 |
+| Boundary | `boundary_negative.go` | P1–P2 |
+| Negative | `boundary_negative.go` | P1–P2 |
+| Scale | `scale_performance.go` | P2–P3 |
+| Performance | `scale_performance.go` | P2–P3 |
+
+### Blueprint Categories
+
+Features are classified into blueprint categories:
+- **Wired** — Switch/port/VLAN/routing features
+- **Wireless** — WLAN/SSID/radio features
+- **Global** — Features that span both (e.g., RADIUS, DNS, NTP)
+
+### Output
+
+- One YAML file per feature by default (`--one-file-per-feature`)
+- Summary report goes to `reports/summary_report.html`
+- Per-run artifacts (coverage, test-summary) go to `--out-dir`
+
+## Scripts
+
+### run.ps1
+
+- Quick-start wrapper for common generation scenarios
+- Accepts `-features` parameter: `wired`, `wireless`, `all`, or specific feature names
+- Auto-builds `testgen.exe` if not present
+
+### PowerShell Style
+
+- Scripts use `param()` blocks for parameters
+- Helper functions for colored output: `Write-Step`, `Write-Ok`, `Write-Warn`, `Write-Err`
+- Exit codes: 0 = success, 1 = error
+
+## Git Workflow
+
+- Single branch: `main`
+- Remote: `origin` → `github.com/nperiannan/API-TestPlan-Generator`
+- Enterprise repos: `github.extremenetworks.com/Engineering/*`
+- Commits use imperative mood: "Add feature", "Fix bug", "Update config"
+- Tag releases as `v{major}.{minor}.{patch}`
