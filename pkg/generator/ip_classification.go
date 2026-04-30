@@ -126,6 +126,8 @@ func (g *Generator) generateIPPositiveTests(
 		body := g.generateRequestBody(feature, createPath)
 		body["name"] = fmt.Sprintf("TestResource-IP-%s", ipCase.label)
 		g.setOrAddBodyParameter(body, param, ipCase.value)
+		// Set companion mask field to correct type for the IP version used
+		setMaskForIPVersion(body, feature.Parameters, ipCase.value)
 
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name:           fmt.Sprintf("createWith%s", ipCase.label),
@@ -250,7 +252,7 @@ func isIPParameter(param model.Parameter) bool {
 		tokenSet[t] = true
 	}
 	ipTokens := []string{"server", "address", "ip", "host", "gateway",
-		"nameserver", "dns", "ntp", "syslog", "radius", "tacacs"}
+		"nameserver", "dns", "ntp", "syslog", "radius", "tacacs", "subnet"}
 	for _, t := range ipTokens {
 		if tokenSet[t] {
 			return true
@@ -265,6 +267,16 @@ func isIPParameter(param model.Parameter) bool {
 					return true
 				}
 			}
+		}
+	}
+
+	// Description-based detection: catch fields like "destination-subnet" whose
+	// YANG description explicitly states CIDR / IP address format.
+	descLower := strings.ToLower(param.Description)
+	ipDescHints := []string{"cidr notation", "ip subnet", "ip address format"}
+	for _, hint := range ipDescHints {
+		if strings.Contains(descLower, hint) {
+			return true
 		}
 	}
 
@@ -320,6 +332,7 @@ func (g *Generator) generateIPBoundaryTests(
 
 		body := g.generateRequestBody(feature, createPath)
 		g.setOrAddBodyParameter(body, param, ipCase.value)
+		setMaskForIPVersion(body, feature.Parameters, ipCase.value)
 
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name:           fmt.Sprintf("testBoundary_%s", ipCase.label),
@@ -336,4 +349,51 @@ func (g *Generator) generateIPBoundaryTests(
 	}
 
 	return tests
+}
+
+// setMaskForIPVersion looks for a "mask" parameter in the feature and sets it
+// to a value appropriate for the IP version of the given ipValue.
+//
+// Rules:
+//   - IPv6 address (contains ":") -> prefix length string e.g. "64"
+//   - IPv4 address or FQDN        -> prefix length string e.g. "24"
+//   - If no mask parameter exists in the feature, this is a no-op.
+func setMaskForIPVersion(body map[string]interface{}, params []model.Parameter, ipValue string) {
+	var maskParamName string
+	for _, p := range params {
+		lower := strings.ToLower(p.Name)
+		if lower == "mask" || lower == "subnet-mask" || lower == "network-mask" || lower == "prefix-length" {
+			maskParamName = p.Name
+			break
+		}
+	}
+	if maskParamName == "" {
+		return
+	}
+
+	var maskValue string
+	if strings.Contains(ipValue, ":") {
+		// IPv6 -- use prefix length
+		maskValue = "64"
+	} else {
+		// IPv4 or FQDN -- use prefix length
+		maskValue = "24"
+	}
+
+	// Update in deep-scanned format (objects[].properties) or simple map format
+	if objects, ok := body["objects"].([]interface{}); ok && len(objects) > 0 {
+		if obj, ok := objects[0].(map[string]interface{}); ok {
+			if props, ok := obj["properties"].([]map[string]interface{}); ok {
+				for i, prop := range props {
+					if strings.EqualFold(fmt.Sprintf("%v", prop["name"]), maskParamName) {
+						props[i]["value"] = maskValue
+						obj["properties"] = props
+						return
+					}
+				}
+			}
+		}
+	} else {
+		body[maskParamName] = maskValue
+	}
 }

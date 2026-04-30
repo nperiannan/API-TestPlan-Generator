@@ -2,9 +2,136 @@ package generator
 
 import (
 	"fmt"
+	"net"
+	"strings"
 
 	"github.com/extremenetworks/testcase-generator/pkg/model"
 )
+
+// featureScaleLimits defines the maximum number of instances per feature.
+// These come from NOS/device documentation, not YANG (which may be unbounded).
+// Map key is feature name, value is [EXOS/SwitchEngine limit, VOSS/FabricEngine limit].
+var featureScaleLimits = map[string][2]int{
+	"radius-server": {32, 10},
+}
+
+// getScaleLimit returns the scale limit for a feature.
+// If a specific limit is defined, it uses the lower of the two platform limits.
+// Otherwise it falls back to the configured ScaleFactor.
+func (g *Generator) getScaleLimit(featureName string) int {
+	if limits, ok := featureScaleLimits[featureName]; ok {
+		// Use the lower limit (VOSS) as the safe default for scale tests
+		minLimit := limits[1]
+		if limits[0] < limits[1] {
+			minLimit = limits[0]
+		}
+		return minLimit
+	}
+	return g.config.ScaleFactor
+}
+
+// getMaxCapacityLimit returns the max capacity for a feature.
+// Uses the higher platform limit if defined, otherwise 2x scale factor.
+func (g *Generator) getMaxCapacityLimit(featureName string) int {
+	if limits, ok := featureScaleLimits[featureName]; ok {
+		// Use the higher limit (EXOS) for max capacity testing
+		maxLimit := limits[0]
+		if limits[1] > limits[0] {
+			maxLimit = limits[1]
+		}
+		return maxLimit
+	}
+	return g.config.ScaleFactor * 2
+}
+
+// incrementUniqueBodyValues updates unique/key field values in the request body
+// so that each instance in a scale/performance test has distinct values.
+// It uses the feature's YANG key fields to determine which properties need
+// unique values. For IP-address keys, the last octet is incremented from the
+// base sample value (e.g., 8.8.8.8 → 8.8.8.9 → 8.8.8.10).
+// For string keys, the index is appended. For numeric keys, the value is incremented.
+func (g *Generator) incrementUniqueBodyValues(body map[string]interface{}, feature *model.Feature, index int) {
+	keySet := make(map[string]bool, len(feature.Keys))
+	for _, k := range feature.Keys {
+		keySet[k] = true
+	}
+
+	// If no YANG keys are defined, fall back to heuristic matching
+	if len(keySet) == 0 {
+		keySet = guessKeyFields(feature)
+	}
+
+	// Handle deep-scanned body format (objects[].properties[])
+	if objects, ok := body["objects"].([]interface{}); ok && len(objects) > 0 {
+		if obj, ok := objects[0].(map[string]interface{}); ok {
+			if props, ok := obj["properties"].([]map[string]interface{}); ok {
+				for i, prop := range props {
+					name, _ := prop["name"].(string)
+					if !keySet[name] {
+						continue
+					}
+					props[i]["value"] = incrementFieldValue(prop["value"], name, index)
+				}
+				obj["properties"] = props
+			}
+		}
+	} else {
+		// Simple body format
+		for _, param := range feature.Parameters {
+			if !keySet[param.Name] {
+				continue
+			}
+			if val, ok := body[param.Name]; ok {
+				body[param.Name] = incrementFieldValue(val, param.Name, index)
+			}
+		}
+	}
+}
+
+// guessKeyFields returns a set of likely key fields by name heuristic,
+// used when the Feature has no YANG keys parsed.
+func guessKeyFields(feature *model.Feature) map[string]bool {
+	keys := make(map[string]bool)
+	for _, p := range feature.Parameters {
+		nl := strings.ToLower(p.Name)
+		if strings.Contains(nl, "server") || strings.Contains(nl, "address") ||
+			strings.Contains(nl, "host") || strings.Contains(nl, "ip") {
+			keys[p.Name] = true
+		}
+	}
+	return keys
+}
+
+// incrementFieldValue returns a new value for the given field incremented by
+// index.  IP addresses are incremented by last octet(s); integers are added;
+// strings get the index appended.
+func incrementFieldValue(baseValue interface{}, fieldName string, index int) interface{} {
+	switch v := baseValue.(type) {
+	case string:
+		ip := net.ParseIP(v)
+		if ip != nil && ip.To4() != nil {
+			// Increment last octet(s) of the IPv4 address
+			ip4 := ip.To4()
+			offset := index
+			ip4[3] = byte(int(ip4[3]) + offset%256)
+			if int(ip4[3]) < int(ip.To4()[3]) { // wrapped
+				ip4[2]++
+			}
+			return ip4.String()
+		}
+		// Non-IP string: append index
+		if index == 0 {
+			return v
+		}
+		return fmt.Sprintf("%s-%d", v, index)
+	case int:
+		return v + index
+	case float64:
+		return int(v) + index
+	default:
+		return baseValue
+	}
+}
 
 // generateScaleTests generates scale test cases
 func (g *Generator) generateScaleTests(feature *model.Feature, paths []*model.FeaturePath) []model.TestCase {
@@ -65,17 +192,19 @@ func (g *Generator) generateMultipleInstancesTest(
 		FeatureName: feature.Name,
 		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryScale,
-		Description: fmt.Sprintf("Create %d instances of %s", g.config.ScaleFactor, feature.Name),
 		Steps:       []model.TestStep{},
-		Metadata: map[string]interface{}{
-			"instanceCount": g.config.ScaleFactor,
-		},
+		Metadata:    map[string]interface{}{},
 	}
 
-	// Create multiple instances
-	for i := 0; i < g.config.ScaleFactor; i++ {
+	scaleLimit := g.getScaleLimit(feature.Name)
+	tc.Description = fmt.Sprintf("Create %d instances of %s", scaleLimit, feature.Name)
+	tc.Metadata["instanceCount"] = scaleLimit
+
+	// Create multiple instances with unique values
+	for i := 0; i < scaleLimit; i++ {
 		body := g.generateRequestBody(feature, createPath)
 		body["name"] = fmt.Sprintf("TestResource-%d", i)
+		g.incrementUniqueBodyValues(body, feature, i)
 
 		step := model.TestStep{
 			Name:           fmt.Sprintf("createInstance%d", i),
@@ -260,6 +389,7 @@ func (g *Generator) generateCreatePerformanceTest(
 	for i := 0; i < g.config.PerformanceIterations; i++ {
 		body := g.generateRequestBody(feature, createPath)
 		body["name"] = fmt.Sprintf("PerfTest-%d", i)
+		g.incrementUniqueBodyValues(body, feature, i)
 
 		step := model.TestStep{
 			Name:           fmt.Sprintf("create%d", i),
@@ -527,16 +657,18 @@ func (g *Generator) generateMaxCapacityTest(
 		Description: fmt.Sprintf("Test maximum capacity for %s (create to maximum allowed)", feature.Name),
 		Steps:       []model.TestStep{},
 		Metadata: map[string]interface{}{
-			"maxInstances": g.config.ScaleFactor * 2,
-			"testType":     "max-capacity",
+			"testType": "max-capacity",
 		},
 	}
 
-	// Create maximum number of instances
-	maxInstances := g.config.ScaleFactor * 2 // Use 2x scale factor for max capacity
+	// Create maximum number of instances using feature-specific limits
+	maxInstances := g.getMaxCapacityLimit(feature.Name)
+	tc.Description = fmt.Sprintf("Test maximum capacity for %s (create %d instances)", feature.Name, maxInstances)
+	tc.Metadata["maxInstances"] = maxInstances
 	for i := 0; i < maxInstances; i++ {
 		body := g.generateRequestBody(feature, createPath)
 		body["name"] = fmt.Sprintf("MaxCapacityTest-%d", i)
+		g.incrementUniqueBodyValues(body, feature, i)
 
 		// If feature has priority parameter, use different priorities
 		if hasParameter(feature, "priority") {
@@ -659,6 +791,7 @@ func (g *Generator) generateDeletePerformanceTest(
 		// Create resource
 		body := g.generateRequestBody(feature, createPath)
 		body["name"] = fmt.Sprintf("DeletePerfTest-%d", i)
+		g.incrementUniqueBodyValues(body, feature, i)
 
 		createStep := model.TestStep{
 			Name:           fmt.Sprintf("create%d", i),

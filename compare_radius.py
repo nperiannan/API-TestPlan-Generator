@@ -18,7 +18,7 @@ def get_cases(path):
     return cases
 
 old_list = get_cases('radius-server.yaml')
-new_list = get_cases('generated-tests/radius-server.yaml')
+new_list = get_cases('Testplans/radius-server.yaml')
 
 old_descs = {tc['desc'] for tc in old_list}
 new_descs = {tc['desc'] for tc in new_list}

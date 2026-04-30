@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -49,7 +48,7 @@ func init() {
 	rootCmd.Flags().StringVar(&yangDir, "yang-dir", "", "Path to YANG models directory (required)")
 	rootCmd.Flags().StringVar(&restSpec, "rest-spec", "", "Path to REST API OpenAPI spec file (required)")
 	rootCmd.Flags().StringVar(&nosapiSpec, "nosapi-spec", "", "Path to NOSAPI OpenAPI spec file (required)")
-	rootCmd.Flags().StringVar(&outDir, "out-dir", "./generated-tests", "Output directory for generated tests")
+	rootCmd.Flags().StringVar(&outDir, "out-dir", "./Testplans", "Output directory for generated tests")
 
 	rootCmd.Flags().StringSliceVar(&includeCategories, "include-categories",
 		[]string{"functional", "boundary", "negative", "scale", "performance"},
@@ -146,39 +145,9 @@ func run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to write YAML output: %w", err)
 	}
 
-	// Write summary
-	if err := writer.WriteSummary(suite); err != nil {
-		return fmt.Errorf("failed to write summary: %w", err)
-	}
-
 	// Write example
 	if err := writer.WriteExampleTest(suite); err != nil {
 		return fmt.Errorf("failed to write example: %w", err)
-	}
-
-	// Generate and write coverage report
-	fmt.Println("Generating coverage report...")
-	coverageReport := gen.GenerateCoverageReport(suite)
-	reportContent := coverageReport.FormatCoverageReport()
-	if err := writer.WriteCoverageReport(reportContent); err != nil {
-		return fmt.Errorf("failed to write coverage report: %w", err)
-	}
-
-	// Generate and write JSON coverage report
-	fmt.Println("Generating JSON coverage report...")
-	jsonContent, err := coverageReport.FormatCoverageReportJSON()
-	if err != nil {
-		return fmt.Errorf("failed to format JSON coverage report: %w", err)
-	}
-	if err := writer.WriteCoverageReportJSON(jsonContent); err != nil {
-		return fmt.Errorf("failed to write JSON coverage report: %w", err)
-	}
-
-	// Generate HTML coverage report
-	fmt.Println("Generating HTML coverage report...")
-	coverageJSONPath := filepath.Join(outDir, "coverage-report.json")
-	if err := writer.WriteHTMLReport(suite, coverageJSONPath); err != nil {
-		return fmt.Errorf("failed to write HTML report: %w", err)
 	}
 
 	// Generate timestamped summary HTML

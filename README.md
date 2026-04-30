@@ -85,7 +85,7 @@ go build -o testgen.exe ./cmd/testgen
   --yang-dir "C:\Natarajan\automation\PlatformCommonModels\ConfigState\etc\yang" \
   --rest-spec "C:\Natarajan\automation\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml" \
   --nosapi-spec "C:\Users\nperiannan\Downloads\nos-openapi.yaml" \
-  --out-dir "./generated-tests"
+  --out-dir "./Testplans"
 ```
 
 ### Advanced Options
@@ -95,7 +95,7 @@ go build -o testgen.exe ./cmd/testgen
   --yang-dir "<path-to-yang>" \
   --rest-spec "<path-to-rest-api-spec>" \
   --nosapi-spec "<path-to-nosapi-spec>" \
-  --out-dir "./generated-tests" \
+  --out-dir "./Testplans" \
   --include-categories functional,boundary,negative,scale,performance \
   --scope-types site-group,device \
   --target-types site-group,device \
@@ -115,7 +115,7 @@ go build -o testgen.exe ./cmd/testgen
 | `--yang-dir` | Path to YANG models directory | *Required* |
 | `--rest-spec` | Path to REST API OpenAPI spec | *Required* |
 | `--nosapi-spec` | Path to NOSAPI OpenAPI spec | *Required* |
-| `--out-dir` | Output directory for generated tests | `./generated-tests` |
+| `--out-dir` | Output directory for generated tests | `./Testplans` |
 | `--include-categories` | Test categories to generate | `functional,boundary,negative,scale,performance` |
 | `--scope-types` | Scope types for deployment tests | `site-group,device` |
 | `--target-types` | Target types for deployment tests | `site-group,device` |

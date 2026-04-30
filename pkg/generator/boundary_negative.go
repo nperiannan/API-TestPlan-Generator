@@ -96,8 +96,13 @@ func (g *Generator) generateStringLengthBoundaryTest(
 		FeatureName: feature.Name,
 		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryBoundary,
-		Description: fmt.Sprintf("Test %s parameter with %s constraint", param.Name, constraint.Type),
-		Steps:       []model.TestStep{},
+		Description: func() string {
+			if param.Description != "" {
+				return fmt.Sprintf("Test %s parameter with %s constraint — %s", param.Name, constraint.Type, param.Description)
+			}
+			return fmt.Sprintf("Test %s parameter with %s constraint", param.Name, constraint.Type)
+		}(),
+		Steps: []model.TestStep{},
 	}
 
 	body := g.generateRequestBody(feature, createPath)
@@ -139,8 +144,13 @@ func (g *Generator) generateNumericBoundaryTest(
 		FeatureName: feature.Name,
 		Priority:    model.TestPriorityP3,
 		Type:        model.TestCategoryBoundary,
-		Description: fmt.Sprintf("Test %s parameter with %s constraint", param.Name, constraint.Type),
-		Steps:       []model.TestStep{},
+		Description: func() string {
+			if param.Description != "" {
+				return fmt.Sprintf("Test %s parameter with %s constraint — %s", param.Name, constraint.Type, param.Description)
+			}
+			return fmt.Sprintf("Test %s parameter with %s constraint", param.Name, constraint.Type)
+		}(),
+		Steps: []model.TestStep{},
 	}
 
 	body := g.generateRequestBody(feature, createPath)
@@ -295,7 +305,7 @@ func (g *Generator) generateNegativeTests(feature *model.Feature, paths []*model
 	// Negative tests for optional fields: sending null/empty for each optional field
 	// to verify the server accepts it (optional means absent is OK, null should also be safe)
 	for _, param := range feature.Parameters {
-		if !param.Required {
+		if !param.Required && !isSystemManagedField(param.Name) {
 			tests = append(tests, g.generateOptionalFieldNullTest(feature, param, createPath))
 		}
 	}
@@ -347,11 +357,16 @@ func (g *Generator) generateMissingRequiredFieldTest(
 ) model.TestCase {
 
 	tc := model.TestCase{
-		TestCaseID:       g.nextTestID(),
-		FeatureName:      feature.Name,
-		Priority:         model.TestPriorityP2,
-		Type:             model.TestCategoryNegative,
-		Description:      fmt.Sprintf("Negative test: create %s without required field '%s' — expect 4xx validation error", feature.Name, param.Name),
+		TestCaseID:  g.nextTestID(),
+		FeatureName: feature.Name,
+		Priority:    model.TestPriorityP2,
+		Type:        model.TestCategoryNegative,
+		Description: func() string {
+			if param.Description != "" {
+				return fmt.Sprintf("Negative test: create %s without required field '%s' — expect 4xx validation error — %s", feature.Name, param.Name, param.Description)
+			}
+			return fmt.Sprintf("Negative test: create %s without required field '%s' — expect 4xx validation error", feature.Name, param.Name)
+		}(),
 		IsDeploymentTest: false,
 		Steps:            []model.TestStep{},
 	}

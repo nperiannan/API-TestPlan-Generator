@@ -354,6 +354,7 @@ func (g *Generator) generateKeyFieldCoexistenceTest(
 	// Create entry A
 	bodyA := g.generateRequestBody(feature, createPath)
 	g.setBodyParameterValue(bodyA, param.Name, valA)
+	g.incrementUniqueBodyValues(bodyA, feature, 0)
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name: "createEntryA", Description: fmt.Sprintf("Create first entry with %s='%s'", param.Name, valA),
 		Method: createPath.HTTPMethod, API: model.APITypeREST, Path: createPath.Path,
@@ -363,6 +364,7 @@ func (g *Generator) generateKeyFieldCoexistenceTest(
 	// Create entry B
 	bodyB := g.generateRequestBody(feature, createPath)
 	g.setBodyParameterValue(bodyB, param.Name, valB)
+	g.incrementUniqueBodyValues(bodyB, feature, 1)
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name: "createEntryB", Description: fmt.Sprintf("Create second entry with %s='%s'", param.Name, valB),
 		Method: createPath.HTTPMethod, API: model.APITypeREST, Path: createPath.Path,
@@ -378,11 +380,12 @@ func (g *Generator) generateKeyFieldCoexistenceTest(
 		})
 	}
 
-	// Cleanup: delete both
+	// Cleanup: delete both (use matching IPs from create steps)
 	if deletePath != nil {
-		for _, val := range []string{valA, valB} {
+		for i, val := range []string{valA, valB} {
 			delBody := g.generateRequestBody(feature, deletePath)
 			g.setBodyParameterValue(delBody, param.Name, val)
+			g.incrementUniqueBodyValues(delBody, feature, i)
 			tc.Steps = append(tc.Steps, model.TestStep{
 				Name: fmt.Sprintf("cleanup-%s", val), Description: fmt.Sprintf("Cleanup: delete entry with %s='%s'", param.Name, val),
 				Method: deletePath.HTTPMethod, API: model.APITypeREST, Path: deletePath.Path,

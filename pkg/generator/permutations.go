@@ -152,7 +152,8 @@ func (g *Generator) generateOptionalParamPermutations(feature *model.Feature, cr
 	// Get optional parameters
 	optionalParams := []model.Parameter{}
 	for _, param := range feature.Parameters {
-		if !param.Required {
+		// Exclude system-managed fields (id, created-at, updated-at, etc.) from optional param permutations
+		if !param.Required && !isSystemManagedField(param.Name) {
 			optionalParams = append(optionalParams, param)
 		}
 	}
@@ -721,16 +722,24 @@ func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, create
 func (g *Generator) generateCombinedParamPermutations(feature *model.Feature, createPath, readPath *model.FeaturePath) []model.TestCase {
 	var tests []model.TestCase
 
-	if len(feature.Parameters) < 2 {
+	// Collect non-system parameters for combination testing
+	nonSystemParams := []model.Parameter{}
+	for _, param := range feature.Parameters {
+		if !isSystemManagedField(param.Name) {
+			nonSystemParams = append(nonSystemParams, param)
+		}
+	}
+
+	if len(nonSystemParams) < 2 {
 		return tests
 	}
 
 	// Generate tests with combinations of 2-3 parameters having different values
 	// This creates realistic scenarios where multiple parameters interact
-	for i := 0; i < len(feature.Parameters) && i < 3; i++ {
-		for j := i + 1; j < len(feature.Parameters) && j < 4; j++ {
-			param1 := feature.Parameters[i]
-			param2 := feature.Parameters[j]
+	for i := 0; i < len(nonSystemParams) && i < 3; i++ {
+		for j := i + 1; j < len(nonSystemParams) && j < 4; j++ {
+			param1 := nonSystemParams[i]
+			param2 := nonSystemParams[j]
 
 			// Generate 3 variations of this parameter pair
 			for variation := 1; variation <= 3; variation++ {
@@ -783,10 +792,12 @@ func (g *Generator) generateCombinedParamPermutations(feature *model.Feature, cr
 func (g *Generator) generateDataTypeVariations(feature *model.Feature, createPath, readPath *model.FeaturePath) []model.TestCase {
 	var tests []model.TestCase
 
-	// Group parameters by data type
+	// Group non-system parameters by data type (exclude id, created-at, updated-at, etc.)
 	paramsByType := make(map[string][]model.Parameter)
 	for _, param := range feature.Parameters {
-		paramsByType[param.GoType] = append(paramsByType[param.GoType], param)
+		if !isSystemManagedField(param.Name) {
+			paramsByType[param.GoType] = append(paramsByType[param.GoType], param)
+		}
 	}
 
 	// For each data type, generate multiple tests with different valid values

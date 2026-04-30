@@ -212,8 +212,8 @@ func (p *Parser) parseGroupingBlock(scanner lineScanner, groupingLine string, cu
 					bl := scanner.Text()
 					blockDepth += strings.Count(bl, "{")
 					blockDepth -= strings.Count(bl, "}")
-					depth -= strings.Count(bl, "{")
-					depth += strings.Count(bl, "}")
+					depth += strings.Count(bl, "{")
+					depth -= strings.Count(bl, "}")
 					if blockDepth <= 0 {
 						break
 					}
@@ -288,6 +288,15 @@ func (p *Parser) parseFeaturesFromLines(filePath string, lines []string) error {
 			continue
 		}
 
+		// Parse YANG list key statement (e.g., key "server vr-name";)
+		if inFeature && currentFeature != nil && strings.HasPrefix(trimmed, "key ") {
+			keyStr := extractQuotedString(trimmed)
+			if keyStr != "" {
+				currentFeature.Keys = strings.Fields(keyStr)
+			}
+			continue
+		}
+
 		// Parse leaf (parameter)
 		if inFeature && strings.HasPrefix(trimmed, "leaf ") {
 			braceDepth -= strings.Count(trimmed, "{")
@@ -329,11 +338,30 @@ func (p *Parser) parseFeaturesFromLines(filePath string, lines []string) error {
 		}
 
 		// Expand `uses` inside a feature by resolving the referenced grouping
-		if inFeature && strings.HasPrefix(trimmed, "uses ") {
+		if strings.HasPrefix(trimmed, "uses ") {
 			usesName := extractUsesName(trimmed)
-			if usesName != "" && currentFeature != nil {
+
+			if inFeature && usesName != "" && currentFeature != nil {
+				// Inside an existing feature — expand grouping into it
 				p.expandGrouping(usesName, currentFeature, make(map[string]bool))
+			} else if !inFeature && usesName != "" && currentModule != "" {
+				// Module-level uses (grouping-only YANG files like port sub-features):
+				// Create a feature from the module name and expand the grouping into it.
+				// Skip if a feature with this name already exists (e.g. from an inner list/container).
+				featureName := deriveFeatureNameFromModule(currentModule)
+				if _, exists := p.features[featureName]; !exists {
+					feat := &model.Feature{
+						Name:       featureName,
+						YangPath:   fmt.Sprintf("/%s", currentModule),
+						Parameters: []model.Parameter{},
+					}
+					p.expandGrouping(usesName, feat, make(map[string]bool))
+					if len(feat.Parameters) > 0 {
+						p.features[feat.Name] = feat
+					}
+				}
 			}
+
 			// If uses has its own block, consume it (conditions/augmentations)
 			if strings.Contains(trimmed, "{") && !strings.Contains(trimmed, "}") {
 				blockDepth := 1
@@ -458,9 +486,11 @@ func (p *Parser) parseLeaf(scanner lineScanner, leafLine string) Parameter {
 			}
 		}
 
-		// Parse description
+		// Parse description (inline: description "text"; or multi-line: description\n  "text")
 		if strings.HasPrefix(line, "description ") {
 			param.Description = extractQuotedString(line)
+		} else if line == "description" {
+			param.Description = parseMultiLineDescription(scanner)
 		}
 
 		// Parse mandatory
@@ -616,9 +646,11 @@ func (p *Parser) parseNestedContainer(scanner lineScanner, containerLine string)
 			break
 		}
 
-		// Parse description
+		// Parse description (inline or multi-line)
 		if strings.HasPrefix(trimmed, "description ") {
 			param.Description = extractQuotedString(trimmed)
+		} else if trimmed == "description" {
+			param.Description = parseMultiLineDescription(scanner)
 		}
 
 		// Parse nested leaf
@@ -673,9 +705,11 @@ func (p *Parser) parseNestedList(scanner lineScanner, listLine string) Parameter
 			break
 		}
 
-		// Parse description
+		// Parse description (inline or multi-line)
 		if strings.HasPrefix(trimmed, "description ") {
 			param.Description = extractQuotedString(trimmed)
+		} else if trimmed == "description" {
+			param.Description = parseMultiLineDescription(scanner)
 		}
 
 		// Parse min-elements
@@ -957,6 +991,28 @@ func extractModuleName(line string) string {
 	return ""
 }
 
+// deriveFeatureNameFromModule converts a YANG module name to a feature name by
+// stripping common prefixes like "extreme-intent-", "extreme-asset-", "extreme-inferred-".
+// e.g. "extreme-intent-port-slpp" → "port-slpp", "extreme-asset-cdp" → "cdp"
+func deriveFeatureNameFromModule(moduleName string) string {
+	prefixes := []string{
+		"extreme-intent-",
+		"extreme-asset-",
+		"extreme-inferred-",
+		"extreme-",
+	}
+	name := moduleName
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(name, prefix) {
+			name = strings.TrimPrefix(name, prefix)
+			break
+		}
+	}
+	// Remove trailing " {" if present
+	name = strings.TrimSuffix(name, " {")
+	return name
+}
+
 func extractContainerName(line string) string {
 	re := regexp.MustCompile(`container\s+(\S+)`)
 	matches := re.FindStringSubmatch(line)
@@ -1000,6 +1056,40 @@ func extractType(line string) string {
 		return strings.TrimSuffix(matches[1], ";")
 	}
 	return ""
+}
+
+// parseMultiLineDescription reads the scanner until a complete YANG description
+// value is consumed. Used when the description keyword appears alone on a line
+// with the quoted text on subsequent lines:
+//
+//	description
+//	  "First line of text.
+//	   Continuation line.";
+func parseMultiLineDescription(scanner lineScanner) string {
+	var buf strings.Builder
+	inQuote := false
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if !inQuote {
+			if idx := strings.IndexByte(line, '"'); idx >= 0 {
+				inQuote = true
+				line = line[idx+1:] // strip up to and including the opening quote
+			} else {
+				continue
+			}
+		}
+		// Check for closing quote (may be followed by ";")
+		if end := strings.LastIndexByte(line, '"'); end >= 0 {
+			buf.WriteString(line[:end])
+			return buf.String()
+		}
+		// No closing quote yet — append this line
+		if buf.Len() > 0 {
+			buf.WriteByte(' ')
+		}
+		buf.WriteString(line)
+	}
+	return buf.String()
 }
 
 func extractQuotedString(line string) string {

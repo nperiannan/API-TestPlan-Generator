@@ -305,6 +305,7 @@ func (p *Parser) extractGlobalProfileFeatures() {
 		featurePath string
 	}{
 		{"dns-server", "/dns-server-feature"},
+		{"dns-suffix", "/dns-server-feature"},
 		{"ntp-server", "/ntp-server-feature"},
 		{"syslog-server", "/syslog-server-feature"},
 		{"dhcp-server", "/dhcp-server-feature"},
@@ -520,9 +521,18 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 	}{
 		// /network-feature/interface-feature/port-feature
 		{"port", "/network-feature/interface-feature/port-feature", "port"},
+		// Port sub-features (same API path, different objectType)
+		{"port-poe", "/network-feature/interface-feature/port-feature", "port-poe"},
+		{"port-slpp", "/network-feature/interface-feature/port-feature", "port-slpp"},
+		{"port-elrp", "/network-feature/interface-feature/port-feature", "port-elrp"},
+		{"port-cdp", "/network-feature/interface-feature/port-feature", "port-cdp"},
+		{"port-lldp", "/network-feature/interface-feature/port-feature", "port-lldp"},
+		{"port-storm-control", "/network-feature/interface-feature/port-feature", "port-storm-control"},
+		{"port-mac-locking", "/network-feature/interface-feature/port-feature", "port-mac-locking"},
+		{"advanced-port", "/network-feature/interface-feature/port-feature", "advanced-port"},
 		// /network-feature/fabric-feature/spbm-global-feature
 		{"fabric-spbm-global-settings-config", "/network-feature/fabric-feature/spbm-global-feature", "spbm-global"},
-		{"fabric-spbm-instance", "/network-feature/fabric-feature/spbm-global-feature", "spbm-instance"},
+		{"fabric-spbm-instance", "/network-feature/fabric-feature/spbm-instance-feature", "spbm-instance"},
 		// /network-feature/fabric-feature/isis-feature (fabric-specific ISIS, from extreme-intent-fabric-spbm.yang)
 		{"fabric-isis-global-config", "/network-feature/fabric-feature/isis-feature", "isis"},
 		// /network-feature/fabric-feature/isis-feature (global ISIS, from extreme-intent-isis.yang)
@@ -558,13 +568,23 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 			FixedValue:  cf.featurePath, // fixed value tells body-builder what featurePath to embed
 		}
 
+		// Build common params list; include objectType override when it differs from feature name
+		commonParams := []model.PathParameter{profileNameParam, featurePathParam}
+		if cf.objectType != cf.yangFeatureName {
+			commonParams = append(commonParams, model.PathParameter{
+				Name:       "objectType",
+				Type:       "string",
+				FixedValue: cf.objectType,
+			})
+		}
+
 		// READ: POST /configuration-profile/{name}/feature/object/retrieve
 		fpRead := &model.FeaturePath{
 			FeatureName:       cf.yangFeatureName,
 			BlueprintCategory: model.BlueprintCategoryWired,
 			HTTPMethod:        "POST",
 			Path:              "/configuration-profile/{name}/feature/object/retrieve",
-			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			PathParams:        commonParams,
 			ProfileType:       model.ProfileTypeConfiguration,
 			OperationType:     model.OperationTypeRead,
 		}
@@ -576,7 +596,7 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 			BlueprintCategory: model.BlueprintCategoryWired,
 			HTTPMethod:        "POST",
 			Path:              "/configuration-profile/{name}/feature/object/modify",
-			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			PathParams:        commonParams,
 			ProfileType:       model.ProfileTypeConfiguration,
 			OperationType:     model.OperationTypeCreate,
 		}
@@ -588,7 +608,7 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 			BlueprintCategory: model.BlueprintCategoryWired,
 			HTTPMethod:        "POST",
 			Path:              "/configuration-profile/{name}/feature/object/modify",
-			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			PathParams:        commonParams,
 			ProfileType:       model.ProfileTypeConfiguration,
 			OperationType:     model.OperationTypeUpdate,
 		}
@@ -600,7 +620,7 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 			BlueprintCategory: model.BlueprintCategoryWired,
 			HTTPMethod:        "POST",
 			Path:              "/configuration-profile/{name}/feature/object/delete",
-			PathParams:        []model.PathParameter{profileNameParam, featurePathParam},
+			PathParams:        commonParams,
 			ProfileType:       model.ProfileTypeConfiguration,
 			OperationType:     model.OperationTypeDelete,
 		}

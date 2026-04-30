@@ -679,7 +679,8 @@ func (w *Writer) writePathParameterCoverage(html *strings.Builder, featureName s
 // test counts per category, blueprint category grouping, and featurePath depth.
 func (w *Writer) WriteSummaryHTML(suite *model.TestSuite) error {
 	timestamp := time.Now().Format("20060102_150405")
-	htmlPath := filepath.Join(w.outputDir, "summary_report.html")
+	reportDir := filepath.Dir(filepath.Clean(w.outputDir))
+	htmlPath := filepath.Join(reportDir, "summary_report.html")
 
 	html := w.generateSummaryHTML(suite, timestamp)
 

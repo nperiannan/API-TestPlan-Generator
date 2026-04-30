@@ -212,39 +212,32 @@ func (g *Generator) generateBasicUpdateTest(feature *model.Feature, updatePath, 
 	}
 
 	// Step 1: Create the resource first (making this test independent)
+	createBody := g.generateRequestBody(feature, updatePath)
+	keyDesc := describeKeyValues(createBody, feature)
 	createStep := model.TestStep{
 		Name:           "createResourceForUpdate",
-		Description:    fmt.Sprintf("Create %s before updating", feature.Name),
+		Description:    fmt.Sprintf("Create %s with %s before updating", feature.Name, keyDesc),
 		Method:         "POST",
 		API:            model.APITypeREST,
 		Path:           updatePath.Path, // Use same path, POST will create
-		Body:           g.generateSampleBody(feature, nil),
+		Body:           createBody,
 		ExpectedStatus: 201,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 201,
-			},
-		},
+		Validations:    crudValidations(201, "create", feature.Name, keyDesc),
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
 	// Step 2: Update the resource
+	updateBody := g.generateUpdateRequestBody(feature, updatePath)
+	updateKeyDesc := describeModifiedFields(updateBody, feature)
 	updateStep := model.TestStep{
 		Name:           "updateResource",
-		Description:    fmt.Sprintf("Update %s", feature.Name),
+		Description:    fmt.Sprintf("Update %s — %s", feature.Name, updateKeyDesc),
 		Method:         updatePath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           updatePath.Path,
-		PathParams:     map[string]string{"name": "TestResource"},
-		Body:           g.generateSampleBody(feature, updatePath.RequestSchema),
+		Body:           updateBody,
 		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-		},
+		Validations:    crudValidations(200, "update", feature.Name, updateKeyDesc),
 	}
 	tc.Steps = append(tc.Steps, updateStep)
 
@@ -252,19 +245,13 @@ func (g *Generator) generateBasicUpdateTest(feature *model.Feature, updatePath, 
 	if readPath != nil {
 		verifyStep := model.TestStep{
 			Name:           "verifyUpdate",
-			Description:    "Verify resource was updated",
+			Description:    fmt.Sprintf("Verify %s was updated — %s", feature.Name, updateKeyDesc),
 			Method:         readPath.HTTPMethod,
 			API:            model.APITypeREST,
 			Path:           readPath.Path,
 			Body:           g.generateReadBody(feature, updatePath),
-			PathParams:     map[string]string{"name": "TestResource"},
 			ExpectedStatus: 200,
-			Validations: []model.Validation{
-				{
-					Type:     model.ValidationTypeStatusCode,
-					Expected: 200,
-				},
-			},
+			Validations:    crudValidations(200, "read", feature.Name, updateKeyDesc),
 		}
 		tc.Steps = append(tc.Steps, verifyStep)
 	}
@@ -286,54 +273,48 @@ func (g *Generator) generateBasicDeleteTest(feature *model.Feature, deletePath *
 	}
 
 	// Step 1: Create the resource first (making this test independent)
+	createBody := g.generateRequestBody(feature, deletePath)
+	keyDesc := describeKeyValues(createBody, feature)
 	createStep := model.TestStep{
 		Name:           "createResourceForDeletion",
-		Description:    fmt.Sprintf("Create %s before deleting", feature.Name),
+		Description:    fmt.Sprintf("Create %s with %s before deleting", feature.Name, keyDesc),
 		Method:         "POST",
 		API:            model.APITypeREST,
 		Path:           deletePath.Path, // Use same path, POST will create
-		Body:           g.generateSampleBody(feature, nil),
+		Body:           createBody,
 		ExpectedStatus: 201,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 201,
-			},
-		},
+		Validations:    crudValidations(201, "create", feature.Name, keyDesc),
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
 	// Step 2: Delete the resource
+	deleteBody := g.generateDeleteBody(feature, deletePath)
 	deleteStep := model.TestStep{
 		Name:           "deleteResource",
-		Description:    fmt.Sprintf("Delete %s", feature.Name),
+		Description:    fmt.Sprintf("Delete %s with %s", feature.Name, keyDesc),
 		Method:         deletePath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           deletePath.Path,
-		PathParams:     map[string]string{"name": "TestResource"},
-		ExpectedStatus: 204,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 204,
-			},
-		},
+		Body:           deleteBody,
+		ExpectedStatus: 200,
+		Validations:    crudValidations(200, "delete", feature.Name, keyDesc),
 	}
 	tc.Steps = append(tc.Steps, deleteStep)
 
-	// Step 3: Verify deletion
+	// Step 3: Verify deletion (retrieve should return empty or 404)
 	verifyStep := model.TestStep{
 		Name:           "verifyDeletion",
-		Description:    "Verify resource was deleted",
-		Method:         "GET",
+		Description:    fmt.Sprintf("Verify %s with %s was deleted", feature.Name, keyDesc),
+		Method:         "POST",
 		API:            model.APITypeREST,
-		Path:           deletePath.Path,
-		PathParams:     map[string]string{"name": "TestResource"},
-		ExpectedStatus: 404,
+		Path:           strings.Replace(deletePath.Path, "/delete", "/retrieve", 1),
+		Body:           g.generateReadBody(feature, deletePath),
+		ExpectedStatus: 200,
 		Validations: []model.Validation{
 			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 404,
+				Type:        model.ValidationTypeStatusCode,
+				Expected:    200,
+				Description: fmt.Sprintf("Verify %s with %s no longer exists in the response", feature.Name, keyDesc),
 			},
 		},
 	}
@@ -374,14 +355,43 @@ func (g *Generator) generateDeepScannedBody(feature *model.Feature, featurePath 
 func (g *Generator) generateDeepScannedBodyWithOrigin(feature *model.Feature, featurePath string, objectType string, origin string) map[string]interface{} {
 	properties := []map[string]interface{}{}
 
+	// Build a set of key fields for quick lookup
+	keySet := make(map[string]bool, len(feature.Keys))
+	for _, k := range feature.Keys {
+		keySet[k] = true
+	}
+
 	for _, param := range feature.Parameters {
-		if param.Required {
+		// Skip system-managed fields — these are set internally, not via payload
+		if isSystemManagedField(param.Name) {
+			continue
+		}
+		if param.Required || keySet[param.Name] {
 			properties = append(properties, map[string]interface{}{
 				"name":   param.Name,
 				"type":   g.mapYangTypeToJsonType(param.GoType),
 				"value":  g.getSampleValue(param),
 				"origin": origin,
 			})
+		}
+	}
+
+	// If no required or key fields produced properties, include a representative
+	// set of non-system optional fields so the body is never empty.
+	if len(properties) == 0 {
+		for _, param := range feature.Parameters {
+			if isSystemManagedField(param.Name) {
+				continue
+			}
+			properties = append(properties, map[string]interface{}{
+				"name":   param.Name,
+				"type":   g.mapYangTypeToJsonType(param.GoType),
+				"value":  g.getSampleValue(param),
+				"origin": origin,
+			})
+			if len(properties) >= 5 {
+				break // cap at 5 to keep body readable
+			}
 		}
 	}
 
@@ -452,8 +462,20 @@ func (g *Generator) getSampleValue(param model.Parameter) interface{} {
 		return param.DefaultValue
 	}
 
-	// Generate context-aware sample values based on parameter name
+	// Generate context-aware sample values based on parameter name and YANG description
 	paramNameLower := strings.ToLower(param.Name)
+	descLower := strings.ToLower(param.Description)
+
+	// Prefix-length / mask fields (e.g. "mask" with YANG description mentioning "prefix length")
+	if strings.Contains(descLower, "prefix length") || strings.Contains(descLower, "prefix-length") {
+		return "24"
+	}
+
+	// IP subnet / CIDR address fields (e.g. "destination-subnet")
+	if strings.Contains(paramNameLower, "subnet") ||
+		strings.Contains(descLower, "cidr notation") || strings.Contains(descLower, "ip subnet") {
+		return "192.168.1.0"
+	}
 
 	// Check for specific parameter patterns
 	if strings.Contains(paramNameLower, "server") || strings.Contains(paramNameLower, "address") ||
@@ -591,96 +613,70 @@ func (g *Generator) generateFullCRUDLifecycleTest(
 		Steps:            []model.TestStep{},
 	}
 
-	body := g.generateSampleBody(feature, createPath.RequestSchema)
+	createBody := g.generateRequestBody(feature, createPath)
+	keyDesc := describeKeyValues(createBody, feature)
 
 	// Step 1: Create
 	createStep := model.TestStep{
 		Name:           "createResource",
-		Description:    fmt.Sprintf("Create %s", feature.Name),
+		Description:    fmt.Sprintf("Create %s with %s", feature.Name, keyDesc),
 		Method:         createPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           createPath.Path,
-		Body:           body,
+		Body:           createBody,
 		ExpectedStatus: 201,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 201,
-			},
-		},
+		Validations:    crudValidations(201, "create", feature.Name, keyDesc),
 	}
 
 	// Step 2: Read (verify creation)
 	readStep1 := model.TestStep{
 		Name:           "verifyCreation",
-		Description:    fmt.Sprintf("Verify %s was created", feature.Name),
+		Description:    fmt.Sprintf("Verify %s with %s was created", feature.Name, keyDesc),
 		Method:         readPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           readPath.Path,
 		Body:           g.generateReadBody(feature, createPath),
 		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-		},
+		Validations:    crudValidations(200, "read", feature.Name, keyDesc),
 	}
 
 	// Step 3: Update
-	updateBody := g.generateSampleBody(feature, updatePath.RequestSchema)
-	// Modify one field to show update
-	if desc, ok := updateBody["description"]; ok && desc != nil {
-		updateBody["description"] = "Updated description"
-	}
-
+	updateBody := g.generateUpdateRequestBody(feature, updatePath)
+	updateKeyDesc := describeModifiedFields(updateBody, feature)
 	updateStep := model.TestStep{
 		Name:           "updateResource",
-		Description:    fmt.Sprintf("Update %s", feature.Name),
+		Description:    fmt.Sprintf("Update %s — %s", feature.Name, updateKeyDesc),
 		Method:         updatePath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           updatePath.Path,
 		Body:           updateBody,
 		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-		},
+		Validations:    crudValidations(200, "update", feature.Name, updateKeyDesc),
 	}
 
 	// Step 4: Read (verify update)
 	readStep2 := model.TestStep{
 		Name:           "verifyUpdate",
-		Description:    fmt.Sprintf("Verify %s was updated", feature.Name),
+		Description:    fmt.Sprintf("Verify %s was updated — %s", feature.Name, updateKeyDesc),
 		Method:         readPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           readPath.Path,
 		Body:           g.generateReadBody(feature, updatePath),
 		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-		},
+		Validations:    crudValidations(200, "read", feature.Name, updateKeyDesc),
 	}
 
 	// Step 5: Delete
+	deleteBody := g.generateDeleteBody(feature, deletePath)
 	deleteStep := model.TestStep{
 		Name:           "deleteResource",
-		Description:    fmt.Sprintf("Delete %s", feature.Name),
+		Description:    fmt.Sprintf("Delete %s with %s", feature.Name, keyDesc),
 		Method:         deletePath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           deletePath.Path,
+		Body:           deleteBody,
 		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-		},
+		Validations:    crudValidations(200, "delete", feature.Name, keyDesc),
 	}
 
 	tc.Steps = []model.TestStep{createStep, readStep1, updateStep, readStep2, deleteStep}
@@ -705,21 +701,17 @@ func (g *Generator) generateListAllResourcesTest(
 
 	// Step 1: Create resource to ensure list has content
 	if createPath != nil {
-		body := g.generateSampleBody(feature, createPath.RequestSchema)
+		body := g.generateRequestBody(feature, createPath)
+		keyDesc := describeKeyValues(body, feature)
 		createStep := model.TestStep{
 			Name:           "createResourceForList",
-			Description:    fmt.Sprintf("Create %s for list test", feature.Name),
+			Description:    fmt.Sprintf("Create %s with %s for list test", feature.Name, keyDesc),
 			Method:         createPath.HTTPMethod,
 			API:            model.APITypeREST,
 			Path:           createPath.Path,
 			Body:           body,
 			ExpectedStatus: 201,
-			Validations: []model.Validation{
-				{
-					Type:     model.ValidationTypeStatusCode,
-					Expected: 201,
-				},
-			},
+			Validations:    crudValidations(201, "create", feature.Name, keyDesc),
 		}
 		tc.Steps = append(tc.Steps, createStep)
 	}
@@ -727,15 +719,22 @@ func (g *Generator) generateListAllResourcesTest(
 	// Step 2: List all resources
 	listStep := model.TestStep{
 		Name:           "listAllResources",
-		Description:    fmt.Sprintf("List all %s resources", feature.Name),
+		Description:    fmt.Sprintf("Retrieve all %s resources and verify the list is non-empty", feature.Name),
 		Method:         listPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           listPath.Path,
+		Body:           g.generateReadBody(feature, listPath),
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
 			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
+				Type:        model.ValidationTypeStatusCode,
+				Expected:    200,
+				Description: fmt.Sprintf("Verify HTTP 200 returned when listing all %s resources", feature.Name),
+			},
+			{
+				Type:        model.ValidationTypeJSONPathExists,
+				Path:        "$.objects",
+				Description: fmt.Sprintf("Verify response contains objects array with at least one %s entry", feature.Name),
 			},
 		},
 	}
@@ -762,74 +761,44 @@ func (g *Generator) generatePartialUpdateTest(
 	}
 
 	// Step 1: Create resource
-	body := g.generateSampleBody(feature, createPath.RequestSchema)
+	createBody := g.generateRequestBody(feature, createPath)
+	keyDesc := describeKeyValues(createBody, feature)
 	createStep := model.TestStep{
 		Name:           "createResourceForPartialUpdate",
-		Description:    fmt.Sprintf("Create %s for partial update", feature.Name),
+		Description:    fmt.Sprintf("Create %s with %s for partial update", feature.Name, keyDesc),
 		Method:         createPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           createPath.Path,
-		Body:           body,
+		Body:           createBody,
 		ExpectedStatus: 201,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 201,
-			},
-		},
+		Validations:    crudValidations(201, "create", feature.Name, keyDesc),
 	}
 
-	// Step 2: Partial update (only modify one field)
-	updateBody := make(map[string]interface{})
-	// Copy only specific field to update
-	if desc, ok := body["description"]; ok && desc != nil {
-		updateBody["description"] = "Partially updated description"
-	} else if objects, ok := body["objects"].([]interface{}); ok && len(objects) > 0 {
-		if objMap, ok := objects[0].(map[string]interface{}); ok {
-			if _, ok := objMap["properties"].(map[string]interface{}); ok {
-				updateBody["description"] = "Partially updated description"
-				updateBody["objects"] = []interface{}{
-					map[string]interface{}{
-						"properties": map[string]interface{}{
-							"description": "Partially updated description",
-						},
-					},
-				}
-			}
-		}
-	}
+	// Step 2: Partial update (only modify one optional field)
+	updateBody := g.generateUpdateRequestBody(feature, updatePath)
+	updateKeyDesc := describeModifiedFields(updateBody, feature)
 
 	updateStep := model.TestStep{
 		Name:           "partialUpdate",
-		Description:    fmt.Sprintf("Partially update %s (only specific fields)", feature.Name),
+		Description:    fmt.Sprintf("Partially update %s — %s", feature.Name, updateKeyDesc),
 		Method:         updatePath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           updatePath.Path,
 		Body:           updateBody,
 		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-		},
+		Validations:    crudValidations(200, "update", feature.Name, updateKeyDesc),
 	}
 
 	// Step 3: Read and verify
 	readStep := model.TestStep{
 		Name:           "verifyPartialUpdate",
-		Description:    fmt.Sprintf("Verify partial update of %s", feature.Name),
+		Description:    fmt.Sprintf("Verify partial update of %s — %s", feature.Name, updateKeyDesc),
 		Method:         readPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           readPath.Path,
 		Body:           g.generateReadBody(feature, updatePath),
 		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-		},
+		Validations:    crudValidations(200, "read", feature.Name, updateKeyDesc),
 	}
 
 	tc.Steps = []model.TestStep{createStep, updateStep, readStep}
@@ -846,45 +815,36 @@ func (g *Generator) generateIdempotentCreateTest(
 		FeatureName:      feature.Name,
 		Priority:         model.TestPriorityP3,
 		Type:             model.TestCategoryFunctional,
-		Description:      fmt.Sprintf("Idempotent create test for %s (creating same resource twice)", feature.Name),
+		Description:      fmt.Sprintf("Idempotent create test for %s (creating same resource twice should return 409 Conflict)", feature.Name),
 		IsDeploymentTest: false,
 		Steps:            []model.TestStep{},
 	}
 
-	body := g.generateSampleBody(feature, createPath.RequestSchema)
+	body := g.generateRequestBody(feature, createPath)
+	keyDesc := describeKeyValues(body, feature)
 
 	// Step 1: Create resource (first time)
 	createStep1 := model.TestStep{
 		Name:           "createResourceFirstTime",
-		Description:    fmt.Sprintf("Create %s (first attempt)", feature.Name),
+		Description:    fmt.Sprintf("Create %s with %s (first attempt — should succeed)", feature.Name, keyDesc),
 		Method:         createPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           createPath.Path,
 		Body:           body,
 		ExpectedStatus: 201,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 201,
-			},
-		},
+		Validations:    crudValidations(201, "create", feature.Name, keyDesc),
 	}
 
-	// Step 2: Create same resource again (should be idempotent or return appropriate error)
+	// Step 2: Create same resource again (should return 409 Conflict)
 	createStep2 := model.TestStep{
 		Name:           "createResourceAgain",
-		Description:    fmt.Sprintf("Create same %s again (idempotent check)", feature.Name),
+		Description:    fmt.Sprintf("Create same %s with %s again (should fail with 409 Conflict — duplicate key)", feature.Name, keyDesc),
 		Method:         createPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           createPath.Path,
-		Body:           body,
-		ExpectedStatus: 200, // Or 409 for conflict, depending on API behavior
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200, // Or 409 for conflict, depending on API behavior
-			},
-		},
+		Body:           deepCopyBody(body),
+		ExpectedStatus: 409,
+		Validations:    crudValidations(409, "conflict", feature.Name, keyDesc),
 	}
 
 	tc.Steps = []model.TestStep{createStep1, createStep2}
@@ -909,18 +869,13 @@ func (g *Generator) generateSubObjectCreateTest(feature *model.Feature, subObjTy
 	// Create step
 	createStep := model.TestStep{
 		Name:           fmt.Sprintf("create_%s", subObjName),
-		Description:    fmt.Sprintf("Create %s", subObjName),
+		Description:    fmt.Sprintf("Create %s sub-object under %s", subObjName, feature.Name),
 		Method:         createPath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           createPath.Path,
 		Body:           body,
 		ExpectedStatus: 201,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 201,
-			},
-		},
+		Validations:    crudValidations(201, "create", fmt.Sprintf("%s/%s", feature.Name, subObjName), ""),
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
@@ -928,7 +883,7 @@ func (g *Generator) generateSubObjectCreateTest(feature *model.Feature, subObjTy
 	if readPath != nil {
 		readStep := model.TestStep{
 			Name:        fmt.Sprintf("verify_%s_creation", subObjName),
-			Description: fmt.Sprintf("Verify %s was created", subObjName),
+			Description: fmt.Sprintf("Verify %s sub-object was created under %s", subObjName, feature.Name),
 			Method:      readPath.HTTPMethod,
 			API:         model.APITypeREST,
 			Path:        readPath.Path,
@@ -937,12 +892,7 @@ func (g *Generator) generateSubObjectCreateTest(feature *model.Feature, subObjTy
 				"objectType":  subObjName,
 			},
 			ExpectedStatus: 200,
-			Validations: []model.Validation{
-				{
-					Type:     model.ValidationTypeStatusCode,
-					Expected: 200,
-				},
-			},
+			Validations:    crudValidations(200, "read", fmt.Sprintf("%s/%s", feature.Name, subObjName), ""),
 		}
 		tc.Steps = append(tc.Steps, readStep)
 	}
@@ -966,18 +916,13 @@ func (g *Generator) generateSubObjectUpdateTest(feature *model.Feature, subObjTy
 	createBody := g.generateSubObjectRequestBody(subObjType, subObjName, "add")
 	createStep := model.TestStep{
 		Name:           fmt.Sprintf("create_%s_for_update", subObjName),
-		Description:    fmt.Sprintf("Create %s before updating", subObjName),
+		Description:    fmt.Sprintf("Create %s sub-object under %s before updating", subObjName, feature.Name),
 		Method:         updatePath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           updatePath.Path,
 		Body:           createBody,
 		ExpectedStatus: 201,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 201,
-			},
-		},
+		Validations:    crudValidations(201, "create", fmt.Sprintf("%s/%s", feature.Name, subObjName), ""),
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
@@ -992,18 +937,13 @@ func (g *Generator) generateSubObjectUpdateTest(feature *model.Feature, subObjTy
 
 	updateStep := model.TestStep{
 		Name:           fmt.Sprintf("update_%s", subObjName),
-		Description:    fmt.Sprintf("Update %s", subObjName),
+		Description:    fmt.Sprintf("Update %s sub-object under %s", subObjName, feature.Name),
 		Method:         updatePath.HTTPMethod,
 		API:            model.APITypeREST,
 		Path:           updatePath.Path,
 		Body:           updateBody,
 		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-		},
+		Validations:    crudValidations(200, "update", fmt.Sprintf("%s/%s", feature.Name, subObjName), ""),
 	}
 	tc.Steps = append(tc.Steps, updateStep)
 
@@ -1011,7 +951,7 @@ func (g *Generator) generateSubObjectUpdateTest(feature *model.Feature, subObjTy
 	if readPath != nil {
 		readStep := model.TestStep{
 			Name:        fmt.Sprintf("verify_%s_update", subObjName),
-			Description: fmt.Sprintf("Verify %s was updated", subObjName),
+			Description: fmt.Sprintf("Verify %s sub-object was updated under %s", subObjName, feature.Name),
 			Method:      readPath.HTTPMethod,
 			API:         model.APITypeREST,
 			Path:        readPath.Path,
@@ -1021,12 +961,7 @@ func (g *Generator) generateSubObjectUpdateTest(feature *model.Feature, subObjTy
 				"objectIds":   []string{"{{OBJECT_ID}}"},
 			},
 			ExpectedStatus: 200,
-			Validations: []model.Validation{
-				{
-					Type:     model.ValidationTypeStatusCode,
-					Expected: 200,
-				},
-			},
+			Validations:    crudValidations(200, "read", fmt.Sprintf("%s/%s", feature.Name, subObjName), ""),
 		}
 		tc.Steps = append(tc.Steps, readStep)
 	}
@@ -1050,25 +985,20 @@ func (g *Generator) generateSubObjectDeleteTest(feature *model.Feature, subObjTy
 	createBody := g.generateSubObjectRequestBody(subObjType, subObjName, "add")
 	createStep := model.TestStep{
 		Name:           fmt.Sprintf("create_%s_for_delete", subObjName),
-		Description:    fmt.Sprintf("Create %s before deleting", subObjName),
+		Description:    fmt.Sprintf("Create %s sub-object under %s before deleting", subObjName, feature.Name),
 		Method:         "POST",
 		API:            model.APITypeREST,
 		Path:           deletePath.Path,
 		Body:           createBody,
 		ExpectedStatus: 201,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 201,
-			},
-		},
+		Validations:    crudValidations(201, "create", fmt.Sprintf("%s/%s", feature.Name, subObjName), ""),
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
 	// Step 2: Delete the sub-object
 	deleteStep := model.TestStep{
 		Name:        fmt.Sprintf("delete_%s", subObjName),
-		Description: fmt.Sprintf("Delete %s", subObjName),
+		Description: fmt.Sprintf("Delete %s sub-object under %s", subObjName, feature.Name),
 		Method:      deletePath.HTTPMethod,
 		API:         model.APITypeREST,
 		Path:        deletePath.Path,
@@ -1078,12 +1008,7 @@ func (g *Generator) generateSubObjectDeleteTest(feature *model.Feature, subObjTy
 			"objectId":    "{{OBJECT_ID}}",
 		},
 		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-		},
+		Validations:    crudValidations(200, "delete", fmt.Sprintf("%s/%s", feature.Name, subObjName), ""),
 	}
 	tc.Steps = append(tc.Steps, deleteStep)
 
@@ -1318,6 +1243,9 @@ func (g *Generator) generateCreateWithAllFieldsTest(
 			Description: "Verify response contains objects array",
 		})
 		for _, param := range feature.Parameters {
+			if isSystemManagedField(param.Name) {
+				continue
+			}
 			expectedVal := g.getSampleValue(param)
 			readValidations = append(readValidations, model.Validation{
 				Type:        model.ValidationTypeJSONPathExists,
@@ -1363,12 +1291,20 @@ func (g *Generator) generateDefaultValueTests(
 			continue
 		}
 
+		// Enrich description with YANG leaf description when available
+		var defaultTcDesc string
+		if param.Description != "" {
+			defaultTcDesc = fmt.Sprintf("Verify YANG default value for '%s' is applied when field is omitted (expected default: %v) — %s", param.Name, param.DefaultValue, param.Description)
+		} else {
+			defaultTcDesc = fmt.Sprintf("Verify YANG default value for '%s' is applied when field is omitted (expected default: %v)", param.Name, param.DefaultValue)
+		}
+
 		tc := model.TestCase{
 			TestCaseID:       g.nextTestID(),
 			FeatureName:      feature.Name,
 			Priority:         model.TestPriorityP2,
 			Type:             model.TestCategoryFunctional,
-			Description:      fmt.Sprintf("Verify YANG default value for '%s' is applied when field is omitted (expected default: %v)", param.Name, param.DefaultValue),
+			Description:      defaultTcDesc,
 			IsDeploymentTest: false,
 			Steps:            []model.TestStep{},
 		}
@@ -1444,6 +1380,10 @@ func (g *Generator) generateYANGDatatypeNonDeploymentTests(
 
 	allParams := collectAllParameters(feature.Parameters)
 	for _, param := range allParams {
+		// Skip system-managed fields — they can't be set via API
+		if isSystemManagedField(param.Name) {
+			continue
+		}
 		yangType := param.YangType
 		if yangType == "" {
 			yangType = param.GoType
@@ -1463,18 +1403,26 @@ func (g *Generator) generateYANGDatatypeNonDeploymentTests(
 		for variation := 1; variation <= 2; variation++ {
 			value := g.getYANGTypeValue(param, yangType, variation)
 
+			// Enrich description with YANG leaf description when available
+			var yangDatatypeTcDesc string
+			if param.Description != "" {
+				yangDatatypeTcDesc = fmt.Sprintf("Verify YANG datatype '%s' for field '%s' with value variation %d (%v) — %s", yangType, param.Name, variation, value, param.Description)
+			} else {
+				yangDatatypeTcDesc = fmt.Sprintf("Verify YANG datatype '%s' for field '%s' with value variation %d (%v)", yangType, param.Name, variation, value)
+			}
+
 			tc := model.TestCase{
 				TestCaseID:       g.nextTestID(),
 				FeatureName:      feature.Name,
 				Priority:         model.TestPriorityP2,
 				Type:             model.TestCategoryFunctional,
-				Description:      fmt.Sprintf("Verify YANG datatype '%s' for field '%s' with value variation %d (%v)", yangType, param.Name, variation, value),
+				Description:      yangDatatypeTcDesc,
 				IsDeploymentTest: false,
 				Steps:            []model.TestStep{},
 			}
 
 			body := g.generateRequestBody(feature, createPath)
-			g.setBodyParameterValue(body, param.Name, value)
+			g.setOrAddBodyParameter(body, param, value)
 
 			createStep := model.TestStep{
 				Name:           fmt.Sprintf("createWith%sType_v%d", strings.ReplaceAll(yangType, "-", ""), variation),
@@ -1587,6 +1535,9 @@ func (g *Generator) generateAllFieldsBody(feature *model.Feature, fp *model.Feat
 		if fpValue != "" {
 			properties := []map[string]interface{}{}
 			for _, param := range feature.Parameters {
+				if isSystemManagedField(param.Name) {
+					continue
+				}
 				properties = append(properties, map[string]interface{}{
 					"name":   param.Name,
 					"type":   g.mapYangTypeToJsonType(param.GoType),
@@ -1610,6 +1561,9 @@ func (g *Generator) generateAllFieldsBody(feature *model.Feature, fp *model.Feat
 	// Simple format: include all fields
 	body := make(map[string]interface{})
 	for _, param := range feature.Parameters {
+		if isSystemManagedField(param.Name) {
+			continue
+		}
 		body[param.Name] = g.getSampleValue(param)
 	}
 	return body
@@ -1686,6 +1640,259 @@ func (g *Generator) generateReadBody(feature *model.Feature, createPath *model.F
 		}
 	}
 	return nil
+}
+
+// generateDeleteBody builds the body for a delete request.
+// For global-profile features the delete endpoint requires featurePath.
+func (g *Generator) generateDeleteBody(feature *model.Feature, anyPath *model.FeaturePath) map[string]interface{} {
+	if anyPath == nil || anyPath.BlueprintCategory == "" {
+		return nil
+	}
+	var fpValue string
+	for _, p := range anyPath.PathParams {
+		if p.Name == "featurePath" && p.FixedValue != "" {
+			fpValue = p.FixedValue
+			break
+		}
+	}
+	if fpValue != "" {
+		return map[string]interface{}{
+			"featurePath": fpValue,
+			"objectType":  feature.Name,
+		}
+	}
+	return nil
+}
+
+// generateUpdateRequestBody builds a proper update body.
+// For deep-scanned features, it uses operation="update" and modifies one optional field.
+func (g *Generator) generateUpdateRequestBody(feature *model.Feature, updatePath *model.FeaturePath) map[string]interface{} {
+	if updatePath.BlueprintCategory != "" {
+		var fpValue string
+		objectType := feature.Name
+		for _, param := range updatePath.PathParams {
+			if param.Name == "featurePath" && param.FixedValue != "" {
+				fpValue = param.FixedValue
+			}
+			if param.Name == "objectType" && param.FixedValue != "" {
+				objectType = param.FixedValue
+			}
+		}
+		if fpValue != "" {
+			origin := "CC"
+			if updatePath.BlueprintCategory == model.BlueprintCategoryGlobal {
+				origin = "Global"
+			}
+			properties := []map[string]interface{}{}
+
+			// Include required/key fields so the system knows which object to update
+			for _, param := range feature.Parameters {
+				if isSystemManagedField(param.Name) {
+					continue
+				}
+				if param.Required {
+					properties = append(properties, map[string]interface{}{
+						"name":   param.Name,
+						"type":   g.mapYangTypeToJsonType(param.GoType),
+						"value":  g.getSampleValue(param),
+						"origin": origin,
+					})
+				}
+			}
+
+			// Add/modify one optional field to differentiate from the create body
+			for _, param := range feature.Parameters {
+				if isSystemManagedField(param.Name) || param.Required {
+					continue
+				}
+				updatedVal := g.getUpdatedValue(param)
+				properties = append(properties, map[string]interface{}{
+					"name":   param.Name,
+					"type":   g.mapYangTypeToJsonType(param.GoType),
+					"value":  updatedVal,
+					"origin": origin,
+				})
+				break // one optional field is enough to show the update
+			}
+
+			object := map[string]interface{}{
+				"type":       objectType,
+				"operation":  "update",
+				"properties": properties,
+			}
+			return map[string]interface{}{
+				"featurePath": fpValue,
+				"objectType":  objectType,
+				"operation":   "update",
+				"objects":     []interface{}{object},
+			}
+		}
+	}
+	// Fallback to simple body with one modified field
+	body := g.generateSampleBody(feature, updatePath.RequestSchema)
+	body["description"] = "Updated via automated test"
+	return body
+}
+
+// getUpdatedValue returns a different value than getSampleValue, suitable for update tests.
+func (g *Generator) getUpdatedValue(param model.Parameter) interface{} {
+	paramNameLower := strings.ToLower(param.Name)
+
+	// Booleans: flip the default
+	if param.GoType == "bool" || param.GoType == "boolean" {
+		return false
+	}
+
+	// Enums: pick the second value if available
+	for _, c := range param.Constraints {
+		if c.Type == model.ConstraintTypeEnum {
+			if vals, ok := c.Value.([]string); ok && len(vals) > 1 {
+				return vals[1]
+			}
+		}
+	}
+
+	// Ports/numbers: use a different value
+	if strings.Contains(paramNameLower, "port") {
+		return 8080
+	}
+	if param.GoType == "int" || param.GoType == "int32" || param.GoType == "uint16" || param.GoType == "uint8" || param.GoType == "uint32" {
+		return 50
+	}
+
+	// Strings: return a clearly updated value
+	return "updated-test-value"
+}
+
+// describeKeyValues returns a human-readable string of key field values from the body.
+// e.g., "server=8.8.8.8, vr-name=VR-Mgmt"
+func describeKeyValues(body map[string]interface{}, feature *model.Feature) string {
+	if body == nil {
+		return ""
+	}
+	var parts []string
+	// Deep-scanned format
+	if objects, ok := body["objects"].([]interface{}); ok && len(objects) > 0 {
+		if obj, ok := objects[0].(map[string]interface{}); ok {
+			if props, ok := obj["properties"].([]map[string]interface{}); ok {
+				keySet := make(map[string]bool, len(feature.Keys))
+				for _, k := range feature.Keys {
+					keySet[k] = true
+				}
+				for _, prop := range props {
+					name, _ := prop["name"].(string)
+					val := prop["value"]
+					if len(keySet) == 0 || keySet[name] {
+						parts = append(parts, fmt.Sprintf("%s=%v", name, val))
+					}
+				}
+			}
+		}
+	} else {
+		// Simple format
+		for _, p := range feature.Parameters {
+			if v, ok := body[p.Name]; ok {
+				parts = append(parts, fmt.Sprintf("%s=%v", p.Name, v))
+			}
+		}
+	}
+	if len(parts) == 0 {
+		return feature.Name
+	}
+	return strings.Join(parts, ", ")
+}
+
+// describeModifiedFields returns a human-readable string of non-key/non-required fields
+// being modified in an update body, e.g. "metric=50 (was: 100)".
+// This makes update test descriptions clearly state what is being updated.
+func describeModifiedFields(body map[string]interface{}, feature *model.Feature) string {
+	if body == nil {
+		return ""
+	}
+	keySet := make(map[string]bool, len(feature.Keys))
+	for _, k := range feature.Keys {
+		keySet[k] = true
+	}
+	requiredSet := make(map[string]bool)
+	for _, p := range feature.Parameters {
+		if p.Required {
+			requiredSet[p.Name] = true
+		}
+	}
+
+	var modified []string
+	var keys []string
+
+	// Deep-scanned format
+	if objects, ok := body["objects"].([]interface{}); ok && len(objects) > 0 {
+		if obj, ok := objects[0].(map[string]interface{}); ok {
+			if props, ok := obj["properties"].([]map[string]interface{}); ok {
+				for _, prop := range props {
+					name, _ := prop["name"].(string)
+					val := prop["value"]
+					if isSystemManagedField(name) {
+						continue
+					}
+					if keySet[name] || requiredSet[name] {
+						keys = append(keys, fmt.Sprintf("%s=%v", name, val))
+					} else {
+						modified = append(modified, fmt.Sprintf("%s=%v", name, val))
+					}
+				}
+			}
+		}
+	} else {
+		for _, p := range feature.Parameters {
+			if v, ok := body[p.Name]; ok {
+				if isSystemManagedField(p.Name) {
+					continue
+				}
+				if keySet[p.Name] || requiredSet[p.Name] {
+					keys = append(keys, fmt.Sprintf("%s=%v", p.Name, v))
+				} else {
+					modified = append(modified, fmt.Sprintf("%s=%v", p.Name, v))
+				}
+			}
+		}
+	}
+
+	if len(modified) == 0 && len(keys) > 0 {
+		return "update entry where " + strings.Join(keys, ", ")
+	}
+	if len(modified) == 0 {
+		return feature.Name
+	}
+	desc := "modify " + strings.Join(modified, ", ")
+	if len(keys) > 0 {
+		desc += " (entry: " + strings.Join(keys, ", ") + ")"
+	}
+	return desc
+}
+
+// crudValidations generates descriptive validations for CRUD steps.
+func crudValidations(statusCode int, operation string, featureName string, keyDescription string) []model.Validation {
+	var desc string
+	switch operation {
+	case "create":
+		desc = fmt.Sprintf("Verify %s created successfully with %s", featureName, keyDescription)
+	case "read":
+		desc = fmt.Sprintf("Verify %s retrieved — response contains %s", featureName, keyDescription)
+	case "update":
+		desc = fmt.Sprintf("Verify %s updated successfully with %s", featureName, keyDescription)
+	case "delete":
+		desc = fmt.Sprintf("Verify %s with %s deleted successfully", featureName, keyDescription)
+	case "conflict":
+		desc = fmt.Sprintf("Verify duplicate create of %s with %s is rejected (409 Conflict)", featureName, keyDescription)
+	default:
+		desc = fmt.Sprintf("Verify HTTP %d for %s %s", statusCode, operation, featureName)
+	}
+	return []model.Validation{
+		{
+			Type:        model.ValidationTypeStatusCode,
+			Expected:    statusCode,
+			Description: desc,
+		},
+	}
 }
 
 // getYANGTypeValue returns a representative valid value for a given YANG type and variation index.
@@ -1777,15 +1984,27 @@ func (g *Generator) generateOptionalFieldInclusionTests(
 		if param.Required {
 			continue // only optional fields here
 		}
+		if isSystemManagedField(param.Name) {
+			continue // skip id, created-at, updated-at, deleted-at, customer-id, owner-id
+		}
 
 		expectedVal := g.getSampleValue(param)
+
+		// Build a richer description using the YANG leaf description when available
+		paramDesc := param.Description
+		var tcDesc string
+		if paramDesc != "" {
+			tcDesc = fmt.Sprintf("Verify optional field '%s' is accepted and persisted (YANG type: %s) — %s", param.Name, param.YangType, paramDesc)
+		} else {
+			tcDesc = fmt.Sprintf("Verify optional field '%s' is accepted and persisted when provided (YANG type: %s)", param.Name, param.YangType)
+		}
 
 		tc := model.TestCase{
 			TestCaseID:       g.nextTestID(),
 			FeatureName:      feature.Name,
 			Priority:         model.TestPriorityP3,
 			Type:             model.TestCategoryFunctional,
-			Description:      fmt.Sprintf("Verify optional field '%s' is accepted and persisted when provided (YANG type: %s)", param.Name, param.YangType),
+			Description:      tcDesc,
 			IsDeploymentTest: false,
 			Steps:            []model.TestStep{},
 		}
@@ -1798,9 +2017,16 @@ func (g *Generator) generateOptionalFieldInclusionTests(
 			body = g.generateBodyWithOptionalField(feature, createPath, param.Name, expectedVal)
 		}
 
+		var createStepDesc string
+		if paramDesc != "" {
+			createStepDesc = fmt.Sprintf("Create %s with optional field '%s'=%v — %s", feature.Name, param.Name, expectedVal, paramDesc)
+		} else {
+			createStepDesc = fmt.Sprintf("Create %s with optional field '%s'=%v explicitly provided", feature.Name, param.Name, expectedVal)
+		}
+
 		createStep := model.TestStep{
 			Name:           fmt.Sprintf("createWith_optional_%s", strings.ReplaceAll(param.Name, "-", "_")),
-			Description:    fmt.Sprintf("Create %s with optional field '%s'=%v explicitly provided", feature.Name, param.Name, expectedVal),
+			Description:    createStepDesc,
 			Method:         createPath.HTTPMethod,
 			API:            model.APITypeREST,
 			Path:           createPath.Path,

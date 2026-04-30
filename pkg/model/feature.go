@@ -9,6 +9,7 @@ type Feature struct {
 	Constraints    []Constraint
 	ProfileType    ProfileType
 	IsListType     bool
+	Keys           []string                  // YANG list key field names (e.g., ["server", "vr-name"])
 	Parent         string                    // parent feature name if nested
 	SubObjectTypes map[string]*SubObjectType // Sub-object types (e.g., dns-suffix under dns-server)
 }

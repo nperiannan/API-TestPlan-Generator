@@ -2,10 +2,29 @@ package generator
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/extremenetworks/testcase-generator/pkg/model"
 	restparser "github.com/extremenetworks/testcase-generator/pkg/spec/rest"
 )
+
+// systemManagedFields are fields from base:primary / base / tenant groupings
+// that are internally managed by the system and should NOT be validated in
+// functional test cases. Users never send these in payloads.
+var systemManagedFields = map[string]bool{
+	"id":          true,
+	"created-at":  true,
+	"updated-at":  true,
+	"deleted-at":  true,
+	"customer-id": true,
+	"owner-id":    true,
+}
+
+// isSystemManagedField returns true if the parameter is a system-managed
+// field from base:primary that should be excluded from test validations.
+func isSystemManagedField(paramName string) bool {
+	return systemManagedFields[strings.ToLower(paramName)]
+}
 
 // generateResponseValidations creates comprehensive response validations based on:
 // 1. Expected HTTP status code from OpenAPI spec
@@ -136,8 +155,14 @@ func (g *Generator) generateReadResponseValidationsWithValues(
 	})
 
 	// For each YANG parameter: check existence for all, validate actual value for required ones
+	// Skip system-managed fields (id, created-at, updated-at, deleted-at, customer-id, owner-id)
 	if feature.Parameters != nil {
 		for _, param := range feature.Parameters {
+			// Skip system-managed fields from base:primary grouping
+			if isSystemManagedField(param.Name) {
+				continue
+			}
+
 			// Always verify the property exists in the response
 			existsPath := fmt.Sprintf("$.objects[0].properties[?(@.name=='%s')]", param.Name)
 			if param.Required {
