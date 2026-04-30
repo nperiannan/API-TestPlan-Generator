@@ -54,11 +54,21 @@ func (w *Writer) writeAll(suite *model.TestSuite) error {
 	return nil
 }
 
-// writePerFeature writes tests to separate files per feature
+// writePerFeature writes tests to separate files per feature, organized by blueprint category
 func (w *Writer) writePerFeature(suite *model.TestSuite) error {
 	for _, feature := range suite.Features {
+		// Determine subdirectory from blueprint category
+		categoryDir := string(feature.BlueprintCategory)
+		if categoryDir == "" {
+			categoryDir = "uncategorized"
+		}
+		featureDir := filepath.Join(w.outputDir, categoryDir)
+		if err := os.MkdirAll(featureDir, 0755); err != nil {
+			return fmt.Errorf("failed to create category directory %s: %w", featureDir, err)
+		}
+
 		fileName := sanitizeFilename(feature.FeatureName) + ".yaml"
-		filePath := filepath.Join(w.outputDir, fileName)
+		filePath := filepath.Join(featureDir, fileName)
 
 		// Create a mini suite for this feature
 		featureSuite := &model.TestSuite{
