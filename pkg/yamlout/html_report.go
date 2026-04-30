@@ -679,7 +679,10 @@ func (w *Writer) writePathParameterCoverage(html *strings.Builder, featureName s
 // test counts per category, blueprint category grouping, and featurePath depth.
 func (w *Writer) WriteSummaryHTML(suite *model.TestSuite) error {
 	timestamp := time.Now().Format("20060102_150405")
-	reportDir := filepath.Dir(filepath.Clean(w.outputDir))
+	reportDir := filepath.Join(filepath.Dir(filepath.Clean(w.outputDir)), "reports")
+	if err := os.MkdirAll(reportDir, 0755); err != nil {
+		return fmt.Errorf("failed to create reports directory: %w", err)
+	}
 	htmlPath := filepath.Join(reportDir, "summary_report.html")
 
 	html := w.generateSummaryHTML(suite, timestamp)

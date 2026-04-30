@@ -4,8 +4,8 @@
 # the ./sources/ directory using Git sparse checkout.
 # ─────────────────────────────────────────────────────────────────────
 # Usage:
-#   .\checkout-sources.ps1              # Checkout / update all sources
-#   .\checkout-sources.ps1 -force       # Remove sources/ and re-checkout
+#   .\config\checkout-sources.ps1              # Checkout / update all sources
+#   .\config\checkout-sources.ps1 -force       # Remove sources/ and re-checkout
 # ─────────────────────────────────────────────────────────────────────
 
 param(
@@ -21,17 +21,18 @@ function Write-Err($msg)  { Write-Host "   $msg" -ForegroundColor Red }
 
 # ── Parse config.yaml ────────────────────────────────────────────────
 
-Write-Step "Reading config.yaml"
+Write-Step "Reading config/config.yaml"
 
-if (-not (Test-Path "config.yaml")) {
-    Write-Err "config.yaml not found in current directory."
+$configPath = Join-Path $PSScriptRoot "config.yaml"
+if (-not (Test-Path $configPath)) {
+    Write-Err "config/config.yaml not found."
     exit 1
 }
 
 # Lightweight YAML parser — sufficient for our flat/nested structure.
 # Extracts sourcesDir and each source entry's repo, branch, sparse, localDir, localFile.
 
-$configLines = Get-Content "config.yaml" -Encoding UTF8
+$configLines = Get-Content $configPath -Encoding UTF8
 $sourcesDir  = "./sources"
 $sources     = @{}
 $currentSrc  = $null
