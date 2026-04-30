@@ -67,9 +67,12 @@ Write-Ok "Found $($sources.Count) source entries"
 
 # ── Prepare sources directory ────────────────────────────────────────
 
+$backupDir = $null
 if ($force -and (Test-Path $sourcesDir)) {
-    Write-Step "Removing existing sources/ (--force)"
-    Remove-Item -Recurse -Force $sourcesDir
+    $backupDir = "${sourcesDir}.bak"
+    Write-Step "Backing up existing sources/ to $backupDir (--force)"
+    if (Test-Path $backupDir) { Remove-Item -Recurse -Force $backupDir }
+    Rename-Item $sourcesDir $backupDir
 }
 
 if (-not (Test-Path $sourcesDir)) {
@@ -77,6 +80,8 @@ if (-not (Test-Path $sourcesDir)) {
 }
 
 # ── Checkout each source ─────────────────────────────────────────────
+
+$allSucceeded = $true
 
 foreach ($name in $sources.Keys) {
     $src = $sources[$name]
@@ -88,7 +93,7 @@ foreach ($name in $sources.Keys) {
     Write-Host ""
     Write-Step "Source: $name"
 
-    # If no repo is defined, this is a manual-placement source.
+    # If no repo is defined, this is a committed/manual-placement source.
     if (-not $repo) {
         $localFile = $src["localFile"]
         $targetDir = Join-Path $sourcesDir $localDir
@@ -100,9 +105,22 @@ foreach ($name in $sources.Keys) {
             if (Test-Path $targetPath) {
                 Write-Ok "$localFile already present at $targetPath"
             } else {
-                Write-Warn "$localFile not found at $targetPath"
-                Write-Warn "Please copy it manually:"
-                Write-Warn "  Copy-Item <path-to-$localFile> $targetPath"
+                # If we have a backup, restore from it
+                if ($backupDir) {
+                    $backupFile = Join-Path $backupDir (Join-Path $localDir $localFile)
+                    if (Test-Path $backupFile) {
+                        Copy-Item $backupFile $targetPath
+                        Write-Ok "Restored $localFile from backup"
+                    } else {
+                        Write-Warn "$localFile not found at $targetPath"
+                        Write-Warn "Please copy it manually:"
+                        Write-Warn "  Copy-Item <path-to-$localFile> $targetPath"
+                    }
+                } else {
+                    Write-Warn "$localFile not found at $targetPath"
+                    Write-Warn "Please copy it manually:"
+                    Write-Warn "  Copy-Item <path-to-$localFile> $targetPath"
+                }
             }
         }
         continue
@@ -125,6 +143,16 @@ foreach ($name in $sources.Keys) {
         git clone --filter=blob:none --sparse --branch $branch $repo $cloneDir 2>&1 | ForEach-Object { Write-Host "   $_" }
         if ($LASTEXITCODE -ne 0) {
             Write-Err "Clone failed for $name"
+            $allSucceeded = $false
+            # Restore this source from backup if available
+            if ($backupDir) {
+                $backupSrc = Join-Path $backupDir $localDir
+                if (Test-Path $backupSrc) {
+                    Write-Warn "Restoring $localDir from backup..."
+                    Copy-Item -Recurse -Force $backupSrc $cloneDir
+                    Write-Ok "Restored $localDir from backup"
+                }
+            }
             continue
         }
 
@@ -142,7 +170,29 @@ foreach ($name in $sources.Keys) {
             Write-Ok "Verified: $expectedPath"
         } else {
             Write-Warn "Expected path not found: $expectedPath"
+            $allSucceeded = $false
+            # Restore from backup if available
+            if ($backupDir) {
+                $backupSrc = Join-Path $backupDir $localDir
+                if (Test-Path $backupSrc) {
+                    Write-Warn "Restoring $localDir from backup..."
+                    if (Test-Path $cloneDir) { Remove-Item -Recurse -Force $cloneDir }
+                    Copy-Item -Recurse -Force $backupSrc $cloneDir
+                    Write-Ok "Restored $localDir from backup"
+                }
+            }
         }
+    }
+}
+
+# ── Cleanup backup ───────────────────────────────────────────────────
+
+if ($backupDir -and (Test-Path $backupDir)) {
+    if ($allSucceeded) {
+        Write-Step "Removing backup (all checkouts succeeded)"
+        Remove-Item -Recurse -Force $backupDir
+    } else {
+        Write-Warn "Backup kept at $backupDir (some checkouts failed)"
     }
 }
 
@@ -150,7 +200,12 @@ foreach ($name in $sources.Keys) {
 
 Write-Host ""
 Write-Host "=======================================" -ForegroundColor Cyan
-Write-Host "Source checkout complete." -ForegroundColor Green
+if ($allSucceeded) {
+    Write-Host "Source checkout complete." -ForegroundColor Green
+} else {
+    Write-Host "Source checkout completed with errors." -ForegroundColor Yellow
+    Write-Host "Failed sources were restored from backup where possible." -ForegroundColor Yellow
+}
 Write-Host ""
 Write-Host "Directory structure:" -ForegroundColor Cyan
 if (Test-Path $sourcesDir) {
