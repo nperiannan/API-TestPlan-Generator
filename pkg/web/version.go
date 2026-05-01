@@ -18,22 +18,22 @@ type VersionManager struct {
 
 // VersionDiff represents the diff between two versions
 type VersionDiff struct {
-	OldVersion    string            `json:"oldVersion"`
-	NewVersion    string            `json:"newVersion"`
-	OldTag        string            `json:"oldTag"`
-	NewTag        string            `json:"newTag"`
-	Summary       DiffSummary       `json:"summary"`
-	ChangeReasons []ChangeReason    `json:"changeReasons"`
-	FileChanges   []FileChange      `json:"fileChanges"`
-	TestDiffs     []FeatureTestDiff `json:"testDiffs"`
+	OldVersion    string             `json:"oldVersion"`
+	NewVersion    string             `json:"newVersion"`
+	OldTag        string             `json:"oldTag"`
+	NewTag        string             `json:"newTag"`
+	Summary       DiffSummary        `json:"summary"`
+	ChangeReasons []ChangeReason     `json:"changeReasons"`
+	FileChanges   []FileChange       `json:"fileChanges"`
+	TestDiffs     []FeatureTestDiff  `json:"testDiffs"`
 	OldContext    *GenerationContext `json:"oldContext,omitempty"`
 	NewContext    *GenerationContext `json:"newContext,omitempty"`
 }
 
 // ChangeReason explains why two versions differ
 type ChangeReason struct {
-	Category    string `json:"category"`    // "source", "tool", "generation"
-	Field       string `json:"field"`       // specific field that changed
+	Category    string `json:"category"` // "source", "tool", "generation"
+	Field       string `json:"field"`    // specific field that changed
 	OldValue    string `json:"oldValue"`
 	NewValue    string `json:"newValue"`
 	Description string `json:"description"` // human-readable explanation
@@ -41,16 +41,16 @@ type ChangeReason struct {
 
 // DiffSummary provides high-level diff statistics
 type DiffSummary struct {
-	TotalTestsOld     int            `json:"totalTestsOld"`
-	TotalTestsNew     int            `json:"totalTestsNew"`
-	TestsDelta        int            `json:"testsDelta"`
-	FeaturesAdded     int            `json:"featuresAdded"`
-	FeaturesRemoved   int            `json:"featuresRemoved"`
-	FeaturesModified  int            `json:"featuresModified"`
-	FilesAdded        int            `json:"filesAdded"`
-	FilesRemoved      int            `json:"filesRemoved"`
-	FilesModified     int            `json:"filesModified"`
-	CategoryChanges   map[string]int `json:"categoryChanges"`
+	TotalTestsOld    int            `json:"totalTestsOld"`
+	TotalTestsNew    int            `json:"totalTestsNew"`
+	TestsDelta       int            `json:"testsDelta"`
+	FeaturesAdded    int            `json:"featuresAdded"`
+	FeaturesRemoved  int            `json:"featuresRemoved"`
+	FeaturesModified int            `json:"featuresModified"`
+	FilesAdded       int            `json:"filesAdded"`
+	FilesRemoved     int            `json:"filesRemoved"`
+	FilesModified    int            `json:"filesModified"`
+	CategoryChanges  map[string]int `json:"categoryChanges"`
 }
 
 // FileChange represents a change to a specific file

@@ -24,12 +24,12 @@ type MinIOStore struct {
 
 // StoredVersion represents a stored test plan version
 type StoredVersion struct {
-	ID          string    `json:"id"`
-	Tag         string    `json:"tag"`
-	CreatedAt   time.Time `json:"createdAt"`
-	Description string    `json:"description"`
-	TotalTests  int       `json:"totalTests"`
-	Features    int       `json:"features"`
+	ID          string         `json:"id"`
+	Tag         string         `json:"tag"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	Description string         `json:"description"`
+	TotalTests  int            `json:"totalTests"`
+	Features    int            `json:"features"`
 	Categories  map[string]int `json:"categories"`
 
 	// Generation context — identifies WHY this version differs from others
@@ -38,12 +38,12 @@ type StoredVersion struct {
 
 // GenerationContext captures the inputs and tool state that produced this version
 type GenerationContext struct {
-	GeneratedAt      string            `json:"generatedAt"`      // from YAML generatedAt field
-	ToolVersion      string            `json:"toolVersion"`      // testgen suite version (e.g. "1.0")
-	ToolCommit       string            `json:"toolCommit"`       // git commit hash of the tool
-	SourceYangDir    string            `json:"sourceYangDir"`    // YANG model directory path
-	SourceRESTAPI    string            `json:"sourceRestApi"`    // REST API spec path
-	SourceNOSAPI     string            `json:"sourceNosApi"`     // NOSAPI spec path
+	GeneratedAt        string            `json:"generatedAt"`        // from YAML generatedAt field
+	ToolVersion        string            `json:"toolVersion"`        // testgen suite version (e.g. "1.0")
+	ToolCommit         string            `json:"toolCommit"`         // git commit hash of the tool
+	SourceYangDir      string            `json:"sourceYangDir"`      // YANG model directory path
+	SourceRESTAPI      string            `json:"sourceRestApi"`      // REST API spec path
+	SourceNOSAPI       string            `json:"sourceNosApi"`       // NOSAPI spec path
 	SourceFingerprints map[string]string `json:"sourceFingerprints"` // file path -> SHA256 hash
 }
 

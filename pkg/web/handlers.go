@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -330,13 +331,14 @@ func (s *Server) handleGetConfig(c *gin.Context) {
 }
 
 type sourceConfig struct {
-	YangDir   string `json:"yangDir"`
-	RestSpec  string `json:"restSpec"`
-	NosapiSpec string `json:"nosapiSpec"`
-	OutDir    string `json:"outDir"`
-	YangExists   bool `json:"yangExists"`
-	RestExists   bool `json:"restExists"`
-	NosapiExists bool `json:"nosapiExists"`
+	YangDir      string `json:"yangDir"`
+	RestSpec     string `json:"restSpec"`
+	NosapiSpec   string `json:"nosapiSpec"`
+	OutDir       string `json:"outDir"`
+	YangExists   bool   `json:"yangExists"`
+	RestExists   bool   `json:"restExists"`
+	NosapiExists bool   `json:"nosapiExists"`
+	OutDirExists bool   `json:"outDirExists"`
 }
 
 func (s *Server) resolveSourceConfig() sourceConfig {
@@ -381,6 +383,7 @@ func (s *Server) resolveSourceConfig() sourceConfig {
 	sc.YangExists = dirExists(sc.YangDir)
 	sc.RestExists = fileExists(sc.RestSpec)
 	sc.NosapiExists = fileExists(sc.NosapiSpec)
+	sc.OutDirExists = dirExists(sc.OutDir)
 
 	return sc
 }
@@ -926,8 +929,8 @@ func formatExcelExpected(steps []excelStep) string {
 func yamlToExcel(data []byte) ([]byte, error) {
 	var parsed struct {
 		Features []struct {
-			FeatureName string                          `yaml:"featureName"`
-			Tests       map[string][]excelTestCase      `yaml:"tests"`
+			FeatureName string                     `yaml:"featureName"`
+			Tests       map[string][]excelTestCase `yaml:"tests"`
 		} `yaml:"features"`
 	}
 	if err := yaml.Unmarshal(data, &parsed); err != nil {
@@ -1018,4 +1021,248 @@ func yamlToExcel(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("writing Excel: %w", err)
 	}
 	return buf.Bytes(), nil
+}
+
+// --- Pull Sources ---
+
+type pullResult struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+	Error  string `json:"error,omitempty"`
+}
+
+func (s *Server) handlePullSources(c *gin.Context) {
+	configPath := filepath.Join("config", "config.yaml")
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot read config.yaml"})
+		return
+	}
+
+	type sourceEntry struct {
+		Repo     string `yaml:"repo"`
+		Branch   string `yaml:"branch"`
+		Sparse   string `yaml:"sparse"`
+		LocalDir string `yaml:"localDir"`
+	}
+	var cfg struct {
+		SourcesDir string                 `yaml:"sourcesDir"`
+		Sources    map[string]sourceEntry `yaml:"sources"`
+	}
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot parse config.yaml"})
+		return
+	}
+	if cfg.SourcesDir == "" {
+		cfg.SourcesDir = "./sources"
+	}
+
+	var results []pullResult
+	for name, src := range cfg.Sources {
+		if src.Repo == "" {
+			continue // skip manual sources
+		}
+		cloneDir := filepath.Join(cfg.SourcesDir, src.LocalDir)
+		pr := pullResult{Name: name}
+
+		if dirExists(cloneDir) {
+			// Already cloned — pull latest
+			cmd := exec.Command("git", "-C", cloneDir, "pull", "origin", src.Branch, "--quiet")
+			out, err := cmd.CombinedOutput()
+			if err != nil {
+				pr.Status = "pull failed"
+				pr.Error = strings.TrimSpace(string(out))
+			} else {
+				pr.Status = "updated"
+			}
+		} else {
+			// Fresh sparse checkout
+			cmd := exec.Command("git", "clone", "--filter=blob:none", "--sparse", "--branch", src.Branch, src.Repo, cloneDir)
+			out, err := cmd.CombinedOutput()
+			if err != nil {
+				pr.Status = "clone failed"
+				pr.Error = strings.TrimSpace(string(out))
+			} else {
+				if src.Sparse != "" {
+					cmd2 := exec.Command("git", "-C", cloneDir, "sparse-checkout", "set", src.Sparse)
+					if out2, err2 := cmd2.CombinedOutput(); err2 != nil {
+						pr.Status = "sparse-checkout failed"
+						pr.Error = strings.TrimSpace(string(out2))
+					} else {
+						pr.Status = "cloned"
+					}
+				} else {
+					pr.Status = "cloned"
+				}
+			}
+		}
+		results = append(results, pr)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"results": results})
+}
+
+// --- Jira Integration ---
+
+type jiraConfig struct {
+	URL     string `yaml:"url" json:"url"`
+	Project string `yaml:"project" json:"project"`
+	Email   string `yaml:"email" json:"email"`
+	Token   string `yaml:"token" json:"-"` // never expose token
+}
+
+func (s *Server) loadJiraConfig() (*jiraConfig, error) {
+	configPath := filepath.Join("config", "config.yaml")
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil, err
+	}
+	var cfg struct {
+		Jira jiraConfig `yaml:"jira"`
+	}
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return nil, err
+	}
+	if cfg.Jira.URL == "" {
+		return nil, fmt.Errorf("jira URL not configured")
+	}
+	// Token from env var takes precedence, fallback to config file
+	if envToken := os.Getenv("JIRA_API_TOKEN"); envToken != "" {
+		cfg.Jira.Token = envToken
+	}
+	if cfg.Jira.Token == "" {
+		return nil, fmt.Errorf("JIRA_API_TOKEN environment variable not set")
+	}
+	return &cfg.Jira, nil
+}
+
+func (s *Server) handleJiraConfig(c *gin.Context) {
+	jcfg, err := s.loadJiraConfig()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"configured": false, "error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"configured": true,
+		"url":        jcfg.URL,
+		"project":    jcfg.Project,
+		"email":      jcfg.Email,
+	})
+}
+
+// handleJiraSearch searches Jira issues by JQL query
+func (s *Server) handleJiraSearch(c *gin.Context) {
+	jcfg, err := s.loadJiraConfig()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Jira not configured"})
+		return
+	}
+
+	jql := c.Query("jql")
+	if jql == "" {
+		feature := c.Query("feature")
+		if feature != "" {
+			jql = fmt.Sprintf("project = %s AND summary ~ \"%s\" ORDER BY created DESC", jcfg.Project, feature)
+		} else {
+			jql = fmt.Sprintf("project = %s ORDER BY created DESC", jcfg.Project)
+		}
+	}
+
+	maxResults := c.DefaultQuery("maxResults", "50")
+	apiURL := fmt.Sprintf("%s/rest/api/3/search?jql=%s&maxResults=%s&fields=summary,status,priority,assignee,created,updated,issuetype,labels",
+		jcfg.URL, url.QueryEscape(jql), url.QueryEscape(maxResults))
+
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	req.SetBasicAuth(jcfg.Email, jcfg.Token)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to reach Jira: " + err.Error()})
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		c.JSON(resp.StatusCode, gin.H{"error": fmt.Sprintf("Jira returned HTTP %d", resp.StatusCode)})
+		return
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse Jira response"})
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+// handleJiraIssue gets a single Jira issue by key
+func (s *Server) handleJiraIssue(c *gin.Context) {
+	jcfg, err := s.loadJiraConfig()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Jira not configured"})
+		return
+	}
+
+	key := c.Param("key")
+	apiURL := fmt.Sprintf("%s/rest/api/3/issue/%s", jcfg.URL, key)
+
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	req.SetBasicAuth(jcfg.Email, jcfg.Token)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to reach Jira: " + err.Error()})
+		return
+	}
+	defer resp.Body.Close()
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse Jira response"})
+		return
+	}
+	c.JSON(resp.StatusCode, result)
+}
+
+// handleJiraProjects lists accessible Jira projects
+func (s *Server) handleJiraProjects(c *gin.Context) {
+	jcfg, err := s.loadJiraConfig()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Jira not configured"})
+		return
+	}
+
+	apiURL := fmt.Sprintf("%s/rest/api/3/project", jcfg.URL)
+
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	req.SetBasicAuth(jcfg.Email, jcfg.Token)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to reach Jira: " + err.Error()})
+		return
+	}
+	defer resp.Body.Close()
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse Jira response"})
+		return
+	}
+	c.JSON(resp.StatusCode, result)
 }

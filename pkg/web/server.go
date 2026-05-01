@@ -123,6 +123,7 @@ func (s *Server) registerRoutes() {
 
 		// Source changes
 		api.GET("/sources/changes", s.handleSourceChanges)
+		api.POST("/sources/pull", s.handlePullSources)
 
 		// Configuration
 		api.GET("/config", s.handleGetConfig)
@@ -130,6 +131,12 @@ func (s *Server) registerRoutes() {
 		// Generation
 		api.POST("/generate", s.handleGenerate)
 		api.GET("/generate/status", s.handleGenerateStatus)
+
+		// Jira
+		api.GET("/jira/config", s.handleJiraConfig)
+		api.GET("/jira/search", s.handleJiraSearch)
+		api.GET("/jira/issue/:key", s.handleJiraIssue)
+		api.GET("/jira/projects", s.handleJiraProjects)
 	}
 }
 

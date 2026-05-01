@@ -155,14 +155,31 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
     <div class="title-area" style="display:flex;align-items:center;gap:16px;">
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="48" height="48" rx="10" fill="rgba(255,255,255,0.15)"/>
-        <path d="M20 8v14l-6 10a3 3 0 002.6 4.5h14.8a3 3 0 002.6-4.5L28 22V8" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M18 8h12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
-        <path d="M16.5 28l15 0" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="22" cy="31" r="1.5" fill="#4fc3f7"/>
-        <circle cx="27" cy="30" r="1" fill="#81c784"/>
-        <circle cx="24.5" cy="33" r="1.2" fill="#ffb74d"/>
-        <path d="M22 14h4" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" stroke-linecap="round"/>
-        <path d="M22 18h4" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" stroke-linecap="round"/>
+        <!-- Central hub -->
+        <circle cx="24" cy="24" r="5" stroke="#fff" stroke-width="2" fill="rgba(255,255,255,0.1)"/>
+        <circle cx="24" cy="24" r="2" fill="#4fc3f7"/>
+        <!-- Top node -->
+        <circle cx="24" cy="10" r="3.5" stroke="#fff" stroke-width="1.8" fill="rgba(255,255,255,0.1)"/>
+        <line x1="24" y1="13.5" x2="24" y2="19" stroke="#fff" stroke-width="1.5"/>
+        <!-- Bottom node -->
+        <circle cx="24" cy="38" r="3.5" stroke="#fff" stroke-width="1.8" fill="rgba(255,255,255,0.1)"/>
+        <line x1="24" y1="29" x2="24" y2="34.5" stroke="#fff" stroke-width="1.5"/>
+        <!-- Left node -->
+        <circle cx="11" cy="18" r="3.5" stroke="#fff" stroke-width="1.8" fill="rgba(255,255,255,0.1)"/>
+        <line x1="14.2" y1="19.8" x2="19.5" y2="22" stroke="#fff" stroke-width="1.5"/>
+        <!-- Right node -->
+        <circle cx="37" cy="18" r="3.5" stroke="#fff" stroke-width="1.8" fill="rgba(255,255,255,0.1)"/>
+        <line x1="33.8" y1="19.8" x2="28.5" y2="22" stroke="#fff" stroke-width="1.5"/>
+        <!-- Bottom-left node -->
+        <circle cx="13" cy="34" r="3.5" stroke="#fff" stroke-width="1.8" fill="rgba(255,255,255,0.1)"/>
+        <line x1="16" y1="32.5" x2="20" y2="27" stroke="#fff" stroke-width="1.5"/>
+        <!-- Bottom-right node -->
+        <circle cx="35" cy="34" r="3.5" stroke="#fff" stroke-width="1.8" fill="rgba(255,255,255,0.1)"/>
+        <line x1="32" y1="32.5" x2="28" y2="27" stroke="#fff" stroke-width="1.5"/>
+        <!-- Signal dots -->
+        <circle cx="24" cy="10" r="1.2" fill="#81c784"/>
+        <circle cx="37" cy="18" r="1.2" fill="#4fc3f7"/>
+        <circle cx="35" cy="34" r="1.2" fill="#ffb74d"/>
       </svg>
       <div>
         <h1>Test Plan Dashboard</h1>
@@ -181,6 +198,7 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
     <div class="nav-tab" data-tab="testplans" onclick="switchTab('testplans')">Test Plans</div>
     <div class="nav-tab" data-tab="versions" onclick="switchTab('versions')">Versions &amp; Diffs</div>
     <div class="nav-tab" data-tab="sources" onclick="switchTab('sources')">Source Files</div>
+    <div class="nav-tab" data-tab="jira" onclick="switchTab('jira')">Jira</div>
     <div class="nav-tab" data-tab="generate" onclick="switchTab('generate')">Generate</div>
   </div>
 
@@ -236,13 +254,42 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
     <div class="section">
       <div class="section-header">
         <h2>Source Files</h2>
-        <span style="font-size:.85em;color:#888;">YANG models, API specs, and NOSAPI files</span>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <span style="font-size:.85em;color:#888;">YANG models, API specs, and NOSAPI files</span>
+          <button class="btn btn-sm btn-primary" onclick="pullLatestSources()" id="btnPullSources">&#8635; Pull Latest</button>
+        </div>
       </div>
       <div class="section-body">
+        <div id="pullStatus" style="display:none;margin-bottom:12px;padding:12px;border-radius:8px;font-size:.88em;"></div>
         <table>
           <thead><tr><th>#</th><th>File</th><th>Last Modified</th><th>Size</th><th>Hash</th></tr></thead>
           <tbody id="sourceList"><tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- JIRA TAB -->
+  <div class="tab-content" id="tab-jira">
+    <div class="section">
+      <div class="section-header">
+        <h2>Jira Integration</h2>
+        <span id="jiraStatus" style="font-size:.85em;color:#888;">Checking connection...</span>
+      </div>
+      <div class="section-body">
+        <div id="jiraNotConfigured" style="display:none;">
+          <p style="color:#c62828;">&#9888; Jira is not configured. Add jira settings to <code>config/config.yaml</code>.</p>
+        </div>
+        <div id="jiraConnected" style="display:none;">
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+            <input type="text" id="jiraSearchInput" placeholder="Search by feature name or JQL..." style="flex:1;min-width:300px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;">
+            <button class="btn btn-primary" onclick="searchJira()">&#128269; Search</button>
+            <button class="btn btn-secondary" style="color:#333;" onclick="loadRecentJira()">&#8635; Recent Issues</button>
+          </div>
+          <div id="jiraResults">
+            <p style="color:#888;font-size:.9em;">Search for Jira issues by feature name or enter a JQL query.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -342,6 +389,7 @@ function switchTab(tab) {
   if (tab === 'testplans') loadTestPlans();
   if (tab === 'versions') loadVersions();
   if (tab === 'sources') loadSources();
+  if (tab === 'jira') loadJiraTab();
   if (tab === 'generate') loadGenerateTab();
 }
 
@@ -908,6 +956,197 @@ async function loadSources() {
   }
 }
 
+async function pullLatestSources() {
+  const btn = document.getElementById('btnPullSources');
+  const status = document.getElementById('pullStatus');
+  btn.disabled = true;
+  btn.innerHTML = '&#8987; Pulling...';
+  status.style.display = 'block';
+  status.style.background = '#e3f2fd';
+  status.style.color = '#1565c0';
+  status.textContent = 'Pulling latest from source repositories...';
+  try {
+    const result = await apiJSON('/api/sources/pull', { method: 'POST' });
+    status.style.background = '#e8f5e9';
+    status.style.color = '#2e7d32';
+    let msg = 'Pull completed successfully.';
+    if (result.results) {
+      msg += ' ' + result.results.map(r => `${r.name}: ${r.status}`).join(' | ');
+    }
+    status.textContent = msg;
+    showToast('Sources updated', 'success');
+    loadSources();
+  } catch (e) {
+    status.style.background = '#ffebee';
+    status.style.color = '#c62828';
+    status.textContent = 'Pull failed: ' + e.message;
+    showToast('Pull failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '&#8635; Pull Latest';
+  }
+}
+
+// --- Jira ---
+let jiraConfigured = false;
+
+async function loadJiraTab() {
+  try {
+    const cfg = await apiJSON('/api/jira/config');
+    if (cfg.configured) {
+      jiraConfigured = true;
+      document.getElementById('jiraNotConfigured').style.display = 'none';
+      document.getElementById('jiraConnected').style.display = 'block';
+      document.getElementById('jiraStatus').innerHTML = '<span style="color:#43a047;">&#10003;</span> Connected to ' + cfg.url + ' (project: ' + cfg.project + ')';
+    } else {
+      document.getElementById('jiraNotConfigured').style.display = 'block';
+      document.getElementById('jiraConnected').style.display = 'none';
+      document.getElementById('jiraStatus').innerHTML = '<span style="color:#ef5350;">&#10007;</span> Not configured';
+    }
+  } catch (e) {
+    document.getElementById('jiraStatus').innerHTML = '<span style="color:#ef5350;">&#10007;</span> Error: ' + e.message;
+  }
+}
+
+async function searchJira() {
+  const input = document.getElementById('jiraSearchInput').value.trim();
+  if (!input) { showToast('Enter a search query', 'error'); return; }
+  const container = document.getElementById('jiraResults');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const isJQL = input.includes('=') || input.includes('ORDER BY');
+    const param = isJQL ? 'jql=' + encodeURIComponent(input) : 'feature=' + encodeURIComponent(input);
+    const data = await apiJSON('/api/jira/search?' + param);
+    renderJiraIssues(data, container);
+  } catch (e) {
+    container.innerHTML = '<p style="color:#c62828;">Search failed: ' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+async function loadRecentJira() {
+  const container = document.getElementById('jiraResults');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const data = await apiJSON('/api/jira/search?maxResults=25');
+    renderJiraIssues(data, container);
+  } catch (e) {
+    container.innerHTML = '<p style="color:#c62828;">Failed to load issues: ' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+function renderJiraIssues(data, container) {
+  const issues = data.issues || [];
+  if (issues.length === 0) {
+    container.innerHTML = '<p style="color:#888;">No issues found.</p>';
+    return;
+  }
+  const priorityColor = (p) => {
+    if (!p) return '#888';
+    const name = (p.name||'').toLowerCase();
+    if (name === 'highest' || name === 'critical') return '#d32f2f';
+    if (name === 'high') return '#e65100';
+    if (name === 'medium') return '#f9a825';
+    if (name === 'low') return '#43a047';
+    return '#888';
+  };
+  const statusBadge = (s) => {
+    if (!s) return '';
+    const cat = (s.statusCategory||{}).colorName||'';
+    let bg = '#e0e0e0', color = '#333';
+    if (cat === 'green' || cat === 'blue-gray') { bg = '#e8f5e9'; color = '#2e7d32'; }
+    else if (cat === 'yellow') { bg = '#fff8e1'; color = '#f57f17'; }
+    else if (cat === 'blue-gray') { bg = '#e3f2fd'; color = '#1565c0'; }
+    return '<span style="background:'+bg+';color:'+color+';padding:2px 10px;border-radius:12px;font-size:.82em;font-weight:600;">'+escapeHtml(s.name||'')+'</span>';
+  };
+  let html = '<table><thead><tr>';
+  html += '<th>Key</th><th>Type</th><th>Summary</th><th>Status</th><th>Priority</th><th>Assignee</th><th>Updated</th>';
+  html += '</tr></thead><tbody>';
+  for (const issue of issues) {
+    const f = issue.fields || {};
+    const assignee = f.assignee ? f.assignee.displayName : '<span style="color:#aaa;">Unassigned</span>';
+    const updated = f.updated ? new Date(f.updated).toLocaleDateString() : '';
+    const typeIcon = f.issuetype ? (f.issuetype.iconUrl ? '<img src="'+f.issuetype.iconUrl+'" width="16" height="16" style="vertical-align:middle;margin-right:4px;">' : '') + escapeHtml(f.issuetype.name||'') : '';
+    const priority = f.priority ? '<span style="color:'+priorityColor(f.priority)+';">'+escapeHtml(f.priority.name)+'</span>' : '';
+    html += '<tr>';
+    html += '<td><a href="javascript:void(0)" onclick="viewJiraIssue(\''+issue.key+'\')" style="color:#1a73e8;font-weight:600;">'+issue.key+'</a></td>';
+    html += '<td>'+typeIcon+'</td>';
+    html += '<td>'+escapeHtml(f.summary||'')+'</td>';
+    html += '<td>'+statusBadge(f.status)+'</td>';
+    html += '<td>'+priority+'</td>';
+    html += '<td>'+assignee+'</td>';
+    html += '<td>'+updated+'</td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  html += '<p style="color:#888;font-size:.82em;margin-top:8px;">Showing '+issues.length+' of '+(data.total||issues.length)+' issues</p>';
+  container.innerHTML = html;
+}
+
+async function viewJiraIssue(key) {
+  const container = document.getElementById('jiraResults');
+  try {
+    const issue = await apiJSON('/api/jira/issue/' + key);
+    const f = issue.fields || {};
+    let html = '<div style="margin-bottom:16px;"><button class="btn btn-sm btn-secondary" style="color:#333;" onclick="loadRecentJira()">&#8592; Back to list</button></div>';
+    html += '<div style="background:#f5f8ff;border-radius:10px;padding:20px;">';
+    html += '<h3 style="margin:0 0 8px;">'+escapeHtml(key)+': '+escapeHtml(f.summary||'')+'</h3>';
+    html += '<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;font-size:.9em;">';
+    if (f.status) html += '<div><strong>Status:</strong> '+escapeHtml(f.status.name||'')+'</div>';
+    if (f.priority) html += '<div><strong>Priority:</strong> '+escapeHtml(f.priority.name||'')+'</div>';
+    if (f.issuetype) html += '<div><strong>Type:</strong> '+escapeHtml(f.issuetype.name||'')+'</div>';
+    if (f.assignee) html += '<div><strong>Assignee:</strong> '+escapeHtml(f.assignee.displayName||'')+'</div>';
+    if (f.created) html += '<div><strong>Created:</strong> '+new Date(f.created).toLocaleDateString()+'</div>';
+    if (f.updated) html += '<div><strong>Updated:</strong> '+new Date(f.updated).toLocaleDateString()+'</div>';
+    html += '</div>';
+    if (f.labels && f.labels.length) {
+      html += '<div style="margin-bottom:12px;"><strong>Labels:</strong> ' + f.labels.map(l => '<span style="background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:10px;font-size:.82em;margin-right:4px;">'+escapeHtml(l)+'</span>').join('') + '</div>';
+    }
+    if (f.description) {
+      html += '<div style="margin-top:12px;"><strong>Description:</strong></div>';
+      html += '<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-top:8px;max-height:400px;overflow-y:auto;white-space:pre-wrap;font-size:.88em;">'+renderAtlassianDoc(f.description)+'</div>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  } catch (e) {
+    showToast('Failed to load issue: ' + e.message, 'error');
+  }
+}
+
+function renderAtlassianDoc(doc) {
+  if (!doc || !doc.content) return '<em>No description</em>';
+  let text = '';
+  for (const block of doc.content) {
+    if (block.type === 'paragraph' && block.content) {
+      for (const node of block.content) {
+        if (node.type === 'text') text += escapeHtml(node.text || '');
+      }
+      text += '\n';
+    } else if (block.type === 'heading' && block.content) {
+      for (const node of block.content) {
+        if (node.type === 'text') text += escapeHtml(node.text || '');
+      }
+      text += '\n';
+    } else if (block.type === 'bulletList' && block.content) {
+      for (const item of block.content) {
+        text += '  • ';
+        if (item.content) {
+          for (const p of item.content) {
+            if (p.content) for (const n of p.content) { if (n.type === 'text') text += escapeHtml(n.text || ''); }
+          }
+        }
+        text += '\n';
+      }
+    }
+  }
+  return text || '<em>No description</em>';
+}
+
+// Handle Enter key in Jira search
+document.addEventListener('DOMContentLoaded', function() {
+  const jiraInput = document.getElementById('jiraSearchInput');
+  if (jiraInput) jiraInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') searchJira(); });
+});
+
 // --- Generate ---
 let genPollTimer = null;
 
@@ -936,6 +1175,7 @@ async function loadGenerateTab() {
         <div style="background:#f5f8ff;border-radius:8px;padding:16px;">
           <div style="font-weight:700;color:#1a73e8;margin-bottom:8px;">Output Directory</div>
           <div style="font-family:monospace;font-size:.85em;color:#555;word-break:break-all;">${cfg.outDir || './Testplans'}</div>
+          <div style="margin-top:6px;font-size:.85em;">${statusIcon(cfg.outDirExists !== false)} ${cfg.outDirExists !== false ? 'Directory found' : 'Directory not found'}</div>
         </div>
       </div>`;
   } catch (e) {
