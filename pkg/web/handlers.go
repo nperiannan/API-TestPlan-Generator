@@ -666,7 +666,7 @@ func yamlToCSV(data []byte) string {
 	}
 
 	var sb strings.Builder
-	sb.WriteString("TestCaseID,FeatureName,Type,Priority,Automation,Description,IsDeploymentTest\n")
+	sb.WriteString("TestCaseID,FeatureName,Type,Priority,Automation,Description,IsDeploymentTest,Method,Path,Payload,ExpectedStatus,Validations\n")
 
 	featuresRaw, ok := parsed["features"]
 	if !ok {
@@ -700,7 +700,9 @@ func yamlToCSV(data []byte) string {
 				if !ok {
 					continue
 				}
-				sb.WriteString(fmt.Sprintf("%s,%s,%s,%s,%s,%q,%v\n",
+				// Extract step details
+				method, path, payload, expectedStatus, validations := extractStepInfo(tc)
+				sb.WriteString(fmt.Sprintf("%s,%s,%s,%s,%s,%q,%v,%s,%s,%q,%s,%q\n",
 					safeStr(tc["testCaseID"]),
 					safeStr(tc["featureName"]),
 					safeStr(tc["type"]),
@@ -708,12 +710,50 @@ func yamlToCSV(data []byte) string {
 					safeStr(tc["automation"]),
 					safeStr(tc["description"]),
 					tc["isDeploymentTest"],
+					method, path, payload, expectedStatus, validations,
 				))
 			}
 		}
 	}
 
 	return sb.String()
+}
+
+func extractStepInfo(tc map[string]interface{}) (method, path, payload, expectedStatus, validations string) {
+	stepsRaw, ok := tc["steps"]
+	if !ok {
+		return
+	}
+	steps, ok := stepsRaw.([]interface{})
+	if !ok || len(steps) == 0 {
+		return
+	}
+	// Use first step for primary method/path/payload
+	step, ok := steps[0].(map[string]interface{})
+	if !ok {
+		return
+	}
+	method = safeStr(step["method"])
+	path = safeStr(step["path"])
+	if body, ok := step["body"]; ok && body != nil {
+		b, err := json.Marshal(body)
+		if err == nil {
+			payload = string(b)
+		}
+	}
+	if es, ok := step["expectedStatus"]; ok {
+		expectedStatus = safeStr(es)
+	}
+	if vals, ok := step["validations"]; ok {
+		if arr, ok := vals.([]interface{}); ok {
+			var parts []string
+			for _, v := range arr {
+				parts = append(parts, safeStr(v))
+			}
+			validations = strings.Join(parts, "; ")
+		}
+	}
+	return
 }
 
 func safeStr(v interface{}) string {
@@ -834,13 +874,33 @@ func compressExcelTitle(desc string) string {
 	return strings.TrimSpace(t)
 }
 
+func formatBodyAsJSON(body interface{}) string {
+	if body == nil {
+		return ""
+	}
+	b, err := json.MarshalIndent(body, "", "  ")
+	if err != nil {
+		return fmt.Sprintf("%v", body)
+	}
+	return string(b)
+}
+
 func formatExcelSteps(steps []excelStep) string {
 	var lines []string
 	for i, s := range steps {
 		lines = append(lines, fmt.Sprintf("%d) %s", i+1, s.Description))
 		lines = append(lines, fmt.Sprintf("   %s {base_url}%s", s.Method, s.Path))
+		if s.PathParams != nil {
+			lines = append(lines, fmt.Sprintf("   Path Params: %s", formatBodyAsJSON(s.PathParams)))
+		}
+		if s.Body != nil {
+			lines = append(lines, fmt.Sprintf("   Payload: %s", formatBodyAsJSON(s.Body)))
+		}
 		if s.ExpectedStatus != 0 {
 			lines = append(lines, fmt.Sprintf("   Expected HTTP Status: %d", s.ExpectedStatus))
+		}
+		if s.Timeout != 0 {
+			lines = append(lines, fmt.Sprintf("   Timeout: %dms", s.Timeout))
 		}
 		lines = append(lines, "")
 	}
