@@ -30,21 +30,22 @@ func getDeploymentLevelsForPath(createPath *model.FeaturePath) []struct {
 	scopeType  model.ScopeType
 	targetType model.TargetType
 } {
-	if !isConfigurationDeploymentPath(createPath) {
+	if !isConfigurationDeploymentPath(createPath) && !isServiceProfileDeploymentPath(createPath) && !isGlobalProfileDeploymentPath(createPath) {
 		return nil
 	}
 	return getDeploymentLevels()
 }
 
 func (g *Generator) addDeploymentStepsForCreatePath(tc *model.TestCase, feature *model.Feature, createPath *model.FeaturePath, profileName string, scopeType model.ScopeType, targetType model.TargetType) {
-	if !isConfigurationDeploymentPath(createPath) {
+	if !isConfigurationDeploymentPath(createPath) && !isServiceProfileDeploymentPath(createPath) && !isGlobalProfileDeploymentPath(createPath) {
 		tc.ScopeType = ""
 		tc.TargetType = ""
 		tc.DeploymentMethod = ""
 		tc.IsDeploymentTest = false
 		return
 	}
-	g.addDeploymentSteps(tc, feature, profileName, scopeType, targetType)
+	deployProfileName := g.wrapDeploymentProfileSetup(tc, feature, createPath, profileName)
+	g.addDeploymentSteps(tc, feature, deployProfileName, scopeType, targetType)
 }
 
 // generatePermutationTests generates comprehensive test variations

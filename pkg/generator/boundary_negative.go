@@ -325,7 +325,7 @@ func (g *Generator) generateNegativeTests(feature *model.Feature, paths []*model
 	}
 
 	// Test deployment-specific negative scenarios
-	if createPath != nil && createPath.SupportsDeployment && isConfigurationDeploymentPath(createPath) {
+	if createPath != nil && createPath.SupportsDeployment && isRepresentativeDeploymentPath(createPath) {
 		tests = append(tests, g.generateDeployWithoutScopeTest(feature, createPath))
 	}
 

@@ -28,6 +28,33 @@ const (
 	locationDeviceName    = "{{DEVICE_HOSTNAME}}"
 )
 
+// wrapDeploymentProfileSetup inserts the profile-type-specific setup steps around
+// the existing steps in tc and returns the deployment (configuration) profile name
+// that should be used for scope / target-query / deploy operations.
+//
+//   - Configuration-profile features: no extra setup needed → returns profileName as-is.
+//   - Service-profile features: prepends a service-profile container step, appends a
+//     configuration-profile-with-service-profile step.
+//   - Global-profile features: appends a configuration-profile-with-global-profile step.
+func (g *Generator) wrapDeploymentProfileSetup(tc *model.TestCase, feature *model.Feature, createPath *model.FeaturePath, profileName string) string {
+	if isServiceProfileDeploymentPath(createPath) {
+		serviceProfileName := "SvcProf-" + profileName
+		configProfileName := "CfgProf-" + profileName
+		// Prepend: create the service-profile container before the feature-create step.
+		tc.Steps = append([]model.TestStep{serviceProfileContainerStep(feature, serviceProfileName)}, tc.Steps...)
+		// Append: create a configuration profile that links the service profile.
+		tc.Steps = append(tc.Steps, configurationProfileWithServiceProfileStep(feature, configProfileName, serviceProfileName))
+		return configProfileName
+	}
+	if isGlobalProfileDeploymentPath(createPath) {
+		configProfileName := "CfgProf-" + profileName
+		// Append: create a configuration profile that references the global profile.
+		tc.Steps = append(tc.Steps, configurationProfileWithGlobalProfileStep(feature, configProfileName, profileName))
+		return configProfileName
+	}
+	return profileName
+}
+
 // addDeploymentSteps adds the profile scope, target-query, deployment, status,
 // and NOS verification workflow required before a configuration reaches devices.
 func (g *Generator) addDeploymentSteps(tc *model.TestCase, feature *model.Feature, profileName string, scopeType model.ScopeType, targetType model.TargetType) {

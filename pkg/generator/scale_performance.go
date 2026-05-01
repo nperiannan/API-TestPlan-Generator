@@ -166,7 +166,7 @@ func (g *Generator) generateScaleTests(feature *model.Feature, paths []*model.Fe
 			break
 		}
 	}
-	if deployPath != nil && createPath != nil && isConfigurationDeploymentPath(createPath) {
+	if deployPath != nil && createPath != nil && isRepresentativeDeploymentPath(createPath) {
 		tests = append(tests, g.generateMultiDeviceDeploymentTest(feature, createPath))
 	}
 
@@ -361,7 +361,7 @@ func (g *Generator) generatePerformanceTests(feature *model.Feature, paths []*mo
 			break
 		}
 	}
-	if deployPath != nil && createPath != nil && isConfigurationDeploymentPath(createPath) {
+	if deployPath != nil && createPath != nil && isRepresentativeDeploymentPath(createPath) {
 		tests = append(tests, g.generateDeploymentPerformanceTest(feature, createPath))
 	}
 
@@ -555,6 +555,9 @@ func (g *Generator) generateMultiDeviceDeploymentTest(
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
+	// Wrap with service/global profile setup if needed and get the deployment profile name
+	deployProfileName := g.wrapDeploymentProfileSetup(&tc, feature, createPath, "MultiDeviceProfile")
+
 	// Deploy to multiple devices
 	for i := 0; i < g.config.ScaleFactor; i++ {
 		deployStep := model.TestStep{
@@ -563,7 +566,7 @@ func (g *Generator) generateMultiDeviceDeploymentTest(
 			Method:      "POST",
 			API:         model.APITypeREST,
 			Path:        "/configuration-profile/{name}/devices/deploy",
-			PathParams:  map[string]string{"name": "MultiDeviceProfile"},
+			PathParams:  map[string]string{"name": deployProfileName},
 			Body: map[string]interface{}{
 				"devices":   []string{fmt.Sprintf("device-%d", i)},
 				"deployNow": true,
@@ -890,6 +893,9 @@ func (g *Generator) generateDeploymentPerformanceTest(
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
+	// Wrap with service/global profile setup if needed and get the deployment profile name
+	deployProfileName := g.wrapDeploymentProfileSetup(&tc, feature, createPath, "DeploymentPerfTest")
+
 	// Perform multiple deployments
 	for i := 0; i < g.config.PerformanceIterations; i++ {
 		deployStep := model.TestStep{
@@ -898,7 +904,7 @@ func (g *Generator) generateDeploymentPerformanceTest(
 			Method:      "POST",
 			API:         model.APITypeREST,
 			Path:        "/configuration-profile/{name}/devices/deploy",
-			PathParams:  map[string]string{"name": "DeploymentPerfTest"},
+			PathParams:  map[string]string{"name": deployProfileName},
 			Body: map[string]interface{}{
 				"devices":   []string{fmt.Sprintf("perf-device-%d", i)},
 				"deployNow": true,
