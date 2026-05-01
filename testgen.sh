@@ -82,7 +82,7 @@ echo ""
 if [[ ! -x "$TESTGEN" ]]; then
     echo -e "${YELLOW}bin/linux/testgen not found. Building...${RESET}"
     mkdir -p "$SCRIPT_DIR/bin/linux"
-    GOOS=linux GOARCH=amd64 go build -o "$TESTGEN" "$SCRIPT_DIR/cmd/testgen/"
+    go build -o "$TESTGEN" "$SCRIPT_DIR/cmd/testgen/"
 fi
 
 [[ ! -d "$YANG_DIR"   ]] && echo -e "${YELLOW}Warning: YANG directory not found: $YANG_DIR${RESET}"
@@ -185,7 +185,7 @@ echo ""
 if [[ ! -x "$YAML2EXCEL" ]]; then
     echo -e "${YELLOW}bin/linux/yaml2excel not found. Building...${RESET}"
     mkdir -p "$SCRIPT_DIR/bin/linux"
-    GOOS=linux GOARCH=amd64 go build -o "$YAML2EXCEL" "$SCRIPT_DIR/cmd/yaml2excel/"
+    go build -o "$YAML2EXCEL" "$SCRIPT_DIR/cmd/yaml2excel/"
 fi
 
 "$YAML2EXCEL"

@@ -88,9 +88,13 @@ API-TestPlan-Generator/
 
 ### Prerequisites
 
-- Go 1.21 or later
+- Go 1.21 or later (`go` must be on PATH)
 - Git (for source checkout from enterprise GitHub)
-- PowerShell (for helper scripts)
+- PowerShell 5+ or pwsh (Windows) / bash (Linux)
+
+> **Note:** Compiled binaries are gitignored and not stored in the repo.
+> `testgen.ps1` and `testgen.sh` automatically build any missing binary on first run.
+> A manual build is only needed if you want the tools available outside the scripts.
 
 ### 1. Build
 
