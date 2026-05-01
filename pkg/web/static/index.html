@@ -394,8 +394,8 @@ function switchTab(tab) {
 }
 
 // --- API helpers ---
-async function api(path, opts) {
-  const res = await fetch(API + path, opts);
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, { cache: 'no-store', ...opts });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error || res.statusText);
@@ -997,7 +997,8 @@ async function loadJiraTab() {
       jiraConfigured = true;
       document.getElementById('jiraNotConfigured').style.display = 'none';
       document.getElementById('jiraConnected').style.display = 'block';
-      document.getElementById('jiraStatus').innerHTML = '<span style="color:#43a047;">&#10003;</span> Connected to ' + cfg.url + ' (project: ' + cfg.project + ')';
+      const scope = cfg.project ? ('project: ' + cfg.project) : 'all accessible projects';
+      document.getElementById('jiraStatus').innerHTML = '<span style="color:#43a047;">&#10003;</span> Connected to ' + cfg.url + ' (' + scope + ')';
     } else {
       document.getElementById('jiraNotConfigured').style.display = 'block';
       document.getElementById('jiraConnected').style.display = 'none';
