@@ -132,9 +132,22 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
 <body>
 <div class="wrap">
   <header>
-    <div class="title-area">
-      <h1>&#128202; Test Plan Dashboard</h1>
-      <p id="headerSubtitle">Loading...</p>
+    <div class="title-area" style="display:flex;align-items:center;gap:16px;">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="48" height="48" rx="10" fill="rgba(255,255,255,0.15)"/>
+        <path d="M20 8v14l-6 10a3 3 0 002.6 4.5h14.8a3 3 0 002.6-4.5L28 22V8" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 8h12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M16.5 28l15 0" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="22" cy="31" r="1.5" fill="#4fc3f7"/>
+        <circle cx="27" cy="30" r="1" fill="#81c784"/>
+        <circle cx="24.5" cy="33" r="1.2" fill="#ffb74d"/>
+        <path d="M22 14h4" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M22 18h4" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1>Test Plan Dashboard</h1>
+        <p id="headerSubtitle">Loading...</p>
+      </div>
     </div>
     <div class="actions">
       <button class="btn btn-secondary" onclick="openVersionModal()">&#128230; Save Version</button>
@@ -148,6 +161,7 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
     <div class="nav-tab" data-tab="testplans" onclick="switchTab('testplans')">Test Plans</div>
     <div class="nav-tab" data-tab="versions" onclick="switchTab('versions')">Versions &amp; Diffs</div>
     <div class="nav-tab" data-tab="sources" onclick="switchTab('sources')">Source Files</div>
+    <div class="nav-tab" data-tab="generate" onclick="switchTab('generate')">Generate</div>
   </div>
 
   <!-- OVERVIEW TAB -->
@@ -223,6 +237,39 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
     </div>
   </div>
 
+  <!-- GENERATE TAB -->
+  <div class="tab-content" id="tab-generate">
+    <div class="section">
+      <div class="section-header">
+        <h2>Source Configuration</h2>
+        <span style="font-size:.85em;color:#888;">Resolved from config/config.yaml</span>
+      </div>
+      <div class="section-body" id="configDisplay">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h2>Test Plan Generation</h2>
+      </div>
+      <div class="section-body">
+        <p style="margin-bottom:16px;color:#555;">Run the full test plan generation pipeline. This will regenerate all test plan files from the configured YANG models and API specs.</p>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;">
+          <button class="btn btn-success" id="btnGenerate" onclick="triggerGenerate()">
+            &#9654; Generate All Test Plans
+          </button>
+          <span id="genStatusBadge" style="display:none;font-size:.88em;font-weight:600;padding:6px 14px;border-radius:20px;"></span>
+        </div>
+        <div id="genOutput" style="display:none;">
+          <div style="background:#1e1e1e;border-radius:8px;padding:16px;max-height:400px;overflow-y:auto;">
+            <pre id="genOutputText" style="color:#d4d4d4;font-size:.82em;margin:0;white-space:pre-wrap;"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer>Test Plan Dashboard &mdash; Powered by TestGen + MinIO</footer>
 </div>
 
@@ -262,6 +309,7 @@ function switchTab(tab) {
   if (tab === 'testplans') loadTestPlans();
   if (tab === 'versions') loadVersions();
   if (tab === 'sources') loadSources();
+  if (tab === 'generate') loadGenerateTab();
 }
 
 // --- API helpers ---
@@ -385,9 +433,10 @@ async function loadTestPlans() {
         <div class="download-menu">
           <button class="btn btn-sm btn-secondary" style="color:#333;" onclick="toggleDownload(this)">&#11015; Download</button>
           <div class="download-options">
-            <div class="download-option" onclick="downloadTestPlan('${p.category}','${p.feature}','yaml')">YAML</div>
-            <div class="download-option" onclick="downloadTestPlan('${p.category}','${p.feature}','json')">JSON</div>
-            <div class="download-option" onclick="downloadTestPlan('${p.category}','${p.feature}','csv')">CSV</div>
+            <div class="download-option" onclick="downloadTestPlan('${p.category}','${p.feature}','yaml')">&#128196; YAML</div>
+            <div class="download-option" onclick="downloadTestPlan('${p.category}','${p.feature}','json')">&#128203; JSON</div>
+            <div class="download-option" onclick="downloadTestPlan('${p.category}','${p.feature}','csv')">&#128200; CSV</div>
+            <div class="download-option" onclick="downloadTestPlan('${p.category}','${p.feature}','xlsx')" style="font-weight:600;color:#1a73e8;">&#128209; Excel (.xlsx)</div>
           </div>
         </div>
       </td>
@@ -616,6 +665,122 @@ async function loadSources() {
     </tr>`).join('');
   } catch (e) {
     showToast('Failed to load sources: ' + e.message, 'error');
+  }
+}
+
+// --- Generate ---
+let genPollTimer = null;
+
+async function loadGenerateTab() {
+  try {
+    const cfg = await apiJSON('/api/config');
+    const container = document.getElementById('configDisplay');
+    const statusIcon = (ok) => ok ? '<span style="color:#43a047;">&#10003;</span>' : '<span style="color:#ef5350;">&#10007;</span>';
+    container.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+        <div style="background:#f5f8ff;border-radius:8px;padding:16px;">
+          <div style="font-weight:700;color:#1a73e8;margin-bottom:8px;">YANG Models Directory</div>
+          <div style="font-family:monospace;font-size:.85em;color:#555;word-break:break-all;">${cfg.yangDir || 'Not configured'}</div>
+          <div style="margin-top:6px;font-size:.85em;">${statusIcon(cfg.yangExists)} ${cfg.yangExists ? 'Directory found' : 'Directory not found'}</div>
+        </div>
+        <div style="background:#f5f8ff;border-radius:8px;padding:16px;">
+          <div style="font-weight:700;color:#1a73e8;margin-bottom:8px;">REST OpenAPI Spec</div>
+          <div style="font-family:monospace;font-size:.85em;color:#555;word-break:break-all;">${cfg.restSpec || 'Not configured'}</div>
+          <div style="margin-top:6px;font-size:.85em;">${statusIcon(cfg.restExists)} ${cfg.restExists ? 'File found' : 'File not found'}</div>
+        </div>
+        <div style="background:#f5f8ff;border-radius:8px;padding:16px;">
+          <div style="font-weight:700;color:#1a73e8;margin-bottom:8px;">NOSAPI Spec</div>
+          <div style="font-family:monospace;font-size:.85em;color:#555;word-break:break-all;">${cfg.nosapiSpec || 'Not configured'}</div>
+          <div style="margin-top:6px;font-size:.85em;">${statusIcon(cfg.nosapiExists)} ${cfg.nosapiExists ? 'File found' : 'File not found'}</div>
+        </div>
+        <div style="background:#f5f8ff;border-radius:8px;padding:16px;">
+          <div style="font-weight:700;color:#1a73e8;margin-bottom:8px;">Output Directory</div>
+          <div style="font-family:monospace;font-size:.85em;color:#555;word-break:break-all;">${cfg.outDir || './Testplans'}</div>
+        </div>
+      </div>`;
+  } catch (e) {
+    document.getElementById('configDisplay').innerHTML = '<p style="color:#888;">Failed to load config: ' + e.message + '</p>';
+  }
+
+  // Also check current generation status
+  checkGenStatus();
+}
+
+async function triggerGenerate() {
+  if (!confirm('This will regenerate all test plans. Continue?')) return;
+  const btn = document.getElementById('btnGenerate');
+  btn.disabled = true;
+  btn.textContent = '⏳ Starting...';
+
+  try {
+    await apiJSON('/api/generate', { method: 'POST' });
+    showToast('Generation started', 'success');
+    document.getElementById('genOutput').style.display = 'block';
+    startGenPoll();
+  } catch (e) {
+    showToast('Failed to start generation: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '&#9654; Generate All Test Plans';
+  }
+}
+
+function startGenPoll() {
+  if (genPollTimer) clearInterval(genPollTimer);
+  genPollTimer = setInterval(checkGenStatus, 2000);
+}
+
+async function checkGenStatus() {
+  try {
+    const status = await apiJSON('/api/generate/status');
+    const badge = document.getElementById('genStatusBadge');
+    const btn = document.getElementById('btnGenerate');
+    const outputDiv = document.getElementById('genOutput');
+    const outputText = document.getElementById('genOutputText');
+
+    if (status.running) {
+      badge.style.display = 'inline-block';
+      badge.style.background = '#e3f2fd';
+      badge.style.color = '#1565c0';
+      badge.textContent = '⏳ ' + (status.status || 'running');
+      btn.disabled = true;
+      btn.textContent = '⏳ Running...';
+      outputDiv.style.display = 'block';
+      if (status.output && status.output.length) {
+        outputText.textContent = status.output.join('\\n');
+        outputText.parentElement.scrollTop = outputText.parentElement.scrollHeight;
+      }
+      if (!genPollTimer) startGenPoll();
+    } else if (status.status === 'completed') {
+      badge.style.display = 'inline-block';
+      badge.style.background = '#e8f5e9';
+      badge.style.color = '#2e7d32';
+      badge.textContent = '✓ Completed' + (status.finishedAt ? ' at ' + new Date(status.finishedAt).toLocaleTimeString() : '');
+      btn.disabled = false;
+      btn.innerHTML = '&#9654; Generate All Test Plans';
+      if (status.output && status.output.length) {
+        outputDiv.style.display = 'block';
+        outputText.textContent = status.output.join('\\n');
+      }
+      if (genPollTimer) { clearInterval(genPollTimer); genPollTimer = null; }
+    } else if (status.status === 'error') {
+      badge.style.display = 'inline-block';
+      badge.style.background = '#ffebee';
+      badge.style.color = '#c62828';
+      badge.textContent = '✗ Error: ' + (status.error || 'unknown');
+      btn.disabled = false;
+      btn.innerHTML = '&#9654; Generate All Test Plans';
+      if (status.output && status.output.length) {
+        outputDiv.style.display = 'block';
+        outputText.textContent = status.output.join('\\n');
+      }
+      if (genPollTimer) { clearInterval(genPollTimer); genPollTimer = null; }
+    } else {
+      badge.style.display = 'none';
+      btn.disabled = false;
+      btn.innerHTML = '&#9654; Generate All Test Plans';
+    }
+  } catch (e) {
+    // Silently ignore polling errors
   }
 }
 

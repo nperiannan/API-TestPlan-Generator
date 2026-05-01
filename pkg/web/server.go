@@ -124,8 +124,12 @@ func (s *Server) registerRoutes() {
 		// Source changes
 		api.GET("/sources/changes", s.handleSourceChanges)
 
+		// Configuration
+		api.GET("/config", s.handleGetConfig)
+
 		// Generation
 		api.POST("/generate", s.handleGenerate)
+		api.GET("/generate/status", s.handleGenerateStatus)
 	}
 }
 

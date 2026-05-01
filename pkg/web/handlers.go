@@ -1,16 +1,21 @@
 package web
 
 import (
+	"bufio"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/xuri/excelize/v2"
 	"gopkg.in/yaml.v3"
 )
 
@@ -212,8 +217,16 @@ func (s *Server) handleDownloadTestPlan(c *gin.Context) {
 		csvData := yamlToCSV(data)
 		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s.csv", filename))
 		c.Data(http.StatusOK, "text/csv", []byte(csvData))
+	case "xlsx":
+		xlsxData, err := yamlToExcel(data)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to convert to Excel: " + err.Error()})
+			return
+		}
+		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s.xlsx", filename))
+		c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", xlsxData)
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported format, use yaml/json/csv"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported format, use yaml/json/csv/xlsx"})
 	}
 }
 
@@ -248,12 +261,228 @@ func (s *Server) handleSourceChanges(c *gin.Context) {
 	c.JSON(http.StatusOK, changes)
 }
 
-// handleGenerate triggers test plan generation (placeholder)
+// --- Generation state ---
+
+type GenerationStatus struct {
+	mu       sync.Mutex
+	Running  bool      `json:"running"`
+	Status   string    `json:"status"`
+	Started  time.Time `json:"startedAt,omitempty"`
+	Finished time.Time `json:"finishedAt,omitempty"`
+	Output   []string  `json:"output,omitempty"`
+	Error    string    `json:"error,omitempty"`
+}
+
+var genStatus = &GenerationStatus{}
+
+// handleGenerate triggers test plan generation by running testgen binary
 func (s *Server) handleGenerate(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"status":  "generation queued",
-		"message": "Test plan generation has been triggered. Check back for results.",
+	genStatus.mu.Lock()
+	if genStatus.Running {
+		genStatus.mu.Unlock()
+		c.JSON(http.StatusConflict, gin.H{"error": "generation already in progress", "status": genStatus.Status})
+		return
+	}
+	genStatus.Running = true
+	genStatus.Status = "starting"
+	genStatus.Started = time.Now()
+	genStatus.Finished = time.Time{}
+	genStatus.Output = nil
+	genStatus.Error = ""
+	genStatus.mu.Unlock()
+
+	// Resolve source paths from config
+	cfg := s.resolveSourceConfig()
+
+	// Find testgen binary
+	testgenBin := s.findTestgenBinary()
+	if testgenBin == "" {
+		genStatus.mu.Lock()
+		genStatus.Running = false
+		genStatus.Status = "error"
+		genStatus.Error = "testgen binary not found"
+		genStatus.Finished = time.Now()
+		genStatus.mu.Unlock()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "testgen binary not found"})
+		return
+	}
+
+	// Return immediately, run generation in background
+	c.JSON(http.StatusAccepted, gin.H{
+		"status":  "generation started",
+		"message": "Test plan generation is running. Check /api/generate/status for progress.",
 	})
+
+	go s.runGeneration(testgenBin, cfg)
+}
+
+// handleGenerateStatus returns the current generation status
+func (s *Server) handleGenerateStatus(c *gin.Context) {
+	genStatus.mu.Lock()
+	defer genStatus.mu.Unlock()
+	c.JSON(http.StatusOK, genStatus)
+}
+
+// handleGetConfig returns the current source configuration
+func (s *Server) handleGetConfig(c *gin.Context) {
+	cfg := s.resolveSourceConfig()
+	c.JSON(http.StatusOK, cfg)
+}
+
+type sourceConfig struct {
+	YangDir   string `json:"yangDir"`
+	RestSpec  string `json:"restSpec"`
+	NosapiSpec string `json:"nosapiSpec"`
+	OutDir    string `json:"outDir"`
+	YangExists   bool `json:"yangExists"`
+	RestExists   bool `json:"restExists"`
+	NosapiExists bool `json:"nosapiExists"`
+}
+
+func (s *Server) resolveSourceConfig() sourceConfig {
+	// Read config/config.yaml
+	configPath := filepath.Join("config", "config.yaml")
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return sourceConfig{OutDir: s.config.TestPlansDir}
+	}
+
+	type configSources struct {
+		SourcesDir string `yaml:"sourcesDir"`
+		Sources    map[string]struct {
+			Sparse    string `yaml:"sparse"`
+			LocalDir  string `yaml:"localDir"`
+			LocalFile string `yaml:"localFile"`
+		} `yaml:"sources"`
+	}
+	var cfg configSources
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return sourceConfig{OutDir: s.config.TestPlansDir}
+	}
+	if cfg.SourcesDir == "" {
+		cfg.SourcesDir = "./sources"
+	}
+
+	sc := sourceConfig{OutDir: s.config.TestPlansDir}
+
+	// YANG dir
+	if yang, ok := cfg.Sources["yang"]; ok {
+		sc.YangDir = filepath.Join(cfg.SourcesDir, yang.LocalDir, yang.Sparse)
+	}
+	// REST spec
+	if rest, ok := cfg.Sources["restSpec"]; ok {
+		sc.RestSpec = filepath.Join(cfg.SourcesDir, rest.LocalDir, rest.Sparse, rest.LocalFile)
+	}
+	// NOSAPI spec
+	if nos, ok := cfg.Sources["nosapiSpec"]; ok {
+		sc.NosapiSpec = filepath.Join(cfg.SourcesDir, nos.LocalDir, nos.LocalFile)
+	}
+
+	sc.YangExists = dirExists(sc.YangDir)
+	sc.RestExists = fileExists(sc.RestSpec)
+	sc.NosapiExists = fileExists(sc.NosapiSpec)
+
+	return sc
+}
+
+func (s *Server) findTestgenBinary() string {
+	// Try several locations
+	candidates := []string{
+		"./testgen",
+		"./bin/linux/testgen",
+		"./bin/windows/testgen.exe",
+		filepath.Join(filepath.Dir(os.Args[0]), "testgen"),
+	}
+	for _, c := range candidates {
+		if fileExists(c) {
+			return c
+		}
+	}
+	return ""
+}
+
+func (s *Server) runGeneration(testgenBin string, cfg sourceConfig) {
+	genStatus.mu.Lock()
+	genStatus.Status = "running"
+	genStatus.mu.Unlock()
+
+	args := []string{
+		"--yang-dir", cfg.YangDir,
+		"--rest-spec", cfg.RestSpec,
+		"--nosapi-spec", cfg.NosapiSpec,
+		"--out-dir", cfg.OutDir,
+		"--feature-categories", "global-profile,wired-blueprint,service-profile",
+		"--include-categories", "functional,boundary,negative,scale,performance",
+		"--scope-types", "site-group,device",
+		"--target-types", "site-group,device",
+		"--deployment-methods", "rolling,immediate",
+		"--scale-factor", "100",
+		"--performance-iterations", "10",
+		"--one-file-per-feature", "true",
+		"--features", "",
+	}
+
+	cmd := exec.Command(testgenBin, args...)
+	cmd.Dir = filepath.Dir(testgenBin)
+	if filepath.IsAbs(testgenBin) || strings.HasPrefix(testgenBin, ".") {
+		cmd.Dir = "."
+	}
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		genStatus.mu.Lock()
+		genStatus.Running = false
+		genStatus.Status = "error"
+		genStatus.Error = err.Error()
+		genStatus.Finished = time.Now()
+		genStatus.mu.Unlock()
+		return
+	}
+	cmd.Stderr = cmd.Stdout
+
+	if err := cmd.Start(); err != nil {
+		genStatus.mu.Lock()
+		genStatus.Running = false
+		genStatus.Status = "error"
+		genStatus.Error = err.Error()
+		genStatus.Finished = time.Now()
+		genStatus.mu.Unlock()
+		return
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		line := scanner.Text()
+		genStatus.mu.Lock()
+		genStatus.Output = append(genStatus.Output, line)
+		// Keep only last 200 lines
+		if len(genStatus.Output) > 200 {
+			genStatus.Output = genStatus.Output[len(genStatus.Output)-200:]
+		}
+		genStatus.mu.Unlock()
+	}
+
+	err = cmd.Wait()
+	genStatus.mu.Lock()
+	genStatus.Running = false
+	genStatus.Finished = time.Now()
+	if err != nil {
+		genStatus.Status = "error"
+		genStatus.Error = err.Error()
+	} else {
+		genStatus.Status = "completed"
+	}
+	genStatus.mu.Unlock()
+}
+
+func dirExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.IsDir()
+}
+
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
 }
 
 // --- Helper functions ---
@@ -326,18 +555,18 @@ func listTestPlanFilesFromDisk(dir string) ([]TestPlanFile, error) {
 
 // TestPlanSummary represents aggregate statistics
 type TestPlanSummary struct {
-	TotalFeatures  int                       `json:"totalFeatures"`
-	TotalTests     int                       `json:"totalTests"`
+	TotalFeatures   int                      `json:"totalFeatures"`
+	TotalTests      int                      `json:"totalTests"`
 	TestsByCategory map[string]int           `json:"testsByCategory"`
 	FeaturesByGroup map[string][]FeatureInfo `json:"featuresByGroup"`
-	GeneratedAt    string                    `json:"generatedAt"`
+	GeneratedAt     string                   `json:"generatedAt"`
 }
 
 // FeatureInfo is a summary of a single feature's test counts
 type FeatureInfo struct {
-	Name           string         `json:"name"`
-	Category       string         `json:"category"`
-	TotalTests     int            `json:"totalTests"`
+	Name            string         `json:"name"`
+	Category        string         `json:"category"`
+	TotalTests      int            `json:"totalTests"`
 	TestsByCategory map[string]int `json:"testsByCategory"`
 }
 
@@ -375,9 +604,9 @@ func buildSummaryFromDisk(dir string) (*TestPlanSummary, error) {
 		}
 
 		summary.FeaturesByGroup[group] = append(summary.FeaturesByGroup[group], FeatureInfo{
-			Name:           featureName,
-			Category:       group,
-			TotalTests:     counts.total,
+			Name:            featureName,
+			Category:        group,
+			TotalTests:      counts.total,
 			TestsByCategory: counts.byCategory,
 		})
 
@@ -566,4 +795,167 @@ func computeSourceFingerprints(sourcesDir string) map[string]string {
 		return nil
 	})
 	return fingerprints
+}
+
+// --- YAML to Excel conversion ---
+
+type excelTestCase struct {
+	TestCaseID       string
+	FeatureName      string
+	Priority         string
+	Automation       string
+	Type             string
+	Description      string
+	IsDeploymentTest bool
+	Steps            []excelStep
+}
+
+type excelStep struct {
+	Name           string
+	Description    string
+	Method         string
+	Path           string
+	PathParams     interface{}
+	Body           interface{}
+	ExpectedStatus int
+	Validations    []string
+	Timeout        int
+}
+
+var excelCategoryOrder = []string{"functional", "boundary", "negative", "performance", "scale"}
+
+var rePrefixes = regexp.MustCompile(`(?i)^(?:Boundary|Negative|Performance|Scale)\s+test:\s*`)
+
+func compressExcelTitle(desc string) string {
+	t := rePrefixes.ReplaceAllString(desc, "")
+	if len(t) > 100 {
+		t = t[:97] + "..."
+	}
+	return strings.TrimSpace(t)
+}
+
+func formatExcelSteps(steps []excelStep) string {
+	var lines []string
+	for i, s := range steps {
+		lines = append(lines, fmt.Sprintf("%d) %s", i+1, s.Description))
+		lines = append(lines, fmt.Sprintf("   %s {base_url}%s", s.Method, s.Path))
+		if s.ExpectedStatus != 0 {
+			lines = append(lines, fmt.Sprintf("   Expected HTTP Status: %d", s.ExpectedStatus))
+		}
+		lines = append(lines, "")
+	}
+	return strings.TrimSpace(strings.Join(lines, "\n"))
+}
+
+func formatExcelExpected(steps []excelStep) string {
+	var results []string
+	for i, s := range steps {
+		if len(s.Validations) == 0 {
+			continue
+		}
+		if len(steps) > 1 {
+			results = append(results, fmt.Sprintf("Step %d:", i+1))
+		}
+		for _, v := range s.Validations {
+			results = append(results, fmt.Sprintf("- %s", v))
+		}
+	}
+	return strings.TrimSpace(strings.Join(results, "\n"))
+}
+
+func yamlToExcel(data []byte) ([]byte, error) {
+	var parsed struct {
+		Features []struct {
+			FeatureName string                          `yaml:"featureName"`
+			Tests       map[string][]excelTestCase      `yaml:"tests"`
+		} `yaml:"features"`
+	}
+	if err := yaml.Unmarshal(data, &parsed); err != nil {
+		return nil, fmt.Errorf("parsing YAML: %w", err)
+	}
+
+	f := excelize.NewFile()
+
+	excelHeaders := []string{
+		"Test Case ID", "Testcase Title", "Status", "Type", "Description",
+		"Precondition", "Test Step Description", "Test Step Expected Result", "Priority",
+	}
+	colWidths := []float64{16, 50, 18, 12, 60, 50, 80, 60, 10}
+
+	headerStyle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 11, Color: "FFFFFF"},
+		Fill:      excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"4472C4"}},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true},
+		Border: []excelize.Border{
+			{Type: "left", Style: 1, Color: "000000"},
+			{Type: "right", Style: 1, Color: "000000"},
+			{Type: "top", Style: 1, Color: "000000"},
+			{Type: "bottom", Style: 1, Color: "000000"},
+		},
+	})
+	dataStyle, _ := f.NewStyle(&excelize.Style{
+		Alignment: &excelize.Alignment{Vertical: "top", WrapText: true},
+		Border: []excelize.Border{
+			{Type: "left", Style: 1, Color: "000000"},
+			{Type: "right", Style: 1, Color: "000000"},
+			{Type: "top", Style: 1, Color: "000000"},
+			{Type: "bottom", Style: 1, Color: "000000"},
+		},
+	})
+
+	for _, feat := range parsed.Features {
+		for _, cat := range excelCategoryOrder {
+			cases := feat.Tests[cat]
+			if len(cases) == 0 {
+				continue
+			}
+			sheetName := strings.ToUpper(cat[:1]) + cat[1:]
+			if len(sheetName) > 31 {
+				sheetName = sheetName[:31]
+			}
+			f.NewSheet(sheetName)
+
+			for ci, h := range excelHeaders {
+				cn, _ := excelize.ColumnNumberToName(ci + 1)
+				cell := fmt.Sprintf("%s1", cn)
+				f.SetCellValue(sheetName, cell, h)
+				f.SetCellStyle(sheetName, cell, cell, headerStyle)
+			}
+			for ci, w := range colWidths {
+				cn, _ := excelize.ColumnNumberToName(ci + 1)
+				f.SetColWidth(sheetName, cn, cn, w)
+			}
+
+			for i, tc := range cases {
+				row := i + 2
+				title := compressExcelTitle(tc.Description)
+				stepDesc := formatExcelSteps(tc.Steps)
+				expected := formatExcelExpected(tc.Steps)
+				priority := tc.Priority
+				if priority == "" {
+					priority = "P3"
+				}
+				vals := []string{
+					tc.TestCaseID, title, "To Be Automated", "Manual",
+					tc.Description,
+					"QA environment available with EP1-NGC Framework integration",
+					stepDesc, expected, priority,
+				}
+				for ci, v := range vals {
+					cn, _ := excelize.ColumnNumberToName(ci + 1)
+					cell := fmt.Sprintf("%s%d", cn, row)
+					f.SetCellValue(sheetName, cell, v)
+					f.SetCellStyle(sheetName, cell, cell, dataStyle)
+				}
+			}
+		}
+	}
+
+	f.DeleteSheet("Sheet1")
+
+	buf, err := f.WriteToBuffer()
+	if err != nil {
+		return nil, fmt.Errorf("writing Excel: %w", err)
+	}
+	return buf.Bytes(), nil
 }
