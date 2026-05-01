@@ -198,7 +198,6 @@ The generator produces into `--out-dir`:
 | `coverage-report.json` | Machine-readable coverage data |
 | `coverage-report.txt` | Human-readable coverage report |
 | `test-coverage-report.html` | Per-feature HTML coverage report |
-| `example-test.yaml` | Example deployment test for reference |
 
 Additionally, `reports/summary_report.html` is generated with a cross-feature summary dashboard.
 
