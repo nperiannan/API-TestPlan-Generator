@@ -1201,7 +1201,7 @@ func (s *Server) handleJiraSearch(c *gin.Context) {
 			if jcfg.Project != "" {
 				jql = fmt.Sprintf("project = %s ORDER BY created DESC", jcfg.Project)
 			} else {
-				jql = "assignee = currentUser() ORDER BY updated DESC"
+				jql = "updated >= -30d ORDER BY updated DESC"
 			}
 		}
 	}
