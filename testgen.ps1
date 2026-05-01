@@ -157,45 +157,11 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# ── Post-generation summary ─────────────────────────────────────────
+$featureCount = (Get-ChildItem -Path $outDir -Filter '*.yaml' -Recurse |
+    Where-Object { $_.Name -ne 'example-test.yaml' } | Measure-Object).Count
 
 Write-Host ""
-Write-Host "=======================================================" -ForegroundColor Cyan
-Write-Host " Test Plans Generated" -ForegroundColor Cyan
-Write-Host "=======================================================" -ForegroundColor Cyan
-
-$categories   = @('functional','boundary','negative','performance','scale')
-$catTotals    = @{}
-foreach ($c in $categories) { $catTotals[$c] = 0 }
-$totalTests   = 0
-$featureCount = 0
-
-$yamlFiles = Get-ChildItem -Path $outDir -Filter '*.yaml' -Recurse |
-    Where-Object { $_.Name -ne 'example-test.yaml' }
-
-foreach ($f in $yamlFiles) {
-    $text  = Get-Content $f.FullName -Raw
-    $count = ([regex]::Matches($text, 'testCaseID:')).Count
-    if ($count -eq 0) { continue }
-    $featureCount++
-    $totalTests += $count
-    foreach ($c in $categories) {
-        $catTotals[$c] += ([regex]::Matches($text, "(?m)^\s+type:\s+$c\s*$")).Count
-    }
-}
-
-Write-Host (" {0,-10} {1,8}" -f 'Category', 'Tests') -ForegroundColor White
-Write-Host " ──────────────────" -ForegroundColor DarkGray
-foreach ($c in $categories) {
-    if ($catTotals[$c] -gt 0) {
-        Write-Host (" {0,-10} {1,8}" -f $c, $catTotals[$c]) -ForegroundColor Gray
-    }
-}
-Write-Host " ──────────────────" -ForegroundColor DarkGray
-Write-Host (" {0,-10} {1,8}" -f 'TOTAL', $totalTests) -ForegroundColor Green
-Write-Host ""
-Write-Host " Features : $featureCount" -ForegroundColor Green
-Write-Host " Output   : $((Resolve-Path $outDir).Path)" -ForegroundColor Green
+Write-Host "Test plans generated : $featureCount YAML files in $((Resolve-Path $outDir).Path)" -ForegroundColor Green
 
 # ── Excel export (batch) ────────────────────────────────────────────
 
@@ -230,4 +196,4 @@ Write-Host " All done!" -ForegroundColor Green
 Write-Host "=======================================================" -ForegroundColor Cyan
 Write-Host " Test plans  : $featureCount YAML files in $((Resolve-Path $outDir).Path)" -ForegroundColor Green
 Write-Host " Excel files : $xlsxCount .xlsx files in $xlsxDir" -ForegroundColor Green
-Write-Host "======================================================="  -ForegroundColor Cyan
+Write-Host "=======================================================" -ForegroundColor Cyan
