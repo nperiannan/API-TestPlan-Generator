@@ -312,103 +312,155 @@ func (p *Parser) extractGlobalProfileFeatures() {
 		{"radius-server", "/radius-server-feature"},
 	}
 
+	// Global-profile features are deployed through a configuration profile.
+	// Register the profile name param once for re-use in scope/deploy/status paths.
+	globalCfgProfileNameParam := model.PathParameter{
+		Name:        "name",
+		Type:        "string",
+		Description: "Configuration profile name used to deploy global-profile settings",
+		Required:    true,
+	}
+
 	for _, gf := range globalFeatures {
-		// Create FeaturePath for retrieve operation
-		// NOTE: The actual endpoint is POST /global-profile/feature/object/retrieve (not GET)
+		featurePathParam := model.PathParameter{
+			Name:        "featurePath",
+			Type:        "string",
+			Description: "Path to the feature",
+			Required:    true,
+			FixedValue:  gf.featurePath,
+		}
+		commonParams := []model.PathParameter{featurePathParam}
+
+		// READ
 		retrieveKey := "POST /global-profile/feature/object/retrieve"
 		if _, exists := p.paths[retrieveKey]; exists {
-			// Create a specific feature path for this feature
-			fp := &model.FeaturePath{
-				FeatureName:       gf.name,                       // Set the YANG feature name for linkage
-				BlueprintCategory: model.BlueprintCategoryGlobal, // Mark as global-profile feature
+			p.paths[fmt.Sprintf("READ /global-profile/%s", gf.name)] = &model.FeaturePath{
+				FeatureName:       gf.name,
+				BlueprintCategory: model.BlueprintCategoryGlobal,
 				HTTPMethod:        "POST",
 				Path:              "/global-profile/feature/object/retrieve",
-				PathParams: []model.PathParameter{
-					{
-						Name:        "featurePath",
-						Type:        "string",
-						Description: "Path to the feature",
-						Required:    true,
-						FixedValue:  gf.featurePath, // Actual featurePath value
-					},
-				},
-				ProfileType:   model.ProfileTypeGlobal,
-				OperationType: model.OperationTypeRead,
+				PathParams:        commonParams,
+				ProfileType:       model.ProfileTypeGlobal,
+				OperationType:     model.OperationTypeRead,
 			}
-			p.paths[fmt.Sprintf("READ /global-profile/%s", gf.name)] = fp
 		}
 
-		// Create FeaturePath for modify (create/update) operation
+		// CREATE
 		modifyKey := "POST /global-profile/feature/object/modify"
 		if _, exists := p.paths[modifyKey]; exists {
-			// Create path for CREATE operation
-			fpCreate := &model.FeaturePath{
-				FeatureName:       gf.name,                       // Set the YANG feature name for linkage
-				BlueprintCategory: model.BlueprintCategoryGlobal, // Mark as global-profile feature
-				HTTPMethod:        "POST",
-				Path:              "/global-profile/feature/object/modify",
-				PathParams: []model.PathParameter{
-					{
-						Name:        "featurePath",
-						Type:        "string",
-						Description: "Path to the feature",
-						Required:    true,
-						FixedValue:  gf.featurePath, // Actual featurePath value
-					},
-				},
-				ProfileType:   model.ProfileTypeGlobal,
-				OperationType: model.OperationTypeCreate,
-			}
-			p.paths[fmt.Sprintf("POST /global-profile/%s", gf.name)] = fpCreate
-
-			// Create path for UPDATE operation (same endpoint, different operation type)
-			fpUpdate := &model.FeaturePath{
+			p.paths[fmt.Sprintf("POST /global-profile/%s", gf.name)] = &model.FeaturePath{
 				FeatureName:       gf.name,
 				BlueprintCategory: model.BlueprintCategoryGlobal,
 				HTTPMethod:        "POST",
 				Path:              "/global-profile/feature/object/modify",
-				PathParams: []model.PathParameter{
-					{
-						Name:        "featurePath",
-						Type:        "string",
-						Description: "Path to the feature",
-						Required:    true,
-						FixedValue:  gf.featurePath,
-					},
-				},
-				ProfileType:   model.ProfileTypeGlobal,
-				OperationType: model.OperationTypeUpdate,
+				PathParams:        commonParams,
+				ProfileType:       model.ProfileTypeGlobal,
+				OperationType:     model.OperationTypeCreate,
 			}
-			p.paths[fmt.Sprintf("PUT /global-profile/%s", gf.name)] = fpUpdate
+
+			// UPDATE
+			p.paths[fmt.Sprintf("PUT /global-profile/%s", gf.name)] = &model.FeaturePath{
+				FeatureName:       gf.name,
+				BlueprintCategory: model.BlueprintCategoryGlobal,
+				HTTPMethod:        "POST",
+				Path:              "/global-profile/feature/object/modify",
+				PathParams:        commonParams,
+				ProfileType:       model.ProfileTypeGlobal,
+				OperationType:     model.OperationTypeUpdate,
+			}
 		}
 
-		// Create FeaturePath for delete operation (uses POST method)
+		// DELETE
 		deleteKey := "POST /global-profile/feature/object/delete"
 		if _, exists := p.paths[deleteKey]; exists {
-			fp := &model.FeaturePath{
-				FeatureName:       gf.name,                       // Set the YANG feature name for linkage
-				BlueprintCategory: model.BlueprintCategoryGlobal, // Mark as global-profile feature
+			p.paths[fmt.Sprintf("DELETE /global-profile/%s", gf.name)] = &model.FeaturePath{
+				FeatureName:       gf.name,
+				BlueprintCategory: model.BlueprintCategoryGlobal,
 				HTTPMethod:        "POST",
 				Path:              "/global-profile/feature/object/delete",
-				PathParams: []model.PathParameter{
-					{
-						Name:        "featurePath",
-						Type:        "string",
-						Description: "Path to the feature",
-						Required:    true,
-						FixedValue:  gf.featurePath, // Actual featurePath value
-					},
-					{
-						Name:        "objectId",
-						Type:        "string",
-						Description: "ID of the object to delete",
-						Required:    true,
-					},
-				},
+				PathParams: append(commonParams, model.PathParameter{
+					Name:        "objectId",
+					Type:        "string",
+					Description: "ID of the object to delete",
+					Required:    true,
+				}),
 				ProfileType:   model.ProfileTypeGlobal,
 				OperationType: model.OperationTypeDelete,
 			}
-			p.paths[fmt.Sprintf("DELETE /global-profile/%s", gf.name)] = fp
+		}
+
+		// --- Deployment paths (global-profile features deploy through a configuration profile) ---
+
+		// SCOPE: POST /configuration-profile/{name}/scope
+		p.paths[fmt.Sprintf("POST /global-profile/%s/scope", gf.name)] = &model.FeaturePath{
+			FeatureName:       gf.name,
+			BlueprintCategory: model.BlueprintCategoryGlobal,
+			HTTPMethod:        "POST",
+			Path:              "/configuration-profile/{name}/scope",
+			PathParams:        []model.PathParameter{globalCfgProfileNameParam},
+			ProfileType:       model.ProfileTypeGlobal,
+			OperationType:     model.OperationTypeScope,
+			SupportsScope:     true,
+			SupportedScopeTypes: []model.ScopeType{
+				model.ScopeTypeDevice,
+				model.ScopeTypeSite,
+				model.ScopeTypeSiteGroup,
+			},
+		}
+
+		// DEPLOY: sites
+		p.paths[fmt.Sprintf("POST /global-profile/%s/sites/deploy", gf.name)] = &model.FeaturePath{
+			FeatureName:        gf.name,
+			BlueprintCategory:  model.BlueprintCategoryGlobal,
+			HTTPMethod:         "POST",
+			Path:               "/configuration-profile/{name}/sites/deploy",
+			PathParams:         []model.PathParameter{globalCfgProfileNameParam},
+			ProfileType:        model.ProfileTypeGlobal,
+			OperationType:      model.OperationTypeDeploy,
+			SupportsDeployment: true,
+			SupportedTargetTypes: []model.TargetType{
+				model.TargetTypeSite,
+				model.TargetTypeSiteGroup,
+			},
+		}
+
+		// DEPLOY: devices
+		p.paths[fmt.Sprintf("POST /global-profile/%s/devices/deploy", gf.name)] = &model.FeaturePath{
+			FeatureName:          gf.name,
+			BlueprintCategory:    model.BlueprintCategoryGlobal,
+			HTTPMethod:           "POST",
+			Path:                 "/configuration-profile/{name}/devices/deploy",
+			PathParams:           []model.PathParameter{globalCfgProfileNameParam},
+			ProfileType:          model.ProfileTypeGlobal,
+			OperationType:        model.OperationTypeDeploy,
+			SupportsDeployment:   true,
+			SupportedTargetTypes: []model.TargetType{model.TargetTypeDevice},
+		}
+
+		// STATUS: site
+		p.paths[fmt.Sprintf("GET /global-profile/%s/site/status", gf.name)] = &model.FeaturePath{
+			FeatureName:       gf.name,
+			BlueprintCategory: model.BlueprintCategoryGlobal,
+			HTTPMethod:        "GET",
+			Path:              "/configuration-profile/{name}/site/{siteName}/deploy/status",
+			PathParams: []model.PathParameter{globalCfgProfileNameParam, {
+				Name: "siteName", Type: "string", Description: "Site name", Required: true,
+			}},
+			ProfileType:   model.ProfileTypeGlobal,
+			OperationType: model.OperationTypeStatus,
+		}
+
+		// STATUS: device
+		p.paths[fmt.Sprintf("GET /global-profile/%s/device/status", gf.name)] = &model.FeaturePath{
+			FeatureName:       gf.name,
+			BlueprintCategory: model.BlueprintCategoryGlobal,
+			HTTPMethod:        "GET",
+			Path:              "/configuration-profile/{name}/device/{hostName}/deploy/status",
+			PathParams: []model.PathParameter{globalCfgProfileNameParam, {
+				Name: "hostName", Type: "string", Description: "Device host name", Required: true,
+			}},
+			ProfileType:   model.ProfileTypeGlobal,
+			OperationType: model.OperationTypeStatus,
 		}
 	}
 }
@@ -531,25 +583,25 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 		{"port-mac-locking", "/network-feature/interface-feature/port-feature", "port-mac-locking"},
 		{"advanced-port", "/network-feature/interface-feature/port-feature", "advanced-port"},
 		// /network-feature/fabric-feature/spbm-global-feature
-		{"fabric-spbm-global-settings-config", "/network-feature/fabric-feature/spbm-global-feature", "spbm-global"},
-		{"fabric-spbm-instance", "/network-feature/fabric-feature/spbm-instance-feature", "spbm-instance"},
+		{"fabric-spbm-global-settings-config", "/network-feature/fabric-feature/spbm-global-feature", "fabric-spbm-global-settings-config"},
+		{"fabric-spbm-instance", "/network-feature/fabric-feature/spbm-instance-feature", "fabric-spbm-instance"},
 		// /network-feature/fabric-feature/isis-feature (fabric-specific ISIS, from extreme-intent-fabric-spbm.yang)
-		{"fabric-isis-global-config", "/network-feature/fabric-feature/isis-feature", "isis"},
+		{"fabric-isis-global-config", "/network-feature/fabric-feature/isis-feature", "fabric-isis-global-config"},
 		// /network-feature/fabric-feature/isis-feature (global ISIS, from extreme-intent-isis.yang)
-		{"isis-global-config", "/network-feature/fabric-feature/isis-feature", "isis"},
+		{"isis-global-config", "/network-feature/fabric-feature/isis-feature", "isis-global-config"},
 		// /network-feature/fabric-feature/auto-sense-feature (all sub-features)
-		{"fabric-auto-sense-global", "/network-feature/fabric-feature/auto-sense-feature", "auto-sense"},
-		{"fabric-auto-sense-fabric-attach", "/network-feature/fabric-feature/auto-sense-feature", "auto-sense-fabric"},
-		{"fabric-auto-sense-isis", "/network-feature/fabric-feature/auto-sense-feature", "auto-sense-isis"},
+		{"fabric-auto-sense-global", "/network-feature/fabric-feature/auto-sense-feature", "fabric-auto-sense-global"},
+		{"fabric-auto-sense-fabric-attach", "/network-feature/fabric-feature/auto-sense-feature", "fabric-auto-sense-fabric-attach"},
+		{"fabric-auto-sense-isis", "/network-feature/fabric-feature/auto-sense-feature", "fabric-auto-sense-isis"},
 		// /infrastructure-feature/device-profile-feature
 		{"device-profile", "/infrastructure-feature/device-profile-feature", "device-profile"},
 		// /infrastructure-feature/snmp-feature (from extreme-intent-snmp.yang)
-		{"snmp-global-config", "/infrastructure-feature/snmp-feature", "snmp-global"},
-		{"snmp-access-config", "/infrastructure-feature/snmp-feature", "snmp-trap"},
-		{"snmp-v3-access-config", "/infrastructure-feature/snmp-feature", "snmp-v3-user"},
+		{"snmp-global-config", "/infrastructure-feature/snmp-feature", "snmp-global-config"},
+		{"snmp-access-config", "/infrastructure-feature/snmp-feature", "snmp-access-config"},
+		{"snmp-v3-access-config", "/infrastructure-feature/snmp-feature", "snmp-v3-access-config"},
 		// /infrastructure-feature/qos-feature (QoS policy configuration)
-		{"qos-global-config", "/infrastructure-feature/qos-feature", "qos-policy"},
-		{"qos-classifier-profile-config", "/infrastructure-feature/qos-feature", "qos-policy"},
+		{"qos-global-config", "/infrastructure-feature/qos-feature", "qos-global-config"},
+		{"qos-classifier-profile-config", "/infrastructure-feature/qos-feature", "qos-classifier-profile-config"},
 	}
 
 	for _, cf := range wiredNestedFeatures {

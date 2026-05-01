@@ -318,11 +318,22 @@ func linkFeaturesWithPaths(features map[string]*model.Feature, paths map[string]
 				continue
 			}
 			// Feature not found in YANG parser output (may have no parseable parameters,
-			// or be a sub-list inside a grouping). Create a synthetic Feature so the
-			// generator can produce tests for it from the explicit path registration.
+			// or be a sub-list inside a grouping). Try a prefix match to find a parent
+			// feature whose parameters can seed the synthetic feature.
 			synthetic := &model.Feature{
 				Name:       fp.FeatureName,
 				Parameters: []model.Parameter{},
+			}
+			// Try to inherit parameters from a parent/related YANG feature.
+			// e.g. "fabric-auto-sense-isis" might borrow from "fabric-auto-sense".
+			for _, fname := range featureNames {
+				if strings.HasPrefix(fp.FeatureName, fname+"-") || strings.HasPrefix(fname, fp.FeatureName+"-") {
+					if existing := features[fname]; existing != nil && len(existing.Parameters) > 0 {
+						synthetic.Parameters = existing.Parameters
+						synthetic.Keys = existing.Keys
+						break
+					}
+				}
 			}
 			features[fp.FeatureName] = synthetic
 			fp.Feature = synthetic
@@ -351,50 +362,68 @@ func linkFeaturesWithPaths(features map[string]*model.Feature, paths map[string]
 	}
 }
 
-// calculateMatchScore scores how well a feature matches an endpoint
+// calculateMatchScore scores how well a feature matches an endpoint.
+// Higher scores indicate a stronger match. The algorithm rewards exact,
+// full-segment matches and penalises partial substring hits to prevent
+// short names like "port" from stealing paths intended for "port-poe".
 func calculateMatchScore(fp *model.FeaturePath, feature *model.Feature) int {
 	score := 0
 	pathLower := strings.ToLower(fp.Path)
 	featureNameLower := strings.ToLower(feature.Name)
 
-	// Exact match in path
-	if strings.Contains(pathLower, featureNameLower) {
-		score += 100
-	}
-
-	// Plural/singular variations
-	if strings.Contains(pathLower, featureNameLower+"s") {
-		score += 80
-	}
-	if strings.HasSuffix(featureNameLower, "s") && strings.Contains(pathLower, strings.TrimSuffix(featureNameLower, "s")) {
-		score += 80
-	}
-
-	// Word parts match (e.g., "port-profile" matches "port")
+	// Split the path into its constituent segments for segment-level matching.
 	pathParts := strings.FieldsFunc(pathLower, func(r rune) bool {
-		return r == '/' || r == '-' || r == '_'
+		return r == '/' || r == '{' || r == '}'
 	})
+
+	// 1. Exact whole-segment match (strongest signal).
+	//    e.g. feature "port-poe" matches segment "port-poe"
+	exactSegmentMatch := false
 	for _, part := range pathParts {
 		if part == featureNameLower {
-			score += 90
+			exactSegmentMatch = true
+			score += 200
 			break
 		}
-		if len(featureNameLower) > 3 && strings.Contains(part, featureNameLower) {
-			score += 50
+	}
+
+	// 2. Feature name appears in the path as a substring (weaker).
+	if !exactSegmentMatch && strings.Contains(pathLower, featureNameLower) {
+		score += 80
+	}
+
+	// 3. Plural/singular variations (only if no exact segment match).
+	if !exactSegmentMatch {
+		if strings.Contains(pathLower, featureNameLower+"s") {
+			score += 60
 		}
-		if len(part) > 3 && strings.Contains(featureNameLower, part) {
-			score += 40
+		if strings.HasSuffix(featureNameLower, "s") && strings.Contains(pathLower, strings.TrimSuffix(featureNameLower, "s")) {
+			score += 60
 		}
 	}
 
-	// Match based on operation type and feature name
+	// 4. Composite-name segment match: does any path segment START with the
+	//    feature name followed by a separator? e.g. "port" matches "port-poe"
+	//    but this is weak — we only give partial credit.
+	if !exactSegmentMatch {
+		for _, part := range pathParts {
+			if strings.HasPrefix(part, featureNameLower+"-") {
+				score += 20
+				break
+			}
+		}
+	}
+
+	// 5. Match based on operation type (small bonus)
 	if fp.OperationType == model.OperationTypeList && strings.Contains(pathLower, featureNameLower) {
-		score += 30
+		score += 10
 	}
 
-	// Penalty for very generic names (avoid false positives)
+	// 6. Penalty for very generic / short names to prevent false positives.
 	if len(featureNameLower) < 4 {
-		score = score / 2
+		score = score / 3
+	} else if len(featureNameLower) < 6 {
+		score = score * 2 / 3
 	}
 
 	return score

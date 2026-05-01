@@ -108,7 +108,7 @@ func preferRepresentativePath(current, candidate *model.FeaturePath) *model.Feat
 }
 
 func isRepresentativeDeploymentPath(path *model.FeaturePath) bool {
-	return isConfigurationDeploymentPath(path) || isServiceProfileDeploymentPath(path)
+	return isConfigurationDeploymentPath(path) || isServiceProfileDeploymentPath(path) || isGlobalProfileDeploymentPath(path)
 }
 
 func isServiceProfileDeploymentPath(path *model.FeaturePath) bool {
@@ -116,6 +116,13 @@ func isServiceProfileDeploymentPath(path *model.FeaturePath) bool {
 		return false
 	}
 	return path.ProfileType == model.ProfileTypeService || path.BlueprintCategory == model.BlueprintCategoryService
+}
+
+func isGlobalProfileDeploymentPath(path *model.FeaturePath) bool {
+	if path == nil {
+		return false
+	}
+	return path.ProfileType == model.ProfileTypeGlobal || path.BlueprintCategory == model.BlueprintCategoryGlobal
 }
 
 func (g *Generator) generateDeploymentCRUDLifecycleTest(feature *model.Feature, createPath, readPath, updatePath, deletePath *model.FeaturePath) model.TestCase {
@@ -140,6 +147,9 @@ func (g *Generator) generateDeploymentCRUDLifecycleTest(feature *model.Feature, 
 		featureProfileName = fmt.Sprintf("TestServiceProfile-%s-CRUD", feature.Name)
 		deploymentProfileName = fmt.Sprintf("TestConfigProfile-%s-CRUD", feature.Name)
 		tc.Steps = append(tc.Steps, serviceProfileContainerStep(feature, featureProfileName))
+	} else if isGlobalProfileDeploymentPath(createPath) {
+		featureProfileName = fmt.Sprintf("TestGlobalProfile-%s-CRUD", feature.Name)
+		deploymentProfileName = fmt.Sprintf("TestConfigProfile-%s-CRUD", feature.Name)
 	}
 
 	createBody := g.generateRequestBody(feature, createPath)
@@ -158,6 +168,8 @@ func (g *Generator) generateDeploymentCRUDLifecycleTest(feature *model.Feature, 
 
 	if isServiceProfileDeploymentPath(createPath) {
 		tc.Steps = append(tc.Steps, configurationProfileWithServiceProfileStep(feature, deploymentProfileName, featureProfileName))
+	} else if isGlobalProfileDeploymentPath(createPath) {
+		tc.Steps = append(tc.Steps, configurationProfileWithGlobalProfileStep(feature, deploymentProfileName, featureProfileName))
 	}
 	g.addDeploymentSteps(&tc, feature, deploymentProfileName, model.ScopeTypeDevice, model.TargetTypeDevice)
 
@@ -304,6 +316,9 @@ func (g *Generator) generateDeploymentBoundarySampleTests(feature *model.Feature
 			featureProfileName = fmt.Sprintf("TestServiceProfile-%s-Boundary-%d", feature.Name, i+1)
 			deploymentProfileName = fmt.Sprintf("TestConfigProfile-%s-Boundary-%d", feature.Name, i+1)
 			tc.Steps = append(tc.Steps, serviceProfileContainerStep(feature, featureProfileName))
+		} else if isGlobalProfileDeploymentPath(createPath) {
+			featureProfileName = fmt.Sprintf("TestGlobalProfile-%s-Boundary-%d", feature.Name, i+1)
+			deploymentProfileName = fmt.Sprintf("TestConfigProfile-%s-Boundary-%d", feature.Name, i+1)
 		}
 
 		body := g.generateRequestBody(feature, createPath)
@@ -315,6 +330,8 @@ func (g *Generator) generateDeploymentBoundarySampleTests(feature *model.Feature
 		}
 		if isServiceProfileDeploymentPath(createPath) {
 			tc.Steps = append(tc.Steps, configurationProfileWithServiceProfileStep(feature, deploymentProfileName, featureProfileName))
+		} else if isGlobalProfileDeploymentPath(createPath) {
+			tc.Steps = append(tc.Steps, configurationProfileWithGlobalProfileStep(feature, deploymentProfileName, featureProfileName))
 		}
 		g.addDeploymentSteps(&tc, feature, deploymentProfileName, model.ScopeTypeDevice, model.TargetTypeDevice)
 		tests = append(tests, tc)
@@ -405,6 +422,9 @@ func (g *Generator) generateDeploymentScaleSampleTest(feature *model.Feature, cr
 		featureProfileName = fmt.Sprintf("TestServiceProfile-%s-Scale", feature.Name)
 		deploymentProfileName = fmt.Sprintf("TestConfigProfile-%s-Scale", feature.Name)
 		tc.Steps = append(tc.Steps, serviceProfileContainerStep(feature, featureProfileName))
+	} else if isGlobalProfileDeploymentPath(createPath) {
+		featureProfileName = fmt.Sprintf("TestGlobalProfile-%s-Scale", feature.Name)
+		deploymentProfileName = fmt.Sprintf("TestConfigProfile-%s-Scale", feature.Name)
 	}
 
 	for i := 0; i < instanceCount; i++ {
@@ -434,6 +454,8 @@ func (g *Generator) generateDeploymentScaleSampleTest(feature *model.Feature, cr
 
 	if isServiceProfileDeploymentPath(createPath) {
 		tc.Steps = append(tc.Steps, configurationProfileWithServiceProfileStep(feature, deploymentProfileName, featureProfileName))
+	} else if isGlobalProfileDeploymentPath(createPath) {
+		tc.Steps = append(tc.Steps, configurationProfileWithGlobalProfileStep(feature, deploymentProfileName, featureProfileName))
 	}
 	g.addDeploymentSteps(&tc, feature, deploymentProfileName, model.ScopeTypeDevice, model.TargetTypeDevice)
 

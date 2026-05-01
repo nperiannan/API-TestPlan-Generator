@@ -18,6 +18,7 @@ const (
 	deviceConflictCheckPath  = "/configuration-profile/{name}/device/{hostName}/conflicts"
 	serviceProfileCreatePath = "/service-profile/{name}"
 	configurationProfilePath = "/configuration-profile/{name}"
+	globalProfilePath        = "/global-profile/{name}"
 
 	locationSiteGroupID   = "{{SITE_GROUP_ID}}"
 	locationSiteGroupName = "{{SITE_GROUP_NAME}}"
@@ -502,6 +503,76 @@ func (g *Generator) appendServiceProfileConfigurationSetup(tc *model.TestCase, f
 
 	tc.Steps = append(tc.Steps, configurationProfileWithServiceProfileStep(feature, configurationProfileName, serviceProfileName))
 
+}
+
+// generateGlobalProfileDeploymentTest generates a deployment test for a global-profile feature.
+// Global-profile features are deployed through a configuration profile that references
+// the global profile, similar to how service-profile features are deployed.
+func (g *Generator) generateGlobalProfileDeploymentTest(feature *model.Feature, createPath, readPath *model.FeaturePath, targetType model.TargetType) model.TestCase {
+	globalProfileName := fmt.Sprintf("TestGlobalProfile-%s", feature.Name)
+	configurationProfileName := fmt.Sprintf("TestConfigProfile-%s", feature.Name)
+
+	tc := model.TestCase{
+		TestCaseID:       g.nextTestID(),
+		FeatureName:      feature.Name,
+		Priority:         model.TestPriorityP1,
+		Type:             model.TestCategoryFunctional,
+		Description:      fmt.Sprintf("Create %s in a global profile, reference it from a configuration profile, scope by device location, deploy to %s, and verify on NOS devices", feature.Name, targetType),
+		ScopeType:        model.ScopeTypeDevice,
+		TargetType:       targetType,
+		DeploymentMethod: model.DeploymentMethodImmediate,
+		IsDeploymentTest: true,
+		Steps:            []model.TestStep{},
+	}
+
+	g.appendGlobalProfileConfigurationSetup(&tc, feature, createPath, readPath, globalProfileName, configurationProfileName)
+	g.addDeploymentSteps(&tc, feature, configurationProfileName, model.ScopeTypeDevice, targetType)
+
+	return tc
+}
+
+// appendGlobalProfileConfigurationSetup adds steps to create a global-profile feature,
+// verify it, then create a configuration profile that references the global profile.
+func (g *Generator) appendGlobalProfileConfigurationSetup(tc *model.TestCase, feature *model.Feature, createPath, readPath *model.FeaturePath, globalProfileName, configurationProfileName string) {
+	// Step 1: Create the feature inside the global profile
+	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, createPath, globalProfileName))
+
+	// Step 2: Verify the feature was created in the global profile
+	if readPath != nil {
+		tc.Steps = append(tc.Steps, model.TestStep{
+			Name:           "verifyGlobalProfileFeature",
+			Description:    fmt.Sprintf("Verify %s is present in the global profile before linking it to a configuration profile", feature.Name),
+			Method:         readPath.HTTPMethod,
+			API:            model.APITypeREST,
+			Path:           readPath.Path,
+			PathParams:     pathParamsFor(readPath.Path, globalProfileName),
+			Body:           g.generateReadBody(feature, createPath),
+			ExpectedStatus: 200,
+			Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 200}},
+		})
+	}
+
+	// Step 3: Create configuration profile referencing the global profile
+	tc.Steps = append(tc.Steps, configurationProfileWithGlobalProfileStep(feature, configurationProfileName, globalProfileName))
+}
+
+func configurationProfileWithGlobalProfileStep(feature *model.Feature, configurationProfileName, globalProfileName string) model.TestStep {
+	return model.TestStep{
+		Name:        "createConfigurationProfileWithGlobalProfile",
+		Description: "Create configuration profile and reference the global profile so its configuration can be deployed",
+		Method:      "POST",
+		API:         model.APITypeREST,
+		Path:        configurationProfilePath,
+		PathParams:  map[string]string{"name": configurationProfileName},
+		Body: map[string]interface{}{
+			"blueprints":          []string{"wired-blueprint"},
+			"globalProfiles":      []string{globalProfileName},
+			"networkArchitecture": "standard",
+			"description":         fmt.Sprintf("Configuration profile for %s global-profile deployment", feature.Name),
+		},
+		ExpectedStatus: 201,
+		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 201}},
+	}
 }
 
 // generateSimplifiedDeploymentTest generates a compact scoped deployment test.

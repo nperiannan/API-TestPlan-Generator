@@ -33,7 +33,35 @@ func (g *Generator) featureWithoutDuplicatedChildParams(feature *model.Feature, 
 		return feature
 	}
 
-	filteredParams, changed := filterParametersByName(feature.Parameters, childParamNames)
+	// Build a set of the parent's own YANG key fields — these are identity
+	// fields that MUST remain even if a child feature reuses the same name.
+	parentKeys := make(map[string]bool, len(feature.Keys))
+	for _, k := range feature.Keys {
+		parentKeys[k] = true
+	}
+	// Also keep required fields — the parent's required params are its own.
+	parentRequired := make(map[string]bool)
+	for _, p := range feature.Parameters {
+		if p.Required {
+			parentRequired[p.Name] = true
+		}
+	}
+
+	// Only prune parameters that belong exclusively to children — skip the
+	// parent's own key and required fields.
+	prunable := make(map[string]bool, len(childParamNames))
+	for name := range childParamNames {
+		if parentKeys[name] || parentRequired[name] {
+			continue
+		}
+		prunable[name] = true
+	}
+
+	if len(prunable) == 0 {
+		return feature
+	}
+
+	filteredParams, changed := filterParametersByName(feature.Parameters, prunable)
 	if !changed {
 		return feature
 	}

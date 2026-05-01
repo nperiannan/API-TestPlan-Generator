@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:34:30+05:30"
+generatedAt: "2026-05-01T14:51:12+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11055,576 +11055,6 @@ features:
               priority: P2
               automation: Automatable
               type: functional
-              description: Deploy and verify fabric-spbm-global-settings-config with bool value variation 1 for 'enabled'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/fabric-feature/spbm-global-feature
-                    objectType: spbm-global
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: enabled
-                              origin: CC
-                              type: boolean
-                              value: true
-                            - name: nickname-server-enabled
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: nickname-server-prefix
-                              origin: CC
-                              type: string
-                              value: A.00.00
-                          type: spbm-global
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_3001
-              featureName: fabric-spbm-global-settings-config
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify fabric-spbm-global-settings-config with bool value variation 2 for 'enabled'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with bool type variation: false'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/fabric-feature/spbm-global-feature
-                    objectType: spbm-global
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: enabled
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: nickname-server-enabled
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: nickname-server-prefix
-                              origin: CC
-                              type: string
-                              value: A.00.00
-                          type: spbm-global
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_3002
-              featureName: fabric-spbm-global-settings-config
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify fabric-spbm-global-settings-config with bool value variation 3 for 'enabled'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/fabric-feature/spbm-global-feature
-                    objectType: spbm-global
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: enabled
-                              origin: CC
-                              type: boolean
-                              value: true
-                            - name: nickname-server-enabled
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: nickname-server-prefix
-                              origin: CC
-                              type: string
-                              value: A.00.00
-                          type: spbm-global
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_3003
-              featureName: fabric-spbm-global-settings-config
-              priority: P2
-              automation: Automatable
-              type: functional
               description: Deploy and verify fabric-spbm-global-settings-config with string value variation 1 for 'nickname-server-prefix'
               scopeType: device
               targetType: device
@@ -11810,7 +11240,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3004
+            - testCaseID: TCXM_3001
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -12000,7 +11430,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3005
+            - testCaseID: TCXM_3002
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -12036,6 +11466,576 @@ features:
                               origin: CC
                               type: string
                               value: test_value_3
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_3003
+              featureName: fabric-spbm-global-settings-config
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with bool value variation 1 for 'enabled'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: A.00.00
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_3004
+              featureName: fabric-spbm-global-settings-config
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with bool value variation 2 for 'enabled'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with bool type variation: false'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: A.00.00
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_3005
+              featureName: fabric-spbm-global-settings-config
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify fabric-spbm-global-settings-config with bool value variation 3 for 'enabled'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: A.00.00
                           type: spbm-global
                     operation: add
                   expectedStatus: 201
@@ -12351,14 +12351,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T10:04:31Z
+                  description: Schedule deployment to device at 2026-05-01T10:21:12Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:04:31Z"
+                    deployAt: "2026-05-01T10:21:12Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -12529,14 +12529,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T10:04:31Z
+                  description: Schedule deployment to site at 2026-05-01T10:21:12Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:04:31Z"
+                    deployAt: "2026-05-01T10:21:12Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -12711,7 +12711,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:04:31Z"
+                    deployAt: "2026-05-01T10:21:12Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -12722,14 +12722,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T11:04:31Z
+                  description: Edit deployment schedule to 2026-05-01T11:21:12Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T11:04:31Z"
+                    deployAt: "2026-05-01T11:21:12Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -12904,7 +12904,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:04:31Z"
+                    deployAt: "2026-05-01T10:21:12Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC

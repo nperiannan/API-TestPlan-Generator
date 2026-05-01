@@ -20,10 +20,28 @@ var systemManagedFields = map[string]bool{
 	"owner-id":    true,
 }
 
+// systemManagedPrefixes are field name prefixes that indicate device-level or
+// asset-model identifiers. These are set by the system (e.g. from onboarding)
+// and are never supplied in intent payloads.
+var systemManagedPrefixes = []string{
+	"asset-device-",
+	"asset-ap-",
+	"asset-switch-",
+}
+
 // isSystemManagedField returns true if the parameter is a system-managed
 // field from base:primary that should be excluded from test validations.
 func isSystemManagedField(paramName string) bool {
-	return systemManagedFields[strings.ToLower(paramName)]
+	lower := strings.ToLower(paramName)
+	if systemManagedFields[lower] {
+		return true
+	}
+	for _, prefix := range systemManagedPrefixes {
+		if strings.HasPrefix(lower, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 // generateResponseValidations creates comprehensive response validations based on:

@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:34:30+05:30"
+generatedAt: "2026-05-01T14:51:12+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -801,13 +801,13 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/vlan/{vlan_id}
+                  path: /v0/configuration/vlan/port/{port}/allowed-vlan
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
+                    port: 1/1
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
-                    vlan_id: "1"
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -2032,7 +2032,7 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vrrp/vlan/{vlan_id}
+                  path: /v0/configuration/igmp/vlan/{vlan_id}
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
@@ -2053,9 +2053,7 @@ features:
                   description: Apply conflicting vlan value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/{vlan_id}
-                  pathParams:
-                    vlan_id: "1"
+                  path: /v0/configuration/vlan/interfaces
                   body:
                     action: modify
                     deviceHostName: '{{DEVICE_HOSTNAME}}'
@@ -2372,7 +2370,7 @@ features:
                   description: Apply conflicting vlan value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/slpp/vlan/{vlan_id}
+                  path: /v0/configuration/vrrp/vlan/{vlan_id}
                   pathParams:
                     vlan_id: "1"
                   body:
@@ -2509,12 +2507,13 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/spbm/l2/isid/cvlan
+                  path: /v0/configuration/igmp/vlan/{vlan_id}
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
+                    vlan_id: "1"
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -2789,13 +2788,12 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/slpp/vlan/{vlan_id}
+                  path: /v0/configuration/vlan
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
-                    vlan_id: "1"
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -2810,7 +2808,7 @@ features:
                   description: Apply conflicting vlan value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/dhcp-relay/vlan
+                  path: /v0/configuration/vlan/interfaces
                   body:
                     action: modify
                     deviceHostName: '{{DEVICE_HOSTNAME}}'
@@ -2945,13 +2943,12 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/slpp/vlan/{vlan_id}
+                  path: /v1/state/vlan
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
-                    vlan_id: "1"
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -3247,7 +3244,7 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/private-vlan
+                  path: /v0/configuration/spbm/l2/isid/cvlan
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
@@ -3555,13 +3552,12 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/slpp/vlan/{vlan_id}
+                  path: /v0/configuration/vlan/interfaces
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
-                    vlan_id: "1"
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -3667,13 +3663,12 @@ features:
                   description: Verify the deleted vlan configuration is no longer present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/slpp/vlan/{vlan_id}
+                  path: /v0/state/dhcp-relay/vlan
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
-                    vlan_id: "1"
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -14699,14 +14694,13 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/vrrp/vlan/{vlan_id}/vr/{vr_id}
+                  path: /v0/configuration/ospf/vlan/{vlan_id}
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
                     vlan_id: "1"
-                    vr_id: 550e8400-e29b-41d4-a716-446655440000
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200

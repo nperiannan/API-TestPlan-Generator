@@ -91,33 +91,44 @@ func (g *Generator) generateFunctionalTests(feature *model.Feature, paths []*mod
 		tests = append(tests, g.generateIdempotentCreateTest(feature, createPath))
 	}
 
-	// Generate deployment tests for configuration profiles
+	// Generate deployment tests for configuration profiles (wired/wireless/global)
 	if createPath != nil && feature.Parameters != nil && len(feature.Parameters) > 0 && isConfigurationDeploymentPath(createPath) && len(deployPaths) > 0 {
-		// Generate full deployment test with all steps (scope, target, deploy, verify)
-		tests = append(tests, g.generateDeploymentTest(
-			feature, createPath, readPath, deletePath,
-			scopePaths, targetPaths, deployPaths,
-			model.ScopeTypeDevice, model.TargetTypeDevice,
-		))
 
-		// Generate site-group deployment if supported
-		if hasScopeType(scopePaths, model.ScopeTypeSiteGroup) || hasDeployTargetType(deployPaths, model.TargetTypeSiteGroup) {
+		// Global-profile features deploy through a configuration profile (like service-profile).
+		if isGlobalProfilePath(createPath) {
+			tests = append(tests, g.generateGlobalProfileDeploymentTest(feature, createPath, readPath, model.TargetTypeDevice))
+			if hasScopeType(scopePaths, model.ScopeTypeSiteGroup) || hasDeployTargetType(deployPaths, model.TargetTypeSiteGroup) {
+				tests = append(tests, g.generateGlobalProfileDeploymentTest(feature, createPath, readPath, model.TargetTypeSiteGroup))
+			}
+		} else {
+			// Generate full deployment test with all steps (scope, target, deploy, verify)
 			tests = append(tests, g.generateDeploymentTest(
 				feature, createPath, readPath, deletePath,
 				scopePaths, targetPaths, deployPaths,
-				model.ScopeTypeSiteGroup, model.TargetTypeSiteGroup,
+				model.ScopeTypeDevice, model.TargetTypeDevice,
+			))
+
+			// Generate site-group deployment if supported
+			if hasScopeType(scopePaths, model.ScopeTypeSiteGroup) || hasDeployTargetType(deployPaths, model.TargetTypeSiteGroup) {
+				tests = append(tests, g.generateDeploymentTest(
+					feature, createPath, readPath, deletePath,
+					scopePaths, targetPaths, deployPaths,
+					model.ScopeTypeSiteGroup, model.TargetTypeSiteGroup,
+				))
+			}
+
+			// Generate simplified deployment test (create and verify only, no scope/target/deploy)
+			tests = append(tests, g.generateSimplifiedDeploymentTest(
+				feature, createPath,
+				model.ScopeTypeDevice,
 			))
 		}
-
-		// Generate simplified deployment test (create and verify only, no scope/target/deploy)
-		tests = append(tests, g.generateSimplifiedDeploymentTest(
-			feature, createPath,
-			model.ScopeTypeDevice,
-		))
 	}
 
 	if createPath != nil && feature.Parameters != nil && len(feature.Parameters) > 0 && createPath.ProfileType == model.ProfileTypeService {
 		tests = append(tests, g.generateServiceProfileScopedDeploymentTest(feature, createPath, readPath, model.TargetTypeDevice))
+		// Also generate a site-group targeted deployment for service profiles
+		tests = append(tests, g.generateServiceProfileScopedDeploymentTest(feature, createPath, readPath, model.TargetTypeSiteGroup))
 	}
 
 	// YANG model coverage: non-deployment tests for required-only, all-fields, datatypes, defaults
@@ -422,13 +433,24 @@ func isConfigurationDeploymentPath(path *model.FeaturePath) bool {
 	if path == nil {
 		return false
 	}
-	if path.BlueprintCategory == model.BlueprintCategoryGlobal || path.BlueprintCategory == model.BlueprintCategoryService {
+	if path.BlueprintCategory == model.BlueprintCategoryService {
 		return false
 	}
 	if path.BlueprintCategory == model.BlueprintCategoryWired || path.BlueprintCategory == model.BlueprintCategoryWireless {
 		return true
 	}
+	if path.BlueprintCategory == model.BlueprintCategoryGlobal {
+		return true
+	}
 	return path.ProfileType == model.ProfileTypeConfiguration
+}
+
+// isGlobalProfilePath returns true when the path belongs to a global-profile feature.
+func isGlobalProfilePath(path *model.FeaturePath) bool {
+	if path == nil {
+		return false
+	}
+	return path.BlueprintCategory == model.BlueprintCategoryGlobal || path.ProfileType == model.ProfileTypeGlobal
 }
 
 func inferJSONType(value interface{}) string {
@@ -717,7 +739,12 @@ func (g *Generator) getSampleValue(param model.Parameter) interface{} {
 	}
 
 	// Prefix-length / mask fields (e.g. "mask" with YANG description mentioning "prefix length")
-	if strings.Contains(descLower, "prefix length") || strings.Contains(descLower, "prefix-length") {
+	if strings.Contains(descLower, "prefix length") || strings.Contains(descLower, "prefix-length") ||
+		strings.Contains(descLower, "mask length") || strings.Contains(descLower, "netmask prefix") ||
+		(strings.Contains(paramNameLower, "mask") && (strings.Contains(descLower, "0-32") || strings.Contains(descLower, "0-128"))) {
+		return "24"
+	}
+	if strings.Contains(paramNameLower, "prefix-length") || paramNameLower == "prefixlen" {
 		return "24"
 	}
 	if strings.Contains(paramNameLower, "mask") {
@@ -725,12 +752,17 @@ func (g *Generator) getSampleValue(param model.Parameter) interface{} {
 	}
 
 	// IP subnet / CIDR address fields (e.g. "destination-subnet")
-	if strings.Contains(descLower, "cidr notation") {
+	if strings.Contains(descLower, "cidr notation") || strings.Contains(descLower, "cidr format") {
 		return "192.168.1.0/24"
 	}
 	if strings.Contains(paramNameLower, "subnet") || strings.Contains(yangTypeLower, "prefix") ||
-		strings.Contains(descLower, "cidr notation") || strings.Contains(descLower, "ip subnet") {
+		strings.Contains(descLower, "ip subnet") || strings.Contains(descLower, "network address") {
 		return "192.168.1.0"
+	}
+
+	// IPv6-specific fields
+	if strings.Contains(paramNameLower, "ipv6") || strings.Contains(descLower, "ipv6") {
+		return "2001:db8::1"
 	}
 
 	// Check for specific parameter patterns
@@ -2093,7 +2125,9 @@ func (g *Generator) generateUpdateRequestBody(feature *model.Feature, updatePath
 		}
 		properties = g.appendMissingKeyProperties(feature, properties, origin)
 
-		// Add/modify one optional field to differentiate from the create body
+		// Add/modify up to 3 optional fields to differentiate from the create body
+		// and provide broader update coverage.
+		optionalCount := 0
 		for _, param := range feature.Parameters {
 			if isSystemManagedField(param.Name) || param.Required || keySet[param.Name] {
 				continue
@@ -2105,7 +2139,10 @@ func (g *Generator) generateUpdateRequestBody(feature *model.Feature, updatePath
 				"value":  updatedVal,
 				"origin": origin,
 			})
-			break // one optional field is enough to show the update
+			optionalCount++
+			if optionalCount >= 3 {
+				break
+			}
 		}
 
 		object := map[string]interface{}{
