@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T12:24:31+05:30"
+generatedAt: "2026-05-01T12:39:14+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -9511,273 +9511,6 @@ features:
               priority: P2
               automation: Automatable
               type: functional
-              description: Deploy and verify fabric-auto-sense-isis with bool value variation 1 for 'auto-mlt'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/fabric-feature/auto-sense-feature
-                    objectType: auto-sense-isis
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: auto-mlt
-                              origin: CC
-                              type: boolean
-                              value: true
-                            - name: hello-auth-is-encrypted
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: hello-auth-value
-                              origin: CC
-                              type: string
-                              value: ""
-                            - name: hello-key-id
-                              origin: CC
-                              type: number
-                              value: 0
-                            - name: hello-type
-                              origin: CC
-                              type: string
-                              value: NONE
-                          type: auto-sense-isis
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: test-device-001
-                    name: TestProfile
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2590
-              featureName: fabric-auto-sense-isis
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify fabric-auto-sense-isis with bool value variation 2 for 'auto-mlt'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with bool type variation: false'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/fabric-feature/auto-sense-feature
-                    objectType: auto-sense-isis
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: auto-mlt
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: hello-auth-is-encrypted
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: hello-auth-value
-                              origin: CC
-                              type: string
-                              value: ""
-                            - name: hello-key-id
-                              origin: CC
-                              type: number
-                              value: 0
-                            - name: hello-type
-                              origin: CC
-                              type: string
-                              value: NONE
-                          type: auto-sense-isis
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: test-device-001
-                    name: TestProfile
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2591
-              featureName: fabric-auto-sense-isis
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify fabric-auto-sense-isis with bool value variation 3 for 'auto-mlt'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/fabric-feature/auto-sense-feature
-                    objectType: auto-sense-isis
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: auto-mlt
-                              origin: CC
-                              type: boolean
-                              value: true
-                            - name: hello-auth-is-encrypted
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: hello-auth-value
-                              origin: CC
-                              type: string
-                              value: ""
-                            - name: hello-key-id
-                              origin: CC
-                              type: number
-                              value: 0
-                            - name: hello-type
-                              origin: CC
-                              type: string
-                              value: NONE
-                          type: auto-sense-isis
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: test-device-001
-                    name: TestProfile
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2592
-              featureName: fabric-auto-sense-isis
-              priority: P2
-              automation: Automatable
-              type: functional
               description: Deploy and verify fabric-auto-sense-isis with string value variation 1 for 'hello-auth-value'
               scopeType: device
               targetType: device
@@ -9862,7 +9595,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2593
+            - testCaseID: TCXM_2590
               featureName: fabric-auto-sense-isis
               priority: P2
               automation: Automatable
@@ -9951,7 +9684,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2594
+            - testCaseID: TCXM_2591
               featureName: fabric-auto-sense-isis
               priority: P2
               automation: Automatable
@@ -10040,7 +9773,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2595
+            - testCaseID: TCXM_2592
               featureName: fabric-auto-sense-isis
               priority: P2
               automation: Automatable
@@ -10129,7 +9862,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2596
+            - testCaseID: TCXM_2593
               featureName: fabric-auto-sense-isis
               priority: P2
               automation: Automatable
@@ -10218,7 +9951,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2597
+            - testCaseID: TCXM_2594
               featureName: fabric-auto-sense-isis
               priority: P2
               automation: Automatable
@@ -10258,6 +9991,273 @@ features:
                               origin: CC
                               type: number
                               value: 3000
+                            - name: hello-type
+                              origin: CC
+                              type: string
+                              value: NONE
+                          type: auto-sense-isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: test-device-001
+                    name: TestProfile
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2595
+              featureName: fabric-auto-sense-isis
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify fabric-auto-sense-isis with bool value variation 1 for 'auto-mlt'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/auto-sense-feature
+                    objectType: auto-sense-isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: auto-mlt
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: hello-auth-is-encrypted
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: hello-auth-value
+                              origin: CC
+                              type: string
+                              value: ""
+                            - name: hello-key-id
+                              origin: CC
+                              type: number
+                              value: 0
+                            - name: hello-type
+                              origin: CC
+                              type: string
+                              value: NONE
+                          type: auto-sense-isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: test-device-001
+                    name: TestProfile
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2596
+              featureName: fabric-auto-sense-isis
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify fabric-auto-sense-isis with bool value variation 2 for 'auto-mlt'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with bool type variation: false'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/auto-sense-feature
+                    objectType: auto-sense-isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: auto-mlt
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: hello-auth-is-encrypted
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: hello-auth-value
+                              origin: CC
+                              type: string
+                              value: ""
+                            - name: hello-key-id
+                              origin: CC
+                              type: number
+                              value: 0
+                            - name: hello-type
+                              origin: CC
+                              type: string
+                              value: NONE
+                          type: auto-sense-isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: test-device-001
+                    name: TestProfile
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_2597
+              featureName: fabric-auto-sense-isis
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify fabric-auto-sense-isis with bool value variation 3 for 'auto-mlt'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/auto-sense-feature
+                    objectType: auto-sense-isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: auto-mlt
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: hello-auth-is-encrypted
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: hello-auth-value
+                              origin: CC
+                              type: string
+                              value: ""
+                            - name: hello-key-id
+                              origin: CC
+                              type: number
+                              value: 0
                             - name: hello-type
                               origin: CC
                               type: string
@@ -10366,14 +10366,14 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T07:54:31Z
+                  description: Schedule deployment to device at 2026-05-01T08:09:14Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T07:54:31Z"
+                    deployAt: "2026-05-01T08:09:14Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -10442,14 +10442,14 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T07:54:31Z
+                  description: Schedule deployment to site at 2026-05-01T08:09:14Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T07:54:31Z"
+                    deployAt: "2026-05-01T08:09:14Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -10522,7 +10522,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T07:54:31Z"
+                    deployAt: "2026-05-01T08:09:14Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -10533,14 +10533,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T08:54:31Z
+                  description: Edit deployment schedule to 2026-05-01T09:09:14Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T08:54:31Z"
+                    deployAt: "2026-05-01T09:09:14Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -10613,7 +10613,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T07:54:31Z"
+                    deployAt: "2026-05-01T08:09:14Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -11382,7 +11382,7 @@ features:
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                     updateProperties:
                         - name: auto-mlt
-                          value: 123e4567-e89b-12d3-a456-426614174000
+                          value: false
                   expectedStatus: 200
                   validations:
                     - Verify override modified successfully

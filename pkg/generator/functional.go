@@ -688,11 +688,11 @@ func (g *Generator) getSampleValue(param model.Parameter) interface{} {
 	descLower := strings.ToLower(param.Description)
 	yangTypeLower := strings.ToLower(param.YangType)
 
-	if strings.Contains(paramNameLower, "vr-name") || strings.Contains(paramNameLower, "vrf") {
-		return "VR-Mgmt"
-	}
-	if strings.Contains(paramNameLower, "vrd") || strings.Contains(paramNameLower, "association") || strings.Contains(descLower, "uuid") {
+	if isExplicitUUIDParameter(param, paramNameLower) {
 		return "123e4567-e89b-12d3-a456-426614174000"
+	}
+	if isVRNameParameter(paramNameLower) {
+		return "VR-Mgmt"
 	}
 	if strings.Contains(paramNameLower, "name") && param.GoType == "string" {
 		name := strings.TrimSuffix(paramNameLower, "-name")
@@ -700,6 +700,9 @@ func (g *Generator) getSampleValue(param model.Parameter) interface{} {
 			name = "resource"
 		}
 		return "test-" + strings.ReplaceAll(name, "_", "-")
+	}
+	if isUUIDReferenceParameter(paramNameLower, descLower, yangTypeLower) {
+		return "123e4567-e89b-12d3-a456-426614174000"
 	}
 	if strings.Contains(paramNameLower, "description") {
 		return "Test resource created by automated test"
@@ -752,6 +755,35 @@ func (g *Generator) getSampleValue(param model.Parameter) interface{} {
 	default:
 		return "testValue"
 	}
+}
+
+func isExplicitUUIDParameter(param model.Parameter, paramNameLower string) bool {
+	if strings.Contains(paramNameLower, "uuid") {
+		return true
+	}
+	for _, constraint := range param.Constraints {
+		if constraint.Type != model.ConstraintTypePattern {
+			continue
+		}
+		pattern, ok := constraint.Value.(string)
+		if ok && isUUIDPattern(pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+func isVRNameParameter(paramNameLower string) bool {
+	return paramNameLower == "vr-name" ||
+		paramNameLower == "vrf" ||
+		paramNameLower == "vrf-name" ||
+		strings.HasSuffix(paramNameLower, "-vrf")
+}
+
+func isUUIDReferenceParameter(paramNameLower, descLower, yangTypeLower string) bool {
+	return strings.Contains(paramNameLower, "association") ||
+		strings.Contains(descLower, "uuid") ||
+		strings.Contains(yangTypeLower, "leafref")
 }
 
 // setBodyParameterValue sets a parameter value in the body, handling both simple and deep-scanned formats
@@ -2048,6 +2080,21 @@ func (g *Generator) generateUpdateRequestBody(feature *model.Feature, updatePath
 func (g *Generator) getUpdatedValue(param model.Parameter) interface{} {
 	paramNameLower := strings.ToLower(param.Name)
 	descLower := strings.ToLower(param.Description)
+	yangTypeLower := strings.ToLower(param.YangType)
+
+	if isExplicitUUIDParameter(param, paramNameLower) || isUUIDReferenceParameter(paramNameLower, descLower, yangTypeLower) {
+		return "550e8400-e29b-41d4-a716-446655440000"
+	}
+	if isVRNameParameter(paramNameLower) {
+		return "VR-Data"
+	}
+	if strings.Contains(paramNameLower, "name") && param.GoType == "string" {
+		name := strings.TrimSuffix(paramNameLower, "-name")
+		if name == "" || name == paramNameLower {
+			name = "resource"
+		}
+		return "updated-" + strings.ReplaceAll(name, "_", "-")
+	}
 
 	// Booleans: flip the default
 	if param.GoType == "bool" || param.GoType == "boolean" {

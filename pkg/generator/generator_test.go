@@ -174,6 +174,21 @@ func TestGetSampleValueUsesYANGSemanticsBeforeNameHeuristics(t *testing.T) {
 			expected: "test-ip-subnet",
 		},
 		{
+			name:     "VRD name is generated as a name",
+			param:    model.Parameter{Name: "vrd-name", GoType: "string", Description: "Virtual Routing domain name where this static route will be configured."},
+			expected: "test-vrd",
+		},
+		{
+			name:     "VRD association remains a UUID reference",
+			param:    model.Parameter{Name: "vrd-association", GoType: "string", Description: "UUID of Virtual Routing Domain associated with this subnet."},
+			expected: "123e4567-e89b-12d3-a456-426614174000",
+		},
+		{
+			name:     "Static route VRD association remains a UUID reference",
+			param:    model.Parameter{Name: "sr-vrd-association", YangType: "leafref", GoType: "string", Description: "UUID of the associated VRD object."},
+			expected: "123e4567-e89b-12d3-a456-426614174000",
+		},
+		{
 			name:     "CIDR subnet address includes prefix",
 			param:    model.Parameter{Name: "ipv4-subnet-address", GoType: "string", Description: "IPv4 subnet address in CIDR notation."},
 			expected: "192.168.1.0/24",
@@ -196,6 +211,122 @@ func TestGetSampleValueUsesYANGSemanticsBeforeNameHeuristics(t *testing.T) {
 				t.Fatalf("expected %v, got %v", tt.expected, got)
 			}
 		})
+	}
+}
+
+func TestDeepScannedStaticRouteUsesVRDNameValue(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	feature := &model.Feature{
+		Name: "static-route",
+		Keys: []string{"vrd-name", "route-name"},
+		Parameters: []model.Parameter{
+			{Name: "vrd-name", GoType: "string", Required: true, Description: "Virtual Routing domain name where this static route will be configured."},
+			{Name: "route-name", GoType: "string", Required: true, Description: "Unique name identifier for this static route within the VRF."},
+			{Name: "destination-subnet", GoType: "string", Required: true, Description: "Destination IP subnet in CIDR notation or IP address format."},
+			{Name: "mask", GoType: "string", Required: true, Description: "Subnet mask length (prefix length) for the destination subnet."},
+			{Name: "next-hop-ip", GoType: "string", Required: true, Description: "Next hop gateway IP address for reaching the destination subnet."},
+		},
+	}
+	path := &model.FeaturePath{
+		BlueprintCategory: model.BlueprintCategoryService,
+		PathParams: []model.PathParameter{
+			{Name: "featurePath", FixedValue: "/virtual-service-feature"},
+			{Name: "objectType", FixedValue: "static-route"},
+		},
+	}
+
+	body := gen.generateRequestBody(feature, path)
+	expected := expectedValuesFromBody(feature, body)
+	if expected["vrd-name"] != "test-vrd" {
+		t.Fatalf("expected vrd-name to use a name value, got %#v", expected)
+	}
+	if expected["route-name"] != "test-route" {
+		t.Fatalf("expected route-name to use route name value, got %#v", expected)
+	}
+}
+
+func TestGetUpdatedValueUsesYANGSemanticsBeforeStringFallback(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+
+	tests := []struct {
+		name     string
+		param    model.Parameter
+		expected interface{}
+	}{
+		{
+			name:     "VRD name update remains a name",
+			param:    model.Parameter{Name: "vrd-name", GoType: "string", Description: "Virtual Routing domain name where this static route will be configured."},
+			expected: "updated-vrd",
+		},
+		{
+			name:     "System name update remains a name",
+			param:    model.Parameter{Name: "sys-name", GoType: "string", Description: "System Name."},
+			expected: "updated-sys",
+		},
+		{
+			name:     "UUID association update remains a UUID reference",
+			param:    model.Parameter{Name: "vrd-association", GoType: "string", Description: "UUID of Virtual Routing Domain associated with this subnet."},
+			expected: "550e8400-e29b-41d4-a716-446655440000",
+		},
+		{
+			name:     "Leafref update remains a UUID reference",
+			param:    model.Parameter{Name: "sr-vrd-association", YangType: "leafref", GoType: "string", Description: "UUID of the associated VRD object."},
+			expected: "550e8400-e29b-41d4-a716-446655440000",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := gen.getUpdatedValue(tt.param); got != tt.expected {
+				t.Fatalf("expected %v, got %v", tt.expected, got)
+			}
+		})
+	}
+}
+
+func TestOverrideModifyUsesMatchingPropertyParameter(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	feature := &model.Feature{
+		Name: "snmp-global-config",
+		Parameters: []model.Parameter{
+			{Name: "device-id", GoType: "string", Description: "UUID of the device."},
+			{Name: "sys-name", GoType: "string", Required: true, Description: "System Name."},
+		},
+	}
+	path := &model.FeaturePath{
+		HTTPMethod:        "POST",
+		Path:              "/configuration-profile/{name}/feature/object/modify",
+		BlueprintCategory: model.BlueprintCategoryWired,
+		PathParams: []model.PathParameter{
+			{Name: "featurePath", FixedValue: "/snmp-feature"},
+			{Name: "objectType", FixedValue: "snmp-global-config"},
+		},
+	}
+
+	testCase := gen.generateOverrideCRUDLifecycleTest(feature, path, "TestProfile", "device", "/snmp-feature", "snmp-global-config")
+	var modifyStep *model.TestStep
+	for i := range testCase.Steps {
+		if testCase.Steps[i].Name == "modifyDeviceOverride" {
+			modifyStep = &testCase.Steps[i]
+			break
+		}
+	}
+	if modifyStep == nil {
+		t.Fatalf("modify override step not generated: %#v", testCase.Steps)
+	}
+	body, ok := modifyStep.Body.(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected body map, got %#v", modifyStep.Body)
+	}
+	props, ok := body["updateProperties"].([]map[string]interface{})
+	if !ok || len(props) == 0 {
+		t.Fatalf("expected updateProperties, got %#v", body)
+	}
+	if props[0]["name"] != "sys-name" || props[0]["value"] != "test-sys" {
+		t.Fatalf("expected sys-name to use its own sample value, got %#v", props[0])
 	}
 }
 

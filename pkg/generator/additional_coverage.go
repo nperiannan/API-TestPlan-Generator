@@ -998,7 +998,11 @@ func (g *Generator) generateOverrideCRUDLifecycleTest(feature *model.Feature, fp
 	modifiedProps := g.generateOverrideProperties(feature)
 	// Change the first property value to something else to simulate modification
 	if len(modifiedProps) > 0 {
-		modifiedProps[0]["value"] = g.getSampleValue(feature.Parameters[0])
+		if propName, ok := modifiedProps[0]["name"].(string); ok {
+			if param, found := findFeatureParameter(feature, propName); found {
+				modifiedProps[0]["value"] = g.getSampleValue(param)
+			}
+		}
 	}
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name:        "modifyDeviceOverride",
