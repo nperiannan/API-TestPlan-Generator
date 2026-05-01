@@ -5,13 +5,17 @@ Conventions and practices for the API Test Plan Generator project.
 ## Repository Layout
 
 ```
-cmd/testgen/       — CLI entry point (main.go)
+cmd/testgen/       — Test plan generator CLI entry point
+cmd/yaml2excel/    — Go YAML-to-Excel converter CLI
+cmd/yaml2csv/      — Go YAML-to-CSV converter CLI
 pkg/               — All Go library packages
 config/            — Configuration files (config.yaml, checkout-sources.ps1)
 sources/           — Input source files (partially gitignored)
-reports/           — Generated HTML reports (summary_report.html)
-tools/             — Utility scripts (Python converters)
-generated-tests/   — Sample outputs committed for reference
+Testplans/         — Generated YAML test plans committed as reference output
+TestplansXlsx/     — Generated Excel output (gitignored)
+TestplansCsv/      — Generated CSV output (gitignored)
+reports/           — Generated HTML reports
+bin/               — Local Windows/Linux binaries (gitignored)
 ```
 
 ### What gets committed
@@ -22,8 +26,10 @@ generated-tests/   — Sample outputs committed for reference
 | `sources/qaapi/` | Yes | QA OpenAPI spec |
 | `sources/PlatformCommonModels/` | No | Cloned from enterprise GitHub |
 | `sources/PlatformServices/` | No | Cloned from enterprise GitHub |
-| `reports/` | No | Generated output |
-| `Testplans/` | No | Generated output |
+| `Testplans/` | Yes | Generated YAML baseline/reference plans |
+| `reports/summary_report.html` | Yes | Generated summary report reference |
+| `TestplansXlsx/` | No | Generated Excel output |
+| `TestplansCsv/` | No | Generated CSV output |
 | `bin/windows/` | No | Build artifacts (Windows `.exe` files) |
 | `bin/linux/` | No | Build artifacts (Linux binaries) |
 
@@ -32,7 +38,7 @@ generated-tests/   — Sample outputs committed for reference
 ### Module
 
 - Module path: `github.com/extremenetworks/testcase-generator`
-- Go 1.21+
+- Go 1.24.x (`go.mod` sets `go 1.24.0` and toolchain `go1.24.4`)
 
 ### Package Organization
 
@@ -43,6 +49,8 @@ generated-tests/   — Sample outputs committed for reference
 - `pkg/generator/` — Test case generation. One file per category/concern. Main orchestrator in `generator.go`.
 - `pkg/yamlout/` — Output writers. YAML files, HTML reports, text summaries.
 - `cmd/testgen/` — CLI only. Flag parsing, wiring packages together. No business logic.
+- `cmd/yaml2excel/` — CLI only. Batch-converts all YAML plans to Excel output.
+- `cmd/yaml2csv/` — CLI only. Batch-converts all YAML plans to CSV output.
 
 ### Naming
 
@@ -112,7 +120,25 @@ Features are classified into blueprint categories:
 
 - One YAML file per feature by default (`--one-file-per-feature`)
 - Summary report goes to `reports/summary_report.html`
-- Per-run artifacts (coverage, test-summary) go to `--out-dir`
+- YAML output goes to `Testplans/`
+- Excel output goes to `TestplansXlsx/`
+- CSV output goes to `TestplansCsv/`
+- `Testplans/` and `reports/summary_report.html` are committed as reference output when generation logic changes
+
+### Generation correctness rules
+
+> Generated test plans should be executable with minimal manual intervention. Prefer fewer, accurate tests over more tests with guessed paths, guessed payload identity, or guessed validations.
+
+- REST paths must come from the OpenAPI spec or an explicitly reviewed mapping. Do not hardcode deployment/scope/target/status paths unless those exact paths exist in the spec.
+- Feature-to-endpoint matching must prefer exact `featurePath`/`objectType` mappings. Fuzzy matches must be treated as lower confidence and should be visible in logs or reports.
+- YANG list keys are identity fields. Include key fields in create, update, read-verify, and delete payload logic even when the key leaves are not marked `mandatory true`.
+- YANG defaults may be quoted or unquoted. Parsers must preserve boolean, numeric, enum, and string defaults accurately.
+- Read validations must assert values that were actually sent by create/update steps, or values that are proven defaults from YANG/OpenAPI. Do not validate optional fields using unrelated sample values.
+- Sample values must be selected from YANG type, constraints, enum/defaults, and descriptions in that order. Name-based heuristics are a fallback only.
+- IP/subnet/gateway fields require field-specific values: names should be names, subnet addresses should use subnet/CIDR-compatible values, masks should be masks or prefix lengths as described, and gateway addresses should be host addresses.
+- Delete steps must carry enough identity to delete the exact object created by the test: object ID, object IDs, or all YANG key fields required by the API shape.
+- NOSAPI verification endpoints are optional unless confidently mapped. Do not attach unrelated NOSAPI endpoints just because names partially match.
+- When generation logic changes, regenerate `Testplans/`, `reports/summary_report.html`, and Excel output, then spot-check representative global, service, wired, wireless, and nested sub-object plans.
 
 ## Scripts
 
