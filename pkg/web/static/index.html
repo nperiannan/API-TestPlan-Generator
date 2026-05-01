@@ -99,22 +99,24 @@ tbody tr:hover td{background:#fafafa;}
 .view-panel pre{padding:16px;font-size:.82em;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;font-family:'Cascadia Code','Fira Code','Courier New',monospace;}
 
 /* Viewer modal */
-.viewer-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:none;z-index:1000;align-items:stretch;justify-content:center;padding:24px;}
+.viewer-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;z-index:1000;align-items:stretch;justify-content:stretch;padding:16px;}
 .viewer-overlay.show{display:flex;}
-.viewer-modal{background:#fff;border-radius:12px;width:100%;max-width:1200px;margin:auto;display:flex;flex-direction:column;max-height:100%;overflow:hidden;}
-.viewer-header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #e0e0e0;flex-shrink:0;}
+.viewer-modal{background:#fff;border-radius:10px;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;}
+.viewer-header{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;border-bottom:1px solid #e0e0e0;flex-shrink:0;background:#fafafa;}
 .viewer-header h3{color:#1a73e8;margin:0;font-size:1.1em;}
-.viewer-tabs{display:flex;gap:0;border-bottom:1px solid #e0e0e0;flex-shrink:0;padding:0 24px;}
+.viewer-tabs{display:flex;gap:0;border-bottom:1px solid #e0e0e0;flex-shrink:0;padding:0 24px;background:#fafafa;}
 .viewer-tab{padding:10px 20px;cursor:pointer;font-weight:600;font-size:.88em;color:#888;border-bottom:3px solid transparent;transition:all .2s;}
-.viewer-tab:hover{color:#1a73e8;background:#f5f8ff;}
+.viewer-tab:hover{color:#1a73e8;background:#f0f4ff;}
 .viewer-tab.active{color:#1a73e8;border-bottom-color:#1a73e8;}
-.viewer-body{flex:1;overflow:auto;padding:0;}
+.viewer-body{flex:1;overflow:auto;padding:0;min-height:0;}
 .viewer-body pre{padding:20px 24px;margin:0;font-size:.82em;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;font-family:'Cascadia Code','Fira Code','Courier New',monospace;}
 .viewer-body table{width:100%;font-size:.82em;border-collapse:collapse;}
-.viewer-body table th{background:#f5f5f5;padding:8px 12px;text-align:left;font-weight:600;position:sticky;top:0;}
+.viewer-body table th{background:#f5f5f5;padding:8px 12px;text-align:left;font-weight:600;position:sticky;top:0;cursor:pointer;user-select:none;white-space:nowrap;}
+.viewer-body table th:hover{background:#e8eaf6;}
+.viewer-body table th .sort-arrow{font-size:.7em;margin-left:4px;color:#aaa;}
 .viewer-body table td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
 .viewer-body table tr:hover{background:#f5f8ff;}
-.viewer-footer{display:flex;justify-content:flex-end;gap:10px;padding:12px 24px;border-top:1px solid #e0e0e0;flex-shrink:0;}
+.viewer-footer{display:flex;justify-content:flex-end;gap:10px;padding:12px 24px;border-top:1px solid #e0e0e0;flex-shrink:0;background:#fafafa;}
 
 /* Toast */
 .toast{position:fixed;top:20px;right:20px;padding:14px 20px;border-radius:8px;color:#fff;font-weight:600;z-index:2000;transform:translateX(120%);transition:transform .3s ease;}
@@ -514,10 +516,16 @@ async function loadViewerContent(format) {
   try {
     if (format === 'xlsx') {
       // Excel preview: fetch JSON and render as table
-      const data = viewerState.cache['json'] || await (await api(`/api/testplans/${category}/${feature}?format=json`)).json();
-      viewerState.cache['json'] = data;
+      let data = viewerState.cache['json_obj'];
+      if (!data) {
+        data = await (await api(`/api/testplans/${category}/${feature}?format=json`)).json();
+        viewerState.cache['json_obj'] = data;
+      }
       body.innerHTML = renderExcelPreview(data);
-      info.textContent = 'Excel preview (download for full .xlsx file)';
+      const totalTests = (data.features || []).reduce((sum, f) => {
+        return sum + Object.values(f.tests || {}).reduce((s, arr) => s + (arr ? arr.length : 0), 0);
+      }, 0);
+      info.textContent = `${totalTests} test cases · Excel preview (download for full .xlsx file)`;
       dlBtn.onclick = () => downloadTestPlan(category, feature, 'xlsx');
     } else if (format === 'csv') {
       let text = viewerState.cache['csv'];
@@ -533,8 +541,11 @@ async function loadViewerContent(format) {
       let text = viewerState.cache[format];
       if (!text) {
         if (format === 'json') {
-          const data = await (await api(`/api/testplans/${category}/${feature}?format=json`)).json();
-          viewerState.cache['json_obj'] = data;
+          let data = viewerState.cache['json_obj'];
+          if (!data) {
+            data = await (await api(`/api/testplans/${category}/${feature}?format=json`)).json();
+            viewerState.cache['json_obj'] = data;
+          }
           text = JSON.stringify(data, null, 2);
         } else {
           const res = await api(`/api/testplans/${category}/${feature}?format=yaml`);
@@ -560,33 +571,42 @@ function renderExcelPreview(data) {
   const features = data.features || [];
   if (!features.length) return '<div style="padding:40px;text-align:center;color:#888;">No test data</div>';
 
-  let html = '';
+  // Flatten all test cases into a single table
+  const allRows = [];
   for (const feat of features) {
     const tests = feat.tests || {};
     for (const [cat, cases] of Object.entries(tests)) {
       if (!cases || !cases.length) continue;
-      html += `<div style="padding:12px 24px 4px;"><strong style="color:#1a73e8;">${cat.charAt(0).toUpperCase() + cat.slice(1)}</strong> <span style="color:#888;">(${cases.length} tests)</span></div>`;
-      html += '<table><thead><tr><th>Test Case ID</th><th>Title</th><th>Priority</th><th>Method</th><th>Path</th><th>Has Payload</th></tr></thead><tbody>';
-      for (const tc of cases.slice(0, 50)) {
+      for (const tc of cases) {
         const step = (tc.steps || [])[0] || {};
-        const hasBody = step.body ? '&#10003;' : '&#10007;';
-        const bodyColor = step.body ? '#43a047' : '#e53935';
-        const title = (tc.description || '').length > 80 ? tc.description.substring(0, 77) + '...' : tc.description;
-        html += `<tr>
-          <td style="font-family:monospace;white-space:nowrap;">${tc.testCaseID || ''}</td>
-          <td>${title || ''}</td>
-          <td>${tc.priority || ''}</td>
-          <td><strong>${step.method || ''}</strong></td>
-          <td style="font-family:monospace;font-size:.9em;">${step.path || ''}</td>
-          <td style="text-align:center;color:${bodyColor};">${hasBody}</td>
-        </tr>`;
+        allRows.push({ cat, tc, step });
       }
-      if (cases.length > 50) {
-        html += `<tr><td colspan="6" style="text-align:center;color:#888;padding:12px;">... and ${cases.length - 50} more test cases. Download Excel for full data.</td></tr>`;
-      }
-      html += '</tbody></table>';
     }
   }
+  if (!allRows.length) return '<div style="padding:40px;text-align:center;color:#888;">No test data</div>';
+
+  let html = '<table id="excelPreviewTable"><thead><tr>';
+  const cols = ['Test Case ID','Type','Title','Priority','Method','Path','Has Payload','Expected Status'];
+  cols.forEach((col, i) => {
+    html += `<th onclick="sortViewerTable(${i})">${col} <span class="sort-arrow">▲▼</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+  for (const { cat, tc, step } of allRows) {
+    const hasBody = step.body ? '&#10003;' : '&#10007;';
+    const bodyColor = step.body ? '#43a047' : '#e53935';
+    const title = escapeHtml((tc.description || '').length > 100 ? tc.description.substring(0, 97) + '...' : (tc.description || ''));
+    html += `<tr>
+      <td style="font-family:monospace;white-space:nowrap;">${tc.testCaseID || ''}</td>
+      <td><span style="background:#e8eaf6;padding:2px 8px;border-radius:4px;font-size:.85em;">${cat}</span></td>
+      <td>${title}</td>
+      <td>${tc.priority || ''}</td>
+      <td><strong>${step.method || ''}</strong></td>
+      <td style="font-family:monospace;font-size:.9em;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${step.path || ''}</td>
+      <td style="text-align:center;color:${bodyColor};">${hasBody}</td>
+      <td style="text-align:center;">${step.expectedStatus || ''}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
   return html;
 }
 
@@ -594,9 +614,9 @@ function renderCSVPreview(text) {
   const lines = text.split('\n').filter(l => l.trim());
   if (lines.length < 2) return '<div style="padding:40px;text-align:center;color:#888;">No CSV data</div>';
 
-  const headers = lines[0].split(',');
-  let html = '<table><thead><tr>';
-  headers.forEach(h => { html += `<th>${h}</th>`; });
+  const headers = parseCSVLine(lines[0]);
+  let html = '<table id="csvPreviewTable"><thead><tr>';
+  headers.forEach((h, i) => { html += `<th onclick="sortViewerTable(${i})">${escapeHtml(h)} <span class="sort-arrow">▲▼</span></th>`; });
   html += '</tr></thead><tbody>';
 
   const maxRows = Math.min(lines.length, 101);
@@ -640,6 +660,39 @@ function escapeHtml(s) {
 
 function downloadViewerContent() {
   downloadTestPlan(viewerState.category, viewerState.feature, viewerState.format);
+}
+
+let sortState = { col: -1, asc: true };
+function sortViewerTable(colIdx) {
+  const table = document.querySelector('.viewer-body table');
+  if (!table) return;
+  const tbody = table.querySelector('tbody');
+  if (!tbody) return;
+  if (sortState.col === colIdx) {
+    sortState.asc = !sortState.asc;
+  } else {
+    sortState.col = colIdx;
+    sortState.asc = true;
+  }
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  rows.sort((a, b) => {
+    const cellA = (a.cells[colIdx]?.textContent || '').trim().toLowerCase();
+    const cellB = (b.cells[colIdx]?.textContent || '').trim().toLowerCase();
+    const numA = parseFloat(cellA), numB = parseFloat(cellB);
+    let cmp;
+    if (!isNaN(numA) && !isNaN(numB)) {
+      cmp = numA - numB;
+    } else {
+      cmp = cellA.localeCompare(cellB);
+    }
+    return sortState.asc ? cmp : -cmp;
+  });
+  rows.forEach(r => tbody.appendChild(r));
+  // Update sort arrows
+  table.querySelectorAll('th').forEach((th, i) => {
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = i === colIdx ? (sortState.asc ? '▲' : '▼') : '▲▼';
+  });
 }
 
 function downloadTestPlan(category, feature, format) {
