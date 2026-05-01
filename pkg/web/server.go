@@ -138,6 +138,18 @@ func (s *Server) registerRoutes() {
 		api.GET("/jira/issue/:key/related", s.handleJiraIssueRelated)
 		api.GET("/jira/issue/:key", s.handleJiraIssue)
 		api.GET("/jira/projects", s.handleJiraProjects)
+
+		// Widget Catalog
+		api.GET("/widgets/stats", s.handleWidgetStats)
+		api.GET("/widgets/types", s.handleListWidgetTypes)
+		api.POST("/widgets/types", s.handleCreateWidgetType)
+		api.PUT("/widgets/types/:id", s.handleUpdateWidgetType)
+		api.DELETE("/widgets/types/:id", s.handleDeleteWidgetType)
+		api.GET("/widgets/instances", s.handleListWidgetInstances)
+		api.POST("/widgets/instances", s.handleCreateWidgetInstance)
+		api.PUT("/widgets/instances/:id", s.handleUpdateWidgetInstance)
+		api.DELETE("/widgets/instances/:id", s.handleDeleteWidgetInstance)
+		api.POST("/widgets/seed", s.handleSeedWidgetTypes)
 	}
 }
 

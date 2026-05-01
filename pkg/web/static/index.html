@@ -79,6 +79,34 @@ tbody tr:hover td{background:#fafafa;}
 .jira-comment:first-child{border-top:0;padding-top:0;}
 .jira-comment-meta{font-size:.82em;color:#666;margin-bottom:6px;}
 
+/* Widget Catalog */
+.widget-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.widget-kpi{background:#f5f8ff;border:1px solid #e0e7ff;border-radius:8px;padding:14px;text-align:center;}
+.widget-kpi .val{font-size:1.8em;font-weight:700;color:#1a73e8;}
+.widget-kpi .lbl{font-size:.78em;color:#667;text-transform:uppercase;letter-spacing:.3px;margin-top:2px;}
+.widget-sub-tabs{display:flex;gap:0;margin-bottom:18px;border-bottom:2px solid #e8eaf6;}
+.widget-sub-tab{padding:10px 20px;cursor:pointer;font-weight:600;font-size:.88em;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;}
+.widget-sub-tab:hover{color:#1a73e8;}
+.widget-sub-tab.active{color:#1a73e8;border-bottom-color:#1a73e8;}
+.widget-sub-content{display:none;}
+.widget-sub-content.active{display:block;}
+.wcat-input,.wcat-select,.wcat-textarea{width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:.9em;margin-bottom:10px;font-family:inherit;}
+.wcat-textarea{min-height:60px;resize:vertical;}
+.wcat-label{display:block;font-weight:600;font-size:.85em;color:#555;margin-bottom:4px;}
+.wcat-action-row{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f0;}
+.wcat-action-row:last-child{border-bottom:none;}
+.wcat-chip{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.8em;font-weight:600;}
+.wcat-chip-functional{background:#e3f2fd;color:#1565c0;}
+.wcat-chip-boundary{background:#fff3e0;color:#e65100;}
+.wcat-chip-negative{background:#ffebee;color:#b71c1c;}
+.wcat-chip-scale{background:#e8f5e9;color:#1b5e20;}
+.wcat-chip-input{background:#e8f5e9;color:#1b5e20;}
+.wcat-chip-action{background:#fff3e0;color:#e65100;}
+.wcat-chip-display{background:#e3f2fd;color:#1565c0;}
+.wcat-chip-container{background:#f3e5f5;color:#6a1b9a;}
+.wcat-chip-navigation{background:#e0f7fa;color:#006064;}
+.wcat-prop{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.78em;background:#f0f0f0;color:#555;margin:2px;}
+
 /* Test count badges */
 .tc-badge{display:inline-block;min-width:36px;padding:2px 6px;border-radius:10px;font-size:.8em;font-weight:600;text-align:center;}
 .tc-functional{background:#e3f2fd;color:#1565c0;}
@@ -219,6 +247,7 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
     <div class="nav-tab" data-tab="versions" onclick="switchTab('versions')">Versions &amp; Diffs</div>
     <div class="nav-tab" data-tab="sources" onclick="switchTab('sources')">Source Files</div>
     <div class="nav-tab" data-tab="jira" onclick="switchTab('jira')">Jira</div>
+    <div class="nav-tab" data-tab="widgets" onclick="switchTab('widgets')">Widget Catalog</div>
     <div class="nav-tab" data-tab="generate" onclick="switchTab('generate')">Generate</div>
   </div>
 
@@ -314,6 +343,60 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
     </div>
   </div>
 
+  <!-- WIDGET CATALOG TAB -->
+  <div class="tab-content" id="tab-widgets">
+    <div class="widget-kpi-row" id="widgetKpiRow">
+      <div class="widget-kpi"><div class="spinner"></div></div>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <h2>Widget Catalog</h2>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm btn-primary" onclick="openWidgetTypeModal()">+ Add Widget Type</button>
+          <button class="btn btn-sm btn-secondary" style="color:#333;" onclick="seedWidgetCatalog()">&#9881; Seed XIQ Defaults</button>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="widget-sub-tabs">
+          <div class="widget-sub-tab active" onclick="switchWidgetSub('types')">Widget Types</div>
+          <div class="widget-sub-tab" onclick="switchWidgetSub('instances')">Widget Instances</div>
+        </div>
+
+        <!-- Widget Types sub-tab -->
+        <div class="widget-sub-content active" id="widgetSubTypes">
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">
+            <input type="text" id="widgetTypeFilter" placeholder="Filter by name or category..." style="flex:1;padding:8px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;" oninput="filterWidgetTypes()">
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Name</th><th>Category</th><th>Properties</th><th>Test Actions</th><th>Actions</th></tr></thead>
+            <tbody id="widgetTypesList"><tr><td colspan="6" class="loading"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+
+        <!-- Widget Instances sub-tab -->
+        <div class="widget-sub-content" id="widgetSubInstances">
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">
+            <input type="text" id="widgetInstanceFilter" placeholder="Filter by screen, label, or type..." style="flex:1;padding:8px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;" oninput="filterWidgetInstances()">
+            <button class="btn btn-sm btn-primary" onclick="openWidgetInstanceModal()">+ Add Instance</button>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Screen</th><th>Section</th><th>Label</th><th>Widget Type</th><th>Selector</th><th>Actions</th></tr></thead>
+            <tbody id="widgetInstancesList"><tr><td colspan="7" class="loading"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Widget Type Detail (shown inline when a type is clicked) -->
+    <div class="section" id="widgetTypeDetail" style="display:none;">
+      <div class="section-header">
+        <h2 id="widgetTypeDetailTitle">Widget Type Detail</h2>
+        <button class="btn btn-sm btn-secondary" style="color:#333;" onclick="closeWidgetTypeDetail()">&#10005; Close</button>
+      </div>
+      <div class="section-body" id="widgetTypeDetailBody"></div>
+    </div>
+  </div>
+
   <!-- GENERATE TAB -->
   <div class="tab-content" id="tab-generate">
     <div class="section">
@@ -388,6 +471,62 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
   </div>
 </div>
 
+<!-- Widget Type Modal -->
+<div class="modal-overlay" id="widgetTypeModal">
+  <div class="modal" style="max-width:600px;">
+    <h3 id="wtModalTitle">Add Widget Type</h3>
+    <input type="hidden" id="wtEditId">
+    <label class="wcat-label">Name</label>
+    <input type="text" id="wtName" class="wcat-input" placeholder="e.g. Text Field, Button, Data Table">
+    <label class="wcat-label">Category</label>
+    <select id="wtCategory" class="wcat-select">
+      <option value="input">Input</option>
+      <option value="action">Action</option>
+      <option value="display">Display</option>
+      <option value="container">Container</option>
+      <option value="navigation">Navigation</option>
+    </select>
+    <label class="wcat-label">Description</label>
+    <textarea id="wtDescription" class="wcat-textarea" placeholder="Brief description of this widget type"></textarea>
+    <label class="wcat-label">Properties (comma-separated)</label>
+    <input type="text" id="wtProperties" class="wcat-input" placeholder="label, placeholder, maxLength, required, disabled">
+    <label class="wcat-label">Test Actions</label>
+    <div id="wtActions" style="max-height:200px;overflow-y:auto;border:1px solid #eee;border-radius:6px;padding:8px;margin-bottom:10px;">
+      <p style="color:#888;font-size:.85em;">Add test actions after creating the widget type, or use "Seed XIQ Defaults" for pre-built types.</p>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-secondary" style="color:#333;" onclick="closeWidgetTypeModal()">Cancel</button>
+      <button class="btn btn-success" onclick="saveWidgetType()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Widget Instance Modal -->
+<div class="modal-overlay" id="widgetInstanceModal">
+  <div class="modal" style="max-width:600px;">
+    <h3 id="wiModalTitle">Add Widget Instance</h3>
+    <input type="hidden" id="wiEditId">
+    <label class="wcat-label">Screen / Page</label>
+    <input type="text" id="wiScreen" class="wcat-input" placeholder="e.g. Device Configuration, Network Policy">
+    <label class="wcat-label">Section</label>
+    <input type="text" id="wiSection" class="wcat-input" placeholder="e.g. General Settings, Advanced Options">
+    <label class="wcat-label">Label (visible text)</label>
+    <input type="text" id="wiLabel" class="wcat-input" placeholder="e.g. Device Name, VLAN ID">
+    <label class="wcat-label">Widget Type</label>
+    <select id="wiWidgetType" class="wcat-select">
+      <option value="">-- Select a widget type --</option>
+    </select>
+    <label class="wcat-label">CSS / XPath Selector (optional)</label>
+    <input type="text" id="wiSelector" class="wcat-input" placeholder="e.g. #device-name, [data-testid='vlan-input']">
+    <label class="wcat-label">Extra Properties (JSON, optional)</label>
+    <textarea id="wiProperties" class="wcat-textarea" placeholder='{"required": "true", "maxLength": "255"}'></textarea>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-secondary" style="color:#333;" onclick="closeWidgetInstanceModal()">Cancel</button>
+      <button class="btn btn-success" onclick="saveWidgetInstance()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -410,6 +549,7 @@ function switchTab(tab) {
   if (tab === 'versions') loadVersions();
   if (tab === 'sources') loadSources();
   if (tab === 'jira') loadJiraTab();
+  if (tab === 'widgets') loadWidgetsTab();
   if (tab === 'generate') loadGenerateTab();
 }
 
@@ -1277,6 +1417,311 @@ document.addEventListener('DOMContentLoaded', function() {
   const jiraInput = document.getElementById('jiraSearchInput');
   if (jiraInput) jiraInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') searchJira(); });
 });
+
+// --- Widget Catalog ---
+let widgetTypesData = [];
+let widgetInstancesData = [];
+
+async function loadWidgetsTab() {
+  await Promise.all([loadWidgetStats(), loadWidgetTypes(), loadWidgetInstances()]);
+}
+
+async function loadWidgetStats() {
+  try {
+    const stats = await apiJSON('/api/widgets/stats');
+    const kpis = [
+      { val: stats.totalTypes, lbl: 'Widget Types' },
+      { val: stats.totalInstances, lbl: 'Instances' },
+      { val: stats.totalTestActions, lbl: 'Test Actions' },
+      { val: Object.keys(stats.typesByCategory || {}).length, lbl: 'Categories' },
+      { val: Object.keys(stats.instancesByScreen || {}).length, lbl: 'Screens' },
+    ];
+    document.getElementById('widgetKpiRow').innerHTML = kpis.map(k =>
+      '<div class="widget-kpi"><div class="val">' + k.val + '</div><div class="lbl">' + k.lbl + '</div></div>'
+    ).join('');
+  } catch (e) {
+    document.getElementById('widgetKpiRow').innerHTML = '<div style="color:#888;">Failed to load stats</div>';
+  }
+}
+
+async function loadWidgetTypes() {
+  try {
+    widgetTypesData = await apiJSON('/api/widgets/types');
+    renderWidgetTypes(widgetTypesData);
+  } catch (e) {
+    document.getElementById('widgetTypesList').innerHTML = '<tr><td colspan="6" style="color:#c62828;">Error: ' + escapeHtml(e.message) + '</td></tr>';
+  }
+}
+
+function renderWidgetTypes(types) {
+  const tbody = document.getElementById('widgetTypesList');
+  if (!types.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">No widget types defined. Click "Seed XIQ Defaults" to populate with ExtremeCloud IQ widget types.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = types.map((t, i) => {
+    const catCls = 'wcat-chip-' + (t.category || 'input');
+    const props = (t.properties || []).slice(0, 4).map(p => '<span class="wcat-prop">' + escapeHtml(p) + '</span>').join('');
+    const moreProps = (t.properties || []).length > 4 ? ' <span class="wcat-prop">+' + ((t.properties||[]).length - 4) + '</span>' : '';
+    const actionCount = (t.testActions || []).length;
+    const actionByCat = {};
+    (t.testActions || []).forEach(a => { actionByCat[a.category] = (actionByCat[a.category] || 0) + 1; });
+    const actionSummary = Object.entries(actionByCat).map(([k, v]) => '<span class="wcat-chip wcat-chip-' + k + '">' + k + ':' + v + '</span>').join(' ');
+    return '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td><a href="javascript:void(0)" onclick="viewWidgetType(\'' + escapeHtml(t.id) + '\')" style="color:#1a73e8;font-weight:600;">' + escapeHtml(t.name) + '</a></td>' +
+      '<td><span class="wcat-chip ' + catCls + '">' + escapeHtml(t.category) + '</span></td>' +
+      '<td>' + props + moreProps + '</td>' +
+      '<td>' + actionCount + ' ' + actionSummary + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-primary" onclick="editWidgetType(\'' + escapeHtml(t.id) + '\')">Edit</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteWidgetType(\'' + escapeHtml(t.id) + '\',\'' + escapeHtml(t.name) + '\')">Delete</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function filterWidgetTypes() {
+  const q = document.getElementById('widgetTypeFilter').value.toLowerCase();
+  if (!q) { renderWidgetTypes(widgetTypesData); return; }
+  renderWidgetTypes(widgetTypesData.filter(t =>
+    t.name.toLowerCase().includes(q) || t.category.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q)
+  ));
+}
+
+async function loadWidgetInstances() {
+  try {
+    widgetInstancesData = await apiJSON('/api/widgets/instances');
+    renderWidgetInstances(widgetInstancesData);
+  } catch (e) {
+    document.getElementById('widgetInstancesList').innerHTML = '<tr><td colspan="7" style="color:#c62828;">Error: ' + escapeHtml(e.message) + '</td></tr>';
+  }
+}
+
+function renderWidgetInstances(instances) {
+  const tbody = document.getElementById('widgetInstancesList');
+  if (!instances.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;padding:20px;">No widget instances mapped. Add instances to map XIQ screen widgets to their types.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = instances.map((inst, i) => {
+    const typeName = (widgetTypesData.find(t => t.id === inst.widgetType) || {}).name || inst.widgetType;
+    return '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td><strong>' + escapeHtml(inst.screen) + '</strong></td>' +
+      '<td>' + escapeHtml(inst.section || '') + '</td>' +
+      '<td>' + escapeHtml(inst.label) + '</td>' +
+      '<td><span class="wcat-chip wcat-chip-input">' + escapeHtml(typeName) + '</span></td>' +
+      '<td style="font-family:monospace;font-size:.82em;color:#888;">' + escapeHtml(inst.selector || '') + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-primary" onclick="editWidgetInstance(\'' + escapeHtml(inst.id) + '\')">Edit</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteWidgetInstance(\'' + escapeHtml(inst.id) + '\',\'' + escapeHtml(inst.label) + '\')">Delete</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function filterWidgetInstances() {
+  const q = document.getElementById('widgetInstanceFilter').value.toLowerCase();
+  if (!q) { renderWidgetInstances(widgetInstancesData); return; }
+  renderWidgetInstances(widgetInstancesData.filter(inst => {
+    const typeName = (widgetTypesData.find(t => t.id === inst.widgetType) || {}).name || inst.widgetType;
+    return inst.screen.toLowerCase().includes(q) || inst.label.toLowerCase().includes(q) ||
+      (inst.section || '').toLowerCase().includes(q) || typeName.toLowerCase().includes(q);
+  }));
+}
+
+function switchWidgetSub(sub) {
+  document.querySelectorAll('.widget-sub-tab').forEach(t => t.classList.toggle('active', t.textContent.toLowerCase().includes(sub)));
+  document.getElementById('widgetSubTypes').classList.toggle('active', sub === 'types');
+  document.getElementById('widgetSubInstances').classList.toggle('active', sub === 'instances');
+}
+
+// Widget Type detail view
+function viewWidgetType(id) {
+  const t = widgetTypesData.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('widgetTypeDetailTitle').textContent = t.name + ' — ' + t.category;
+  let html = '<div style="margin-bottom:14px;color:#555;">' + escapeHtml(t.description || 'No description') + '</div>';
+  html += '<div style="margin-bottom:14px;"><strong>Properties:</strong> ' + (t.properties || []).map(p => '<span class="wcat-prop">' + escapeHtml(p) + '</span>').join(' ') + '</div>';
+  html += '<div style="margin-bottom:8px;"><strong>Test Actions (' + (t.testActions || []).length + '):</strong></div>';
+  if (t.testActions && t.testActions.length) {
+    html += '<table><thead><tr><th>#</th><th>Action</th><th>Description</th><th>Priority</th><th>Category</th></tr></thead><tbody>';
+    t.testActions.forEach((a, i) => {
+      html += '<tr><td>' + (i + 1) + '</td><td><code>' + escapeHtml(a.name) + '</code></td><td>' + escapeHtml(a.description) + '</td>';
+      html += '<td>' + escapeHtml(a.priority) + '</td><td><span class="wcat-chip wcat-chip-' + a.category + '">' + escapeHtml(a.category) + '</span></td></tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<p style="color:#888;">No test actions defined.</p>';
+  }
+  html += '<div style="margin-top:14px;font-size:.82em;color:#888;">Created: ' + new Date(t.createdAt).toLocaleString() + ' | Updated: ' + new Date(t.updatedAt).toLocaleString() + '</div>';
+  document.getElementById('widgetTypeDetailBody').innerHTML = html;
+  document.getElementById('widgetTypeDetail').style.display = 'block';
+  document.getElementById('widgetTypeDetail').scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeWidgetTypeDetail() {
+  document.getElementById('widgetTypeDetail').style.display = 'none';
+}
+
+// Widget Type CRUD
+function openWidgetTypeModal(editData) {
+  document.getElementById('wtEditId').value = editData ? editData.id : '';
+  document.getElementById('wtModalTitle').textContent = editData ? 'Edit Widget Type' : 'Add Widget Type';
+  document.getElementById('wtName').value = editData ? editData.name : '';
+  document.getElementById('wtCategory').value = editData ? editData.category : 'input';
+  document.getElementById('wtDescription').value = editData ? (editData.description || '') : '';
+  document.getElementById('wtProperties').value = editData ? (editData.properties || []).join(', ') : '';
+  if (editData && editData.testActions && editData.testActions.length) {
+    document.getElementById('wtActions').innerHTML = editData.testActions.map(a =>
+      '<div class="wcat-action-row"><code>' + escapeHtml(a.name) + '</code> <span class="wcat-chip wcat-chip-' + a.category + '">' + a.category + '</span> <span style="color:#888;font-size:.85em;">' + escapeHtml(a.priority) + '</span></div>'
+    ).join('');
+  } else {
+    document.getElementById('wtActions').innerHTML = '<p style="color:#888;font-size:.85em;">Test actions are preserved on edit. Use "Seed XIQ Defaults" for pre-built types.</p>';
+  }
+  document.getElementById('widgetTypeModal').classList.add('show');
+  document.getElementById('wtName').focus();
+}
+
+function closeWidgetTypeModal() {
+  document.getElementById('widgetTypeModal').classList.remove('show');
+}
+
+async function saveWidgetType() {
+  const editId = document.getElementById('wtEditId').value;
+  const name = document.getElementById('wtName').value.trim();
+  const category = document.getElementById('wtCategory').value;
+  const description = document.getElementById('wtDescription').value.trim();
+  const propsStr = document.getElementById('wtProperties').value.trim();
+  const properties = propsStr ? propsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  if (!name) { showToast('Name is required', 'error'); return; }
+
+  const body = { name, category, description, properties };
+
+  // Preserve existing test actions on edit
+  if (editId) {
+    const existing = widgetTypesData.find(t => t.id === editId);
+    if (existing) body.testActions = existing.testActions;
+  }
+
+  try {
+    if (editId) {
+      await apiJSON('/api/widgets/types/' + editId, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      showToast('Widget type updated', 'success');
+    } else {
+      await apiJSON('/api/widgets/types', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      showToast('Widget type created', 'success');
+    }
+    closeWidgetTypeModal();
+    loadWidgetsTab();
+  } catch (e) {
+    showToast('Failed: ' + e.message, 'error');
+  }
+}
+
+function editWidgetType(id) {
+  const t = widgetTypesData.find(x => x.id === id);
+  if (t) openWidgetTypeModal(t);
+}
+
+async function deleteWidgetType(id, name) {
+  if (!confirm('Delete widget type "' + name + '"? This cannot be undone.')) return;
+  try {
+    await apiJSON('/api/widgets/types/' + id, { method: 'DELETE' });
+    showToast('Deleted ' + name, 'success');
+    loadWidgetsTab();
+  } catch (e) {
+    showToast('Delete failed: ' + e.message, 'error');
+  }
+}
+
+async function seedWidgetCatalog() {
+  if (!confirm('This will populate the catalog with default ExtremeCloud IQ widget types. It only works when the catalog is empty. Continue?')) return;
+  try {
+    const result = await apiJSON('/api/widgets/seed', { method: 'POST' });
+    showToast('Seeded ' + result.seeded + ' widget types', 'success');
+    loadWidgetsTab();
+  } catch (e) {
+    showToast('Seed failed: ' + e.message, 'error');
+  }
+}
+
+// Widget Instance CRUD
+function openWidgetInstanceModal(editData) {
+  document.getElementById('wiEditId').value = editData ? editData.id : '';
+  document.getElementById('wiModalTitle').textContent = editData ? 'Edit Widget Instance' : 'Add Widget Instance';
+  document.getElementById('wiScreen').value = editData ? editData.screen : '';
+  document.getElementById('wiSection').value = editData ? (editData.section || '') : '';
+  document.getElementById('wiLabel').value = editData ? editData.label : '';
+  document.getElementById('wiSelector').value = editData ? (editData.selector || '') : '';
+  document.getElementById('wiProperties').value = editData && editData.properties && Object.keys(editData.properties).length ? JSON.stringify(editData.properties, null, 2) : '';
+
+  // Populate widget type dropdown
+  const sel = document.getElementById('wiWidgetType');
+  sel.innerHTML = '<option value="">-- Select a widget type --</option>';
+  widgetTypesData.forEach(t => {
+    sel.innerHTML += '<option value="' + escapeHtml(t.id) + '"' + (editData && editData.widgetType === t.id ? ' selected' : '') + '>' + escapeHtml(t.name) + ' (' + t.category + ')</option>';
+  });
+
+  document.getElementById('widgetInstanceModal').classList.add('show');
+  document.getElementById('wiScreen').focus();
+}
+
+function closeWidgetInstanceModal() {
+  document.getElementById('widgetInstanceModal').classList.remove('show');
+}
+
+async function saveWidgetInstance() {
+  const editId = document.getElementById('wiEditId').value;
+  const screen = document.getElementById('wiScreen').value.trim();
+  const section = document.getElementById('wiSection').value.trim();
+  const label = document.getElementById('wiLabel').value.trim();
+  const widgetType = document.getElementById('wiWidgetType').value;
+  const selector = document.getElementById('wiSelector').value.trim();
+  const propsStr = document.getElementById('wiProperties').value.trim();
+
+  if (!screen || !label || !widgetType) { showToast('Screen, label, and widget type are required', 'error'); return; }
+
+  let properties = {};
+  if (propsStr) {
+    try { properties = JSON.parse(propsStr); }
+    catch (e) { showToast('Invalid JSON in properties', 'error'); return; }
+  }
+
+  const body = { screen, section, label, widgetType, selector, properties };
+
+  try {
+    if (editId) {
+      await apiJSON('/api/widgets/instances/' + editId, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      showToast('Instance updated', 'success');
+    } else {
+      await apiJSON('/api/widgets/instances', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      showToast('Instance created', 'success');
+    }
+    closeWidgetInstanceModal();
+    loadWidgetsTab();
+  } catch (e) {
+    showToast('Failed: ' + e.message, 'error');
+  }
+}
+
+function editWidgetInstance(id) {
+  const inst = widgetInstancesData.find(x => x.id === id);
+  if (inst) openWidgetInstanceModal(inst);
+}
+
+async function deleteWidgetInstance(id, name) {
+  if (!confirm('Delete widget instance "' + name + '"?')) return;
+  try {
+    await apiJSON('/api/widgets/instances/' + id, { method: 'DELETE' });
+    showToast('Deleted ' + name, 'success');
+    loadWidgetsTab();
+  } catch (e) {
+    showToast('Delete failed: ' + e.message, 'error');
+  }
+}
 
 // --- Generate ---
 let genPollTimer = null;
