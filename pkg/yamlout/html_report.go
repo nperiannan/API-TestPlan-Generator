@@ -821,9 +821,11 @@ footer { text-align:center; color:#aaa; font-size:.8em; margin-top:20px; }
 	// Header
 	html.WriteString(fmt.Sprintf(`<header>
 <h1>Test Plan Summary</h1>
-<p>Generated: %s &nbsp;|&nbsp; Source YANG: %s</p>
+<p>Generated: %s</p>
+<p>YANG: %s</p>
+<p>REST API: %s &nbsp;|&nbsp; NOSAPI: %s</p>
 </header>
-`, suite.GeneratedAt, suite.SourceYangDir))
+`, suite.GeneratedAt, suite.SourceYangDir, suite.SourceRESTAPI, suite.SourceNOSAPI))
 
 	// KPI cards
 	html.WriteString(`<div class="kpi-row">`)
