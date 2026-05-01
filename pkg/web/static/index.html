@@ -586,7 +586,7 @@ function renderExcelPreview(data) {
   if (!allRows.length) return '<div style="padding:40px;text-align:center;color:#888;">No test data</div>';
 
   let html = '<table id="excelPreviewTable"><thead><tr>';
-  const cols = ['Test Case ID','Type','Title','Priority','Method','Path','Has Payload','Expected Status'];
+  const cols = ['Test Case ID','Type','Title','Priority','Path','Has Payload','Steps'];
   cols.forEach((col, i) => {
     html += `<th onclick="sortViewerTable(${i})">${col} <span class="sort-arrow">▲▼</span></th>`;
   });
@@ -594,16 +594,16 @@ function renderExcelPreview(data) {
   for (const { cat, tc, step } of allRows) {
     const hasBody = step.body ? '&#10003;' : '&#10007;';
     const bodyColor = step.body ? '#43a047' : '#e53935';
+    const stepsCount = (tc.steps || []).length;
     const title = escapeHtml((tc.description || '').length > 100 ? tc.description.substring(0, 97) + '...' : (tc.description || ''));
     html += `<tr>
       <td style="font-family:monospace;white-space:nowrap;">${tc.testCaseID || ''}</td>
       <td><span style="background:#e8eaf6;padding:2px 8px;border-radius:4px;font-size:.85em;">${cat}</span></td>
       <td>${title}</td>
       <td>${tc.priority || ''}</td>
-      <td><strong>${step.method || ''}</strong></td>
-      <td style="font-family:monospace;font-size:.9em;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${step.path || ''}</td>
+      <td style="font-family:monospace;font-size:.9em;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${step.path || ''}</td>
       <td style="text-align:center;color:${bodyColor};">${hasBody}</td>
-      <td style="text-align:center;">${step.expectedStatus || ''}</td>
+      <td style="text-align:center;">${stepsCount}</td>
     </tr>`;
   }
   html += '</tbody></table>';
