@@ -778,9 +778,9 @@ func (w *Writer) generateSummaryHTML(suite *model.TestSuite, timestamp string) s
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f0f2f5; color:#222; line-height:1.5; }
 .wrap { max-width:1300px; margin:0 auto; padding:24px; }
-header { background:linear-gradient(135deg,#1a73e8,#0d47a1); color:#fff; padding:14px 32px; border-radius:12px; margin-bottom:28px; }
-header h1 { font-size:1.5em; margin-bottom:2px; }
-header p { opacity:.85; font-size:.85em; }
+header { background:linear-gradient(135deg,#1a73e8,#0d47a1); color:#fff; padding:28px 32px; border-radius:12px; margin-bottom:28px; }
+header h1 { font-size:2em; margin-bottom:6px; }
+header p { opacity:.85; font-size:.95em; }
 .kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:28px; }
 .kpi { background:#fff; border-radius:10px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,.1); text-align:center; }
 .kpi .val { font-size:2.4em; font-weight:700; color:#1a73e8; }
