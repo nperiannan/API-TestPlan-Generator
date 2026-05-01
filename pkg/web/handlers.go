@@ -2,6 +2,7 @@ package web
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -1158,9 +1159,35 @@ func (s *Server) handleJiraSearch(c *gin.Context) {
 		return
 	}
 
+	// Detect if user entered an issue key (e.g. NVO-7491, TCXM-123)
+	issueKeyRe := regexp.MustCompile(`^[A-Z]+-\d+$`)
+	rawQuery := c.Query("jql")
+	feature := c.Query("feature")
+	if rawQuery == "" && feature != "" {
+		rawQuery = feature
+	}
+	if rawQuery != "" && issueKeyRe.MatchString(strings.TrimSpace(rawQuery)) {
+		// Fetch single issue and wrap as search result
+		key := strings.TrimSpace(rawQuery)
+		issue, statusCode, fetchErr := s.fetchJiraIssue(jcfg, key)
+		if fetchErr != nil {
+			c.JSON(http.StatusBadGateway, gin.H{"error": fetchErr.Error()})
+			return
+		}
+		if statusCode != http.StatusOK {
+			c.JSON(statusCode, gin.H{"error": fmt.Sprintf("Jira returned HTTP %d for %s", statusCode, key)})
+			return
+		}
+		// Wrap as search result format
+		c.JSON(http.StatusOK, gin.H{
+			"total":  1,
+			"issues": []interface{}{issue},
+		})
+		return
+	}
+
 	jql := c.Query("jql")
 	if jql == "" {
-		feature := c.Query("feature")
 		if feature != "" {
 			jql = fmt.Sprintf("project = %s AND summary ~ \"%s\" ORDER BY created DESC", jcfg.Project, feature)
 		} else {
@@ -1169,16 +1196,24 @@ func (s *Server) handleJiraSearch(c *gin.Context) {
 	}
 
 	maxResults := c.DefaultQuery("maxResults", "50")
-	apiURL := fmt.Sprintf("%s/rest/api/3/search?jql=%s&maxResults=%s&fields=summary,status,priority,assignee,created,updated,issuetype,labels",
-		jcfg.URL, url.QueryEscape(jql), url.QueryEscape(maxResults))
 
-	req, err := http.NewRequest("GET", apiURL, nil)
+	// Use POST /rest/api/2/search (v3 GET is deprecated/410)
+	body := map[string]interface{}{
+		"jql":        jql,
+		"maxResults": maxResults,
+		"fields":     []string{"summary", "status", "priority", "assignee", "created", "updated", "issuetype", "labels"},
+	}
+	bodyBytes, _ := json.Marshal(body)
+
+	apiURL := fmt.Sprintf("%s/rest/api/2/search", jcfg.URL)
+	req, err := http.NewRequest("POST", apiURL, bytes.NewReader(bodyBytes))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	req.SetBasicAuth(jcfg.Email, jcfg.Token)
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -1200,6 +1235,29 @@ func (s *Server) handleJiraSearch(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// fetchJiraIssue fetches a single issue by key, returns parsed JSON, status code, and error
+func (s *Server) fetchJiraIssue(jcfg *jiraConfig, key string) (interface{}, int, error) {
+	apiURL := fmt.Sprintf("%s/rest/api/2/issue/%s", jcfg.URL, url.PathEscape(key))
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+	req.SetBasicAuth(jcfg.Email, jcfg.Token)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to reach Jira: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, resp.StatusCode, fmt.Errorf("failed to parse Jira response")
+	}
+	return result, resp.StatusCode, nil
+}
+
 // handleJiraIssue gets a single Jira issue by key
 func (s *Server) handleJiraIssue(c *gin.Context) {
 	jcfg, err := s.loadJiraConfig()
@@ -1209,29 +1267,12 @@ func (s *Server) handleJiraIssue(c *gin.Context) {
 	}
 
 	key := c.Param("key")
-	apiURL := fmt.Sprintf("%s/rest/api/3/issue/%s", jcfg.URL, key)
-
-	req, err := http.NewRequest("GET", apiURL, nil)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	result, statusCode, fetchErr := s.fetchJiraIssue(jcfg, key)
+	if fetchErr != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": fetchErr.Error()})
 		return
 	}
-	req.SetBasicAuth(jcfg.Email, jcfg.Token)
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to reach Jira: " + err.Error()})
-		return
-	}
-	defer resp.Body.Close()
-
-	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse Jira response"})
-		return
-	}
-	c.JSON(resp.StatusCode, result)
+	c.JSON(statusCode, result)
 }
 
 // handleJiraProjects lists accessible Jira projects
@@ -1242,7 +1283,7 @@ func (s *Server) handleJiraProjects(c *gin.Context) {
 		return
 	}
 
-	apiURL := fmt.Sprintf("%s/rest/api/3/project", jcfg.URL)
+	apiURL := fmt.Sprintf("%s/rest/api/2/project", jcfg.URL)
 
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
