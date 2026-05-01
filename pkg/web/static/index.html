@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Plan Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f2f5;color:#222;line-height:1.5;}
+.wrap{max-width:1400px;margin:0 auto;padding:24px;}
+header{background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:28px 32px;border-radius:12px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;}
+header .title-area h1{font-size:2em;margin-bottom:6px;}
+header .title-area p{opacity:.85;font-size:.95em;}
+header .actions{display:flex;gap:10px;}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-size:.9em;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-primary{background:#fff;color:#1a73e8;}
+.btn-primary:hover{background:#e3f2fd;}
+.btn-secondary{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);}
+.btn-secondary:hover{background:rgba(255,255,255,.25);}
+.btn-sm{padding:6px 14px;font-size:.82em;}
+.btn-danger{background:#ef5350;color:#fff;}
+.btn-danger:hover{background:#e53935;}
+.btn-success{background:#43a047;color:#fff;}
+.btn-success:hover{background:#388e3c;}
+
+/* Navigation tabs */
+.nav-tabs{display:flex;gap:0;margin-bottom:28px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.nav-tab{padding:14px 24px;cursor:pointer;font-weight:600;font-size:.9em;color:#666;border-bottom:3px solid transparent;transition:all .2s;}
+.nav-tab:hover{color:#1a73e8;background:#f5f8ff;}
+.nav-tab.active{color:#1a73e8;border-bottom-color:#1a73e8;background:#f5f8ff;}
+
+/* KPI cards */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px;}
+.kpi{background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.1);text-align:center;transition:transform .2s;}
+.kpi:hover{transform:translateY(-2px);}
+.kpi .val{font-size:2.4em;font-weight:700;color:#1a73e8;}
+.kpi .lbl{font-size:.8em;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-top:4px;}
+.kpi .delta{font-size:.75em;margin-top:4px;}
+.delta-positive{color:#43a047;}
+.delta-negative{color:#e53935;}
+
+/* Section cards */
+.section{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.1);margin-bottom:28px;overflow:hidden;}
+.section-header{padding:16px 20px;border-bottom:2px solid #e8eaf6;display:flex;align-items:center;gap:12px;justify-content:space-between;}
+.section-header h2{font-size:1.15em;color:#1a73e8;}
+.section-body{padding:20px;}
+
+/* Category badges */
+.cat-badge{padding:4px 12px;border-radius:20px;font-size:.82em;font-weight:600;}
+.cat-global{background:#e8f5e9;color:#1b5e20;}
+.cat-wired{background:#fff3e0;color:#e65100;}
+.cat-wireless{background:#f3e5f5;color:#6a1b9a;}
+.cat-service{background:#e0f7fa;color:#006064;}
+.cat-uncategorized{background:#f5f5f5;color:#616161;}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:.88em;}
+thead th{background:#f5f5f5;padding:10px 14px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #ddd;white-space:nowrap;}
+tbody td{padding:9px 14px;border-bottom:1px solid #eee;vertical-align:middle;}
+tbody tr:hover td{background:#fafafa;}
+
+/* Test count badges */
+.tc-badge{display:inline-block;min-width:36px;padding:2px 6px;border-radius:10px;font-size:.8em;font-weight:600;text-align:center;}
+.tc-functional{background:#e3f2fd;color:#1565c0;}
+.tc-boundary{background:#fff3e0;color:#e65100;}
+.tc-negative{background:#ffebee;color:#b71c1c;}
+.tc-scale{background:#e8f5e9;color:#1b5e20;}
+.tc-performance{background:#f3e5f5;color:#6a1b9a;}
+.tc-total{background:#263238;color:#fff;}
+
+/* Change indicators */
+.change-added{color:#43a047;font-weight:600;}
+.change-removed{color:#e53935;font-weight:600;}
+.change-modified{color:#f57f17;font-weight:600;}
+.change-badge{padding:2px 8px;border-radius:10px;font-size:.75em;font-weight:700;text-transform:uppercase;}
+.change-badge.added{background:#e8f5e9;color:#1b5e20;}
+.change-badge.removed{background:#ffebee;color:#b71c1c;}
+.change-badge.modified{background:#fff8e1;color:#f57f17;}
+
+/* Version cards */
+.version-card{border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:12px;transition:all .2s;cursor:pointer;}
+.version-card:hover{border-color:#1a73e8;box-shadow:0 2px 8px rgba(26,115,232,.15);}
+.version-card.selected{border-color:#1a73e8;background:#f5f8ff;}
+.version-card .v-tag{font-weight:700;font-size:1.1em;color:#1a73e8;}
+.version-card .v-date{font-size:.82em;color:#888;margin-top:2px;}
+.version-card .v-stats{display:flex;gap:16px;margin-top:8px;font-size:.85em;color:#555;}
+
+/* Modal */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:12px;padding:24px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;}
+.modal h3{margin-bottom:16px;color:#1a73e8;}
+.modal label{display:block;margin-bottom:6px;font-weight:600;font-size:.9em;color:#555;}
+.modal input,.modal textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:.9em;margin-bottom:14px;}
+.modal textarea{min-height:80px;resize:vertical;}
+
+/* View panel */
+.view-panel{border:1px solid #e0e0e0;border-radius:8px;background:#fafafa;max-height:600px;overflow:auto;}
+.view-panel pre{padding:16px;font-size:.82em;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;font-family:'Cascadia Code','Fira Code','Courier New',monospace;}
+
+/* Toast */
+.toast{position:fixed;top:20px;right:20px;padding:14px 20px;border-radius:8px;color:#fff;font-weight:600;z-index:2000;transform:translateX(120%);transition:transform .3s ease;}
+.toast.show{transform:translateX(0);}
+.toast-success{background:#43a047;}
+.toast-error{background:#e53935;}
+.toast-info{background:#1a73e8;}
+
+/* Loading */
+.loading{text-align:center;padding:40px;color:#888;}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#1a73e8;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Diff view */
+.diff-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.diff-stat{text-align:center;padding:12px;border-radius:8px;background:#f5f5f5;}
+.diff-stat .val{font-size:1.5em;font-weight:700;}
+
+/* Download menu */
+.download-menu{position:relative;display:inline-block;}
+.download-options{display:none;position:absolute;right:0;top:100%;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:100;min-width:140px;}
+.download-options.show{display:block;}
+.download-option{padding:10px 16px;cursor:pointer;font-size:.88em;white-space:nowrap;}
+.download-option:hover{background:#f5f8ff;color:#1a73e8;}
+
+footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
+
+/* Tab content */
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title-area">
+      <h1>&#128202; Test Plan Dashboard</h1>
+      <p id="headerSubtitle">Loading...</p>
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="openVersionModal()">&#128230; Save Version</button>
+      <button class="btn btn-primary" onclick="refreshDashboard()">&#8635; Refresh</button>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-tab="overview" onclick="switchTab('overview')">Overview</div>
+    <div class="nav-tab" data-tab="testplans" onclick="switchTab('testplans')">Test Plans</div>
+    <div class="nav-tab" data-tab="versions" onclick="switchTab('versions')">Versions &amp; Diffs</div>
+    <div class="nav-tab" data-tab="sources" onclick="switchTab('sources')">Source Files</div>
+  </div>
+
+  <!-- OVERVIEW TAB -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Feature Summary by Category -->
+    <div id="featureGroups"></div>
+  </div>
+
+  <!-- TEST PLANS TAB -->
+  <div class="tab-content" id="tab-testplans">
+    <div class="section">
+      <div class="section-header">
+        <h2>Test Plan Files</h2>
+      </div>
+      <div class="section-body">
+        <table>
+          <thead><tr><th>#</th><th>Category</th><th>Feature</th><th>File</th><th>Size</th><th>Actions</th></tr></thead>
+          <tbody id="testPlanList"><tr><td colspan="6" class="loading"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Inline viewer -->
+    <div class="section" id="viewerSection" style="display:none;">
+      <div class="section-header">
+        <h2 id="viewerTitle">Viewing</h2>
+        <button class="btn btn-sm btn-secondary" onclick="closeViewer()">&#10005; Close</button>
+      </div>
+      <div class="section-body">
+        <div class="view-panel"><pre id="viewerContent"></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERSIONS TAB -->
+  <div class="tab-content" id="tab-versions">
+    <div class="section">
+      <div class="section-header">
+        <h2>Stored Versions</h2>
+        <button class="btn btn-sm btn-primary" onclick="openVersionModal()">+ New Version</button>
+      </div>
+      <div class="section-body" id="versionList">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- Diff panel -->
+    <div class="section" id="diffSection" style="display:none;">
+      <div class="section-header">
+        <h2 id="diffTitle">Version Comparison</h2>
+      </div>
+      <div class="section-body" id="diffContent"></div>
+    </div>
+  </div>
+
+  <!-- SOURCES TAB -->
+  <div class="tab-content" id="tab-sources">
+    <div class="section">
+      <div class="section-header">
+        <h2>Source Files</h2>
+        <span style="font-size:.85em;color:#888;">YANG models, API specs, and NOSAPI files</span>
+      </div>
+      <div class="section-body">
+        <table>
+          <thead><tr><th>#</th><th>File</th><th>Last Modified</th><th>Size</th><th>Hash</th></tr></thead>
+          <tbody id="sourceList"><tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>Test Plan Dashboard &mdash; Powered by TestGen + MinIO</footer>
+</div>
+
+<!-- Version Modal -->
+<div class="modal-overlay" id="versionModal">
+  <div class="modal">
+    <h3>Save New Version</h3>
+    <label for="versionTag">Version Tag</label>
+    <input type="text" id="versionTag" placeholder="e.g. v1.3.0">
+    <label for="versionDesc">Description</label>
+    <textarea id="versionDesc" placeholder="What changed in this version?"></textarea>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-secondary" style="color:#333;" onclick="closeVersionModal()">Cancel</button>
+      <button class="btn btn-success" onclick="saveVersion()">Save Version</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+
+// --- State ---
+let summaryData = null;
+let versionsData = [];
+let selectedVersions = [];
+
+// --- Tab switching ---
+function switchTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+
+  if (tab === 'testplans') loadTestPlans();
+  if (tab === 'versions') loadVersions();
+  if (tab === 'sources') loadSources();
+}
+
+// --- API helpers ---
+async function api(path, opts) {
+  const res = await fetch(API + path, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || res.statusText);
+  }
+  return res;
+}
+
+async function apiJSON(path, opts) {
+  const res = await api(path, opts);
+  return res.json();
+}
+
+// --- Dashboard ---
+async function refreshDashboard() {
+  try {
+    summaryData = await apiJSON('/api/summary');
+    renderKPIs();
+    renderFeatureGroups();
+    document.getElementById('headerSubtitle').textContent =
+      `${summaryData.totalFeatures} features \u2022 ${summaryData.totalTests} test cases \u2022 ${summaryData.generatedAt}`;
+  } catch (e) {
+    showToast('Failed to load summary: ' + e.message, 'error');
+  }
+}
+
+function renderKPIs() {
+  const d = summaryData;
+  const cats = d.testsByCategory || {};
+  const kpis = [
+    { val: d.totalFeatures, lbl: 'Features' },
+    { val: d.totalTests, lbl: 'Total Tests' },
+    { val: cats.functional || 0, lbl: 'Functional' },
+    { val: cats.boundary || 0, lbl: 'Boundary' },
+    { val: cats.negative || 0, lbl: 'Negative' },
+    { val: cats.scale || 0, lbl: 'Scale' },
+    { val: cats.performance || 0, lbl: 'Performance' },
+  ];
+  document.getElementById('kpiRow').innerHTML = kpis.map(k =>
+    `<div class="kpi"><div class="val">${k.val.toLocaleString()}</div><div class="lbl">${k.lbl}</div></div>`
+  ).join('');
+}
+
+function renderFeatureGroups() {
+  const groups = summaryData.featuresByGroup || {};
+  const catLabels = {
+    'global-profile': 'Global Profile',
+    'wired-blueprint': 'Wired Blueprint',
+    'wireless-blueprint': 'Wireless Blueprint',
+    'service-profile': 'Service Profile',
+    'uncategorized': 'Uncategorized',
+  };
+  const catClass = {
+    'global-profile': 'cat-global',
+    'wired-blueprint': 'cat-wired',
+    'wireless-blueprint': 'cat-wireless',
+    'service-profile': 'cat-service',
+    'uncategorized': 'cat-uncategorized',
+  };
+
+  let html = '';
+  for (const [group, features] of Object.entries(groups)) {
+    const label = catLabels[group] || group;
+    const cls = catClass[group] || 'cat-uncategorized';
+    html += `<div class="section">
+      <div class="section-header">
+        <h2>${label}</h2>
+        <span class="cat-badge ${cls}">${features.length} features</span>
+      </div>
+      <table>
+        <thead><tr>
+          <th>#</th><th>Feature Name</th>
+          <th style="border-radius:6px 6px 0 0" class="tc-functional">Functional</th>
+          <th style="border-radius:6px 6px 0 0" class="tc-boundary">Boundary</th>
+          <th style="border-radius:6px 6px 0 0" class="tc-negative">Negative</th>
+          <th style="border-radius:6px 6px 0 0" class="tc-scale">Scale</th>
+          <th style="border-radius:6px 6px 0 0" class="tc-performance">Performance</th>
+          <th style="border-radius:6px 6px 0 0" class="tc-total">Total</th>
+        </tr></thead>
+        <tbody>`;
+    features.sort((a, b) => a.name.localeCompare(b.name));
+    features.forEach((f, i) => {
+      const tc = f.testsByCategory || {};
+      html += `<tr>
+        <td>${i + 1}</td>
+        <td><strong>${f.name}</strong></td>
+        <td><span class="tc-badge tc-functional">${tc.functional || 0}</span></td>
+        <td><span class="tc-badge tc-boundary">${tc.boundary || 0}</span></td>
+        <td><span class="tc-badge tc-negative">${tc.negative || 0}</span></td>
+        <td><span class="tc-badge tc-scale">${tc.scale || 0}</span></td>
+        <td><span class="tc-badge tc-performance">${tc.performance || 0}</span></td>
+        <td><span class="tc-badge tc-total">${f.totalTests}</span></td>
+      </tr>`;
+    });
+    html += '</tbody></table></div>';
+  }
+  document.getElementById('featureGroups').innerHTML = html;
+}
+
+// --- Test Plans ---
+async function loadTestPlans() {
+  try {
+    const plans = await apiJSON('/api/testplans');
+    const tbody = document.getElementById('testPlanList');
+    if (!plans.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">No test plans found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = plans.map((p, i) => `<tr>
+      <td>${i + 1}</td>
+      <td><span class="cat-badge cat-${p.category.replace('-blueprint','').replace('-profile','')}">${p.category}</span></td>
+      <td><strong>${p.feature}</strong></td>
+      <td style="font-size:.82em;color:#888;">${p.fileName}</td>
+      <td>${formatSize(p.size)}</td>
+      <td>
+        <button class="btn btn-sm btn-primary" onclick="viewTestPlan('${p.category}','${p.feature}')">View</button>
+        <div class="download-menu">
+          <button class="btn btn-sm btn-secondary" style="color:#333;" onclick="toggleDownload(this)">&#11015; Download</button>
+          <div class="download-options">
+            <div class="download-option" onclick="downloadTestPlan('${p.category}','${p.feature}','yaml')">YAML</div>
+            <div class="download-option" onclick="downloadTestPlan('${p.category}','${p.feature}','json')">JSON</div>
+            <div class="download-option" onclick="downloadTestPlan('${p.category}','${p.feature}','csv')">CSV</div>
+          </div>
+        </div>
+      </td>
+    </tr>`).join('');
+  } catch (e) {
+    showToast('Failed to load test plans: ' + e.message, 'error');
+  }
+}
+
+async function viewTestPlan(category, feature) {
+  try {
+    const res = await api(`/api/testplans/${category}/${feature}?format=yaml`);
+    const text = await res.text();
+    document.getElementById('viewerTitle').textContent = `${category} / ${feature}`;
+    document.getElementById('viewerContent').textContent = text;
+    document.getElementById('viewerSection').style.display = 'block';
+    document.getElementById('viewerSection').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    showToast('Failed to load test plan: ' + e.message, 'error');
+  }
+}
+
+function closeViewer() {
+  document.getElementById('viewerSection').style.display = 'none';
+}
+
+function downloadTestPlan(category, feature, format) {
+  const url = `${API}/api/testplans/${category}/${feature}/download?format=${format}`;
+  window.open(url, '_blank');
+  document.querySelectorAll('.download-options').forEach(d => d.classList.remove('show'));
+}
+
+function toggleDownload(btn) {
+  const options = btn.nextElementSibling;
+  document.querySelectorAll('.download-options').forEach(d => {
+    if (d !== options) d.classList.remove('show');
+  });
+  options.classList.toggle('show');
+}
+
+// Close download menus on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.download-menu')) {
+    document.querySelectorAll('.download-options').forEach(d => d.classList.remove('show'));
+  }
+});
+
+// --- Versions ---
+async function loadVersions() {
+  try {
+    versionsData = await apiJSON('/api/versions');
+    const container = document.getElementById('versionList');
+    if (!versionsData.length) {
+      container.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">No versions saved yet. Click "Save Version" to store the current test plans.</p>';
+      return;
+    }
+    container.innerHTML = versionsData.map(v => `
+      <div class="version-card ${selectedVersions.includes(v.id) ? 'selected' : ''}"
+           onclick="toggleVersionSelect('${v.id}')" data-id="${v.id}">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="v-tag">${v.tag}</div>
+            <div class="v-date">${new Date(v.createdAt).toLocaleString()}</div>
+            ${v.description ? `<div style="font-size:.85em;color:#666;margin-top:4px;">${v.description}</div>` : ''}
+          </div>
+          <div class="v-stats">
+            <span><strong>${v.features}</strong> features</span>
+            <span><strong>${v.totalTests.toLocaleString()}</strong> tests</span>
+          </div>
+        </div>
+      </div>
+    `).join('') + `
+      <div style="margin-top:16px;">
+        <p style="font-size:.85em;color:#888;">Select two versions to compare. <strong>${selectedVersions.length}/2</strong> selected.</p>
+        ${selectedVersions.length === 2 ? `<button class="btn btn-primary" onclick="compareVersions()">Compare Selected</button>` : ''}
+      </div>
+    `;
+  } catch (e) {
+    showToast('Failed to load versions: ' + e.message, 'error');
+  }
+}
+
+function toggleVersionSelect(id) {
+  const idx = selectedVersions.indexOf(id);
+  if (idx >= 0) {
+    selectedVersions.splice(idx, 1);
+  } else {
+    if (selectedVersions.length >= 2) selectedVersions.shift();
+    selectedVersions.push(id);
+  }
+  loadVersions();
+}
+
+async function compareVersions() {
+  if (selectedVersions.length !== 2) return;
+  try {
+    const diff = await apiJSON(`/api/versions/${selectedVersions[0]}/diff/${selectedVersions[1]}`);
+    renderDiff(diff);
+  } catch (e) {
+    showToast('Failed to compare versions: ' + e.message, 'error');
+  }
+}
+
+function renderDiff(diff) {
+  const section = document.getElementById('diffSection');
+  section.style.display = 'block';
+  document.getElementById('diffTitle').textContent = `${diff.oldTag} \u2192 ${diff.newTag}`;
+
+  let html = `<div class="diff-summary">
+    <div class="diff-stat"><div class="val" style="color:#1a73e8;">${diff.summary.totalTestsOld.toLocaleString()}</div><div class="lbl">Old Tests</div></div>
+    <div class="diff-stat"><div class="val" style="color:#1a73e8;">${diff.summary.totalTestsNew.toLocaleString()}</div><div class="lbl">New Tests</div></div>
+    <div class="diff-stat"><div class="val ${diff.summary.testsDelta >= 0 ? 'delta-positive' : 'delta-negative'}">${diff.summary.testsDelta >= 0 ? '+' : ''}${diff.summary.testsDelta}</div><div class="lbl">Delta</div></div>
+    <div class="diff-stat"><div class="val change-added">${diff.summary.featuresAdded}</div><div class="lbl">Added</div></div>
+    <div class="diff-stat"><div class="val change-removed">${diff.summary.featuresRemoved}</div><div class="lbl">Removed</div></div>
+    <div class="diff-stat"><div class="val change-modified">${diff.summary.featuresModified}</div><div class="lbl">Modified</div></div>
+  </div>`;
+
+  if (diff.testDiffs && diff.testDiffs.length) {
+    html += `<h3 style="margin:16px 0 10px;color:#1a73e8;">Feature Changes</h3>
+    <table><thead><tr>
+      <th>Feature</th><th>Category</th><th>Change</th><th>Old</th><th>New</th><th>Delta</th>
+    </tr></thead><tbody>`;
+    diff.testDiffs.forEach(td => {
+      if (td.delta === 0 && td.changeType === 'modified') return;
+      const deltaStr = td.delta > 0 ? `<span class="delta-positive">+${td.delta}</span>` : td.delta < 0 ? `<span class="delta-negative">${td.delta}</span>` : '0';
+      html += `<tr>
+        <td><strong>${td.featureName}</strong></td>
+        <td>${td.category || '-'}</td>
+        <td><span class="change-badge ${td.changeType}">${td.changeType}</span></td>
+        <td>${td.oldTotalTests}</td>
+        <td>${td.newTotalTests}</td>
+        <td>${deltaStr}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+  }
+
+  if (diff.fileChanges && diff.fileChanges.length) {
+    html += `<h3 style="margin:16px 0 10px;color:#1a73e8;">File Changes</h3>
+    <table><thead><tr><th>File</th><th>Change</th><th>Old Size</th><th>New Size</th></tr></thead><tbody>`;
+    diff.fileChanges.forEach(fc => {
+      html += `<tr>
+        <td style="font-family:monospace;font-size:.82em;">${fc.path}</td>
+        <td><span class="change-badge ${fc.changeType}">${fc.changeType}</span></td>
+        <td>${fc.oldSize ? formatSize(fc.oldSize) : '-'}</td>
+        <td>${fc.newSize ? formatSize(fc.newSize) : '-'}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+  }
+
+  document.getElementById('diffContent').innerHTML = html;
+  section.scrollIntoView({ behavior: 'smooth' });
+}
+
+// --- Sources ---
+async function loadSources() {
+  try {
+    const sources = await apiJSON('/api/sources/changes');
+    const tbody = document.getElementById('sourceList');
+    if (!sources.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;">No source files found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = sources.map((s, i) => `<tr>
+      <td>${i + 1}</td>
+      <td style="font-family:monospace;font-size:.85em;">${s.file}</td>
+      <td>${new Date(s.lastModified).toLocaleString()}</td>
+      <td>${formatSize(s.size)}</td>
+      <td style="font-family:monospace;font-size:.82em;color:#888;">${s.hash}</td>
+    </tr>`).join('');
+  } catch (e) {
+    showToast('Failed to load sources: ' + e.message, 'error');
+  }
+}
+
+// --- Version Modal ---
+function openVersionModal() {
+  document.getElementById('versionModal').classList.add('show');
+  document.getElementById('versionTag').focus();
+}
+
+function closeVersionModal() {
+  document.getElementById('versionModal').classList.remove('show');
+}
+
+async function saveVersion() {
+  const tag = document.getElementById('versionTag').value.trim();
+  const desc = document.getElementById('versionDesc').value.trim();
+  if (!tag) { showToast('Version tag is required', 'error'); return; }
+
+  try {
+    await apiJSON('/api/versions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tag, description: desc }),
+    });
+    showToast(`Version ${tag} saved!`, 'success');
+    closeVersionModal();
+    document.getElementById('versionTag').value = '';
+    document.getElementById('versionDesc').value = '';
+    if (document.querySelector('[data-tab="versions"]').classList.contains('active')) {
+      loadVersions();
+    }
+  } catch (e) {
+    showToast('Failed to save version: ' + e.message, 'error');
+  }
+}
+
+// --- Utility ---
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast toast-${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// --- Init ---
+refreshDashboard();
+</script>
+</body>
+</html>
