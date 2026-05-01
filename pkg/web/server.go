@@ -158,6 +158,10 @@ func (s *Server) registerRoutes() {
 		api.POST("/figma/import", s.handleFigmaImport)
 		api.GET("/figma/import", s.handleFigmaLastImport)
 		api.POST("/figma/map", s.handleFigmaManualMap)
+
+		// GUI Test Plan Generation
+		api.POST("/gui/generate", s.handleGUIGenerate)
+		api.GET("/gui/plans", s.handleGUITestPlanList)
 	}
 }
 

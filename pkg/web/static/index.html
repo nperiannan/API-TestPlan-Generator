@@ -435,10 +435,13 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
           </div>
         </div>
         <div id="figmaConnected" style="display:none;">
-          <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
-            <input type="text" id="figmaFileKeyInput" placeholder="Figma file key (from URL)..." style="flex:1;min-width:280px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;">
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+            <input type="text" id="figmaFileKeyInput" placeholder="Figma file key (from URL)..." style="flex:1;min-width:220px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;">
             <button class="btn btn-primary" onclick="fetchFigmaFile()">&#128269; Fetch File Info</button>
-            <button class="btn btn-success" onclick="importFigmaComponents(false)">&#11015; Import Components</button>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+            <input type="text" id="figmaNodeIdInput" placeholder="Node ID (e.g., 3240:336907) — from Figma URL node-id param" style="flex:1;min-width:280px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;">
+            <button class="btn btn-success" onclick="importFigmaComponents(false)">&#11015; Import Widgets</button>
             <button class="btn btn-secondary" style="color:#333;" onclick="importFigmaComponents(true)">&#11015; Import + Auto-Create</button>
           </div>
           <div id="figmaFileInfo" style="display:none;margin-bottom:16px;"></div>
@@ -453,6 +456,38 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
         <h2 id="figmaLastImportTitle">Last Import</h2>
       </div>
       <div class="section-body" id="figmaLastImportBody"></div>
+    </div>
+
+    <!-- GUI Test Plan Generation -->
+    <div class="section" id="figmaGuiGenSection">
+      <div class="section-header">
+        <h2>&#128736; Generate GUI Test Plan</h2>
+        <span style="font-size:.85em;color:#888;">Combines Figma widgets + Widget Catalog + API Test Plan + Jira Story</span>
+      </div>
+      <div class="section-body">
+        <p style="margin-bottom:12px;color:#555;font-size:.9em;">Select an existing API test plan feature to generate the corresponding GUI test cases. The generator will map Figma widgets to test actions from the Widget Catalog and enrich with field data from the API test plan.</p>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+          <select id="guiGenCategory" style="padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;min-width:180px;" onchange="loadGuiGenFeatures()">
+            <option value="">Select category...</option>
+          </select>
+          <select id="guiGenFeature" style="flex:1;min-width:220px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;">
+            <option value="">Select feature (API test plan)...</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+          <input type="text" id="guiGenJiraKey" placeholder="Jira issue key (optional, e.g. UX-2404)" style="min-width:220px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;">
+          <button class="btn btn-success" onclick="generateGUITestPlan()" id="btnGuiGen">&#9654; Generate GUI Test Plan</button>
+        </div>
+        <div id="guiGenResults"></div>
+      </div>
+    </div>
+
+    <!-- Generated GUI Plans -->
+    <div class="section" id="guiPlansSection" style="display:none;">
+      <div class="section-header">
+        <h2>Generated GUI Test Plans</h2>
+      </div>
+      <div class="section-body" id="guiPlansList"></div>
     </div>
   </div>
 
@@ -1798,6 +1833,7 @@ async function loadFigmaTab() {
         document.getElementById('figmaFileKeyInput').value = cfg.fileKey;
       }
       loadFigmaLastImport();
+      loadGuiGenSection();
     } else {
       document.getElementById('figmaNotConfigured').style.display = 'block';
       document.getElementById('figmaConnected').style.display = 'none';
@@ -1835,21 +1871,23 @@ async function fetchFigmaFile() {
 
 async function importFigmaComponents(autoCreate) {
   const fileKey = document.getElementById('figmaFileKeyInput').value.trim();
+  const nodeId = document.getElementById('figmaNodeIdInput').value.trim();
   if (!fileKey) { showToast('Enter a Figma file key', 'error'); return; }
-  const msg = autoCreate ? 'Import components AND auto-create widget instances for mapped components?' : 'Import components from Figma? (No widget instances will be created yet.)';
+  if (!nodeId) { showToast('Enter a Figma node ID (from the URL node-id parameter)', 'error'); return; }
+  const msg = autoCreate ? 'Import widgets AND auto-create widget instances for mapped ones?' : 'Import widgets from Figma section? (No widget instances will be created yet.)';
   if (!confirm(msg)) return;
 
   const container = document.getElementById('figmaImportResults');
-  container.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:8px;color:#888;">Fetching from Figma API... This may take a moment for large files.</p></div>';
+  container.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:8px;color:#888;">Fetching from Figma API...</p></div>';
   try {
     const result = await apiJSON('/api/figma/import', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ fileKey: fileKey, autoCreate: autoCreate })
+      body: JSON.stringify({ fileKey: fileKey, nodeId: nodeId, autoCreate: autoCreate })
     });
     renderFigmaImport(result, container);
     updateFigmaKPIs(result);
-    showToast('Imported ' + result.totalComponents + ' components, ' + result.autoMapped + ' auto-mapped', 'success');
+    showToast('Found ' + result.totalWidgets + ' widgets (' + result.uniqueWidgets + ' unique), ' + result.autoMapped + ' auto-mapped', 'success');
   } catch (e) {
     container.innerHTML = '<p style="color:#c62828;">Import failed: ' + escapeHtml(e.message) + '</p>';
   }
@@ -1863,14 +1901,19 @@ async function loadFigmaLastImport() {
       updateFigmaKPIs(r);
       const section = document.getElementById('figmaLastImportSection');
       section.style.display = 'block';
-      document.getElementById('figmaLastImportTitle').textContent = 'Last Import — ' + escapeHtml(r.fileName) + ' (' + new Date(r.importedAt).toLocaleString() + ')';
+      const title = r.sectionName ? (r.sectionName + ' — ' + escapeHtml(r.fileName)) : escapeHtml(r.fileName);
+      document.getElementById('figmaLastImportTitle').textContent = 'Last Import — ' + title + ' (' + new Date(r.importedAt).toLocaleString() + ')';
       renderFigmaImport(r, document.getElementById('figmaLastImportBody'));
+      // Pre-fill nodeId if available
+      if (r.nodeId && document.getElementById('figmaNodeIdInput')) {
+        document.getElementById('figmaNodeIdInput').value = r.nodeId;
+      }
     } else {
       document.getElementById('figmaKpiRow').innerHTML = [
-        { val: '-', lbl: 'Components' },
+        { val: '-', lbl: 'Total Widgets' },
+        { val: '-', lbl: 'Unique Widgets' },
         { val: '-', lbl: 'Auto-Mapped' },
         { val: '-', lbl: 'Unmapped' },
-        { val: '-', lbl: 'Pages' },
       ].map(function(k) { return '<div class="figma-kpi"><div class="val">' + k.val + '</div><div class="lbl">' + k.lbl + '</div></div>'; }).join('');
     }
   } catch (e) {
@@ -1880,11 +1923,11 @@ async function loadFigmaLastImport() {
 
 function updateFigmaKPIs(r) {
   document.getElementById('figmaKpiRow').innerHTML = [
-    { val: r.totalComponents, lbl: 'Components' },
+    { val: r.totalWidgets, lbl: 'Total Widgets' },
+    { val: r.uniqueWidgets, lbl: 'Unique Widgets' },
     { val: r.autoMapped, lbl: 'Auto-Mapped' },
     { val: r.unmapped, lbl: 'Unmapped' },
-    { val: r.totalPages, lbl: 'Pages' },
-    { val: r.totalFrames, lbl: 'Frames' },
+    { val: r.totalScreens, lbl: 'Screens' },
   ].map(function(k) { return '<div class="figma-kpi"><div class="val">' + k.val + '</div><div class="lbl">' + k.lbl + '</div></div>'; }).join('');
 }
 
@@ -1894,29 +1937,38 @@ function renderFigmaImport(result, container) {
   // Summary bar
   html += '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:.9em;">';
   html += '<div><strong>File:</strong> ' + escapeHtml(result.fileName) + '</div>';
-  html += '<div><strong>Components:</strong> ' + result.totalComponents + '</div>';
+  if (result.sectionName) html += '<div><strong>Section:</strong> ' + escapeHtml(result.sectionName) + '</div>';
+  html += '<div><strong>Widgets:</strong> ' + result.totalWidgets + ' total, ' + result.uniqueWidgets + ' unique</div>';
   html += '<div><strong>Auto-Mapped:</strong> <span style="color:#43a047;font-weight:600;">' + result.autoMapped + '</span></div>';
   html += '<div><strong>Unmapped:</strong> <span style="color:#e53935;font-weight:600;">' + result.unmapped + '</span></div>';
   html += '</div>';
+
+  // Screens list
+  const screens = result.screens || [];
+  if (screens.length) {
+    html += '<div style="margin-bottom:16px;"><strong>Screens:</strong> ';
+    html += screens.map(function(s) { return '<span style="background:#e8e0f5;padding:2px 8px;border-radius:4px;font-size:.82em;margin:2px;">' + escapeHtml(s.name) + ' (' + s.widgets + ')</span>'; }).join(' ');
+    html += '</div>';
+  }
 
   // Mapping table
   const mappings = result.mappingDetails || [];
   if (mappings.length) {
     html += '<div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;">';
-    html += '<input type="text" id="figmaMappingFilter" placeholder="Filter components..." style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:.88em;" oninput="filterFigmaMappings()">';
+    html += '<input type="text" id="figmaMappingFilter" placeholder="Filter widgets..." style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:.88em;" oninput="filterFigmaMappings()">';
     html += '<select id="figmaMappingConfFilter" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:.88em;" onchange="filterFigmaMappings()">';
     html += '<option value="">All Confidence</option><option value="high">High</option><option value="medium">Medium</option><option value="none">Unmapped</option>';
     html += '</select>';
     html += '</div>';
-    html += '<table id="figmaMappingTable"><thead><tr><th>#</th><th>Component</th><th>Page</th><th>Mapped To</th><th>Confidence</th><th>Reason</th><th>Action</th></tr></thead><tbody>';
+    html += '<table id="figmaMappingTable"><thead><tr><th>#</th><th>Widget</th><th>Screen</th><th>Mapped To</th><th>Confidence</th><th>Reason</th><th>Action</th></tr></thead><tbody>';
     mappings.forEach(function(m, i) {
       const confClass = 'figma-conf-' + m.confidence;
       const typeDisplay = m.mappedTypeName ? '<span class="wcat-chip wcat-chip-input">' + escapeHtml(m.mappedTypeName) + '</span>' : '<span style="color:#aaa;">—</span>';
-      const actionBtn = m.mappedType ? '' : '<button class="btn btn-sm btn-primary" onclick="openFigmaMapModal(\'' + escapeHtml(m.componentId) + '\',\'' + escapeHtml(m.componentName.replace(/'/g, "\\'")) + '\',\'' + escapeHtml((m.page || '').replace(/'/g, "\\'")) + '\')">Map</button>';
+      const actionBtn = m.mappedType ? '' : '<button class="btn btn-sm btn-primary" onclick="openFigmaMapModal(\'' + escapeHtml(m.componentId) + '\',\'' + escapeHtml(m.componentName.replace(/'/g, "\\'")) + '\',\'' + escapeHtml((m.screen || '').replace(/'/g, "\\'")) + '\')">Map</button>';
       html += '<tr data-figma-name="' + escapeHtml(m.componentName.toLowerCase()) + '" data-figma-conf="' + m.confidence + '">';
       html += '<td>' + (i + 1) + '</td>';
       html += '<td><strong>' + escapeHtml(m.componentName) + '</strong></td>';
-      html += '<td>' + escapeHtml(m.page || '') + '</td>';
+      html += '<td>' + escapeHtml(m.screen || '') + '</td>';
       html += '<td>' + typeDisplay + '</td>';
       html += '<td><span class="' + confClass + '">' + m.confidence + '</span></td>';
       html += '<td style="font-size:.82em;color:#888;">' + escapeHtml(m.reason) + '</td>';
@@ -1924,7 +1976,7 @@ function renderFigmaImport(result, container) {
       html += '</tr>';
     });
     html += '</tbody></table>';
-    html += '<p style="color:#888;font-size:.82em;margin-top:8px;">Showing ' + mappings.length + ' components</p>';
+    html += '<p style="color:#888;font-size:.82em;margin-top:8px;">Showing ' + mappings.length + ' unique widgets</p>';
   }
 
   container.innerHTML = html;
@@ -1943,7 +1995,7 @@ function filterFigmaMappings() {
   });
 }
 
-function openFigmaMapModal(componentId, componentName, page) {
+function openFigmaMapModal(componentId, componentName, screen) {
   // Reuse a simple prompt-style approach with the widget type dropdown
   const typeOptions = (widgetTypesData || []).map(function(t) { return t.id + ':' + t.name + ' (' + t.category + ')'; });
   if (!typeOptions.length) {
@@ -1958,20 +2010,156 @@ function openFigmaMapModal(componentId, componentName, page) {
     return;
   }
   const wt = widgetTypesData[idx];
-  figmaManualMap(componentId, componentName, page, wt.id);
+  figmaManualMap(componentId, componentName, screen, wt.id);
 }
 
-async function figmaManualMap(componentId, componentName, page, widgetTypeId) {
+async function figmaManualMap(componentId, componentName, screen, widgetTypeId) {
   try {
     await apiJSON('/api/figma/map', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ componentId: componentId, componentName: componentName, page: page, widgetTypeId: widgetTypeId })
+      body: JSON.stringify({ componentId: componentId, componentName: componentName, screen: screen, widgetTypeId: widgetTypeId })
     });
     showToast('Mapped "' + componentName + '" successfully', 'success');
   } catch (e) {
     showToast('Mapping failed: ' + e.message, 'error');
   }
+}
+
+// --- GUI Test Plan Generation ---
+let guiTestPlansCache = [];
+let guiGenCategoryData = {};
+
+async function loadGuiGenSection() {
+  await loadGuiGenCategories();
+  await loadGuiPlans();
+}
+
+async function loadGuiGenCategories() {
+  try {
+    const plans = await apiJSON('/api/testplans');
+    guiGenCategoryData = {};
+    plans.forEach(function(p) {
+      if (p.category && !p.feature.endsWith('-gui')) {
+        if (!guiGenCategoryData[p.category]) guiGenCategoryData[p.category] = [];
+        guiGenCategoryData[p.category].push(p.feature);
+      }
+    });
+    const sel = document.getElementById('guiGenCategory');
+    sel.innerHTML = '<option value="">Select category...</option>';
+    Object.keys(guiGenCategoryData).sort().forEach(function(cat) {
+      sel.innerHTML += '<option value="' + escapeHtml(cat) + '">' + escapeHtml(cat) + ' (' + guiGenCategoryData[cat].length + ' features)</option>';
+    });
+  } catch(e) {}
+}
+
+function loadGuiGenFeatures() {
+  const cat = document.getElementById('guiGenCategory').value;
+  const sel = document.getElementById('guiGenFeature');
+  sel.innerHTML = '<option value="">Select feature...</option>';
+  if (cat && guiGenCategoryData[cat]) {
+    guiGenCategoryData[cat].sort().forEach(function(f) {
+      sel.innerHTML += '<option value="' + escapeHtml(f) + '">' + escapeHtml(f) + '</option>';
+    });
+  }
+}
+
+async function generateGUITestPlan() {
+  const category = document.getElementById('guiGenCategory').value;
+  const feature = document.getElementById('guiGenFeature').value;
+  const jiraKey = document.getElementById('guiGenJiraKey').value.trim();
+  if (!category) { showToast('Select a category', 'error'); return; }
+  if (!feature) { showToast('Select a feature', 'error'); return; }
+
+  const btn = document.getElementById('btnGuiGen');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;display:inline-block;vertical-align:middle;"></div> Generating...';
+  const container = document.getElementById('guiGenResults');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:8px;color:#888;">Generating GUI test plan...</p></div>';
+
+  try {
+    const resp = await apiJSON('/api/gui/generate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ category: category, feature: feature, jiraIssueKey: jiraKey })
+    });
+    const plan = resp.plan;
+    let html = '<div style="background:#f0faf0;border:1px solid #c8e6c9;border-radius:8px;padding:16px;margin-bottom:16px;">';
+    html += '<h3 style="margin:0 0 8px;color:#2e7d32;">&#10003; GUI Test Plan Generated — ' + escapeHtml(resp.filePath) + '</h3>';
+    html += '<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:.9em;">';
+    html += '<div><strong>Screens:</strong> ' + plan.summary.totalScreens + '</div>';
+    html += '<div><strong>Widgets:</strong> ' + plan.summary.totalWidgets + '</div>';
+    html += '<div><strong>Tests:</strong> <span style="color:#2e7d32;font-weight:700;">' + resp.totalTests + '</span></div>';
+    html += '</div>';
+    if (plan.summary.testsByCategory) {
+      html += '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">';
+      var catColors = {functional:'#1a73e8',boundary:'#f57c00',negative:'#c62828'};
+      Object.keys(plan.summary.testsByCategory).forEach(function(cat) {
+        html += '<span style="background:' + (catColors[cat]||'#888') + ';color:#fff;padding:3px 10px;border-radius:12px;font-size:.82em;">' + cat + ': ' + plan.summary.testsByCategory[cat] + '</span>';
+      });
+      html += '</div>';
+    }
+    if (plan.sourceInfo) {
+      html += '<div style="margin-top:10px;font-size:.85em;color:#666;">';
+      html += 'Sources: API <strong>' + escapeHtml(plan.sourceInfo.apiTestPlan) + '</strong>';
+      if (plan.sourceInfo.figmaSection) html += ' + Figma <strong>' + escapeHtml(plan.sourceInfo.figmaSection) + '</strong>';
+      if (plan.sourceInfo.jiraIssueKey) html += ' + Jira <strong>' + escapeHtml(plan.sourceInfo.jiraIssueKey) + '</strong>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    plan.screens.forEach(function(screen) {
+      html += '<div style="margin-bottom:16px;">';
+      html += '<h4 style="margin:0 0 8px;color:#37474f;">&#128187; ' + escapeHtml(screen.screenName) + ' <span style="font-weight:400;color:#888;">(' + screen.tests.length + ' tests, ' + screen.widgets.length + ' widgets)</span></h4>';
+      html += '<div style="margin-bottom:8px;display:flex;gap:4px;flex-wrap:wrap;">';
+      screen.widgets.forEach(function(w) {
+        var bg = w.widgetType === 'unknown' ? '#ffcdd2' : '#e3f2fd';
+        html += '<span style="background:' + bg + ';padding:2px 8px;border-radius:4px;font-size:.78em;">' + escapeHtml(w.name) + ' <span style="color:#888;">(' + escapeHtml(w.typeName) + ')</span></span>';
+      });
+      html += '</div>';
+      html += '<table style="width:100%;font-size:.85em;"><thead><tr><th>ID</th><th>Widget</th><th>Type</th><th>Pri</th><th>Description</th><th>Steps</th></tr></thead><tbody>';
+      screen.tests.forEach(function(tc) {
+        var priC = {P1:'#c62828',P2:'#f57c00',P3:'#1a73e8'};
+        var rowBg = {functional:'#f5f8ff',boundary:'#fff8e1',negative:'#fff3f0'};
+        html += '<tr style="background:' + (rowBg[tc.type]||'#fff') + ';">';
+        html += '<td style="font-family:monospace;white-space:nowrap;">' + escapeHtml(tc.testCaseID) + '</td>';
+        html += '<td>' + escapeHtml(tc.widget || '') + '</td>';
+        html += '<td><span style="background:#f5f0ff;padding:1px 6px;border-radius:3px;font-size:.85em;">' + escapeHtml(tc.type) + '</span></td>';
+        html += '<td><span style="color:' + (priC[tc.priority]||'#888') + ';font-weight:600;">' + tc.priority + '</span></td>';
+        html += '<td>' + escapeHtml(tc.description) + '</td>';
+        html += '<td>' + tc.steps.length + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+    });
+    container.innerHTML = html;
+    showToast('Generated ' + resp.totalTests + ' GUI test cases for ' + feature, 'success');
+    loadGuiPlans();
+  } catch (e) {
+    container.innerHTML = '<p style="color:#c62828;">Generation failed: ' + escapeHtml(e.message) + '</p>';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '&#9654; Generate GUI Test Plan';
+  }
+}
+
+async function loadGuiPlans() {
+  try {
+    const data = await apiJSON('/api/gui/plans');
+    if (data.plans && data.plans.length > 0) {
+      document.getElementById('guiPlansSection').style.display = 'block';
+      let html = '<table><thead><tr><th>Category</th><th>Feature</th><th>File</th><th>Size</th><th>Action</th></tr></thead><tbody>';
+      data.plans.forEach(function(p) {
+        html += '<tr><td>' + escapeHtml(p.category) + '</td>';
+        html += '<td><strong>' + escapeHtml(p.feature) + '</strong></td>';
+        html += '<td style="font-family:monospace;font-size:.85em;">' + escapeHtml(p.fileName) + '</td>';
+        html += '<td>' + (p.size > 1024 ? Math.round(p.size/1024) + ' KB' : p.size + ' B') + '</td>';
+        html += '<td><button class="btn btn-sm btn-primary" onclick="openViewer(\'' + escapeHtml(p.category) + '\',\'' + escapeHtml(p.feature) + '\')">View</button></td></tr>';
+      });
+      html += '</tbody></table>';
+      document.getElementById('guiPlansList').innerHTML = html;
+    }
+  } catch(e) {}
 }
 
 // --- Generate ---

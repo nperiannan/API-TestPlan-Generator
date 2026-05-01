@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -18,14 +19,14 @@ import (
 
 // ---------- Figma Data Model ----------
 
-// FigmaComponent represents a component extracted from a Figma file.
+// FigmaComponent represents a widget element (INSTANCE) extracted from a Figma design.
 type FigmaComponent struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	Description    string `json:"description"`
-	ContainingPage string `json:"containingPage"`
-	ComponentSetID string `json:"componentSetId,omitempty"`
-	Type           string `json:"type"` // COMPONENT, COMPONENT_SET
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Screen      string `json:"screen"`      // parent frame (screen name)
+	ComponentID string `json:"componentId"` // Figma component definition ID
+	Type        string `json:"type"`        // Figma node type (INSTANCE, FRAME, etc.)
 }
 
 // FigmaPage represents a page (canvas) from a Figma file.
@@ -35,16 +36,26 @@ type FigmaPage struct {
 	Children int    `json:"children"` // count of top-level frames
 }
 
+// FigmaScreen represents a distinct screen found inside a Figma section.
+type FigmaScreen struct {
+	Name    string `json:"name"`
+	ID      string `json:"id"`
+	Widgets int    `json:"widgets"` // count of INSTANCE elements
+}
+
 // FigmaImportResult captures results from a Figma import operation.
 type FigmaImportResult struct {
 	FileKey        string            `json:"fileKey"`
 	FileName       string            `json:"fileName"`
+	NodeID         string            `json:"nodeId,omitempty"`
+	SectionName    string            `json:"sectionName,omitempty"`
 	ImportedAt     time.Time         `json:"importedAt"`
-	TotalPages     int               `json:"totalPages"`
-	TotalFrames    int               `json:"totalFrames"`
-	TotalComponents int              `json:"totalComponents"`
+	TotalPages     int               `json:"totalPages,omitempty"`
+	TotalScreens   int               `json:"totalScreens"`
+	Screens        []FigmaScreen     `json:"screens"`
+	TotalWidgets   int               `json:"totalWidgets"`
+	UniqueWidgets  int               `json:"uniqueWidgets"`
 	Components     []FigmaComponent  `json:"components"`
-	Pages          []FigmaPage       `json:"pages"`
 	AutoMapped     int               `json:"autoMapped"`
 	Unmapped       int               `json:"unmapped"`
 	MappingDetails []FigmaMappingRow `json:"mappingDetails"`
@@ -52,13 +63,13 @@ type FigmaImportResult struct {
 
 // FigmaMappingRow shows how a Figma component was mapped to a widget type.
 type FigmaMappingRow struct {
-	ComponentName string `json:"componentName"`
-	ComponentID   string `json:"componentId"`
-	Page          string `json:"page"`
-	MappedType    string `json:"mappedType"`   // widget type ID or empty
+	ComponentName  string `json:"componentName"`
+	ComponentID    string `json:"componentId"`
+	Screen         string `json:"screen"`
+	MappedType     string `json:"mappedType"` // widget type ID or empty
 	MappedTypeName string `json:"mappedTypeName"`
-	Confidence    string `json:"confidence"`   // high, medium, low, none
-	Reason        string `json:"reason"`
+	Confidence     string `json:"confidence"` // high, medium, low, none
+	Reason         string `json:"reason"`
 }
 
 // ---------- Figma configuration ----------
@@ -105,7 +116,7 @@ func figmaRequest(token, path string) ([]byte, int, error) {
 	}
 	req.Header.Set("X-FIGMA-TOKEN", token)
 
-	client := &http.Client{Timeout: 30 * time.Second}
+	client := &http.Client{Timeout: 120 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, 0, fmt.Errorf("figma request failed: %w", err)
@@ -121,29 +132,69 @@ func figmaRequest(token, path string) ([]byte, int, error) {
 
 // figmaFileResponse is the structure of GET /v1/files/:key
 type figmaFileResponse struct {
-	Name       string          `json:"name"`
-	LastModified string        `json:"lastModified"`
-	Document   figmaNode       `json:"document"`
-	Components map[string]figmaComponentMeta `json:"components"`
+	Name          string                        `json:"name"`
+	LastModified  string                        `json:"lastModified"`
+	Document      figmaNode                     `json:"document"`
+	Components    map[string]figmaComponentMeta `json:"components"`
 	ComponentSets map[string]figmaComponentMeta `json:"componentSets"`
 }
 
 type figmaNode struct {
-	ID       string      `json:"id"`
-	Name     string      `json:"name"`
-	Type     string      `json:"type"`
-	Children []figmaNode `json:"children"`
+	ID          string      `json:"id"`
+	Name        string      `json:"name"`
+	Type        string      `json:"type"`
+	ComponentID string      `json:"componentId,omitempty"`
+	Children    []figmaNode `json:"children"`
 }
 
 type figmaComponentMeta struct {
-	Key            string `json:"key"`
-	Name           string `json:"name"`
-	Description    string `json:"description"`
-	ComponentSetID string `json:"componentSetId"`
+	Key             string `json:"key"`
+	Name            string `json:"name"`
+	Description     string `json:"description"`
+	ComponentSetID  string `json:"componentSetId"`
 	ContainingFrame struct {
 		PageID   string `json:"pageId"`
 		PageName string `json:"pageName"`
 	} `json:"containingFrame"`
+}
+
+// figmaNodesResponse is the structure of GET /v1/files/:key/nodes?ids=...
+type figmaNodesResponse struct {
+	Name  string                             `json:"name"`
+	Nodes map[string]figmaNodesResponseEntry `json:"nodes"`
+}
+
+type figmaNodesResponseEntry struct {
+	Document figmaNode `json:"document"`
+}
+
+// walkInstances traverses the Figma node tree and collects all INSTANCE elements
+// grouped by their parent screen (top-level FRAME).
+func walkInstances(node figmaNode) []FigmaComponent {
+	var results []FigmaComponent
+	// Top-level children of a SECTION are screens (FRAME)
+	for _, screen := range node.Children {
+		if screen.Type != "FRAME" {
+			continue
+		}
+		walkNode(screen, screen.Name, &results)
+	}
+	return results
+}
+
+func walkNode(node figmaNode, screen string, results *[]FigmaComponent) {
+	if node.Type == "INSTANCE" {
+		*results = append(*results, FigmaComponent{
+			ID:          node.ID,
+			Name:        node.Name,
+			Screen:      screen,
+			ComponentID: node.ComponentID,
+			Type:        node.Type,
+		})
+	}
+	for _, child := range node.Children {
+		walkNode(child, screen, results)
+	}
 }
 
 // ---------- Figma MinIO Storage ----------
@@ -169,26 +220,26 @@ func (s *MinIOStore) SaveFigmaImport(result *FigmaImportResult) error {
 
 // componentTypePatterns maps Figma component name keywords → widget type IDs.
 var componentTypePatterns = map[string][]string{
-	"text-field":       {"text field", "textfield", "text input", "textinput", "input field", "text_field", "text_input"},
-	"text-area":        {"textarea", "text area", "text_area", "multiline"},
-	"dropdown":         {"dropdown", "drop down", "select", "combobox", "combo box", "combo_box"},
-	"multi-select":     {"multi select", "multiselect", "multi-select", "multi_select", "tag input", "tag_input"},
-	"checkbox":         {"checkbox", "check box", "check_box"},
-	"radio-group":      {"radio", "radio group", "radio_group", "radiogroup"},
-	"toggle-switch":    {"toggle", "switch", "toggle switch"},
-	"button":           {"button", "btn", "cta"},
-	"icon-button":      {"icon button", "icon_button", "iconbutton", "action icon"},
-	"data-table":       {"table", "data table", "datagrid", "data grid", "grid view"},
-	"modal-dialog":     {"modal", "dialog", "popup", "overlay"},
-	"tab-group":        {"tab", "tabs", "tab group", "tab_group", "tabgroup"},
-	"breadcrumb":       {"breadcrumb", "breadcrumbs"},
-	"search-bar":       {"search", "search bar", "searchbar", "search_bar", "search field"},
+	"text-field":         {"text field", "textfield", "text input", "textinput", "input field", "text_field", "text_input"},
+	"text-area":          {"textarea", "text area", "text_area", "multiline"},
+	"dropdown":           {"dropdown", "drop down", "select", "combobox", "combo box", "combo_box"},
+	"multi-select":       {"multi select", "multiselect", "multi-select", "multi_select", "tag input", "tag_input"},
+	"checkbox":           {"checkbox", "check box", "check_box"},
+	"radio-group":        {"radio", "radio group", "radio_group", "radiogroup"},
+	"toggle-switch":      {"toggle", "switch", "toggle switch"},
+	"button":             {"button", "btn", "cta"},
+	"icon-button":        {"icon button", "icon_button", "iconbutton", "action icon"},
+	"data-table":         {"table", "data table", "datagrid", "data grid", "grid view"},
+	"modal-dialog":       {"modal", "dialog", "popup", "overlay"},
+	"tab-group":          {"tab", "tabs", "tab group", "tab_group", "tabgroup"},
+	"breadcrumb":         {"breadcrumb", "breadcrumbs"},
+	"search-bar":         {"search", "search bar", "searchbar", "search_bar", "search field"},
 	"toast-notification": {"toast", "notification", "snackbar", "alert", "banner"},
-	"ip-address-field": {"ip address", "ip field", "ip_address", "ipaddress", "ip input"},
-	"vlan-selector":    {"vlan", "vlan id", "vlan_id"},
-	"port-selector":    {"port", "port selector", "port_selector"},
-	"file-upload":      {"upload", "file upload", "file_upload", "fileupload"},
-	"date-picker":      {"date", "date picker", "datepicker", "date_picker", "calendar"},
+	"ip-address-field":   {"ip address", "ip field", "ip_address", "ipaddress", "ip input"},
+	"vlan-selector":      {"vlan", "vlan id", "vlan_id"},
+	"port-selector":      {"port", "port selector", "port_selector"},
+	"file-upload":        {"upload", "file upload", "file_upload", "fileupload"},
+	"date-picker":        {"date", "date picker", "datepicker", "date_picker", "calendar"},
 }
 
 func autoMapComponent(name string, widgetTypes []WidgetType) (typeID, typeName, confidence, reason string) {
@@ -296,17 +347,17 @@ func (s *Server) handleFigmaFile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"name":         fileResp.Name,
-		"lastModified": fileResp.LastModified,
-		"pages":        pages,
-		"totalPages":   len(pages),
-		"totalFrames":  totalFrames,
-		"components":   len(fileResp.Components),
+		"name":          fileResp.Name,
+		"lastModified":  fileResp.LastModified,
+		"pages":         pages,
+		"totalPages":    len(pages),
+		"totalFrames":   totalFrames,
+		"components":    len(fileResp.Components),
 		"componentSets": len(fileResp.ComponentSets),
 	})
 }
 
-// GET /api/figma/components — list all components from a Figma file
+// GET /api/figma/components — list widget instances from a Figma section node
 func (s *Server) handleFigmaComponents(c *gin.Context) {
 	fcfg, err := s.loadFigmaConfig()
 	if err != nil {
@@ -317,12 +368,18 @@ func (s *Server) handleFigmaComponents(c *gin.Context) {
 	if fileKey == "" {
 		fileKey = fcfg.FileKey
 	}
+	nodeID := c.Query("nodeId")
 	if fileKey == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no Figma file key"})
 		return
 	}
+	if nodeID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "nodeId query parameter required"})
+		return
+	}
 
-	body, status, err := figmaRequest(fcfg.Token, "/files/"+fileKey)
+	path := fmt.Sprintf("/files/%s/nodes?ids=%s&depth=6", fileKey, url.QueryEscape(nodeID))
+	body, status, err := figmaRequest(fcfg.Token, path)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
@@ -332,47 +389,36 @@ func (s *Server) handleFigmaComponents(c *gin.Context) {
 		return
 	}
 
-	var fileResp figmaFileResponse
-	if err := json.Unmarshal(body, &fileResp); err != nil {
+	var nodesResp figmaNodesResponse
+	if err := json.Unmarshal(body, &nodesResp); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "parsing Figma response: " + err.Error()})
 		return
 	}
 
-	var components []FigmaComponent
-	for id, meta := range fileResp.Components {
-		components = append(components, FigmaComponent{
-			ID:             id,
-			Name:           meta.Name,
-			Description:    meta.Description,
-			ContainingPage: meta.ContainingFrame.PageName,
-			ComponentSetID: meta.ComponentSetID,
-			Type:           "COMPONENT",
-		})
-	}
-	for id, meta := range fileResp.ComponentSets {
-		components = append(components, FigmaComponent{
-			ID:             id,
-			Name:           meta.Name,
-			Description:    meta.Description,
-			ContainingPage: meta.ContainingFrame.PageName,
-			Type:           "COMPONENT_SET",
-		})
+	var allWidgets []FigmaComponent
+	for _, entry := range nodesResp.Nodes {
+		allWidgets = append(allWidgets, walkInstances(entry.Document)...)
 	}
 
-	sort.Slice(components, func(i, j int) bool {
-		if components[i].ContainingPage != components[j].ContainingPage {
-			return components[i].ContainingPage < components[j].ContainingPage
+	// Deduplicate by name
+	seen := make(map[string]bool)
+	var unique []FigmaComponent
+	for _, w := range allWidgets {
+		if !seen[w.Name] {
+			seen[w.Name] = true
+			unique = append(unique, w)
 		}
-		return components[i].Name < components[j].Name
-	})
+	}
+	sort.Slice(unique, func(i, j int) bool { return unique[i].Name < unique[j].Name })
 
 	c.JSON(http.StatusOK, gin.H{
-		"total":      len(components),
-		"components": components,
+		"total":      len(allWidgets),
+		"unique":     len(unique),
+		"components": unique,
 	})
 }
 
-// POST /api/figma/import — import components and auto-map to widget types
+// POST /api/figma/import — import widgets from a Figma section and auto-map to widget types
 func (s *Server) handleFigmaImport(c *gin.Context) {
 	fcfg, err := s.loadFigmaConfig()
 	if err != nil {
@@ -382,78 +428,82 @@ func (s *Server) handleFigmaImport(c *gin.Context) {
 
 	var req struct {
 		FileKey    string `json:"fileKey"`
+		NodeID     string `json:"nodeId"`     // Figma node ID (e.g., "3240:336907")
 		AutoCreate bool   `json:"autoCreate"` // auto-create widget instances for mapped components
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		// Allow empty body
-		req.AutoCreate = false
+		// Allow query params too
+		req.AutoCreate = c.Query("autoCreate") == "true"
 	}
 	fileKey := req.FileKey
 	if fileKey == "" {
+		fileKey = c.Query("fileKey")
+	}
+	if fileKey == "" {
 		fileKey = fcfg.FileKey
+	}
+	nodeID := req.NodeID
+	if nodeID == "" {
+		nodeID = c.Query("nodeId")
 	}
 	if fileKey == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no Figma file key"})
 		return
 	}
+	if nodeID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "nodeId is required — provide the Figma section node ID from the URL"})
+		return
+	}
 
-	log.Printf("Figma import: fetching file %s", fileKey)
+	log.Printf("Figma import: fetching file %s node %s", fileKey, nodeID)
 
-	// Fetch full file
-	body, status, err := figmaRequest(fcfg.Token, "/files/"+fileKey)
+	// Fetch the specific node with enough depth
+	path := fmt.Sprintf("/files/%s/nodes?ids=%s&depth=6", fileKey, url.QueryEscape(nodeID))
+	body, status, err := figmaRequest(fcfg.Token, path)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
 	}
 	if status != 200 {
-		c.JSON(status, gin.H{"error": fmt.Sprintf("Figma API returned %d", status)})
+		c.JSON(status, gin.H{"error": fmt.Sprintf("Figma API returned %d: %s", status, truncate(string(body), 500))})
 		return
 	}
 
-	var fileResp figmaFileResponse
-	if err := json.Unmarshal(body, &fileResp); err != nil {
+	var nodesResp figmaNodesResponse
+	if err := json.Unmarshal(body, &nodesResp); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "parsing: " + err.Error()})
 		return
 	}
 
-	// Extract pages
-	var pages []FigmaPage
-	totalFrames := 0
-	for _, child := range fileResp.Document.Children {
-		frameCount := len(child.Children)
-		totalFrames += frameCount
-		pages = append(pages, FigmaPage{
-			ID:       child.ID,
-			Name:     child.Name,
-			Children: frameCount,
-		})
+	// Extract section name and walk for INSTANCE elements
+	var sectionName string
+	var allWidgets []FigmaComponent
+	for _, entry := range nodesResp.Nodes {
+		sectionName = entry.Document.Name
+		allWidgets = append(allWidgets, walkInstances(entry.Document)...)
 	}
 
-	// Extract components
-	var components []FigmaComponent
-	for id, meta := range fileResp.Components {
-		components = append(components, FigmaComponent{
-			ID:             id,
-			Name:           meta.Name,
-			Description:    meta.Description,
-			ContainingPage: meta.ContainingFrame.PageName,
-			ComponentSetID: meta.ComponentSetID,
-			Type:           "COMPONENT",
-		})
+	// Build screen list
+	screenMap := make(map[string]int)
+	for _, w := range allWidgets {
+		screenMap[w.Screen]++
 	}
-	for id, meta := range fileResp.ComponentSets {
-		components = append(components, FigmaComponent{
-			ID:             id,
-			Name:           meta.Name,
-			Description:    meta.Description,
-			ContainingPage: meta.ContainingFrame.PageName,
-			Type:           "COMPONENT_SET",
-		})
+	var screens []FigmaScreen
+	for name, count := range screenMap {
+		screens = append(screens, FigmaScreen{Name: name, Widgets: count})
 	}
+	sort.Slice(screens, func(i, j int) bool { return screens[i].Name < screens[j].Name })
 
-	sort.Slice(components, func(i, j int) bool {
-		return components[i].Name < components[j].Name
-	})
+	// Deduplicate widgets by name for mapping (keep first occurrence per name)
+	seen := make(map[string]bool)
+	var uniqueWidgets []FigmaComponent
+	for _, w := range allWidgets {
+		if !seen[w.Name] {
+			seen[w.Name] = true
+			uniqueWidgets = append(uniqueWidgets, w)
+		}
+	}
+	sort.Slice(uniqueWidgets, func(i, j int) bool { return uniqueWidgets[i].Name < uniqueWidgets[j].Name })
 
 	// Load widget types for auto-mapping
 	widgetTypes, err := s.store.ListWidgetTypes()
@@ -462,16 +512,16 @@ func (s *Server) handleFigmaImport(c *gin.Context) {
 		return
 	}
 
-	// Auto-map each component
+	// Auto-map each unique widget
 	var mappings []FigmaMappingRow
 	autoMapped := 0
 	unmapped := 0
-	for _, comp := range components {
+	for _, comp := range uniqueWidgets {
 		typeID, typeName, conf, reason := autoMapComponent(comp.Name, widgetTypes)
 		mappings = append(mappings, FigmaMappingRow{
 			ComponentName:  comp.Name,
-			ComponentID:    comp.ID,
-			Page:           comp.ContainingPage,
+			ComponentID:    comp.ComponentID,
+			Screen:         comp.Screen,
 			MappedType:     typeID,
 			MappedTypeName: typeName,
 			Confidence:     conf,
@@ -509,7 +559,7 @@ func (s *Server) handleFigmaImport(c *gin.Context) {
 			instances = append(instances, WidgetInstance{
 				ID:         id,
 				WidgetType: m.MappedType,
-				Screen:     m.Page,
+				Screen:     m.Screen,
 				Section:    "Figma Import",
 				Label:      m.ComponentName,
 				Selector:   fmt.Sprintf("[data-figma-id='%s']", m.ComponentID),
@@ -535,17 +585,19 @@ func (s *Server) handleFigmaImport(c *gin.Context) {
 	}
 
 	result := &FigmaImportResult{
-		FileKey:         fileKey,
-		FileName:        fileResp.Name,
-		ImportedAt:      time.Now().UTC(),
-		TotalPages:      len(pages),
-		TotalFrames:     totalFrames,
-		TotalComponents: len(components),
-		Components:      components,
-		Pages:           pages,
-		AutoMapped:      autoMapped,
-		Unmapped:        unmapped,
-		MappingDetails:  mappings,
+		FileKey:        fileKey,
+		FileName:       nodesResp.Name,
+		NodeID:         nodeID,
+		SectionName:    sectionName,
+		ImportedAt:     time.Now().UTC(),
+		TotalScreens:   len(screens),
+		Screens:        screens,
+		TotalWidgets:   len(allWidgets),
+		UniqueWidgets:  len(uniqueWidgets),
+		Components:     uniqueWidgets,
+		AutoMapped:     autoMapped,
+		Unmapped:       unmapped,
+		MappingDetails: mappings,
 	}
 
 	// Save import result to MinIO
@@ -575,7 +627,7 @@ func (s *Server) handleFigmaManualMap(c *gin.Context) {
 	var req struct {
 		ComponentID   string `json:"componentId" binding:"required"`
 		ComponentName string `json:"componentName" binding:"required"`
-		Page          string `json:"page"`
+		Screen        string `json:"screen"`
 		WidgetTypeID  string `json:"widgetTypeId" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -628,7 +680,7 @@ func (s *Server) handleFigmaManualMap(c *gin.Context) {
 	inst := WidgetInstance{
 		ID:         id,
 		WidgetType: req.WidgetTypeID,
-		Screen:     req.Page,
+		Screen:     req.Screen,
 		Section:    "Figma Import",
 		Label:      req.ComponentName,
 		Selector:   fmt.Sprintf("[data-figma-id='%s']", req.ComponentID),
