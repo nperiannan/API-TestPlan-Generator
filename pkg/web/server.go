@@ -150,6 +150,14 @@ func (s *Server) registerRoutes() {
 		api.PUT("/widgets/instances/:id", s.handleUpdateWidgetInstance)
 		api.DELETE("/widgets/instances/:id", s.handleDeleteWidgetInstance)
 		api.POST("/widgets/seed", s.handleSeedWidgetTypes)
+
+		// Figma
+		api.GET("/figma/config", s.handleFigmaConfig)
+		api.GET("/figma/file", s.handleFigmaFile)
+		api.GET("/figma/components", s.handleFigmaComponents)
+		api.POST("/figma/import", s.handleFigmaImport)
+		api.GET("/figma/import", s.handleFigmaLastImport)
+		api.POST("/figma/map", s.handleFigmaManualMap)
 	}
 }
 

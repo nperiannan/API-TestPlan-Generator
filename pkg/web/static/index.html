@@ -107,6 +107,19 @@ tbody tr:hover td{background:#fafafa;}
 .wcat-chip-navigation{background:#e0f7fa;color:#006064;}
 .wcat-prop{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.78em;background:#f0f0f0;color:#555;margin:2px;}
 
+/* Figma */
+.figma-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.figma-kpi{background:#f5f0ff;border:1px solid #e0d4f5;border-radius:8px;padding:14px;text-align:center;}
+.figma-kpi .val{font-size:1.8em;font-weight:700;color:#7c3aed;}
+.figma-kpi .lbl{font-size:.78em;color:#667;text-transform:uppercase;letter-spacing:.3px;margin-top:2px;}
+.figma-conf-high{background:#e8f5e9;color:#1b5e20;padding:2px 10px;border-radius:12px;font-size:.82em;font-weight:600;}
+.figma-conf-medium{background:#fff8e1;color:#f57f17;padding:2px 10px;border-radius:12px;font-size:.82em;font-weight:600;}
+.figma-conf-low{background:#fff3e0;color:#e65100;padding:2px 10px;border-radius:12px;font-size:.82em;font-weight:600;}
+.figma-conf-none{background:#ffebee;color:#b71c1c;padding:2px 10px;border-radius:12px;font-size:.82em;font-weight:600;}
+.figma-comp-type{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.78em;font-weight:600;}
+.figma-comp-type-component{background:#e3f2fd;color:#1565c0;}
+.figma-comp-type-component_set{background:#f3e5f5;color:#6a1b9a;}
+
 /* Test count badges */
 .tc-badge{display:inline-block;min-width:36px;padding:2px 6px;border-radius:10px;font-size:.8em;font-weight:600;text-align:center;}
 .tc-functional{background:#e3f2fd;color:#1565c0;}
@@ -248,6 +261,7 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
     <div class="nav-tab" data-tab="sources" onclick="switchTab('sources')">Source Files</div>
     <div class="nav-tab" data-tab="jira" onclick="switchTab('jira')">Jira</div>
     <div class="nav-tab" data-tab="widgets" onclick="switchTab('widgets')">Widget Catalog</div>
+    <div class="nav-tab" data-tab="figma" onclick="switchTab('figma')">Figma</div>
     <div class="nav-tab" data-tab="generate" onclick="switchTab('generate')">Generate</div>
   </div>
 
@@ -394,6 +408,51 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
         <button class="btn btn-sm btn-secondary" style="color:#333;" onclick="closeWidgetTypeDetail()">&#10005; Close</button>
       </div>
       <div class="section-body" id="widgetTypeDetailBody"></div>
+    </div>
+  </div>
+
+  <!-- FIGMA TAB -->
+  <div class="tab-content" id="tab-figma">
+    <div class="figma-kpi-row" id="figmaKpiRow">
+      <div class="figma-kpi"><div class="spinner"></div></div>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <h2>Figma Integration</h2>
+        <span id="figmaStatus" style="font-size:.85em;color:#888;">Checking connection...</span>
+      </div>
+      <div class="section-body">
+        <div id="figmaNotConfigured" style="display:none;">
+          <p style="color:#c62828;">&#9888; Figma is not configured. Set <code>FIGMA_API_TOKEN</code> environment variable and add <code>figma.fileKey</code> to config.yaml.</p>
+          <div style="background:#f5f5f5;border-radius:8px;padding:16px;margin-top:12px;font-size:.88em;">
+            <strong>Setup Instructions:</strong>
+            <ol style="margin:8px 0 0 18px;">
+              <li>Generate a Figma Personal Access Token at <a href="https://www.figma.com/developers/api#access-tokens" target="_blank">figma.com/developers</a></li>
+              <li>Add <code>FIGMA_API_TOKEN=your_token</code> to the systemd environment</li>
+              <li>Set the Figma file key in <code>config/config.yaml</code> under <code>figma.fileKey</code></li>
+              <li>Restart the dashboard service</li>
+            </ol>
+          </div>
+        </div>
+        <div id="figmaConnected" style="display:none;">
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+            <input type="text" id="figmaFileKeyInput" placeholder="Figma file key (from URL)..." style="flex:1;min-width:280px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;">
+            <button class="btn btn-primary" onclick="fetchFigmaFile()">&#128269; Fetch File Info</button>
+            <button class="btn btn-success" onclick="importFigmaComponents(false)">&#11015; Import Components</button>
+            <button class="btn btn-secondary" style="color:#333;" onclick="importFigmaComponents(true)">&#11015; Import + Auto-Create</button>
+          </div>
+          <div id="figmaFileInfo" style="display:none;margin-bottom:16px;"></div>
+          <div id="figmaImportResults"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Last Import -->
+    <div class="section" id="figmaLastImportSection" style="display:none;">
+      <div class="section-header">
+        <h2 id="figmaLastImportTitle">Last Import</h2>
+      </div>
+      <div class="section-body" id="figmaLastImportBody"></div>
     </div>
   </div>
 
@@ -550,6 +609,7 @@ function switchTab(tab) {
   if (tab === 'sources') loadSources();
   if (tab === 'jira') loadJiraTab();
   if (tab === 'widgets') loadWidgetsTab();
+  if (tab === 'figma') loadFigmaTab();
   if (tab === 'generate') loadGenerateTab();
 }
 
@@ -1720,6 +1780,197 @@ async function deleteWidgetInstance(id, name) {
     loadWidgetsTab();
   } catch (e) {
     showToast('Delete failed: ' + e.message, 'error');
+  }
+}
+
+// --- Figma ---
+let figmaConfigured = false;
+
+async function loadFigmaTab() {
+  try {
+    const cfg = await apiJSON('/api/figma/config');
+    if (cfg.configured) {
+      figmaConfigured = true;
+      document.getElementById('figmaNotConfigured').style.display = 'none';
+      document.getElementById('figmaConnected').style.display = 'block';
+      document.getElementById('figmaStatus').innerHTML = '<span style="color:#43a047;">&#10003;</span> Connected';
+      if (cfg.fileKey) {
+        document.getElementById('figmaFileKeyInput').value = cfg.fileKey;
+      }
+      loadFigmaLastImport();
+    } else {
+      document.getElementById('figmaNotConfigured').style.display = 'block';
+      document.getElementById('figmaConnected').style.display = 'none';
+      document.getElementById('figmaStatus').innerHTML = '<span style="color:#ef5350;">&#10007;</span> Not configured';
+      document.getElementById('figmaKpiRow').innerHTML = '<div class="figma-kpi"><div class="val">-</div><div class="lbl">Not Configured</div></div>';
+    }
+  } catch (e) {
+    document.getElementById('figmaStatus').innerHTML = '<span style="color:#ef5350;">&#10007;</span> Error: ' + e.message;
+  }
+}
+
+async function fetchFigmaFile() {
+  const fileKey = document.getElementById('figmaFileKeyInput').value.trim();
+  if (!fileKey) { showToast('Enter a Figma file key', 'error'); return; }
+  const container = document.getElementById('figmaFileInfo');
+  container.style.display = 'block';
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const data = await apiJSON('/api/figma/file?fileKey=' + encodeURIComponent(fileKey));
+    container.innerHTML = '<div style="background:#f5f0ff;border-radius:8px;padding:16px;">' +
+      '<h3 style="margin:0 0 8px;color:#7c3aed;">' + escapeHtml(data.name) + '</h3>' +
+      '<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:.9em;">' +
+        '<div><strong>Pages:</strong> ' + data.totalPages + '</div>' +
+        '<div><strong>Frames:</strong> ' + data.totalFrames + '</div>' +
+        '<div><strong>Components:</strong> ' + data.components + '</div>' +
+        '<div><strong>Component Sets:</strong> ' + data.componentSets + '</div>' +
+        '<div><strong>Last Modified:</strong> ' + new Date(data.lastModified).toLocaleString() + '</div>' +
+      '</div>' +
+      (data.pages && data.pages.length ? '<div style="margin-top:10px;"><strong>Pages:</strong> ' + data.pages.map(function(p) { return '<span style="background:#e8e0f5;padding:2px 8px;border-radius:4px;font-size:.82em;margin:2px;">' + escapeHtml(p.name) + ' (' + p.children + ' frames)</span>'; }).join(' ') + '</div>' : '') +
+    '</div>';
+  } catch (e) {
+    container.innerHTML = '<p style="color:#c62828;">Failed: ' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+async function importFigmaComponents(autoCreate) {
+  const fileKey = document.getElementById('figmaFileKeyInput').value.trim();
+  if (!fileKey) { showToast('Enter a Figma file key', 'error'); return; }
+  const msg = autoCreate ? 'Import components AND auto-create widget instances for mapped components?' : 'Import components from Figma? (No widget instances will be created yet.)';
+  if (!confirm(msg)) return;
+
+  const container = document.getElementById('figmaImportResults');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:8px;color:#888;">Fetching from Figma API... This may take a moment for large files.</p></div>';
+  try {
+    const result = await apiJSON('/api/figma/import', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ fileKey: fileKey, autoCreate: autoCreate })
+    });
+    renderFigmaImport(result, container);
+    updateFigmaKPIs(result);
+    showToast('Imported ' + result.totalComponents + ' components, ' + result.autoMapped + ' auto-mapped', 'success');
+  } catch (e) {
+    container.innerHTML = '<p style="color:#c62828;">Import failed: ' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+async function loadFigmaLastImport() {
+  try {
+    const data = await apiJSON('/api/figma/import');
+    if (data.imported && data.result) {
+      const r = data.result;
+      updateFigmaKPIs(r);
+      const section = document.getElementById('figmaLastImportSection');
+      section.style.display = 'block';
+      document.getElementById('figmaLastImportTitle').textContent = 'Last Import — ' + escapeHtml(r.fileName) + ' (' + new Date(r.importedAt).toLocaleString() + ')';
+      renderFigmaImport(r, document.getElementById('figmaLastImportBody'));
+    } else {
+      document.getElementById('figmaKpiRow').innerHTML = [
+        { val: '-', lbl: 'Components' },
+        { val: '-', lbl: 'Auto-Mapped' },
+        { val: '-', lbl: 'Unmapped' },
+        { val: '-', lbl: 'Pages' },
+      ].map(function(k) { return '<div class="figma-kpi"><div class="val">' + k.val + '</div><div class="lbl">' + k.lbl + '</div></div>'; }).join('');
+    }
+  } catch (e) {
+    // Silently ignore
+  }
+}
+
+function updateFigmaKPIs(r) {
+  document.getElementById('figmaKpiRow').innerHTML = [
+    { val: r.totalComponents, lbl: 'Components' },
+    { val: r.autoMapped, lbl: 'Auto-Mapped' },
+    { val: r.unmapped, lbl: 'Unmapped' },
+    { val: r.totalPages, lbl: 'Pages' },
+    { val: r.totalFrames, lbl: 'Frames' },
+  ].map(function(k) { return '<div class="figma-kpi"><div class="val">' + k.val + '</div><div class="lbl">' + k.lbl + '</div></div>'; }).join('');
+}
+
+function renderFigmaImport(result, container) {
+  let html = '';
+
+  // Summary bar
+  html += '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:.9em;">';
+  html += '<div><strong>File:</strong> ' + escapeHtml(result.fileName) + '</div>';
+  html += '<div><strong>Components:</strong> ' + result.totalComponents + '</div>';
+  html += '<div><strong>Auto-Mapped:</strong> <span style="color:#43a047;font-weight:600;">' + result.autoMapped + '</span></div>';
+  html += '<div><strong>Unmapped:</strong> <span style="color:#e53935;font-weight:600;">' + result.unmapped + '</span></div>';
+  html += '</div>';
+
+  // Mapping table
+  const mappings = result.mappingDetails || [];
+  if (mappings.length) {
+    html += '<div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;">';
+    html += '<input type="text" id="figmaMappingFilter" placeholder="Filter components..." style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:.88em;" oninput="filterFigmaMappings()">';
+    html += '<select id="figmaMappingConfFilter" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:.88em;" onchange="filterFigmaMappings()">';
+    html += '<option value="">All Confidence</option><option value="high">High</option><option value="medium">Medium</option><option value="none">Unmapped</option>';
+    html += '</select>';
+    html += '</div>';
+    html += '<table id="figmaMappingTable"><thead><tr><th>#</th><th>Component</th><th>Page</th><th>Mapped To</th><th>Confidence</th><th>Reason</th><th>Action</th></tr></thead><tbody>';
+    mappings.forEach(function(m, i) {
+      const confClass = 'figma-conf-' + m.confidence;
+      const typeDisplay = m.mappedTypeName ? '<span class="wcat-chip wcat-chip-input">' + escapeHtml(m.mappedTypeName) + '</span>' : '<span style="color:#aaa;">—</span>';
+      const actionBtn = m.mappedType ? '' : '<button class="btn btn-sm btn-primary" onclick="openFigmaMapModal(\'' + escapeHtml(m.componentId) + '\',\'' + escapeHtml(m.componentName.replace(/'/g, "\\'")) + '\',\'' + escapeHtml((m.page || '').replace(/'/g, "\\'")) + '\')">Map</button>';
+      html += '<tr data-figma-name="' + escapeHtml(m.componentName.toLowerCase()) + '" data-figma-conf="' + m.confidence + '">';
+      html += '<td>' + (i + 1) + '</td>';
+      html += '<td><strong>' + escapeHtml(m.componentName) + '</strong></td>';
+      html += '<td>' + escapeHtml(m.page || '') + '</td>';
+      html += '<td>' + typeDisplay + '</td>';
+      html += '<td><span class="' + confClass + '">' + m.confidence + '</span></td>';
+      html += '<td style="font-size:.82em;color:#888;">' + escapeHtml(m.reason) + '</td>';
+      html += '<td>' + actionBtn + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '<p style="color:#888;font-size:.82em;margin-top:8px;">Showing ' + mappings.length + ' components</p>';
+  }
+
+  container.innerHTML = html;
+}
+
+function filterFigmaMappings() {
+  const q = (document.getElementById('figmaMappingFilter') || {}).value || '';
+  const conf = (document.getElementById('figmaMappingConfFilter') || {}).value || '';
+  const rows = document.querySelectorAll('#figmaMappingTable tbody tr');
+  rows.forEach(function(row) {
+    const name = row.getAttribute('data-figma-name') || '';
+    const rowConf = row.getAttribute('data-figma-conf') || '';
+    const nameMatch = !q || name.includes(q.toLowerCase());
+    const confMatch = !conf || rowConf === conf;
+    row.style.display = (nameMatch && confMatch) ? '' : 'none';
+  });
+}
+
+function openFigmaMapModal(componentId, componentName, page) {
+  // Reuse a simple prompt-style approach with the widget type dropdown
+  const typeOptions = (widgetTypesData || []).map(function(t) { return t.id + ':' + t.name + ' (' + t.category + ')'; });
+  if (!typeOptions.length) {
+    showToast('No widget types defined. Seed the widget catalog first.', 'error');
+    return;
+  }
+  const selected = prompt('Map "' + componentName + '" to which widget type?\\n\\n' + typeOptions.map(function(o, i) { return (i+1) + '. ' + o.split(':')[1]; }).join('\\n') + '\\n\\nEnter number:');
+  if (!selected) return;
+  const idx = parseInt(selected) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= widgetTypesData.length) {
+    showToast('Invalid selection', 'error');
+    return;
+  }
+  const wt = widgetTypesData[idx];
+  figmaManualMap(componentId, componentName, page, wt.id);
+}
+
+async function figmaManualMap(componentId, componentName, page, widgetTypeId) {
+  try {
+    await apiJSON('/api/figma/map', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ componentId: componentId, componentName: componentName, page: page, widgetTypeId: widgetTypeId })
+    });
+    showToast('Mapped "' + componentName + '" successfully', 'success');
+  } catch (e) {
+    showToast('Mapping failed: ' + e.message, 'error');
   }
 }
 

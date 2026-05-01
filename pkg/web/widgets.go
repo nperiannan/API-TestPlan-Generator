@@ -445,11 +445,11 @@ func (s *Server) handleWidgetStats(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"totalTypes":         len(types),
-		"totalInstances":     len(instances),
-		"totalTestActions":   totalActions,
-		"typesByCategory":    catCounts,
-		"instancesByScreen":  screenCounts,
+		"totalTypes":        len(types),
+		"totalInstances":    len(instances),
+		"totalTestActions":  totalActions,
+		"typesByCategory":   catCounts,
+		"instancesByScreen": screenCounts,
 	})
 }
 
