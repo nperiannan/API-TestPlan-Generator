@@ -1,8 +1,8 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:51:12+05:30"
-sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
-sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
-sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
+generatedAt: "2026-05-01T15:42:42+05:30"
+sourceYangDir: sources\PlatformCommonModels\ConfigState\etc\yang
+sourceRESTAPI: sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
+sourceNOSAPI: sources\nosapi\nos-openapi.yaml
 features:
     - featureName: port-elrp
       featurePath: /network-feature/interface-feature/port-feature
@@ -12,7 +12,7 @@ features:
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_4999
+            - testCaseID: TCXM_5280
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -111,7 +111,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='exclude-elrp')].value
                       expected: false
                       description: Verify 'exclude-elrp' value is 'false' as set during create
-            - testCaseID: TCXM_5000
+            - testCaseID: TCXM_5281
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -155,7 +155,7 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: updateResource
-                  description: Update port-elrp — modify elrp-enable=false
+                  description: Update port-elrp — modify elrp-enable=false, exclude-elrp=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -172,17 +172,21 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-elrp updated successfully with modify elrp-enable=false
+                    - Verify port-elrp updated successfully with modify elrp-enable=false, exclude-elrp=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-elrp updated successfully with modify elrp-enable=false
+                      description: Verify port-elrp updated successfully with modify elrp-enable=false, exclude-elrp=false
                 - name: verifyUpdate
-                  description: Verify port-elrp was updated — modify elrp-enable=false
+                  description: Verify port-elrp was updated — modify elrp-enable=false, exclude-elrp=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -193,12 +197,12 @@ features:
                     objectType: port-elrp
                   expectedStatus: 200
                   validations:
-                    - Verify port-elrp retrieved — response contains modify elrp-enable=false
+                    - Verify port-elrp retrieved — response contains modify elrp-enable=false, exclude-elrp=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-elrp retrieved — response contains modify elrp-enable=false
-            - testCaseID: TCXM_5001
+                      description: Verify port-elrp retrieved — response contains modify elrp-enable=false, exclude-elrp=false
+            - testCaseID: TCXM_5282
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -275,7 +279,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-elrp with elrp-enable=false, exclude-elrp=false no longer exists in the response
-            - testCaseID: TCXM_5002
+            - testCaseID: TCXM_5283
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -336,7 +340,7 @@ features:
                       expected: 200
                       description: Verify port-elrp retrieved — response contains elrp-enable=false, exclude-elrp=false
                 - name: updateResource
-                  description: Update port-elrp — modify elrp-enable=false
+                  description: Update port-elrp — modify elrp-enable=false, exclude-elrp=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -353,17 +357,21 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-elrp updated successfully with modify elrp-enable=false
+                    - Verify port-elrp updated successfully with modify elrp-enable=false, exclude-elrp=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-elrp updated successfully with modify elrp-enable=false
+                      description: Verify port-elrp updated successfully with modify elrp-enable=false, exclude-elrp=false
                 - name: verifyUpdate
-                  description: Verify port-elrp was updated — modify elrp-enable=false
+                  description: Verify port-elrp was updated — modify elrp-enable=false, exclude-elrp=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -374,11 +382,11 @@ features:
                     objectType: port-elrp
                   expectedStatus: 200
                   validations:
-                    - Verify port-elrp retrieved — response contains modify elrp-enable=false
+                    - Verify port-elrp retrieved — response contains modify elrp-enable=false, exclude-elrp=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-elrp retrieved — response contains modify elrp-enable=false
+                      description: Verify port-elrp retrieved — response contains modify elrp-enable=false, exclude-elrp=false
                 - name: deleteResource
                   description: Delete port-elrp with elrp-enable=false, exclude-elrp=false
                   method: POST
@@ -413,7 +421,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-elrp with elrp-enable=false, exclude-elrp=false no longer exists in the response
-            - testCaseID: TCXM_5003
+            - testCaseID: TCXM_5284
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -457,7 +465,7 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: partialUpdate
-                  description: Partially update port-elrp — modify elrp-enable=false
+                  description: Partially update port-elrp — modify elrp-enable=false, exclude-elrp=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -474,17 +482,21 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-elrp updated successfully with modify elrp-enable=false
+                    - Verify port-elrp updated successfully with modify elrp-enable=false, exclude-elrp=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-elrp updated successfully with modify elrp-enable=false
+                      description: Verify port-elrp updated successfully with modify elrp-enable=false, exclude-elrp=false
                 - name: verifyPartialUpdate
-                  description: Verify partial update of port-elrp — modify elrp-enable=false
+                  description: Verify partial update of port-elrp — modify elrp-enable=false, exclude-elrp=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -495,12 +507,12 @@ features:
                     objectType: port-elrp
                   expectedStatus: 200
                   validations:
-                    - Verify port-elrp retrieved — response contains modify elrp-enable=false
+                    - Verify port-elrp retrieved — response contains modify elrp-enable=false, exclude-elrp=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-elrp retrieved — response contains modify elrp-enable=false
-            - testCaseID: TCXM_5004
+                      description: Verify port-elrp retrieved — response contains modify elrp-enable=false, exclude-elrp=false
+            - testCaseID: TCXM_5285
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -568,7 +580,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of port-elrp with elrp-enable=false, exclude-elrp=false is rejected (409 Conflict)
-            - testCaseID: TCXM_5005
+            - testCaseID: TCXM_5286
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -767,7 +779,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5006
+            - testCaseID: TCXM_5287
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -966,7 +978,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5007
+            - testCaseID: TCXM_5288
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -1152,7 +1164,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5008
+            - testCaseID: TCXM_5289
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -1203,7 +1215,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_5009
+            - testCaseID: TCXM_5290
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -1280,7 +1292,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='exclude-elrp')].value
                       expected: false
                       description: Verify field 'exclude-elrp' has value 'false' as sent on create
-            - testCaseID: TCXM_5010
+            - testCaseID: TCXM_5291
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -1340,7 +1352,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='elrp-enable')].value
                       expected: false
                       description: Verify optional field 'elrp-enable' value is 'false' as set on create
-            - testCaseID: TCXM_5011
+            - testCaseID: TCXM_5292
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -1400,7 +1412,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='exclude-elrp')].value
                       expected: false
                       description: Verify optional field 'exclude-elrp' value is 'false' as set on create
-            - testCaseID: TCXM_5012
+            - testCaseID: TCXM_5293
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -1460,7 +1472,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='elrp-enable')].value
                       expected: true
                       description: Verify 'elrp-enable' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5013
+            - testCaseID: TCXM_5294
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -1520,7 +1532,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='elrp-enable')].value
                       expected: false
                       description: Verify 'elrp-enable' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5014
+            - testCaseID: TCXM_5295
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -1572,7 +1584,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='elrp-enable')].value
                       expected: false
                       description: Verify 'elrp-enable' equals YANG-defined default value false
-            - testCaseID: TCXM_5015
+            - testCaseID: TCXM_5296
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -1624,7 +1636,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='exclude-elrp')].value
                       expected: false
                       description: Verify 'exclude-elrp' equals YANG-defined default value false
-            - testCaseID: TCXM_5016
+            - testCaseID: TCXM_5297
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -1810,7 +1822,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5017
+            - testCaseID: TCXM_5298
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -1996,7 +2008,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5018
+            - testCaseID: TCXM_5299
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -2182,7 +2194,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5019
+            - testCaseID: TCXM_5300
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -2368,7 +2380,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5020
+            - testCaseID: TCXM_5301
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -2554,7 +2566,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5021
+            - testCaseID: TCXM_5302
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -2740,7 +2752,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5022
+            - testCaseID: TCXM_5303
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -2926,7 +2938,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5023
+            - testCaseID: TCXM_5304
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -3112,7 +3124,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5024
+            - testCaseID: TCXM_5305
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -3298,7 +3310,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5025
+            - testCaseID: TCXM_5306
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -3484,7 +3496,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5026
+            - testCaseID: TCXM_5307
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -3670,7 +3682,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5027
+            - testCaseID: TCXM_5308
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -3856,7 +3868,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5028
+            - testCaseID: TCXM_5309
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -4042,7 +4054,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5029
+            - testCaseID: TCXM_5310
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -4228,7 +4240,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5030
+            - testCaseID: TCXM_5311
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -4414,7 +4426,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5031
+            - testCaseID: TCXM_5312
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -4600,7 +4612,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5032
+            - testCaseID: TCXM_5313
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -4786,7 +4798,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5033
+            - testCaseID: TCXM_5314
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -4972,7 +4984,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5034
+            - testCaseID: TCXM_5315
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -5159,7 +5171,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5035
+            - testCaseID: TCXM_5316
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -5346,7 +5358,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5036
+            - testCaseID: TCXM_5317
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -5533,7 +5545,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5037
+            - testCaseID: TCXM_5318
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -5720,7 +5732,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5038
+            - testCaseID: TCXM_5319
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -5907,7 +5919,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5039
+            - testCaseID: TCXM_5320
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -6094,7 +6106,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5040
+            - testCaseID: TCXM_5321
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -6281,7 +6293,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5041
+            - testCaseID: TCXM_5322
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -6468,7 +6480,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5042
+            - testCaseID: TCXM_5323
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -6655,7 +6667,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5043
+            - testCaseID: TCXM_5324
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -6842,7 +6854,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5044
+            - testCaseID: TCXM_5325
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -7028,7 +7040,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5045
+            - testCaseID: TCXM_5326
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -7214,7 +7226,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5046
+            - testCaseID: TCXM_5327
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -7400,7 +7412,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5047
+            - testCaseID: TCXM_5328
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -7586,7 +7598,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5048
+            - testCaseID: TCXM_5329
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -7772,7 +7784,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5049
+            - testCaseID: TCXM_5330
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -7958,7 +7970,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5050
+            - testCaseID: TCXM_5331
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -8115,14 +8127,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T10:21:12Z
+                  description: Schedule deployment to device at 2026-05-01T11:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -8132,7 +8144,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5051
+            - testCaseID: TCXM_5332
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -8289,14 +8301,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T10:21:12Z
+                  description: Schedule deployment to site at 2026-05-01T11:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -8306,7 +8318,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5052
+            - testCaseID: TCXM_5333
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -8467,7 +8479,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -8478,14 +8490,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T11:21:12Z
+                  description: Edit deployment schedule to 2026-05-01T12:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T11:21:12Z"
+                    deployAt: "2026-05-01T12:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -8495,7 +8507,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5053
+            - testCaseID: TCXM_5334
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -8656,7 +8668,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -8682,7 +8694,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5054
+            - testCaseID: TCXM_5335
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -8740,7 +8752,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5055
+            - testCaseID: TCXM_5336
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -8801,7 +8813,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5056
+            - testCaseID: TCXM_5337
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -9050,7 +9062,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_5057
+            - testCaseID: TCXM_5338
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -9399,7 +9411,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_5058
+            - testCaseID: TCXM_5339
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -9750,7 +9762,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for port-elrp — device value accepted as new cloud baseline
-            - testCaseID: TCXM_5059
+            - testCaseID: TCXM_5340
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -9986,7 +9998,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_5060
+            - testCaseID: TCXM_5341
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -10179,7 +10191,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_5061
+            - testCaseID: TCXM_5342
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -10372,7 +10384,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_5062
+            - testCaseID: TCXM_5343
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -10550,7 +10562,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_5063
+            - testCaseID: TCXM_5344
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -10742,7 +10754,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_5064
+            - testCaseID: TCXM_5345
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -10952,7 +10964,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5065
+            - testCaseID: TCXM_5346
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -11067,7 +11079,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_5066
+            - testCaseID: TCXM_5347
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -11096,7 +11108,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_5080
+            - testCaseID: TCXM_5361
               featureName: port-elrp
               priority: P1
               automation: Automatable
@@ -11160,7 +11172,7 @@ features:
                       expected: 200
                       description: Verify port-elrp retrieved — response contains elrp-enable=false, exclude-elrp=false
                 - name: updateResource
-                  description: Update port-elrp — modify elrp-enable=false
+                  description: Update port-elrp — modify elrp-enable=false, exclude-elrp=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -11177,17 +11189,21 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-elrp updated successfully with modify elrp-enable=false
+                    - Verify port-elrp updated successfully with modify elrp-enable=false, exclude-elrp=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-elrp updated successfully with modify elrp-enable=false
+                      description: Verify port-elrp updated successfully with modify elrp-enable=false, exclude-elrp=false
                 - name: verifyUpdate
-                  description: Verify port-elrp was updated — modify elrp-enable=false
+                  description: Verify port-elrp was updated — modify elrp-enable=false, exclude-elrp=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -11198,11 +11214,11 @@ features:
                     objectType: port-elrp
                   expectedStatus: 200
                   validations:
-                    - Verify port-elrp retrieved — response contains modify elrp-enable=false
+                    - Verify port-elrp retrieved — response contains modify elrp-enable=false, exclude-elrp=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-elrp retrieved — response contains modify elrp-enable=false
+                      description: Verify port-elrp retrieved — response contains modify elrp-enable=false, exclude-elrp=false
                 - name: retrieveDeviceLocation
                   description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
                   method: POST
@@ -11443,7 +11459,7 @@ features:
               metadata:
                 deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_5067
+            - testCaseID: TCXM_5348
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -11473,7 +11489,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'elrp-enable' is omitted
-            - testCaseID: TCXM_5068
+            - testCaseID: TCXM_5349
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -11503,7 +11519,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'exclude-elrp' is omitted
-            - testCaseID: TCXM_5069
+            - testCaseID: TCXM_5350
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -11542,7 +11558,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5070
+            - testCaseID: TCXM_5351
               featureName: port-elrp
               priority: P2
               automation: Automatable
@@ -11567,7 +11583,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_5075
+            - testCaseID: TCXM_5356
               featureName: port-elrp
               priority: P4
               automation: Automatable
@@ -11919,7 +11935,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_5076
+            - testCaseID: TCXM_5357
               featureName: port-elrp
               priority: P4
               automation: Automatable
@@ -12141,7 +12157,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_5077
+            - testCaseID: TCXM_5358
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -12201,6 +12217,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -12229,6 +12249,10 @@ features:
                           operation: update
                           properties:
                             - name: elrp-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: exclude-elrp
                               origin: CC
                               type: boolean
                               value: false
@@ -12263,6 +12287,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -12291,6 +12319,10 @@ features:
                           operation: update
                           properties:
                             - name: elrp-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: exclude-elrp
                               origin: CC
                               type: boolean
                               value: false
@@ -12325,6 +12357,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -12353,6 +12389,10 @@ features:
                           operation: update
                           properties:
                             - name: elrp-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: exclude-elrp
                               origin: CC
                               type: boolean
                               value: false
@@ -12387,6 +12427,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -12415,6 +12459,10 @@ features:
                           operation: update
                           properties:
                             - name: elrp-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: exclude-elrp
                               origin: CC
                               type: boolean
                               value: false
@@ -12449,6 +12497,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -12480,6 +12532,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -12496,7 +12552,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_5078
+            - testCaseID: TCXM_5359
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -13057,7 +13113,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_5079
+            - testCaseID: TCXM_5360
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -13318,7 +13374,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_5071
+            - testCaseID: TCXM_5352
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -16228,7 +16284,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_5072
+            - testCaseID: TCXM_5353
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -17968,7 +18024,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_5073
+            - testCaseID: TCXM_5354
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -18028,6 +18084,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -18051,6 +18111,10 @@ features:
                           operation: update
                           properties:
                             - name: elrp-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: exclude-elrp
                               origin: CC
                               type: boolean
                               value: false
@@ -18080,6 +18144,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -18103,6 +18171,10 @@ features:
                           operation: update
                           properties:
                             - name: elrp-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: exclude-elrp
                               origin: CC
                               type: boolean
                               value: false
@@ -18132,6 +18204,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -18155,6 +18231,10 @@ features:
                           operation: update
                           properties:
                             - name: elrp-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: exclude-elrp
                               origin: CC
                               type: boolean
                               value: false
@@ -18184,6 +18264,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -18207,6 +18291,10 @@ features:
                           operation: update
                           properties:
                             - name: elrp-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: exclude-elrp
                               origin: CC
                               type: boolean
                               value: false
@@ -18236,6 +18324,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -18262,6 +18354,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: exclude-elrp
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-elrp
                     operation: update
                   expectedStatus: 200
@@ -18273,7 +18369,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_5074
+            - testCaseID: TCXM_5355
               featureName: port-elrp
               priority: P3
               automation: Automatable
@@ -24084,7 +24180,7 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
-            - testCaseID: TCXM_5081
+            - testCaseID: TCXM_5362
               featureName: port-elrp
               priority: P2
               automation: Automatable

@@ -1,19 +1,19 @@
 featurePath: /network-feature/interface-feature/port-feature
 profileType: configuration
 test:
-    testCaseID: TCXM_1164
+    testCaseID: TCXM_1006
     featureName: advanced-port
-    priority: P2
+    priority: P1
     automation: Automatable
-    type: scale
-    description: Deploy 5 representative advanced-port instances
+    type: functional
+    description: Create advanced-port, scope to device, target to device, deploy, and verify on NOS devices
     scopeType: device
     targetType: device
     deploymentMethod: immediate
     isDeploymentTest: true
     steps:
-        - name: createDeploymentScaleInstance1
-          description: Create deployment scale instance 1 for advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+        - name: createadvanced-port
+          description: Create advanced-port configuration
           method: POST
           api: REST
           path: /configuration-profile/{name}/feature/object/modify
@@ -49,204 +49,23 @@ test:
             operation: add
           expectedStatus: 201
           validations:
-            - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-            - Capture created object ID as OBJECT_ID for later update/delete steps
+            - Verify HTTP status code is 201
           assertions:
             - type: statusCode
               expected: 201
-              description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-            - type: jsonPathExists
-              path: $[0].id
-              captureAs: OBJECT_ID
-              description: Capture created object ID as OBJECT_ID for later update/delete steps
-        - name: createDeploymentScaleInstance2
-          description: Create deployment scale instance 2 for advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+        - name: getProfile
+          description: Retrieve created profile
           method: POST
           api: REST
-          path: /configuration-profile/{name}/feature/object/modify
+          path: /configuration-profile/{name}/feature/object/retrieve
           pathParams:
             name: TestProfile
-          body:
-            featurePath: /network-feature/interface-feature/port-feature
-            objectType: advanced-port
-            objects:
-                - operation: add
-                  properties:
-                    - name: enable-stp
-                      origin: CC
-                      type: boolean
-                      value: true
-                    - name: enable-edge
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: enable-bpdu-protection
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: enable-bpdu-restrict
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: bpdu-recovery-timeout
-                      origin: CC
-                      type: number
-                      value: 300
-                  type: advanced-port
-            operation: add
-          expectedStatus: 201
+          expectedStatus: 200
           validations:
-            - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-            - Capture created object ID as OBJECT_ID for later update/delete steps
+            - Verify HTTP status code is 200
           assertions:
             - type: statusCode
-              expected: 201
-              description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-            - type: jsonPathExists
-              path: $[0].id
-              captureAs: OBJECT_ID
-              description: Capture created object ID as OBJECT_ID for later update/delete steps
-        - name: createDeploymentScaleInstance3
-          description: Create deployment scale instance 3 for advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-          method: POST
-          api: REST
-          path: /configuration-profile/{name}/feature/object/modify
-          pathParams:
-            name: TestProfile
-          body:
-            featurePath: /network-feature/interface-feature/port-feature
-            objectType: advanced-port
-            objects:
-                - operation: add
-                  properties:
-                    - name: enable-stp
-                      origin: CC
-                      type: boolean
-                      value: true
-                    - name: enable-edge
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: enable-bpdu-protection
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: enable-bpdu-restrict
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: bpdu-recovery-timeout
-                      origin: CC
-                      type: number
-                      value: 300
-                  type: advanced-port
-            operation: add
-          expectedStatus: 201
-          validations:
-            - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-            - Capture created object ID as OBJECT_ID for later update/delete steps
-          assertions:
-            - type: statusCode
-              expected: 201
-              description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-            - type: jsonPathExists
-              path: $[0].id
-              captureAs: OBJECT_ID
-              description: Capture created object ID as OBJECT_ID for later update/delete steps
-        - name: createDeploymentScaleInstance4
-          description: Create deployment scale instance 4 for advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-          method: POST
-          api: REST
-          path: /configuration-profile/{name}/feature/object/modify
-          pathParams:
-            name: TestProfile
-          body:
-            featurePath: /network-feature/interface-feature/port-feature
-            objectType: advanced-port
-            objects:
-                - operation: add
-                  properties:
-                    - name: enable-stp
-                      origin: CC
-                      type: boolean
-                      value: true
-                    - name: enable-edge
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: enable-bpdu-protection
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: enable-bpdu-restrict
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: bpdu-recovery-timeout
-                      origin: CC
-                      type: number
-                      value: 300
-                  type: advanced-port
-            operation: add
-          expectedStatus: 201
-          validations:
-            - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-            - Capture created object ID as OBJECT_ID for later update/delete steps
-          assertions:
-            - type: statusCode
-              expected: 201
-              description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-            - type: jsonPathExists
-              path: $[0].id
-              captureAs: OBJECT_ID
-              description: Capture created object ID as OBJECT_ID for later update/delete steps
-        - name: createDeploymentScaleInstance5
-          description: Create deployment scale instance 5 for advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-          method: POST
-          api: REST
-          path: /configuration-profile/{name}/feature/object/modify
-          pathParams:
-            name: TestProfile
-          body:
-            featurePath: /network-feature/interface-feature/port-feature
-            objectType: advanced-port
-            objects:
-                - operation: add
-                  properties:
-                    - name: enable-stp
-                      origin: CC
-                      type: boolean
-                      value: true
-                    - name: enable-edge
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: enable-bpdu-protection
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: enable-bpdu-restrict
-                      origin: CC
-                      type: boolean
-                      value: false
-                    - name: bpdu-recovery-timeout
-                      origin: CC
-                      type: number
-                      value: 300
-                  type: advanced-port
-            operation: add
-          expectedStatus: 201
-          validations:
-            - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-            - Capture created object ID as OBJECT_ID for later update/delete steps
-          assertions:
-            - type: statusCode
-              expected: 201
-              description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
-            - type: jsonPathExists
-              path: $[0].id
-              captureAs: OBJECT_ID
-              description: Capture created object ID as OBJECT_ID for later update/delete steps
+              expected: 200
         - name: retrieveDeviceLocation
           description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
           method: POST
@@ -393,6 +212,3 @@ test:
               path: $.status
               expected: SUCCESS
           timeout: 300
-    metadata:
-        deploymentSample: scale
-        instanceCount: 5

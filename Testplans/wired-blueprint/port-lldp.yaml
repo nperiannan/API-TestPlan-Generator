@@ -1,8 +1,8 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:51:12+05:30"
-sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
-sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
-sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
+generatedAt: "2026-05-01T15:42:42+05:30"
+sourceYangDir: sources\PlatformCommonModels\ConfigState\etc\yang
+sourceRESTAPI: sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
+sourceNOSAPI: sources\nosapi\nos-openapi.yaml
 features:
     - featureName: port-lldp
       featurePath: /network-feature/interface-feature/port-feature
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_5198
+            - testCaseID: TCXM_5479
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -75,7 +75,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5199
+            - testCaseID: TCXM_5480
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -139,7 +139,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5200
+            - testCaseID: TCXM_5481
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -203,7 +203,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5201
+            - testCaseID: TCXM_5482
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -267,7 +267,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5226
+            - testCaseID: TCXM_5507
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -492,7 +492,7 @@ features:
                 constraint: min
                 deploymentSample: boundary
                 field: voice-vlan-dscp
-            - testCaseID: TCXM_5227
+            - testCaseID: TCXM_5508
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -718,7 +718,7 @@ features:
                 deploymentSample: boundary
                 field: voice-vlan-dscp
         functional:
-            - testCaseID: TCXM_5082
+            - testCaseID: TCXM_5363
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -856,7 +856,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='med-capabilities')].value
                       expected: true
                       description: Verify 'med-capabilities' value is 'true' as set during create
-            - testCaseID: TCXM_5083
+            - testCaseID: TCXM_5364
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -912,7 +912,7 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: updateResource
-                  description: Update port-lldp — modify voice-vlan-enable=false
+                  description: Update port-lldp — modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -929,17 +929,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-lldp updated successfully with modify voice-vlan-enable=false
+                    - Verify port-lldp updated successfully with modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-lldp updated successfully with modify voice-vlan-enable=false
+                      description: Verify port-lldp updated successfully with modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                 - name: verifyUpdate
-                  description: Verify port-lldp was updated — modify voice-vlan-enable=false
+                  description: Verify port-lldp was updated — modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -950,12 +958,12 @@ features:
                     objectType: port-lldp
                   expectedStatus: 200
                   validations:
-                    - Verify port-lldp retrieved — response contains modify voice-vlan-enable=false
+                    - Verify port-lldp retrieved — response contains modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-lldp retrieved — response contains modify voice-vlan-enable=false
-            - testCaseID: TCXM_5084
+                      description: Verify port-lldp retrieved — response contains modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
+            - testCaseID: TCXM_5365
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -1044,7 +1052,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-lldp with voice-vlan-enable=false, voice-vlan-dscp=100, voice-sig-enable=false, voice-sig-dscp=100, med-capabilities=true no longer exists in the response
-            - testCaseID: TCXM_5085
+            - testCaseID: TCXM_5366
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -1117,7 +1125,7 @@ features:
                       expected: 200
                       description: Verify port-lldp retrieved — response contains voice-vlan-enable=false, voice-vlan-dscp=100, voice-sig-enable=false, voice-sig-dscp=100, med-capabilities=true
                 - name: updateResource
-                  description: Update port-lldp — modify voice-vlan-enable=false
+                  description: Update port-lldp — modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -1134,17 +1142,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-lldp updated successfully with modify voice-vlan-enable=false
+                    - Verify port-lldp updated successfully with modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-lldp updated successfully with modify voice-vlan-enable=false
+                      description: Verify port-lldp updated successfully with modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                 - name: verifyUpdate
-                  description: Verify port-lldp was updated — modify voice-vlan-enable=false
+                  description: Verify port-lldp was updated — modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -1155,11 +1171,11 @@ features:
                     objectType: port-lldp
                   expectedStatus: 200
                   validations:
-                    - Verify port-lldp retrieved — response contains modify voice-vlan-enable=false
+                    - Verify port-lldp retrieved — response contains modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-lldp retrieved — response contains modify voice-vlan-enable=false
+                      description: Verify port-lldp retrieved — response contains modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                 - name: deleteResource
                   description: Delete port-lldp with voice-vlan-enable=false, voice-vlan-dscp=100, voice-sig-enable=false, voice-sig-dscp=100, med-capabilities=true
                   method: POST
@@ -1194,7 +1210,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-lldp with voice-vlan-enable=false, voice-vlan-dscp=100, voice-sig-enable=false, voice-sig-dscp=100, med-capabilities=true no longer exists in the response
-            - testCaseID: TCXM_5086
+            - testCaseID: TCXM_5367
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -1250,7 +1266,7 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: partialUpdate
-                  description: Partially update port-lldp — modify voice-vlan-enable=false
+                  description: Partially update port-lldp — modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -1267,17 +1283,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-lldp updated successfully with modify voice-vlan-enable=false
+                    - Verify port-lldp updated successfully with modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-lldp updated successfully with modify voice-vlan-enable=false
+                      description: Verify port-lldp updated successfully with modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                 - name: verifyPartialUpdate
-                  description: Verify partial update of port-lldp — modify voice-vlan-enable=false
+                  description: Verify partial update of port-lldp — modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -1288,12 +1312,12 @@ features:
                     objectType: port-lldp
                   expectedStatus: 200
                   validations:
-                    - Verify port-lldp retrieved — response contains modify voice-vlan-enable=false
+                    - Verify port-lldp retrieved — response contains modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-lldp retrieved — response contains modify voice-vlan-enable=false
-            - testCaseID: TCXM_5087
+                      description: Verify port-lldp retrieved — response contains modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
+            - testCaseID: TCXM_5368
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -1385,7 +1409,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of port-lldp with voice-vlan-enable=false, voice-vlan-dscp=100, voice-sig-enable=false, voice-sig-dscp=100, med-capabilities=true is rejected (409 Conflict)
-            - testCaseID: TCXM_5088
+            - testCaseID: TCXM_5369
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -1596,7 +1620,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5089
+            - testCaseID: TCXM_5370
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -1807,7 +1831,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5090
+            - testCaseID: TCXM_5371
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -2005,7 +2029,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5091
+            - testCaseID: TCXM_5372
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -2056,7 +2080,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_5092
+            - testCaseID: TCXM_5373
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -2185,7 +2209,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='system-capabilities')].value
                       expected: true
                       description: Verify field 'system-capabilities' has value 'true' as sent on create
-            - testCaseID: TCXM_5093
+            - testCaseID: TCXM_5374
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -2245,7 +2269,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-enable')].value
                       expected: false
                       description: Verify optional field 'voice-vlan-enable' value is 'false' as set on create
-            - testCaseID: TCXM_5094
+            - testCaseID: TCXM_5375
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -2305,7 +2329,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-dscp')].value
                       expected: 100
                       description: Verify optional field 'voice-vlan-dscp' value is '100' as set on create
-            - testCaseID: TCXM_5095
+            - testCaseID: TCXM_5376
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -2365,7 +2389,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-sig-enable')].value
                       expected: false
                       description: Verify optional field 'voice-sig-enable' value is 'false' as set on create
-            - testCaseID: TCXM_5096
+            - testCaseID: TCXM_5377
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -2425,7 +2449,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-sig-dscp')].value
                       expected: 100
                       description: Verify optional field 'voice-sig-dscp' value is '100' as set on create
-            - testCaseID: TCXM_5097
+            - testCaseID: TCXM_5378
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -2485,7 +2509,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='med-capabilities')].value
                       expected: true
                       description: Verify optional field 'med-capabilities' value is 'true' as set on create
-            - testCaseID: TCXM_5098
+            - testCaseID: TCXM_5379
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -2545,7 +2569,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='system-capabilities')].value
                       expected: true
                       description: Verify optional field 'system-capabilities' value is 'true' as set on create
-            - testCaseID: TCXM_5099
+            - testCaseID: TCXM_5380
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -2617,7 +2641,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-enable')].value
                       expected: true
                       description: Verify 'voice-vlan-enable' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5100
+            - testCaseID: TCXM_5381
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -2689,7 +2713,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-enable')].value
                       expected: false
                       description: Verify 'voice-vlan-enable' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5101
+            - testCaseID: TCXM_5382
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -2761,7 +2785,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-dscp')].value
                       expected: 0
                       description: Verify 'voice-vlan-dscp' YANG type 'int32' value is persisted
-            - testCaseID: TCXM_5102
+            - testCaseID: TCXM_5383
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -2833,7 +2857,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-dscp')].value
                       expected: 63
                       description: Verify 'voice-vlan-dscp' YANG type 'int32' value is persisted
-            - testCaseID: TCXM_5103
+            - testCaseID: TCXM_5384
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -2885,7 +2909,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-enable')].value
                       expected: false
                       description: Verify 'voice-vlan-enable' equals YANG-defined default value false
-            - testCaseID: TCXM_5104
+            - testCaseID: TCXM_5385
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -2937,7 +2961,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-sig-enable')].value
                       expected: false
                       description: Verify 'voice-sig-enable' equals YANG-defined default value false
-            - testCaseID: TCXM_5105
+            - testCaseID: TCXM_5386
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -2989,7 +3013,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='med-capabilities')].value
                       expected: true
                       description: Verify 'med-capabilities' equals YANG-defined default value true
-            - testCaseID: TCXM_5106
+            - testCaseID: TCXM_5387
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -3041,7 +3065,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='system-capabilities')].value
                       expected: true
                       description: Verify 'system-capabilities' equals YANG-defined default value true
-            - testCaseID: TCXM_5107
+            - testCaseID: TCXM_5388
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -3239,7 +3263,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5108
+            - testCaseID: TCXM_5389
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -3437,7 +3461,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5109
+            - testCaseID: TCXM_5390
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -3635,7 +3659,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5110
+            - testCaseID: TCXM_5391
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -3833,7 +3857,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5111
+            - testCaseID: TCXM_5392
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -4031,7 +4055,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5112
+            - testCaseID: TCXM_5393
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -4229,7 +4253,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5113
+            - testCaseID: TCXM_5394
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -4427,7 +4451,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5114
+            - testCaseID: TCXM_5395
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -4625,7 +4649,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5115
+            - testCaseID: TCXM_5396
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -4823,7 +4847,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5116
+            - testCaseID: TCXM_5397
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -5021,7 +5045,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5117
+            - testCaseID: TCXM_5398
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -5219,7 +5243,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5118
+            - testCaseID: TCXM_5399
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -5417,7 +5441,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5119
+            - testCaseID: TCXM_5400
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -5615,7 +5639,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5120
+            - testCaseID: TCXM_5401
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -5813,7 +5837,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5121
+            - testCaseID: TCXM_5402
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -6011,7 +6035,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5122
+            - testCaseID: TCXM_5403
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -6209,7 +6233,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5123
+            - testCaseID: TCXM_5404
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -6407,7 +6431,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5124
+            - testCaseID: TCXM_5405
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -6605,7 +6629,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5125
+            - testCaseID: TCXM_5406
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -6803,7 +6827,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5126
+            - testCaseID: TCXM_5407
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -7001,7 +7025,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5127
+            - testCaseID: TCXM_5408
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -7199,7 +7223,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5128
+            - testCaseID: TCXM_5409
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -7397,7 +7421,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5129
+            - testCaseID: TCXM_5410
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -7595,7 +7619,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5130
+            - testCaseID: TCXM_5411
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -7793,7 +7817,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5131
+            - testCaseID: TCXM_5412
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -7991,7 +8015,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5132
+            - testCaseID: TCXM_5413
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -8189,7 +8213,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5133
+            - testCaseID: TCXM_5414
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -8387,7 +8411,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5134
+            - testCaseID: TCXM_5415
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -8585,7 +8609,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5135
+            - testCaseID: TCXM_5416
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -8783,7 +8807,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5136
+            - testCaseID: TCXM_5417
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -8981,7 +9005,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5137
+            - testCaseID: TCXM_5418
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -9179,7 +9203,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5138
+            - testCaseID: TCXM_5419
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -9377,7 +9401,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5139
+            - testCaseID: TCXM_5420
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -9575,7 +9599,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5140
+            - testCaseID: TCXM_5421
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -9773,7 +9797,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5141
+            - testCaseID: TCXM_5422
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -9971,7 +9995,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5142
+            - testCaseID: TCXM_5423
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -10169,7 +10193,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5143
+            - testCaseID: TCXM_5424
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -10368,7 +10392,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5144
+            - testCaseID: TCXM_5425
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -10567,7 +10591,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5145
+            - testCaseID: TCXM_5426
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -10766,7 +10790,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5146
+            - testCaseID: TCXM_5427
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -10965,7 +10989,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5147
+            - testCaseID: TCXM_5428
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -11164,7 +11188,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5148
+            - testCaseID: TCXM_5429
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -11363,7 +11387,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5149
+            - testCaseID: TCXM_5430
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -11562,7 +11586,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5150
+            - testCaseID: TCXM_5431
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -11761,7 +11785,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5151
+            - testCaseID: TCXM_5432
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -11960,7 +11984,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5152
+            - testCaseID: TCXM_5433
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -12159,7 +12183,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5153
+            - testCaseID: TCXM_5434
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -12357,7 +12381,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5154
+            - testCaseID: TCXM_5435
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -12555,7 +12579,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5155
+            - testCaseID: TCXM_5436
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -12753,7 +12777,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5156
+            - testCaseID: TCXM_5437
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -12951,7 +12975,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5157
+            - testCaseID: TCXM_5438
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -13149,7 +13173,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5158
+            - testCaseID: TCXM_5439
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -13347,7 +13371,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5159
+            - testCaseID: TCXM_5440
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -13545,7 +13569,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5160
+            - testCaseID: TCXM_5441
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -13743,7 +13767,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5161
+            - testCaseID: TCXM_5442
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -13941,7 +13965,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5162
+            - testCaseID: TCXM_5443
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -14139,7 +14163,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5163
+            - testCaseID: TCXM_5444
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -14337,7 +14361,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5164
+            - testCaseID: TCXM_5445
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -14535,7 +14559,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5165
+            - testCaseID: TCXM_5446
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -14733,7 +14757,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5166
+            - testCaseID: TCXM_5447
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -14931,7 +14955,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5167
+            - testCaseID: TCXM_5448
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -15129,7 +15153,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5168
+            - testCaseID: TCXM_5449
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -15327,7 +15351,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5169
+            - testCaseID: TCXM_5450
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -15525,7 +15549,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5170
+            - testCaseID: TCXM_5451
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -15723,7 +15747,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5171
+            - testCaseID: TCXM_5452
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -15921,7 +15945,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5172
+            - testCaseID: TCXM_5453
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -16119,7 +16143,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5173
+            - testCaseID: TCXM_5454
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -16317,7 +16341,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5174
+            - testCaseID: TCXM_5455
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -16515,7 +16539,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5175
+            - testCaseID: TCXM_5456
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -16713,7 +16737,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5176
+            - testCaseID: TCXM_5457
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -16911,7 +16935,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5177
+            - testCaseID: TCXM_5458
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -17109,7 +17133,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5178
+            - testCaseID: TCXM_5459
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -17307,7 +17331,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5179
+            - testCaseID: TCXM_5460
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -17505,7 +17529,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5180
+            - testCaseID: TCXM_5461
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -17703,7 +17727,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5181
+            - testCaseID: TCXM_5462
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -17872,14 +17896,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T10:21:12Z
+                  description: Schedule deployment to device at 2026-05-01T11:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -17889,7 +17913,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5182
+            - testCaseID: TCXM_5463
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -18058,14 +18082,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T10:21:12Z
+                  description: Schedule deployment to site at 2026-05-01T11:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -18075,7 +18099,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5183
+            - testCaseID: TCXM_5464
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -18248,7 +18272,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -18259,14 +18283,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T11:21:12Z
+                  description: Edit deployment schedule to 2026-05-01T12:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T11:21:12Z"
+                    deployAt: "2026-05-01T12:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -18276,7 +18300,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5184
+            - testCaseID: TCXM_5465
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -18449,7 +18473,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -18475,7 +18499,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5185
+            - testCaseID: TCXM_5466
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -18545,7 +18569,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5186
+            - testCaseID: TCXM_5467
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -18618,7 +18642,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5187
+            - testCaseID: TCXM_5468
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -18879,7 +18903,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_5188
+            - testCaseID: TCXM_5469
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -19240,7 +19264,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_5189
+            - testCaseID: TCXM_5470
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -19603,7 +19627,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for port-lldp — device value accepted as new cloud baseline
-            - testCaseID: TCXM_5190
+            - testCaseID: TCXM_5471
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -19851,7 +19875,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_5191
+            - testCaseID: TCXM_5472
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -20056,7 +20080,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_5192
+            - testCaseID: TCXM_5473
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -20261,7 +20285,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_5193
+            - testCaseID: TCXM_5474
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -20451,7 +20475,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_5194
+            - testCaseID: TCXM_5475
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -20655,7 +20679,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_5195
+            - testCaseID: TCXM_5476
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -20877,7 +20901,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5196
+            - testCaseID: TCXM_5477
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -20992,7 +21016,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_5197
+            - testCaseID: TCXM_5478
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -21021,7 +21045,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_5225
+            - testCaseID: TCXM_5506
               featureName: port-lldp
               priority: P1
               automation: Automatable
@@ -21097,7 +21121,7 @@ features:
                       expected: 200
                       description: Verify port-lldp retrieved — response contains voice-vlan-enable=false, voice-vlan-dscp=100, voice-sig-enable=false, voice-sig-dscp=100, med-capabilities=true
                 - name: updateResource
-                  description: Update port-lldp — modify voice-vlan-enable=false
+                  description: Update port-lldp — modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -21114,17 +21138,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-lldp updated successfully with modify voice-vlan-enable=false
+                    - Verify port-lldp updated successfully with modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-lldp updated successfully with modify voice-vlan-enable=false
+                      description: Verify port-lldp updated successfully with modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                 - name: verifyUpdate
-                  description: Verify port-lldp was updated — modify voice-vlan-enable=false
+                  description: Verify port-lldp was updated — modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -21135,11 +21167,11 @@ features:
                     objectType: port-lldp
                   expectedStatus: 200
                   validations:
-                    - Verify port-lldp retrieved — response contains modify voice-vlan-enable=false
+                    - Verify port-lldp retrieved — response contains modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-lldp retrieved — response contains modify voice-vlan-enable=false
+                      description: Verify port-lldp retrieved — response contains modify voice-vlan-enable=false, voice-vlan-dscp=50, voice-sig-enable=false
                 - name: retrieveDeviceLocation
                   description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
                   method: POST
@@ -21380,7 +21412,7 @@ features:
               metadata:
                 deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_5202
+            - testCaseID: TCXM_5483
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -21432,7 +21464,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5203
+            - testCaseID: TCXM_5484
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -21484,7 +21516,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5204
+            - testCaseID: TCXM_5485
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -21536,7 +21568,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5205
+            - testCaseID: TCXM_5486
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -21588,7 +21620,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5206
+            - testCaseID: TCXM_5487
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -21618,7 +21650,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'voice-vlan-enable' is omitted
-            - testCaseID: TCXM_5207
+            - testCaseID: TCXM_5488
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -21648,7 +21680,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'voice-vlan-dscp' is omitted
-            - testCaseID: TCXM_5208
+            - testCaseID: TCXM_5489
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -21678,7 +21710,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'voice-sig-enable' is omitted
-            - testCaseID: TCXM_5209
+            - testCaseID: TCXM_5490
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -21708,7 +21740,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'voice-sig-dscp' is omitted
-            - testCaseID: TCXM_5210
+            - testCaseID: TCXM_5491
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -21738,7 +21770,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'med-capabilities' is omitted
-            - testCaseID: TCXM_5211
+            - testCaseID: TCXM_5492
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -21768,7 +21800,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'system-capabilities' is omitted
-            - testCaseID: TCXM_5212
+            - testCaseID: TCXM_5493
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -21820,7 +21852,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5213
+            - testCaseID: TCXM_5494
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -21872,7 +21904,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5214
+            - testCaseID: TCXM_5495
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -21923,7 +21955,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5215
+            - testCaseID: TCXM_5496
               featureName: port-lldp
               priority: P2
               automation: Automatable
@@ -21948,7 +21980,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_5220
+            - testCaseID: TCXM_5501
               featureName: port-lldp
               priority: P4
               automation: Automatable
@@ -22420,7 +22452,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_5221
+            - testCaseID: TCXM_5502
               featureName: port-lldp
               priority: P4
               automation: Automatable
@@ -22642,7 +22674,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_5222
+            - testCaseID: TCXM_5503
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -22714,6 +22746,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -22742,6 +22782,14 @@ features:
                           operation: update
                           properties:
                             - name: voice-vlan-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
                               origin: CC
                               type: boolean
                               value: false
@@ -22776,6 +22824,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -22804,6 +22860,14 @@ features:
                           operation: update
                           properties:
                             - name: voice-vlan-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
                               origin: CC
                               type: boolean
                               value: false
@@ -22838,6 +22902,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -22866,6 +22938,14 @@ features:
                           operation: update
                           properties:
                             - name: voice-vlan-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
                               origin: CC
                               type: boolean
                               value: false
@@ -22900,6 +22980,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -22928,6 +23016,14 @@ features:
                           operation: update
                           properties:
                             - name: voice-vlan-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
                               origin: CC
                               type: boolean
                               value: false
@@ -22962,6 +23058,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -22993,6 +23097,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -23009,7 +23121,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_5223
+            - testCaseID: TCXM_5504
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -23690,7 +23802,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_5224
+            - testCaseID: TCXM_5505
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -23963,7 +24075,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_5216
+            - testCaseID: TCXM_5497
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -28073,7 +28185,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_5217
+            - testCaseID: TCXM_5498
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -29825,7 +29937,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_5218
+            - testCaseID: TCXM_5499
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -29897,6 +30009,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -29920,6 +30040,14 @@ features:
                           operation: update
                           properties:
                             - name: voice-vlan-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
                               origin: CC
                               type: boolean
                               value: false
@@ -29949,6 +30077,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -29972,6 +30108,14 @@ features:
                           operation: update
                           properties:
                             - name: voice-vlan-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
                               origin: CC
                               type: boolean
                               value: false
@@ -30001,6 +30145,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -30024,6 +30176,14 @@ features:
                           operation: update
                           properties:
                             - name: voice-vlan-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
                               origin: CC
                               type: boolean
                               value: false
@@ -30053,6 +30213,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -30076,6 +30244,14 @@ features:
                           operation: update
                           properties:
                             - name: voice-vlan-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
                               origin: CC
                               type: boolean
                               value: false
@@ -30105,6 +30281,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -30131,6 +30315,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-dscp
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: voice-sig-enable
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-lldp
                     operation: update
                   expectedStatus: 200
@@ -30142,7 +30334,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_5219
+            - testCaseID: TCXM_5500
               featureName: port-lldp
               priority: P3
               automation: Automatable
@@ -38353,7 +38545,7 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
-            - testCaseID: TCXM_5228
+            - testCaseID: TCXM_5509
               featureName: port-lldp
               priority: P2
               automation: Automatable

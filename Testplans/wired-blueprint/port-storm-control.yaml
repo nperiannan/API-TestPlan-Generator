@@ -1,8 +1,8 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:51:12+05:30"
-sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
-sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
-sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
+generatedAt: "2026-05-01T15:42:42+05:30"
+sourceYangDir: sources\PlatformCommonModels\ConfigState\etc\yang
+sourceRESTAPI: sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
+sourceNOSAPI: sources\nosapi\nos-openapi.yaml
 features:
     - featureName: port-storm-control
       featurePath: /network-feature/interface-feature/port-feature
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_5791
+            - testCaseID: TCXM_6072
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -75,7 +75,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5792
+            - testCaseID: TCXM_6073
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -139,7 +139,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5793
+            - testCaseID: TCXM_6074
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -203,7 +203,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5794
+            - testCaseID: TCXM_6075
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -267,7 +267,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5795
+            - testCaseID: TCXM_6076
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -335,7 +335,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5796
+            - testCaseID: TCXM_6077
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -403,7 +403,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5824
+            - testCaseID: TCXM_6105
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -628,7 +628,7 @@ features:
                 constraint: min
                 deploymentSample: boundary
                 field: rate-limit-broadcast-value
-            - testCaseID: TCXM_5825
+            - testCaseID: TCXM_6106
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -854,7 +854,7 @@ features:
                 deploymentSample: boundary
                 field: rate-limit-broadcast-value
         functional:
-            - testCaseID: TCXM_5674
+            - testCaseID: TCXM_5955
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -992,7 +992,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-multicast')].value
                       expected: false
                       description: Verify 'enable-multicast' value is 'false' as set during create
-            - testCaseID: TCXM_5675
+            - testCaseID: TCXM_5956
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -1048,7 +1048,7 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: updateResource
-                  description: Update port-storm-control — modify enable-broadcast=false
+                  description: Update port-storm-control — modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -1065,17 +1065,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-storm-control updated successfully with modify enable-broadcast=false
+                    - Verify port-storm-control updated successfully with modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-storm-control updated successfully with modify enable-broadcast=false
+                      description: Verify port-storm-control updated successfully with modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                 - name: verifyUpdate
-                  description: Verify port-storm-control was updated — modify enable-broadcast=false
+                  description: Verify port-storm-control was updated — modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -1086,12 +1094,12 @@ features:
                     objectType: port-storm-control
                   expectedStatus: 200
                   validations:
-                    - Verify port-storm-control retrieved — response contains modify enable-broadcast=false
+                    - Verify port-storm-control retrieved — response contains modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false
-            - testCaseID: TCXM_5676
+                      description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
+            - testCaseID: TCXM_5957
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -1180,7 +1188,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false no longer exists in the response
-            - testCaseID: TCXM_5677
+            - testCaseID: TCXM_5958
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -1253,7 +1261,7 @@ features:
                       expected: 200
                       description: Verify port-storm-control retrieved — response contains enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
                 - name: updateResource
-                  description: Update port-storm-control — modify enable-broadcast=false
+                  description: Update port-storm-control — modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -1270,17 +1278,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-storm-control updated successfully with modify enable-broadcast=false
+                    - Verify port-storm-control updated successfully with modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-storm-control updated successfully with modify enable-broadcast=false
+                      description: Verify port-storm-control updated successfully with modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                 - name: verifyUpdate
-                  description: Verify port-storm-control was updated — modify enable-broadcast=false
+                  description: Verify port-storm-control was updated — modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -1291,11 +1307,11 @@ features:
                     objectType: port-storm-control
                   expectedStatus: 200
                   validations:
-                    - Verify port-storm-control retrieved — response contains modify enable-broadcast=false
+                    - Verify port-storm-control retrieved — response contains modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false
+                      description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                 - name: deleteResource
                   description: Delete port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
                   method: POST
@@ -1330,7 +1346,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false no longer exists in the response
-            - testCaseID: TCXM_5678
+            - testCaseID: TCXM_5959
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -1386,7 +1402,7 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: partialUpdate
-                  description: Partially update port-storm-control — modify enable-broadcast=false
+                  description: Partially update port-storm-control — modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -1403,17 +1419,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-storm-control updated successfully with modify enable-broadcast=false
+                    - Verify port-storm-control updated successfully with modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-storm-control updated successfully with modify enable-broadcast=false
+                      description: Verify port-storm-control updated successfully with modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                 - name: verifyPartialUpdate
-                  description: Verify partial update of port-storm-control — modify enable-broadcast=false
+                  description: Verify partial update of port-storm-control — modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -1424,12 +1448,12 @@ features:
                     objectType: port-storm-control
                   expectedStatus: 200
                   validations:
-                    - Verify port-storm-control retrieved — response contains modify enable-broadcast=false
+                    - Verify port-storm-control retrieved — response contains modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false
-            - testCaseID: TCXM_5679
+                      description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
+            - testCaseID: TCXM_5960
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -1521,7 +1545,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false is rejected (409 Conflict)
-            - testCaseID: TCXM_5680
+            - testCaseID: TCXM_5961
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -1732,7 +1756,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5681
+            - testCaseID: TCXM_5962
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -1943,7 +1967,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5682
+            - testCaseID: TCXM_5963
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2141,7 +2165,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5683
+            - testCaseID: TCXM_5964
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2192,7 +2216,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_5684
+            - testCaseID: TCXM_5965
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2321,7 +2345,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-multicast-value')].value
                       expected: 100
                       description: Verify field 'rate-limit-multicast-value' has value '100' as sent on create
-            - testCaseID: TCXM_5685
+            - testCaseID: TCXM_5966
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -2381,7 +2405,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-broadcast')].value
                       expected: false
                       description: Verify optional field 'enable-broadcast' value is 'false' as set on create
-            - testCaseID: TCXM_5686
+            - testCaseID: TCXM_5967
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -2441,7 +2465,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-broadcast-value')].value
                       expected: 100
                       description: Verify optional field 'rate-limit-broadcast-value' value is '100' as set on create
-            - testCaseID: TCXM_5687
+            - testCaseID: TCXM_5968
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -2501,7 +2525,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-unknown-unicast')].value
                       expected: false
                       description: Verify optional field 'enable-unknown-unicast' value is 'false' as set on create
-            - testCaseID: TCXM_5688
+            - testCaseID: TCXM_5969
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -2561,7 +2585,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-unknown-unicast-value')].value
                       expected: 100
                       description: Verify optional field 'rate-limit-unknown-unicast-value' value is '100' as set on create
-            - testCaseID: TCXM_5689
+            - testCaseID: TCXM_5970
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -2621,7 +2645,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-multicast')].value
                       expected: false
                       description: Verify optional field 'enable-multicast' value is 'false' as set on create
-            - testCaseID: TCXM_5690
+            - testCaseID: TCXM_5971
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -2681,7 +2705,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-multicast-value')].value
                       expected: 100
                       description: Verify optional field 'rate-limit-multicast-value' value is '100' as set on create
-            - testCaseID: TCXM_5691
+            - testCaseID: TCXM_5972
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2753,7 +2777,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-broadcast')].value
                       expected: true
                       description: Verify 'enable-broadcast' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5692
+            - testCaseID: TCXM_5973
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2825,7 +2849,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-broadcast')].value
                       expected: false
                       description: Verify 'enable-broadcast' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5693
+            - testCaseID: TCXM_5974
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2897,7 +2921,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-broadcast-value')].value
                       expected: 0
                       description: Verify 'rate-limit-broadcast-value' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_5694
+            - testCaseID: TCXM_5975
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2969,7 +2993,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-broadcast-value')].value
                       expected: 100000000
                       description: Verify 'rate-limit-broadcast-value' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_5695
+            - testCaseID: TCXM_5976
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3021,7 +3045,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-broadcast')].value
                       expected: false
                       description: Verify 'enable-broadcast' equals YANG-defined default value false
-            - testCaseID: TCXM_5696
+            - testCaseID: TCXM_5977
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3073,7 +3097,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-unknown-unicast')].value
                       expected: false
                       description: Verify 'enable-unknown-unicast' equals YANG-defined default value false
-            - testCaseID: TCXM_5697
+            - testCaseID: TCXM_5978
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3125,7 +3149,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-multicast')].value
                       expected: false
                       description: Verify 'enable-multicast' equals YANG-defined default value false
-            - testCaseID: TCXM_5698
+            - testCaseID: TCXM_5979
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3323,7 +3347,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5699
+            - testCaseID: TCXM_5980
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3521,7 +3545,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5700
+            - testCaseID: TCXM_5981
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3719,7 +3743,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5701
+            - testCaseID: TCXM_5982
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3917,7 +3941,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5702
+            - testCaseID: TCXM_5983
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -4115,7 +4139,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5703
+            - testCaseID: TCXM_5984
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -4313,7 +4337,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5704
+            - testCaseID: TCXM_5985
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -4511,7 +4535,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5705
+            - testCaseID: TCXM_5986
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -4709,7 +4733,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5706
+            - testCaseID: TCXM_5987
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -4907,7 +4931,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5707
+            - testCaseID: TCXM_5988
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -5105,7 +5129,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5708
+            - testCaseID: TCXM_5989
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -5303,7 +5327,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5709
+            - testCaseID: TCXM_5990
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -5501,7 +5525,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5710
+            - testCaseID: TCXM_5991
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -5699,7 +5723,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5711
+            - testCaseID: TCXM_5992
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -5897,7 +5921,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5712
+            - testCaseID: TCXM_5993
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -6095,7 +6119,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5713
+            - testCaseID: TCXM_5994
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -6293,7 +6317,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5714
+            - testCaseID: TCXM_5995
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -6491,7 +6515,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5715
+            - testCaseID: TCXM_5996
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -6689,7 +6713,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5716
+            - testCaseID: TCXM_5997
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -6887,7 +6911,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5717
+            - testCaseID: TCXM_5998
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -7085,7 +7109,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5718
+            - testCaseID: TCXM_5999
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -7283,7 +7307,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5719
+            - testCaseID: TCXM_6000
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -7481,7 +7505,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5720
+            - testCaseID: TCXM_6001
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -7679,7 +7703,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5721
+            - testCaseID: TCXM_6002
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -7877,7 +7901,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5722
+            - testCaseID: TCXM_6003
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8075,7 +8099,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5723
+            - testCaseID: TCXM_6004
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8273,7 +8297,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5724
+            - testCaseID: TCXM_6005
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8471,7 +8495,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5725
+            - testCaseID: TCXM_6006
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8669,7 +8693,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5726
+            - testCaseID: TCXM_6007
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8867,7 +8891,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5727
+            - testCaseID: TCXM_6008
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -9065,7 +9089,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5728
+            - testCaseID: TCXM_6009
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -9263,7 +9287,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5729
+            - testCaseID: TCXM_6010
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -9461,7 +9485,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5730
+            - testCaseID: TCXM_6011
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -9659,7 +9683,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5731
+            - testCaseID: TCXM_6012
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -9857,7 +9881,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5732
+            - testCaseID: TCXM_6013
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -10055,7 +10079,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5733
+            - testCaseID: TCXM_6014
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -10253,7 +10277,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5734
+            - testCaseID: TCXM_6015
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -10452,7 +10476,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5735
+            - testCaseID: TCXM_6016
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -10651,7 +10675,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5736
+            - testCaseID: TCXM_6017
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -10850,7 +10874,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5737
+            - testCaseID: TCXM_6018
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -11049,7 +11073,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5738
+            - testCaseID: TCXM_6019
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -11248,7 +11272,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5739
+            - testCaseID: TCXM_6020
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -11447,7 +11471,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5740
+            - testCaseID: TCXM_6021
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -11646,7 +11670,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5741
+            - testCaseID: TCXM_6022
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -11845,7 +11869,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5742
+            - testCaseID: TCXM_6023
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -12044,7 +12068,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5743
+            - testCaseID: TCXM_6024
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -12243,7 +12267,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5744
+            - testCaseID: TCXM_6025
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -12441,7 +12465,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5745
+            - testCaseID: TCXM_6026
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -12639,7 +12663,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5746
+            - testCaseID: TCXM_6027
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -12837,7 +12861,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5747
+            - testCaseID: TCXM_6028
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -13035,7 +13059,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5748
+            - testCaseID: TCXM_6029
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -13237,7 +13261,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5749
+            - testCaseID: TCXM_6030
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -13439,7 +13463,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5750
+            - testCaseID: TCXM_6031
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -13637,7 +13661,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5751
+            - testCaseID: TCXM_6032
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -13835,7 +13859,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5752
+            - testCaseID: TCXM_6033
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -14033,7 +14057,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5753
+            - testCaseID: TCXM_6034
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -14231,7 +14255,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5754
+            - testCaseID: TCXM_6035
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -14429,7 +14453,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5755
+            - testCaseID: TCXM_6036
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -14627,7 +14651,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5756
+            - testCaseID: TCXM_6037
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -14825,7 +14849,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5757
+            - testCaseID: TCXM_6038
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -15023,7 +15047,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5758
+            - testCaseID: TCXM_6039
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -15221,7 +15245,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5759
+            - testCaseID: TCXM_6040
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -15419,7 +15443,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5760
+            - testCaseID: TCXM_6041
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -15617,7 +15641,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5761
+            - testCaseID: TCXM_6042
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -15815,7 +15839,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5762
+            - testCaseID: TCXM_6043
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -16013,7 +16037,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5763
+            - testCaseID: TCXM_6044
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -16211,7 +16235,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5764
+            - testCaseID: TCXM_6045
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -16409,7 +16433,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5765
+            - testCaseID: TCXM_6046
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -16607,7 +16631,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5766
+            - testCaseID: TCXM_6047
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -16805,7 +16829,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5767
+            - testCaseID: TCXM_6048
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -17003,7 +17027,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5768
+            - testCaseID: TCXM_6049
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -17201,7 +17225,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5769
+            - testCaseID: TCXM_6050
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -17399,7 +17423,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5770
+            - testCaseID: TCXM_6051
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -17597,7 +17621,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5771
+            - testCaseID: TCXM_6052
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -17795,7 +17819,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5772
+            - testCaseID: TCXM_6053
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -17993,7 +18017,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5773
+            - testCaseID: TCXM_6054
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -18191,7 +18215,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5774
+            - testCaseID: TCXM_6055
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -18360,14 +18384,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T10:21:12Z
+                  description: Schedule deployment to device at 2026-05-01T11:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -18377,7 +18401,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5775
+            - testCaseID: TCXM_6056
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -18546,14 +18570,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T10:21:12Z
+                  description: Schedule deployment to site at 2026-05-01T11:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -18563,7 +18587,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5776
+            - testCaseID: TCXM_6057
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -18736,7 +18760,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -18747,14 +18771,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T11:21:12Z
+                  description: Edit deployment schedule to 2026-05-01T12:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T11:21:12Z"
+                    deployAt: "2026-05-01T12:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -18764,7 +18788,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5777
+            - testCaseID: TCXM_6058
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -18937,7 +18961,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -18963,7 +18987,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5778
+            - testCaseID: TCXM_6059
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -19033,7 +19057,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5779
+            - testCaseID: TCXM_6060
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -19106,7 +19130,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5780
+            - testCaseID: TCXM_6061
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -19367,7 +19391,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_5781
+            - testCaseID: TCXM_6062
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -19728,7 +19752,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_5782
+            - testCaseID: TCXM_6063
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -20091,7 +20115,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for port-storm-control — device value accepted as new cloud baseline
-            - testCaseID: TCXM_5783
+            - testCaseID: TCXM_6064
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -20339,7 +20363,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_5784
+            - testCaseID: TCXM_6065
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -20544,7 +20568,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_5785
+            - testCaseID: TCXM_6066
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -20749,7 +20773,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_5786
+            - testCaseID: TCXM_6067
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -20939,7 +20963,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_5787
+            - testCaseID: TCXM_6068
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -21143,7 +21167,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_5788
+            - testCaseID: TCXM_6069
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -21365,7 +21389,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5789
+            - testCaseID: TCXM_6070
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -21480,7 +21504,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_5790
+            - testCaseID: TCXM_6071
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -21509,7 +21533,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_5823
+            - testCaseID: TCXM_6104
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -21585,7 +21609,7 @@ features:
                       expected: 200
                       description: Verify port-storm-control retrieved — response contains enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
                 - name: updateResource
-                  description: Update port-storm-control — modify enable-broadcast=false
+                  description: Update port-storm-control — modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -21602,17 +21626,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-storm-control updated successfully with modify enable-broadcast=false
+                    - Verify port-storm-control updated successfully with modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-storm-control updated successfully with modify enable-broadcast=false
+                      description: Verify port-storm-control updated successfully with modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                 - name: verifyUpdate
-                  description: Verify port-storm-control was updated — modify enable-broadcast=false
+                  description: Verify port-storm-control was updated — modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -21623,11 +21655,11 @@ features:
                     objectType: port-storm-control
                   expectedStatus: 200
                   validations:
-                    - Verify port-storm-control retrieved — response contains modify enable-broadcast=false
+                    - Verify port-storm-control retrieved — response contains modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false
+                      description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false, rate-limit-broadcast-value=50, enable-unknown-unicast=false
                 - name: retrieveDeviceLocation
                   description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
                   method: POST
@@ -21868,7 +21900,7 @@ features:
               metadata:
                 deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_5797
+            - testCaseID: TCXM_6078
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21920,7 +21952,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5798
+            - testCaseID: TCXM_6079
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21972,7 +22004,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5799
+            - testCaseID: TCXM_6080
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -22024,7 +22056,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5800
+            - testCaseID: TCXM_6081
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -22076,7 +22108,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5801
+            - testCaseID: TCXM_6082
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -22132,7 +22164,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5802
+            - testCaseID: TCXM_6083
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -22188,7 +22220,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5803
+            - testCaseID: TCXM_6084
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -22218,7 +22250,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enable-broadcast' is omitted
-            - testCaseID: TCXM_5804
+            - testCaseID: TCXM_6085
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -22248,7 +22280,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'rate-limit-broadcast-value' is omitted
-            - testCaseID: TCXM_5805
+            - testCaseID: TCXM_6086
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -22278,7 +22310,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enable-unknown-unicast' is omitted
-            - testCaseID: TCXM_5806
+            - testCaseID: TCXM_6087
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -22308,7 +22340,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'rate-limit-unknown-unicast-value' is omitted
-            - testCaseID: TCXM_5807
+            - testCaseID: TCXM_6088
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -22338,7 +22370,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enable-multicast' is omitted
-            - testCaseID: TCXM_5808
+            - testCaseID: TCXM_6089
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -22368,7 +22400,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'rate-limit-multicast-value' is omitted
-            - testCaseID: TCXM_5809
+            - testCaseID: TCXM_6090
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -22420,7 +22452,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5810
+            - testCaseID: TCXM_6091
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -22472,7 +22504,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5811
+            - testCaseID: TCXM_6092
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -22528,7 +22560,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5812
+            - testCaseID: TCXM_6093
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -22579,7 +22611,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5813
+            - testCaseID: TCXM_6094
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -22604,7 +22636,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_5818
+            - testCaseID: TCXM_6099
               featureName: port-storm-control
               priority: P4
               automation: Automatable
@@ -23076,7 +23108,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_5819
+            - testCaseID: TCXM_6100
               featureName: port-storm-control
               priority: P4
               automation: Automatable
@@ -23298,7 +23330,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_5820
+            - testCaseID: TCXM_6101
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -23370,6 +23402,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -23398,6 +23438,14 @@ features:
                           operation: update
                           properties:
                             - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
                               origin: CC
                               type: boolean
                               value: false
@@ -23432,6 +23480,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -23460,6 +23516,14 @@ features:
                           operation: update
                           properties:
                             - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
                               origin: CC
                               type: boolean
                               value: false
@@ -23494,6 +23558,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -23522,6 +23594,14 @@ features:
                           operation: update
                           properties:
                             - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
                               origin: CC
                               type: boolean
                               value: false
@@ -23556,6 +23636,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -23584,6 +23672,14 @@ features:
                           operation: update
                           properties:
                             - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
                               origin: CC
                               type: boolean
                               value: false
@@ -23618,6 +23714,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -23649,6 +23753,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -23665,7 +23777,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_5821
+            - testCaseID: TCXM_6102
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -24346,7 +24458,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_5822
+            - testCaseID: TCXM_6103
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -24619,7 +24731,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_5814
+            - testCaseID: TCXM_6095
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -28729,7 +28841,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_5815
+            - testCaseID: TCXM_6096
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -30481,7 +30593,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_5816
+            - testCaseID: TCXM_6097
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -30553,6 +30665,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -30576,6 +30696,14 @@ features:
                           operation: update
                           properties:
                             - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
                               origin: CC
                               type: boolean
                               value: false
@@ -30605,6 +30733,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -30628,6 +30764,14 @@ features:
                           operation: update
                           properties:
                             - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
                               origin: CC
                               type: boolean
                               value: false
@@ -30657,6 +30801,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -30680,6 +30832,14 @@ features:
                           operation: update
                           properties:
                             - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
                               origin: CC
                               type: boolean
                               value: false
@@ -30709,6 +30869,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -30732,6 +30900,14 @@ features:
                           operation: update
                           properties:
                             - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
                               origin: CC
                               type: boolean
                               value: false
@@ -30761,6 +30937,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -30787,6 +30971,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 50
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-storm-control
                     operation: update
                   expectedStatus: 200
@@ -30798,7 +30990,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_5817
+            - testCaseID: TCXM_6098
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -39009,7 +39201,7 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
-            - testCaseID: TCXM_5826
+            - testCaseID: TCXM_6107
               featureName: port-storm-control
               priority: P2
               automation: Automatable

@@ -1,8 +1,8 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:51:12+05:30"
-sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
-sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
-sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
+generatedAt: "2026-05-01T15:42:42+05:30"
+sourceYangDir: sources\PlatformCommonModels\ConfigState\etc\yang
+sourceRESTAPI: sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
+sourceNOSAPI: sources\nosapi\nos-openapi.yaml
 features:
     - featureName: port-cdp
       featurePath: /network-feature/interface-feature/port-feature
@@ -12,7 +12,7 @@ features:
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_4916
+            - testCaseID: TCXM_5197
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -111,7 +111,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-advertised')].value
                       expected: false
                       description: Verify 'voice-vlan-advertised' value is 'false' as set during create
-            - testCaseID: TCXM_4917
+            - testCaseID: TCXM_5198
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -155,7 +155,7 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: updateResource
-                  description: Update port-cdp — modify power-available-advertised=false
+                  description: Update port-cdp — modify power-available-advertised=false, voice-vlan-advertised=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -172,17 +172,21 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-cdp updated successfully with modify power-available-advertised=false
+                    - Verify port-cdp updated successfully with modify power-available-advertised=false, voice-vlan-advertised=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-cdp updated successfully with modify power-available-advertised=false
+                      description: Verify port-cdp updated successfully with modify power-available-advertised=false, voice-vlan-advertised=false
                 - name: verifyUpdate
-                  description: Verify port-cdp was updated — modify power-available-advertised=false
+                  description: Verify port-cdp was updated — modify power-available-advertised=false, voice-vlan-advertised=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -193,12 +197,12 @@ features:
                     objectType: port-cdp
                   expectedStatus: 200
                   validations:
-                    - Verify port-cdp retrieved — response contains modify power-available-advertised=false
+                    - Verify port-cdp retrieved — response contains modify power-available-advertised=false, voice-vlan-advertised=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-cdp retrieved — response contains modify power-available-advertised=false
-            - testCaseID: TCXM_4918
+                      description: Verify port-cdp retrieved — response contains modify power-available-advertised=false, voice-vlan-advertised=false
+            - testCaseID: TCXM_5199
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -275,7 +279,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false no longer exists in the response
-            - testCaseID: TCXM_4919
+            - testCaseID: TCXM_5200
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -336,7 +340,7 @@ features:
                       expected: 200
                       description: Verify port-cdp retrieved — response contains power-available-advertised=false, voice-vlan-advertised=false
                 - name: updateResource
-                  description: Update port-cdp — modify power-available-advertised=false
+                  description: Update port-cdp — modify power-available-advertised=false, voice-vlan-advertised=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -353,17 +357,21 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-cdp updated successfully with modify power-available-advertised=false
+                    - Verify port-cdp updated successfully with modify power-available-advertised=false, voice-vlan-advertised=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-cdp updated successfully with modify power-available-advertised=false
+                      description: Verify port-cdp updated successfully with modify power-available-advertised=false, voice-vlan-advertised=false
                 - name: verifyUpdate
-                  description: Verify port-cdp was updated — modify power-available-advertised=false
+                  description: Verify port-cdp was updated — modify power-available-advertised=false, voice-vlan-advertised=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -374,11 +382,11 @@ features:
                     objectType: port-cdp
                   expectedStatus: 200
                   validations:
-                    - Verify port-cdp retrieved — response contains modify power-available-advertised=false
+                    - Verify port-cdp retrieved — response contains modify power-available-advertised=false, voice-vlan-advertised=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-cdp retrieved — response contains modify power-available-advertised=false
+                      description: Verify port-cdp retrieved — response contains modify power-available-advertised=false, voice-vlan-advertised=false
                 - name: deleteResource
                   description: Delete port-cdp with power-available-advertised=false, voice-vlan-advertised=false
                   method: POST
@@ -413,7 +421,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false no longer exists in the response
-            - testCaseID: TCXM_4920
+            - testCaseID: TCXM_5201
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -457,7 +465,7 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: partialUpdate
-                  description: Partially update port-cdp — modify power-available-advertised=false
+                  description: Partially update port-cdp — modify power-available-advertised=false, voice-vlan-advertised=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -474,17 +482,21 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-cdp updated successfully with modify power-available-advertised=false
+                    - Verify port-cdp updated successfully with modify power-available-advertised=false, voice-vlan-advertised=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-cdp updated successfully with modify power-available-advertised=false
+                      description: Verify port-cdp updated successfully with modify power-available-advertised=false, voice-vlan-advertised=false
                 - name: verifyPartialUpdate
-                  description: Verify partial update of port-cdp — modify power-available-advertised=false
+                  description: Verify partial update of port-cdp — modify power-available-advertised=false, voice-vlan-advertised=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -495,12 +507,12 @@ features:
                     objectType: port-cdp
                   expectedStatus: 200
                   validations:
-                    - Verify port-cdp retrieved — response contains modify power-available-advertised=false
+                    - Verify port-cdp retrieved — response contains modify power-available-advertised=false, voice-vlan-advertised=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-cdp retrieved — response contains modify power-available-advertised=false
-            - testCaseID: TCXM_4921
+                      description: Verify port-cdp retrieved — response contains modify power-available-advertised=false, voice-vlan-advertised=false
+            - testCaseID: TCXM_5202
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -568,7 +580,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of port-cdp with power-available-advertised=false, voice-vlan-advertised=false is rejected (409 Conflict)
-            - testCaseID: TCXM_4922
+            - testCaseID: TCXM_5203
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -767,7 +779,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4923
+            - testCaseID: TCXM_5204
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -966,7 +978,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4924
+            - testCaseID: TCXM_5205
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1152,7 +1164,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4925
+            - testCaseID: TCXM_5206
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1203,7 +1215,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_4926
+            - testCaseID: TCXM_5207
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1280,7 +1292,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-advertised')].value
                       expected: false
                       description: Verify field 'voice-vlan-advertised' has value 'false' as sent on create
-            - testCaseID: TCXM_4927
+            - testCaseID: TCXM_5208
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -1340,7 +1352,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='power-available-advertised')].value
                       expected: false
                       description: Verify optional field 'power-available-advertised' value is 'false' as set on create
-            - testCaseID: TCXM_4928
+            - testCaseID: TCXM_5209
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -1400,7 +1412,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-advertised')].value
                       expected: false
                       description: Verify optional field 'voice-vlan-advertised' value is 'false' as set on create
-            - testCaseID: TCXM_4929
+            - testCaseID: TCXM_5210
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1460,7 +1472,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='power-available-advertised')].value
                       expected: true
                       description: Verify 'power-available-advertised' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_4930
+            - testCaseID: TCXM_5211
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1520,7 +1532,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='power-available-advertised')].value
                       expected: false
                       description: Verify 'power-available-advertised' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_4931
+            - testCaseID: TCXM_5212
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1572,7 +1584,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='power-available-advertised')].value
                       expected: false
                       description: Verify 'power-available-advertised' equals YANG-defined default value false
-            - testCaseID: TCXM_4932
+            - testCaseID: TCXM_5213
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1624,7 +1636,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-advertised')].value
                       expected: false
                       description: Verify 'voice-vlan-advertised' equals YANG-defined default value false
-            - testCaseID: TCXM_4933
+            - testCaseID: TCXM_5214
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1810,7 +1822,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4934
+            - testCaseID: TCXM_5215
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1996,7 +2008,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4935
+            - testCaseID: TCXM_5216
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -2182,7 +2194,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4936
+            - testCaseID: TCXM_5217
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -2368,7 +2380,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4937
+            - testCaseID: TCXM_5218
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -2554,7 +2566,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4938
+            - testCaseID: TCXM_5219
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -2740,7 +2752,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4939
+            - testCaseID: TCXM_5220
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -2926,7 +2938,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4940
+            - testCaseID: TCXM_5221
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -3112,7 +3124,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4941
+            - testCaseID: TCXM_5222
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -3298,7 +3310,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4942
+            - testCaseID: TCXM_5223
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -3484,7 +3496,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4943
+            - testCaseID: TCXM_5224
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -3670,7 +3682,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4944
+            - testCaseID: TCXM_5225
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -3856,7 +3868,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4945
+            - testCaseID: TCXM_5226
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4042,7 +4054,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4946
+            - testCaseID: TCXM_5227
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4228,7 +4240,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4947
+            - testCaseID: TCXM_5228
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4414,7 +4426,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4948
+            - testCaseID: TCXM_5229
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4600,7 +4612,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4949
+            - testCaseID: TCXM_5230
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4786,7 +4798,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4950
+            - testCaseID: TCXM_5231
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4972,7 +4984,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4951
+            - testCaseID: TCXM_5232
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -5159,7 +5171,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4952
+            - testCaseID: TCXM_5233
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -5346,7 +5358,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4953
+            - testCaseID: TCXM_5234
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -5533,7 +5545,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4954
+            - testCaseID: TCXM_5235
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -5720,7 +5732,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4955
+            - testCaseID: TCXM_5236
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -5907,7 +5919,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4956
+            - testCaseID: TCXM_5237
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -6094,7 +6106,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4957
+            - testCaseID: TCXM_5238
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -6281,7 +6293,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4958
+            - testCaseID: TCXM_5239
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -6468,7 +6480,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4959
+            - testCaseID: TCXM_5240
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -6655,7 +6667,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4960
+            - testCaseID: TCXM_5241
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -6842,7 +6854,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4961
+            - testCaseID: TCXM_5242
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7028,7 +7040,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4962
+            - testCaseID: TCXM_5243
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7214,7 +7226,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4963
+            - testCaseID: TCXM_5244
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7400,7 +7412,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4964
+            - testCaseID: TCXM_5245
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7586,7 +7598,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4965
+            - testCaseID: TCXM_5246
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7772,7 +7784,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4966
+            - testCaseID: TCXM_5247
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7958,7 +7970,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4967
+            - testCaseID: TCXM_5248
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -8115,14 +8127,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T10:21:12Z
+                  description: Schedule deployment to device at 2026-05-01T11:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -8132,7 +8144,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_4968
+            - testCaseID: TCXM_5249
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -8289,14 +8301,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T10:21:12Z
+                  description: Schedule deployment to site at 2026-05-01T11:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -8306,7 +8318,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_4969
+            - testCaseID: TCXM_5250
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -8467,7 +8479,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -8478,14 +8490,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T11:21:12Z
+                  description: Edit deployment schedule to 2026-05-01T12:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T11:21:12Z"
+                    deployAt: "2026-05-01T12:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -8495,7 +8507,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_4970
+            - testCaseID: TCXM_5251
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -8656,7 +8668,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -8682,7 +8694,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_4971
+            - testCaseID: TCXM_5252
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -8740,7 +8752,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_4972
+            - testCaseID: TCXM_5253
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -8801,7 +8813,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_4973
+            - testCaseID: TCXM_5254
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -9050,7 +9062,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_4974
+            - testCaseID: TCXM_5255
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -9399,7 +9411,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_4975
+            - testCaseID: TCXM_5256
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -9750,7 +9762,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for port-cdp — device value accepted as new cloud baseline
-            - testCaseID: TCXM_4976
+            - testCaseID: TCXM_5257
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -9986,7 +9998,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_4977
+            - testCaseID: TCXM_5258
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -10179,7 +10191,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_4978
+            - testCaseID: TCXM_5259
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -10372,7 +10384,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_4979
+            - testCaseID: TCXM_5260
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -10550,7 +10562,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_4980
+            - testCaseID: TCXM_5261
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -10742,7 +10754,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_4981
+            - testCaseID: TCXM_5262
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -10952,7 +10964,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4982
+            - testCaseID: TCXM_5263
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -11067,7 +11079,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_4983
+            - testCaseID: TCXM_5264
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -11096,7 +11108,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_4997
+            - testCaseID: TCXM_5278
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -11160,7 +11172,7 @@ features:
                       expected: 200
                       description: Verify port-cdp retrieved — response contains power-available-advertised=false, voice-vlan-advertised=false
                 - name: updateResource
-                  description: Update port-cdp — modify power-available-advertised=false
+                  description: Update port-cdp — modify power-available-advertised=false, voice-vlan-advertised=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -11177,17 +11189,21 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-cdp updated successfully with modify power-available-advertised=false
+                    - Verify port-cdp updated successfully with modify power-available-advertised=false, voice-vlan-advertised=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-cdp updated successfully with modify power-available-advertised=false
+                      description: Verify port-cdp updated successfully with modify power-available-advertised=false, voice-vlan-advertised=false
                 - name: verifyUpdate
-                  description: Verify port-cdp was updated — modify power-available-advertised=false
+                  description: Verify port-cdp was updated — modify power-available-advertised=false, voice-vlan-advertised=false
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -11198,11 +11214,11 @@ features:
                     objectType: port-cdp
                   expectedStatus: 200
                   validations:
-                    - Verify port-cdp retrieved — response contains modify power-available-advertised=false
+                    - Verify port-cdp retrieved — response contains modify power-available-advertised=false, voice-vlan-advertised=false
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-cdp retrieved — response contains modify power-available-advertised=false
+                      description: Verify port-cdp retrieved — response contains modify power-available-advertised=false, voice-vlan-advertised=false
                 - name: retrieveDeviceLocation
                   description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
                   method: POST
@@ -11443,7 +11459,7 @@ features:
               metadata:
                 deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_4984
+            - testCaseID: TCXM_5265
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -11473,7 +11489,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'power-available-advertised' is omitted
-            - testCaseID: TCXM_4985
+            - testCaseID: TCXM_5266
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -11503,7 +11519,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'voice-vlan-advertised' is omitted
-            - testCaseID: TCXM_4986
+            - testCaseID: TCXM_5267
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -11542,7 +11558,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_4987
+            - testCaseID: TCXM_5268
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -11567,7 +11583,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_4992
+            - testCaseID: TCXM_5273
               featureName: port-cdp
               priority: P4
               automation: Automatable
@@ -11919,7 +11935,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_4993
+            - testCaseID: TCXM_5274
               featureName: port-cdp
               priority: P4
               automation: Automatable
@@ -12141,7 +12157,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_4994
+            - testCaseID: TCXM_5275
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -12201,6 +12217,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -12229,6 +12249,10 @@ features:
                           operation: update
                           properties:
                             - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
                               origin: CC
                               type: boolean
                               value: false
@@ -12263,6 +12287,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -12291,6 +12319,10 @@ features:
                           operation: update
                           properties:
                             - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
                               origin: CC
                               type: boolean
                               value: false
@@ -12325,6 +12357,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -12353,6 +12389,10 @@ features:
                           operation: update
                           properties:
                             - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
                               origin: CC
                               type: boolean
                               value: false
@@ -12387,6 +12427,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -12415,6 +12459,10 @@ features:
                           operation: update
                           properties:
                             - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
                               origin: CC
                               type: boolean
                               value: false
@@ -12449,6 +12497,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -12480,6 +12532,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -12496,7 +12552,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_4995
+            - testCaseID: TCXM_5276
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -13057,7 +13113,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_4996
+            - testCaseID: TCXM_5277
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -13318,7 +13374,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_4988
+            - testCaseID: TCXM_5269
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -16228,7 +16284,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_4989
+            - testCaseID: TCXM_5270
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -17968,7 +18024,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_4990
+            - testCaseID: TCXM_5271
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -18028,6 +18084,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -18051,6 +18111,10 @@ features:
                           operation: update
                           properties:
                             - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
                               origin: CC
                               type: boolean
                               value: false
@@ -18080,6 +18144,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -18103,6 +18171,10 @@ features:
                           operation: update
                           properties:
                             - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
                               origin: CC
                               type: boolean
                               value: false
@@ -18132,6 +18204,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -18155,6 +18231,10 @@ features:
                           operation: update
                           properties:
                             - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
                               origin: CC
                               type: boolean
                               value: false
@@ -18184,6 +18264,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -18207,6 +18291,10 @@ features:
                           operation: update
                           properties:
                             - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
                               origin: CC
                               type: boolean
                               value: false
@@ -18236,6 +18324,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -18262,6 +18354,10 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
                           type: port-cdp
                     operation: update
                   expectedStatus: 200
@@ -18273,7 +18369,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_4991
+            - testCaseID: TCXM_5272
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -24084,7 +24180,7 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
-            - testCaseID: TCXM_4998
+            - testCaseID: TCXM_5279
               featureName: port-cdp
               priority: P2
               automation: Automatable

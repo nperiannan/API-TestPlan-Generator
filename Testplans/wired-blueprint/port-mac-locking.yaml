@@ -1,8 +1,8 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:51:12+05:30"
-sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
-sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
-sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
+generatedAt: "2026-05-01T15:42:42+05:30"
+sourceYangDir: sources\PlatformCommonModels\ConfigState\etc\yang
+sourceRESTAPI: sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
+sourceNOSAPI: sources\nosapi\nos-openapi.yaml
 features:
     - featureName: port-mac-locking
       featurePath: /network-feature/interface-feature/port-feature
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_5353
+            - testCaseID: TCXM_5634
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -75,7 +75,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5354
+            - testCaseID: TCXM_5635
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -139,7 +139,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5377
+            - testCaseID: TCXM_5658
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -364,7 +364,7 @@ features:
                 constraint: min
                 deploymentSample: boundary
                 field: maximum-first-arrival
-            - testCaseID: TCXM_5378
+            - testCaseID: TCXM_5659
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -590,7 +590,7 @@ features:
                 deploymentSample: boundary
                 field: maximum-first-arrival
         functional:
-            - testCaseID: TCXM_5229
+            - testCaseID: TCXM_5510
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -728,7 +728,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='link-down-action')].value
                       expected: retain-first-arrival-macs
                       description: Verify 'link-down-action' value is 'retain-first-arrival-macs' as set during create
-            - testCaseID: TCXM_5230
+            - testCaseID: TCXM_5511
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -784,7 +784,7 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: updateResource
-                  description: Update port-mac-locking — modify mac-locking-enable=false
+                  description: Update port-mac-locking — modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -801,17 +801,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-mac-locking updated successfully with modify mac-locking-enable=false
+                    - Verify port-mac-locking updated successfully with modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-mac-locking updated successfully with modify mac-locking-enable=false
+                      description: Verify port-mac-locking updated successfully with modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                 - name: verifyUpdate
-                  description: Verify port-mac-locking was updated — modify mac-locking-enable=false
+                  description: Verify port-mac-locking was updated — modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -822,12 +830,12 @@ features:
                     objectType: port-mac-locking
                   expectedStatus: 200
                   validations:
-                    - Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false
+                    - Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false
-            - testCaseID: TCXM_5231
+                      description: Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
+            - testCaseID: TCXM_5512
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -916,7 +924,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-mac-locking with mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=8, disable-port=false, link-down-action=retain-first-arrival-macs no longer exists in the response
-            - testCaseID: TCXM_5232
+            - testCaseID: TCXM_5513
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -989,7 +997,7 @@ features:
                       expected: 200
                       description: Verify port-mac-locking retrieved — response contains mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=8, disable-port=false, link-down-action=retain-first-arrival-macs
                 - name: updateResource
-                  description: Update port-mac-locking — modify mac-locking-enable=false
+                  description: Update port-mac-locking — modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -1006,17 +1014,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-mac-locking updated successfully with modify mac-locking-enable=false
+                    - Verify port-mac-locking updated successfully with modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-mac-locking updated successfully with modify mac-locking-enable=false
+                      description: Verify port-mac-locking updated successfully with modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                 - name: verifyUpdate
-                  description: Verify port-mac-locking was updated — modify mac-locking-enable=false
+                  description: Verify port-mac-locking was updated — modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -1027,11 +1043,11 @@ features:
                     objectType: port-mac-locking
                   expectedStatus: 200
                   validations:
-                    - Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false
+                    - Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false
+                      description: Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                 - name: deleteResource
                   description: Delete port-mac-locking with mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=8, disable-port=false, link-down-action=retain-first-arrival-macs
                   method: POST
@@ -1066,7 +1082,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-mac-locking with mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=8, disable-port=false, link-down-action=retain-first-arrival-macs no longer exists in the response
-            - testCaseID: TCXM_5233
+            - testCaseID: TCXM_5514
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -1122,7 +1138,7 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: partialUpdate
-                  description: Partially update port-mac-locking — modify mac-locking-enable=false
+                  description: Partially update port-mac-locking — modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -1139,17 +1155,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-mac-locking updated successfully with modify mac-locking-enable=false
+                    - Verify port-mac-locking updated successfully with modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-mac-locking updated successfully with modify mac-locking-enable=false
+                      description: Verify port-mac-locking updated successfully with modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                 - name: verifyPartialUpdate
-                  description: Verify partial update of port-mac-locking — modify mac-locking-enable=false
+                  description: Verify partial update of port-mac-locking — modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -1160,12 +1184,12 @@ features:
                     objectType: port-mac-locking
                   expectedStatus: 200
                   validations:
-                    - Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false
+                    - Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false
-            - testCaseID: TCXM_5234
+                      description: Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
+            - testCaseID: TCXM_5515
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -1257,7 +1281,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of port-mac-locking with mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=8, disable-port=false, link-down-action=retain-first-arrival-macs is rejected (409 Conflict)
-            - testCaseID: TCXM_5235
+            - testCaseID: TCXM_5516
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -1468,7 +1492,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5236
+            - testCaseID: TCXM_5517
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -1679,7 +1703,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5237
+            - testCaseID: TCXM_5518
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -1877,7 +1901,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5238
+            - testCaseID: TCXM_5519
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -1928,7 +1952,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_5239
+            - testCaseID: TCXM_5520
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -2057,7 +2081,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='remove-aged-macs')].value
                       expected: true
                       description: Verify field 'remove-aged-macs' has value 'true' as sent on create
-            - testCaseID: TCXM_5240
+            - testCaseID: TCXM_5521
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -2117,7 +2141,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='mac-locking-enable')].value
                       expected: false
                       description: Verify optional field 'mac-locking-enable' value is 'false' as set on create
-            - testCaseID: TCXM_5241
+            - testCaseID: TCXM_5522
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -2177,7 +2201,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-mac-learning-limit')].value
                       expected: false
                       description: Verify optional field 'enable-mac-learning-limit' value is 'false' as set on create
-            - testCaseID: TCXM_5242
+            - testCaseID: TCXM_5523
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -2237,7 +2261,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='maximum-first-arrival')].value
                       expected: 8
                       description: Verify optional field 'maximum-first-arrival' value is '8' as set on create
-            - testCaseID: TCXM_5243
+            - testCaseID: TCXM_5524
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -2297,7 +2321,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='disable-port')].value
                       expected: false
                       description: Verify optional field 'disable-port' value is 'false' as set on create
-            - testCaseID: TCXM_5244
+            - testCaseID: TCXM_5525
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -2357,7 +2381,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='link-down-action')].value
                       expected: retain-first-arrival-macs
                       description: Verify optional field 'link-down-action' value is 'retain-first-arrival-macs' as set on create
-            - testCaseID: TCXM_5245
+            - testCaseID: TCXM_5526
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -2417,7 +2441,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='remove-aged-macs')].value
                       expected: true
                       description: Verify optional field 'remove-aged-macs' value is 'true' as set on create
-            - testCaseID: TCXM_5246
+            - testCaseID: TCXM_5527
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -2489,7 +2513,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='mac-locking-enable')].value
                       expected: true
                       description: Verify 'mac-locking-enable' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5247
+            - testCaseID: TCXM_5528
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -2561,7 +2585,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='mac-locking-enable')].value
                       expected: false
                       description: Verify 'mac-locking-enable' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5248
+            - testCaseID: TCXM_5529
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -2633,7 +2657,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='maximum-first-arrival')].value
                       expected: 1
                       description: Verify 'maximum-first-arrival' YANG type 'uint16' value is persisted
-            - testCaseID: TCXM_5249
+            - testCaseID: TCXM_5530
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -2705,7 +2729,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='maximum-first-arrival')].value
                       expected: 1024
                       description: Verify 'maximum-first-arrival' YANG type 'uint16' value is persisted
-            - testCaseID: TCXM_5250
+            - testCaseID: TCXM_5531
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -2777,7 +2801,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='link-down-action')].value
                       expected: retain-first-arrival-macs
                       description: Verify 'link-down-action' YANG type 'ngc-types:link-down-action-enum' value is persisted
-            - testCaseID: TCXM_5251
+            - testCaseID: TCXM_5532
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -2849,7 +2873,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='link-down-action')].value
                       expected: clear-first-arrival-macs
                       description: Verify 'link-down-action' YANG type 'ngc-types:link-down-action-enum' value is persisted
-            - testCaseID: TCXM_5252
+            - testCaseID: TCXM_5533
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -2901,7 +2925,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='mac-locking-enable')].value
                       expected: false
                       description: Verify 'mac-locking-enable' equals YANG-defined default value false
-            - testCaseID: TCXM_5253
+            - testCaseID: TCXM_5534
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -2953,7 +2977,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-mac-learning-limit')].value
                       expected: false
                       description: Verify 'enable-mac-learning-limit' equals YANG-defined default value false
-            - testCaseID: TCXM_5254
+            - testCaseID: TCXM_5535
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -3005,7 +3029,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='maximum-first-arrival')].value
                       expected: 8
                       description: Verify 'maximum-first-arrival' equals YANG-defined default value 8
-            - testCaseID: TCXM_5255
+            - testCaseID: TCXM_5536
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -3057,7 +3081,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='disable-port')].value
                       expected: false
                       description: Verify 'disable-port' equals YANG-defined default value false
-            - testCaseID: TCXM_5256
+            - testCaseID: TCXM_5537
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -3109,7 +3133,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='link-down-action')].value
                       expected: retain-first-arrival-macs
                       description: Verify 'link-down-action' equals YANG-defined default value retain-first-arrival-macs
-            - testCaseID: TCXM_5257
+            - testCaseID: TCXM_5538
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -3161,7 +3185,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='remove-aged-macs')].value
                       expected: true
                       description: Verify 'remove-aged-macs' equals YANG-defined default value true
-            - testCaseID: TCXM_5258
+            - testCaseID: TCXM_5539
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -3359,7 +3383,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5259
+            - testCaseID: TCXM_5540
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -3557,7 +3581,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5260
+            - testCaseID: TCXM_5541
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -3755,7 +3779,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5261
+            - testCaseID: TCXM_5542
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -3953,7 +3977,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5262
+            - testCaseID: TCXM_5543
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -4151,7 +4175,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5263
+            - testCaseID: TCXM_5544
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -4349,7 +4373,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5264
+            - testCaseID: TCXM_5545
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -4547,7 +4571,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5265
+            - testCaseID: TCXM_5546
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -4745,7 +4769,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5266
+            - testCaseID: TCXM_5547
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -4943,7 +4967,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5267
+            - testCaseID: TCXM_5548
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -5141,7 +5165,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5268
+            - testCaseID: TCXM_5549
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -5339,7 +5363,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5269
+            - testCaseID: TCXM_5550
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -5537,7 +5561,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5270
+            - testCaseID: TCXM_5551
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -5735,7 +5759,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5271
+            - testCaseID: TCXM_5552
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -5933,7 +5957,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5272
+            - testCaseID: TCXM_5553
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -6131,7 +6155,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5273
+            - testCaseID: TCXM_5554
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -6329,7 +6353,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5274
+            - testCaseID: TCXM_5555
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -6527,7 +6551,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5275
+            - testCaseID: TCXM_5556
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -6725,7 +6749,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5276
+            - testCaseID: TCXM_5557
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -6923,7 +6947,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5277
+            - testCaseID: TCXM_5558
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -7121,7 +7145,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5278
+            - testCaseID: TCXM_5559
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -7319,7 +7343,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5279
+            - testCaseID: TCXM_5560
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -7517,7 +7541,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5280
+            - testCaseID: TCXM_5561
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -7715,7 +7739,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5281
+            - testCaseID: TCXM_5562
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -7913,7 +7937,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5282
+            - testCaseID: TCXM_5563
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -8111,7 +8135,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5283
+            - testCaseID: TCXM_5564
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -8309,7 +8333,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5284
+            - testCaseID: TCXM_5565
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -8507,7 +8531,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5285
+            - testCaseID: TCXM_5566
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -8705,7 +8729,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5286
+            - testCaseID: TCXM_5567
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -8903,7 +8927,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5287
+            - testCaseID: TCXM_5568
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -9101,7 +9125,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5288
+            - testCaseID: TCXM_5569
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -9299,7 +9323,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5289
+            - testCaseID: TCXM_5570
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -9497,7 +9521,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5290
+            - testCaseID: TCXM_5571
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -9695,7 +9719,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5291
+            - testCaseID: TCXM_5572
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -9893,7 +9917,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5292
+            - testCaseID: TCXM_5573
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -10091,7 +10115,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5293
+            - testCaseID: TCXM_5574
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -10289,7 +10313,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5294
+            - testCaseID: TCXM_5575
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -10488,7 +10512,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5295
+            - testCaseID: TCXM_5576
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -10687,7 +10711,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5296
+            - testCaseID: TCXM_5577
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -10886,7 +10910,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5297
+            - testCaseID: TCXM_5578
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -11085,7 +11109,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5298
+            - testCaseID: TCXM_5579
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -11284,7 +11308,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5299
+            - testCaseID: TCXM_5580
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -11483,7 +11507,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5300
+            - testCaseID: TCXM_5581
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -11682,7 +11706,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5301
+            - testCaseID: TCXM_5582
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -11881,7 +11905,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5302
+            - testCaseID: TCXM_5583
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -12080,7 +12104,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5303
+            - testCaseID: TCXM_5584
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -12279,7 +12303,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5304
+            - testCaseID: TCXM_5585
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -12477,7 +12501,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5305
+            - testCaseID: TCXM_5586
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -12675,7 +12699,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5306
+            - testCaseID: TCXM_5587
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -12873,7 +12897,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5307
+            - testCaseID: TCXM_5588
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -13071,7 +13095,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5308
+            - testCaseID: TCXM_5589
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -13269,7 +13293,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5309
+            - testCaseID: TCXM_5590
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -13467,7 +13491,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5310
+            - testCaseID: TCXM_5591
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -13665,7 +13689,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5311
+            - testCaseID: TCXM_5592
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -13863,7 +13887,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5312
+            - testCaseID: TCXM_5593
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -14061,7 +14085,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5313
+            - testCaseID: TCXM_5594
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -14259,7 +14283,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5314
+            - testCaseID: TCXM_5595
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -14457,7 +14481,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5315
+            - testCaseID: TCXM_5596
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -14655,7 +14679,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5316
+            - testCaseID: TCXM_5597
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -14853,7 +14877,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5317
+            - testCaseID: TCXM_5598
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -15051,7 +15075,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5318
+            - testCaseID: TCXM_5599
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -15249,7 +15273,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5319
+            - testCaseID: TCXM_5600
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -15447,7 +15471,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5320
+            - testCaseID: TCXM_5601
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -15645,7 +15669,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5321
+            - testCaseID: TCXM_5602
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -15843,7 +15867,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5322
+            - testCaseID: TCXM_5603
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -16041,7 +16065,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5323
+            - testCaseID: TCXM_5604
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -16239,7 +16263,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5324
+            - testCaseID: TCXM_5605
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -16437,7 +16461,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5325
+            - testCaseID: TCXM_5606
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -16635,601 +16659,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5326
-              featureName: port-mac-locking
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify port-mac-locking with bool value variation 1 for 'mac-locking-enable'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    objectType: port-mac-locking
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: mac-locking-enable
-                              origin: CC
-                              type: boolean
-                              value: true
-                            - name: enable-mac-learning-limit
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: maximum-first-arrival
-                              origin: CC
-                              type: number
-                              value: 8
-                            - name: disable-port
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: link-down-action
-                              origin: CC
-                              type: string
-                              value: retain-first-arrival-macs
-                          type: port-mac-locking
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_5327
-              featureName: port-mac-locking
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify port-mac-locking with bool value variation 2 for 'mac-locking-enable'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with bool type variation: false'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    objectType: port-mac-locking
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: mac-locking-enable
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: enable-mac-learning-limit
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: maximum-first-arrival
-                              origin: CC
-                              type: number
-                              value: 8
-                            - name: disable-port
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: link-down-action
-                              origin: CC
-                              type: string
-                              value: retain-first-arrival-macs
-                          type: port-mac-locking
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_5328
-              featureName: port-mac-locking
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify port-mac-locking with bool value variation 3 for 'mac-locking-enable'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    objectType: port-mac-locking
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: mac-locking-enable
-                              origin: CC
-                              type: boolean
-                              value: true
-                            - name: enable-mac-learning-limit
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: maximum-first-arrival
-                              origin: CC
-                              type: number
-                              value: 8
-                            - name: disable-port
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: link-down-action
-                              origin: CC
-                              type: string
-                              value: retain-first-arrival-macs
-                          type: port-mac-locking
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_5329
+            - testCaseID: TCXM_5607
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -17427,7 +16857,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5330
+            - testCaseID: TCXM_5608
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -17625,7 +17055,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5331
+            - testCaseID: TCXM_5609
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -17823,7 +17253,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5332
+            - testCaseID: TCXM_5610
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -18021,7 +17451,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5333
+            - testCaseID: TCXM_5611
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -18219,7 +17649,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5334
+            - testCaseID: TCXM_5612
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -18417,7 +17847,601 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5335
+            - testCaseID: TCXM_5613
+              featureName: port-mac-locking
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify port-mac-locking with bool value variation 1 for 'mac-locking-enable'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-mac-locking
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: mac-locking-enable
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 8
+                            - name: disable-port
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: link-down-action
+                              origin: CC
+                              type: string
+                              value: retain-first-arrival-macs
+                          type: port-mac-locking
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5614
+              featureName: port-mac-locking
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify port-mac-locking with bool value variation 2 for 'mac-locking-enable'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with bool type variation: false'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-mac-locking
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: mac-locking-enable
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 8
+                            - name: disable-port
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: link-down-action
+                              origin: CC
+                              type: string
+                              value: retain-first-arrival-macs
+                          type: port-mac-locking
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5615
+              featureName: port-mac-locking
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify port-mac-locking with bool value variation 3 for 'mac-locking-enable'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-mac-locking
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: mac-locking-enable
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 8
+                            - name: disable-port
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: link-down-action
+                              origin: CC
+                              type: string
+                              value: retain-first-arrival-macs
+                          type: port-mac-locking
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5616
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -18586,14 +18610,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T10:21:12Z
+                  description: Schedule deployment to device at 2026-05-01T11:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -18603,7 +18627,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5336
+            - testCaseID: TCXM_5617
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -18772,14 +18796,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T10:21:12Z
+                  description: Schedule deployment to site at 2026-05-01T11:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -18789,7 +18813,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5337
+            - testCaseID: TCXM_5618
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -18962,7 +18986,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -18973,14 +18997,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T11:21:12Z
+                  description: Edit deployment schedule to 2026-05-01T12:12:43Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T11:21:12Z"
+                    deployAt: "2026-05-01T12:12:43Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -18990,7 +19014,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5338
+            - testCaseID: TCXM_5619
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -19163,7 +19187,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:21:12Z"
+                    deployAt: "2026-05-01T11:12:43Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -19189,7 +19213,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5339
+            - testCaseID: TCXM_5620
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -19259,7 +19283,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5340
+            - testCaseID: TCXM_5621
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -19332,7 +19356,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5341
+            - testCaseID: TCXM_5622
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -19593,7 +19617,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_5342
+            - testCaseID: TCXM_5623
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -19954,7 +19978,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_5343
+            - testCaseID: TCXM_5624
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -20317,7 +20341,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for port-mac-locking — device value accepted as new cloud baseline
-            - testCaseID: TCXM_5344
+            - testCaseID: TCXM_5625
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -20565,7 +20589,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_5345
+            - testCaseID: TCXM_5626
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -20770,7 +20794,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_5346
+            - testCaseID: TCXM_5627
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -20975,7 +20999,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_5347
+            - testCaseID: TCXM_5628
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -21165,7 +21189,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_5348
+            - testCaseID: TCXM_5629
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -21369,7 +21393,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_5349
+            - testCaseID: TCXM_5630
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -21591,7 +21615,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5350
+            - testCaseID: TCXM_5631
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -21706,7 +21730,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_5351
+            - testCaseID: TCXM_5632
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -21735,7 +21759,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_5352
+            - testCaseID: TCXM_5633
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -21823,6 +21847,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                             - name: link-down-action
                               origin: CC
                               type: string
@@ -21869,6 +21901,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                             - name: link-down-action
                               origin: CC
                               type: string
@@ -21897,7 +21937,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_5376
+            - testCaseID: TCXM_5657
               featureName: port-mac-locking
               priority: P1
               automation: Automatable
@@ -21973,7 +22013,7 @@ features:
                       expected: 200
                       description: Verify port-mac-locking retrieved — response contains mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=8, disable-port=false, link-down-action=retain-first-arrival-macs
                 - name: updateResource
-                  description: Update port-mac-locking — modify mac-locking-enable=false
+                  description: Update port-mac-locking — modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/modify
@@ -21990,17 +22030,25 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
                   validations:
-                    - Verify port-mac-locking updated successfully with modify mac-locking-enable=false
+                    - Verify port-mac-locking updated successfully with modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-mac-locking updated successfully with modify mac-locking-enable=false
+                      description: Verify port-mac-locking updated successfully with modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                 - name: verifyUpdate
-                  description: Verify port-mac-locking was updated — modify mac-locking-enable=false
+                  description: Verify port-mac-locking was updated — modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
@@ -22011,11 +22059,11 @@ features:
                     objectType: port-mac-locking
                   expectedStatus: 200
                   validations:
-                    - Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false
+                    - Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false
+                      description: Verify port-mac-locking retrieved — response contains modify mac-locking-enable=false, enable-mac-learning-limit=false, maximum-first-arrival=50
                 - name: retrieveDeviceLocation
                   description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
                   method: POST
@@ -22256,7 +22304,7 @@ features:
               metadata:
                 deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_5355
+            - testCaseID: TCXM_5636
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -22305,7 +22353,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_5356
+            - testCaseID: TCXM_5637
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -22357,7 +22405,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5357
+            - testCaseID: TCXM_5638
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -22409,7 +22457,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5358
+            - testCaseID: TCXM_5639
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -22439,7 +22487,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'mac-locking-enable' is omitted
-            - testCaseID: TCXM_5359
+            - testCaseID: TCXM_5640
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -22469,7 +22517,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enable-mac-learning-limit' is omitted
-            - testCaseID: TCXM_5360
+            - testCaseID: TCXM_5641
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -22499,7 +22547,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'maximum-first-arrival' is omitted
-            - testCaseID: TCXM_5361
+            - testCaseID: TCXM_5642
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -22529,7 +22577,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'disable-port' is omitted
-            - testCaseID: TCXM_5362
+            - testCaseID: TCXM_5643
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -22559,7 +22607,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'link-down-action' is omitted
-            - testCaseID: TCXM_5363
+            - testCaseID: TCXM_5644
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -22589,7 +22637,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'remove-aged-macs' is omitted
-            - testCaseID: TCXM_5364
+            - testCaseID: TCXM_5645
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -22641,7 +22689,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5365
+            - testCaseID: TCXM_5646
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -22692,7 +22740,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5366
+            - testCaseID: TCXM_5647
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
@@ -22717,7 +22765,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_5371
+            - testCaseID: TCXM_5652
               featureName: port-mac-locking
               priority: P4
               automation: Automatable
@@ -23189,7 +23237,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_5372
+            - testCaseID: TCXM_5653
               featureName: port-mac-locking
               priority: P4
               automation: Automatable
@@ -23411,7 +23459,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_5373
+            - testCaseID: TCXM_5654
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -23483,6 +23531,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -23514,6 +23570,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -23545,6 +23609,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -23576,6 +23648,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -23607,6 +23687,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -23638,6 +23726,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -23669,6 +23765,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -23700,6 +23804,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -23731,6 +23843,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -23762,6 +23882,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -23778,7 +23906,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_5374
+            - testCaseID: TCXM_5655
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -24459,7 +24587,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_5375
+            - testCaseID: TCXM_5656
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -24732,7 +24860,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_5367
+            - testCaseID: TCXM_5648
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -28842,7 +28970,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_5368
+            - testCaseID: TCXM_5649
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -30594,7 +30722,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_5369
+            - testCaseID: TCXM_5650
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -30666,6 +30794,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -30692,6 +30828,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -30718,6 +30862,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -30744,6 +30896,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -30770,6 +30930,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -30796,6 +30964,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -30822,6 +30998,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -30848,6 +31032,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -30874,6 +31066,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -30900,6 +31100,14 @@ features:
                               origin: CC
                               type: boolean
                               value: false
+                            - name: enable-mac-learning-limit
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: maximum-first-arrival
+                              origin: CC
+                              type: number
+                              value: 50
                           type: port-mac-locking
                     operation: update
                   expectedStatus: 200
@@ -30911,7 +31119,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_5370
+            - testCaseID: TCXM_5651
               featureName: port-mac-locking
               priority: P3
               automation: Automatable
@@ -39122,7 +39330,7 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
-            - testCaseID: TCXM_5379
+            - testCaseID: TCXM_5660
               featureName: port-mac-locking
               priority: P2
               automation: Automatable
