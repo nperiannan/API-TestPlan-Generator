@@ -444,7 +444,9 @@ async function loadVersions() {
       container.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">No versions saved yet. Click "Save Version" to store the current test plans.</p>';
       return;
     }
-    container.innerHTML = versionsData.map(v => `
+    container.innerHTML = versionsData.map(v => {
+      const ctx = v.generationContext || {};
+      return `
       <div class="version-card ${selectedVersions.includes(v.id) ? 'selected' : ''}"
            onclick="toggleVersionSelect('${v.id}')" data-id="${v.id}">
         <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -458,8 +460,16 @@ async function loadVersions() {
             <span><strong>${v.totalTests.toLocaleString()}</strong> tests</span>
           </div>
         </div>
-      </div>
-    `).join('') + `
+        ${ctx.generatedAt ? `
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;font-size:.82em;color:#777;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 16px;">
+            <span>&#128197; <strong>Generated:</strong> ${ctx.generatedAt}</span>
+            <span>&#9881; <strong>Tool:</strong> v${ctx.toolVersion || '?'}${ctx.toolCommit ? ' (' + ctx.toolCommit + ')' : ''}</span>
+            ${ctx.sourceFingerprints ? `<span>&#128203; <strong>Sources:</strong> ${Object.keys(ctx.sourceFingerprints).length} files fingerprinted</span>` : ''}
+          </div>
+        </div>` : ''}
+      </div>`;
+    }).join('') + `
       <div style="margin-top:16px;">
         <p style="font-size:.85em;color:#888;">Select two versions to compare. <strong>${selectedVersions.length}/2</strong> selected.</p>
         ${selectedVersions.length === 2 ? `<button class="btn btn-primary" onclick="compareVersions()">Compare Selected</button>` : ''}
@@ -504,6 +514,51 @@ function renderDiff(diff) {
     <div class="diff-stat"><div class="val change-removed">${diff.summary.featuresRemoved}</div><div class="lbl">Removed</div></div>
     <div class="diff-stat"><div class="val change-modified">${diff.summary.featuresModified}</div><div class="lbl">Modified</div></div>
   </div>`;
+
+  // Change Reasons section
+  if (diff.changeReasons && diff.changeReasons.length) {
+    const catIcons = { source: '&#128203;', tool: '&#9881;', generation: '&#128197;' };
+    const catColors = { source: '#e65100', tool: '#1565c0', generation: '#6a1b9a' };
+    html += `<div class="section" style="margin:0 0 20px 0;">
+      <div class="section-header"><h2>&#128269; Why These Versions Differ</h2></div>
+      <div class="section-body">
+        <table><thead><tr><th>Category</th><th>What Changed</th><th>Old</th><th>New</th></tr></thead><tbody>`;
+    diff.changeReasons.forEach(r => {
+      const icon = catIcons[r.category] || '&#8226;';
+      const color = catColors[r.category] || '#333';
+      html += `<tr>
+        <td><span style="color:${color};font-weight:600;">${icon} ${r.category}</span></td>
+        <td>${r.description}</td>
+        <td style="font-family:monospace;font-size:.82em;color:#888;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${r.oldValue || '-'}</td>
+        <td style="font-family:monospace;font-size:.82em;color:#888;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${r.newValue || '-'}</td>
+      </tr>`;
+    });
+    html += '</tbody></table></div></div>';
+  }
+
+  // Generation Context comparison
+  if (diff.oldContext || diff.newContext) {
+    const oc = diff.oldContext || {};
+    const nc = diff.newContext || {};
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div style="background:#f5f5f5;border-radius:8px;padding:14px;">
+        <div style="font-weight:700;color:#888;margin-bottom:8px;">&#9664; ${diff.oldTag}</div>
+        <div style="font-size:.82em;line-height:1.8;">
+          <div>&#128197; Generated: <strong>${oc.generatedAt || 'N/A'}</strong></div>
+          <div>&#9881; Tool: <strong>v${oc.toolVersion || '?'}${oc.toolCommit ? ' (' + oc.toolCommit + ')' : ''}</strong></div>
+          ${oc.sourceFingerprints ? `<div>&#128203; Source files: <strong>${Object.keys(oc.sourceFingerprints).length}</strong></div>` : ''}
+        </div>
+      </div>
+      <div style="background:#f5f8ff;border-radius:8px;padding:14px;">
+        <div style="font-weight:700;color:#1a73e8;margin-bottom:8px;">&#9654; ${diff.newTag}</div>
+        <div style="font-size:.82em;line-height:1.8;">
+          <div>&#128197; Generated: <strong>${nc.generatedAt || 'N/A'}</strong></div>
+          <div>&#9881; Tool: <strong>v${nc.toolVersion || '?'}${nc.toolCommit ? ' (' + nc.toolCommit + ')' : ''}</strong></div>
+          ${nc.sourceFingerprints ? `<div>&#128203; Source files: <strong>${Object.keys(nc.sourceFingerprints).length}</strong></div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
 
   if (diff.testDiffs && diff.testDiffs.length) {
     html += `<h3 style="margin:16px 0 10px;color:#1a73e8;">Feature Changes</h3>

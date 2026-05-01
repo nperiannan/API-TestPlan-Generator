@@ -18,13 +18,25 @@ type VersionManager struct {
 
 // VersionDiff represents the diff between two versions
 type VersionDiff struct {
-	OldVersion  string          `json:"oldVersion"`
-	NewVersion  string          `json:"newVersion"`
-	OldTag      string          `json:"oldTag"`
-	NewTag      string          `json:"newTag"`
-	Summary     DiffSummary     `json:"summary"`
-	FileChanges []FileChange    `json:"fileChanges"`
-	TestDiffs   []FeatureTestDiff `json:"testDiffs"`
+	OldVersion    string            `json:"oldVersion"`
+	NewVersion    string            `json:"newVersion"`
+	OldTag        string            `json:"oldTag"`
+	NewTag        string            `json:"newTag"`
+	Summary       DiffSummary       `json:"summary"`
+	ChangeReasons []ChangeReason    `json:"changeReasons"`
+	FileChanges   []FileChange      `json:"fileChanges"`
+	TestDiffs     []FeatureTestDiff `json:"testDiffs"`
+	OldContext    *GenerationContext `json:"oldContext,omitempty"`
+	NewContext    *GenerationContext `json:"newContext,omitempty"`
+}
+
+// ChangeReason explains why two versions differ
+type ChangeReason struct {
+	Category    string `json:"category"`    // "source", "tool", "generation"
+	Field       string `json:"field"`       // specific field that changed
+	OldValue    string `json:"oldValue"`
+	NewValue    string `json:"newValue"`
+	Description string `json:"description"` // human-readable explanation
 }
 
 // DiffSummary provides high-level diff statistics
@@ -66,7 +78,7 @@ func NewVersionManager(store *MinIOStore) *VersionManager {
 }
 
 // CreateVersion creates a new version from current test plan files
-func (vm *VersionManager) CreateVersion(tag, description string, files map[string][]byte) (*StoredVersion, error) {
+func (vm *VersionManager) CreateVersion(tag, description string, files map[string][]byte, genCtx *GenerationContext) (*StoredVersion, error) {
 	id := generateVersionID(tag)
 
 	// Count tests from YAML files
@@ -86,14 +98,20 @@ func (vm *VersionManager) CreateVersion(tag, description string, files map[strin
 		}
 	}
 
+	// If no generation context provided, extract from the first YAML file
+	if genCtx == nil {
+		genCtx = extractGenerationContext(files)
+	}
+
 	version := &StoredVersion{
-		ID:          id,
-		Tag:         tag,
-		CreatedAt:   time.Now().UTC(),
-		Description: description,
-		TotalTests:  totalTests,
-		Features:    featureCount,
-		Categories:  categories,
+		ID:                id,
+		Tag:               tag,
+		CreatedAt:         time.Now().UTC(),
+		Description:       description,
+		TotalTests:        totalTests,
+		Features:          featureCount,
+		Categories:        categories,
+		GenerationContext: genCtx,
 	}
 
 	if err := vm.store.StoreVersion(version, files); err != nil {
@@ -101,6 +119,35 @@ func (vm *VersionManager) CreateVersion(tag, description string, files map[strin
 	}
 
 	return version, nil
+}
+
+// extractGenerationContext pulls generation metadata from the YAML test plan headers
+func extractGenerationContext(files map[string][]byte) *GenerationContext {
+	for name, data := range files {
+		if !strings.HasSuffix(name, ".yaml") {
+			continue
+		}
+		var header struct {
+			Version       string `yaml:"version"`
+			GeneratedAt   string `yaml:"generatedAt"`
+			SourceYangDir string `yaml:"sourceYangDir"`
+			SourceRESTAPI string `yaml:"sourceRESTAPI"`
+			SourceNOSAPI  string `yaml:"sourceNOSAPI"`
+		}
+		if err := yaml.Unmarshal(data, &header); err != nil {
+			continue
+		}
+		if header.GeneratedAt != "" {
+			return &GenerationContext{
+				GeneratedAt:   header.GeneratedAt,
+				ToolVersion:   header.Version,
+				SourceYangDir: header.SourceYangDir,
+				SourceRESTAPI: header.SourceRESTAPI,
+				SourceNOSAPI:  header.SourceNOSAPI,
+			}
+		}
+	}
+	return nil
 }
 
 // DiffVersions compares two versions
@@ -128,6 +175,8 @@ func (vm *VersionManager) DiffVersions(oldID, newID string) (*VersionDiff, error
 		NewVersion: newID,
 		OldTag:     oldVersion.Tag,
 		NewTag:     newVersion.Tag,
+		OldContext: oldVersion.GenerationContext,
+		NewContext: newVersion.GenerationContext,
 		Summary: DiffSummary{
 			TotalTestsOld:   oldVersion.TotalTests,
 			TotalTestsNew:   newVersion.TotalTests,
@@ -135,6 +184,9 @@ func (vm *VersionManager) DiffVersions(oldID, newID string) (*VersionDiff, error
 			CategoryChanges: make(map[string]int),
 		},
 	}
+
+	// Determine change reasons from generation context
+	diff.ChangeReasons = buildChangeReasons(oldVersion.GenerationContext, newVersion.GenerationContext)
 
 	// Compare files
 	allPaths := make(map[string]bool)
@@ -332,6 +384,113 @@ func generateVersionID(tag string) string {
 	ts := time.Now().UTC().Format("20060102-150405")
 	h := sha256.Sum256([]byte(tag + ts))
 	return fmt.Sprintf("%s-%x", ts, h[:4])
+}
+
+// buildChangeReasons compares two generation contexts and returns human-readable reasons
+func buildChangeReasons(oldCtx, newCtx *GenerationContext) []ChangeReason {
+	var reasons []ChangeReason
+	if oldCtx == nil || newCtx == nil {
+		if oldCtx == nil && newCtx != nil {
+			reasons = append(reasons, ChangeReason{
+				Category:    "generation",
+				Field:       "context",
+				Description: "Generation context was not captured in the older version",
+			})
+		}
+		return reasons
+	}
+
+	if oldCtx.GeneratedAt != newCtx.GeneratedAt {
+		reasons = append(reasons, ChangeReason{
+			Category:    "generation",
+			Field:       "generatedAt",
+			OldValue:    oldCtx.GeneratedAt,
+			NewValue:    newCtx.GeneratedAt,
+			Description: "Test plans were regenerated at a different time",
+		})
+	}
+
+	if oldCtx.ToolVersion != newCtx.ToolVersion {
+		reasons = append(reasons, ChangeReason{
+			Category:    "tool",
+			Field:       "toolVersion",
+			OldValue:    oldCtx.ToolVersion,
+			NewValue:    newCtx.ToolVersion,
+			Description: "Test generator tool version changed",
+		})
+	}
+
+	if oldCtx.ToolCommit != newCtx.ToolCommit && oldCtx.ToolCommit != "" && newCtx.ToolCommit != "" {
+		reasons = append(reasons, ChangeReason{
+			Category:    "tool",
+			Field:       "toolCommit",
+			OldValue:    oldCtx.ToolCommit,
+			NewValue:    newCtx.ToolCommit,
+			Description: "Test generator code was modified (different git commit)",
+		})
+	}
+
+	// Source file changes
+	sourceFields := []struct {
+		name string
+		oldV string
+		newV string
+	}{
+		{"sourceYangDir", oldCtx.SourceYangDir, newCtx.SourceYangDir},
+		{"sourceRestApi", oldCtx.SourceRESTAPI, newCtx.SourceRESTAPI},
+		{"sourceNosApi", oldCtx.SourceNOSAPI, newCtx.SourceNOSAPI},
+	}
+	for _, sf := range sourceFields {
+		if sf.oldV != sf.newV {
+			reasons = append(reasons, ChangeReason{
+				Category:    "source",
+				Field:       sf.name,
+				OldValue:    sf.oldV,
+				NewValue:    sf.newV,
+				Description: fmt.Sprintf("Source path changed for %s", sf.name),
+			})
+		}
+	}
+
+	// Compare source fingerprints
+	if oldCtx.SourceFingerprints != nil && newCtx.SourceFingerprints != nil {
+		allFiles := make(map[string]bool)
+		for f := range oldCtx.SourceFingerprints {
+			allFiles[f] = true
+		}
+		for f := range newCtx.SourceFingerprints {
+			allFiles[f] = true
+		}
+		for f := range allFiles {
+			oldHash := oldCtx.SourceFingerprints[f]
+			newHash := newCtx.SourceFingerprints[f]
+			if oldHash != newHash {
+				desc := fmt.Sprintf("Source file content changed: %s", f)
+				if oldHash == "" {
+					desc = fmt.Sprintf("New source file added: %s", f)
+				} else if newHash == "" {
+					desc = fmt.Sprintf("Source file removed: %s", f)
+				}
+				reasons = append(reasons, ChangeReason{
+					Category:    "source",
+					Field:       f,
+					OldValue:    oldHash,
+					NewValue:    newHash,
+					Description: desc,
+				})
+			}
+		}
+	}
+
+	if len(reasons) == 0 {
+		reasons = append(reasons, ChangeReason{
+			Category:    "generation",
+			Field:       "unknown",
+			Description: "No detectable context changes — differences may be due to non-deterministic generation or manual edits",
+		})
+	}
+
+	return reasons
 }
 
 // VersionSummaryJSON returns the version summary as JSON bytes

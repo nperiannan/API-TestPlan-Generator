@@ -53,7 +53,12 @@ func (s *Server) handleCreateVersion(c *gin.Context) {
 		files["summary_report.html"] = data
 	}
 
-	version, err := s.version.CreateVersion(req.Tag, req.Description, files)
+	// Build generation context: extract from YAML headers + compute source fingerprints
+	genCtx := extractGenerationContextFromFiles(files)
+	genCtx.ToolCommit = getGitCommit()
+	genCtx.SourceFingerprints = computeSourceFingerprints(s.config.SourcesDir)
+
+	version, err := s.version.CreateVersion(req.Tag, req.Description, files, genCtx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -487,4 +492,78 @@ func safeStr(v interface{}) string {
 		return ""
 	}
 	return fmt.Sprintf("%v", v)
+}
+
+// extractGenerationContextFromFiles pulls generation metadata from YAML test plan headers
+func extractGenerationContextFromFiles(files map[string][]byte) *GenerationContext {
+	for name, data := range files {
+		if !strings.HasSuffix(name, ".yaml") {
+			continue
+		}
+		var header struct {
+			Version       string `yaml:"version"`
+			GeneratedAt   string `yaml:"generatedAt"`
+			SourceYangDir string `yaml:"sourceYangDir"`
+			SourceRESTAPI string `yaml:"sourceRESTAPI"`
+			SourceNOSAPI  string `yaml:"sourceNOSAPI"`
+		}
+		if err := yaml.Unmarshal(data, &header); err != nil {
+			continue
+		}
+		if header.GeneratedAt != "" {
+			return &GenerationContext{
+				GeneratedAt:   header.GeneratedAt,
+				ToolVersion:   header.Version,
+				SourceYangDir: header.SourceYangDir,
+				SourceRESTAPI: header.SourceRESTAPI,
+				SourceNOSAPI:  header.SourceNOSAPI,
+			}
+		}
+	}
+	return &GenerationContext{}
+}
+
+// getGitCommit returns the current git HEAD commit hash
+func getGitCommit() string {
+	data, err := os.ReadFile(".git/HEAD")
+	if err != nil {
+		return ""
+	}
+	head := strings.TrimSpace(string(data))
+	// If it's a ref, resolve it
+	if strings.HasPrefix(head, "ref: ") {
+		refPath := strings.TrimPrefix(head, "ref: ")
+		data, err = os.ReadFile(filepath.Join(".git", refPath))
+		if err != nil {
+			return ""
+		}
+		return strings.TrimSpace(string(data))[:12]
+	}
+	if len(head) >= 12 {
+		return head[:12]
+	}
+	return head
+}
+
+// computeSourceFingerprints calculates SHA256 hashes for all source spec files
+func computeSourceFingerprints(sourcesDir string) map[string]string {
+	fingerprints := make(map[string]string)
+	filepath.WalkDir(sourcesDir, func(path string, entry os.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return err
+		}
+		ext := filepath.Ext(entry.Name())
+		if ext != ".yaml" && ext != ".yang" && ext != ".json" {
+			return nil
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil
+		}
+		hash := sha256.Sum256(data)
+		relPath, _ := filepath.Rel(sourcesDir, path)
+		fingerprints[filepath.ToSlash(relPath)] = fmt.Sprintf("%x", hash[:16])
+		return nil
+	})
+	return fingerprints
 }
