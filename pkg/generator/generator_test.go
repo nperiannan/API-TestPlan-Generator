@@ -685,3 +685,88 @@ func TestEnumCrossProductReadBodyUsesYangFeaturePath(t *testing.T) {
 		t.Fatalf("expected YANG featurePath, got %#v", body)
 	}
 }
+
+func TestFeatureWithoutDuplicatedChildParamsFiltersPortChildrenSamePath(t *testing.T) {
+	config := model.NewDefaultConfig()
+	const portFeaturePath = "/network-feature/interface-feature/port-feature"
+	portPath := &model.FeaturePath{
+		FeatureName:       "port",
+		BlueprintCategory: model.BlueprintCategoryWired,
+		PathParams:        []model.PathParameter{{Name: "featurePath", FixedValue: portFeaturePath}, {Name: "objectType", FixedValue: "port"}},
+	}
+	features := map[string]*model.Feature{
+		"port": {
+			Name: "port",
+			Parameters: []model.Parameter{
+				{Name: "name", GoType: "string"},
+				{Name: "mode", GoType: "string"},
+				{Name: "poe-enable", GoType: "bool"},
+				{Name: "enable-transmission-settings", GoType: "bool"},
+				{Name: "advanced-settings", NestedProperties: []model.Parameter{
+					{Name: "voice-vlan-dscp", GoType: "int"},
+					{Name: "kept-nested", GoType: "string"},
+				}},
+			},
+		},
+		"port-poe": {
+			Name:       "port-poe",
+			Parameters: []model.Parameter{{Name: "poe-enable", GoType: "bool"}},
+		},
+		"port-lldp": {
+			Name:       "port-lldp",
+			Parameters: []model.Parameter{{Name: "voice-vlan-dscp", GoType: "int"}},
+		},
+		"advanced-port": {
+			Name:       "advanced-port",
+			Parameters: []model.Parameter{{Name: "enable-transmission-settings", GoType: "bool"}},
+		},
+		"port-authentication": {
+			Name:       "port-authentication",
+			Parameters: []model.Parameter{{Name: "radius-server", GoType: "string"}},
+		},
+	}
+	featurePaths := map[string]*model.FeaturePath{
+		"port":      portPath,
+		"port-poe":  wiredFeaturePath("port-poe", portFeaturePath),
+		"port-lldp": wiredFeaturePath("port-lldp", portFeaturePath),
+		"advanced-port": {
+			Feature:           features["advanced-port"],
+			BlueprintCategory: model.BlueprintCategoryWired,
+			PathParams:        []model.PathParameter{{Name: "featurePath", FixedValue: portFeaturePath}, {Name: "objectType", FixedValue: "advanced-port"}},
+		},
+	}
+	gen := NewGenerator(config, features, featurePaths, nil, nil)
+
+	filtered := gen.featureWithoutDuplicatedChildParams(features["port"], []*model.FeaturePath{portPath})
+	paramNames := flattenParamNames(filtered.Parameters)
+
+	for _, removed := range []string{"poe-enable", "voice-vlan-dscp", "enable-transmission-settings"} {
+		if paramNames[removed] {
+			t.Fatalf("expected %s to be filtered from parent port params, got %#v", removed, paramNames)
+		}
+	}
+	for _, retained := range []string{"name", "mode", "advanced-settings", "kept-nested"} {
+		if !paramNames[retained] {
+			t.Fatalf("expected %s to remain in parent port params, got %#v", retained, paramNames)
+		}
+	}
+	if len(features["port"].Parameters) != 5 {
+		t.Fatalf("source feature must not be mutated, got %#v", features["port"].Parameters)
+	}
+}
+
+func wiredFeaturePath(featureName, featurePath string) *model.FeaturePath {
+	return &model.FeaturePath{
+		FeatureName:       featureName,
+		BlueprintCategory: model.BlueprintCategoryWired,
+		PathParams:        []model.PathParameter{{Name: "featurePath", FixedValue: featurePath}, {Name: "objectType", FixedValue: featureName}},
+	}
+}
+
+func flattenParamNames(params []model.Parameter) map[string]bool {
+	names := make(map[string]bool)
+	for _, param := range collectAllParameters(params) {
+		names[param.Name] = true
+	}
+	return names
+}

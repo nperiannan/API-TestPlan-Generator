@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T12:39:14+05:30"
+generatedAt: "2026-05-01T12:54:13+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -12003,261 +12003,6 @@ features:
               priority: P2
               automation: Automatable
               type: functional
-              description: Deploy and verify device-profile with string value variation 1 for 'host-name'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with string type variation: test-value-1'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /infrastructure-feature/device-profile-feature
-                    objectType: device-profile
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: host-name
-                              origin: CC
-                              type: string
-                              value: test-value-1
-                            - name: default-vrf
-                              origin: CC
-                              type: string
-                              value: VR-Mgmt
-                            - name: ip-settings
-                              origin: CC
-                              type: string
-                              value: DHCP
-                            - name: location
-                              origin: CC
-                              type: string
-                              value: testValue
-                          type: device-profile
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: test-device-001
-                    name: TestProfile
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_1475
-              featureName: device-profile
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify device-profile with string value variation 2 for 'host-name'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with string type variation: TestValue2'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /infrastructure-feature/device-profile-feature
-                    objectType: device-profile
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: host-name
-                              origin: CC
-                              type: string
-                              value: TestValue2
-                            - name: default-vrf
-                              origin: CC
-                              type: string
-                              value: VR-Mgmt
-                            - name: ip-settings
-                              origin: CC
-                              type: string
-                              value: DHCP
-                            - name: location
-                              origin: CC
-                              type: string
-                              value: testValue
-                          type: device-profile
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: test-device-001
-                    name: TestProfile
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_1476
-              featureName: device-profile
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify device-profile with string value variation 3 for 'host-name'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with string type variation: test_value_3'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /infrastructure-feature/device-profile-feature
-                    objectType: device-profile
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: host-name
-                              origin: CC
-                              type: string
-                              value: test_value_3
-                            - name: default-vrf
-                              origin: CC
-                              type: string
-                              value: VR-Mgmt
-                            - name: ip-settings
-                              origin: CC
-                              type: string
-                              value: DHCP
-                            - name: location
-                              origin: CC
-                              type: string
-                              value: testValue
-                          type: device-profile
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: deployTodevice
-                  description: Deploy configuration to device
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - test-device-001
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: test-device-001
-                    name: TestProfile
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_1477
-              featureName: device-profile
-              priority: P2
-              automation: Automatable
-              type: functional
               description: Deploy and verify device-profile with bool value variation 1 for 'management-ip-in-band'
               scopeType: device
               targetType: device
@@ -12342,7 +12087,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1478
+            - testCaseID: TCXM_1475
               featureName: device-profile
               priority: P2
               automation: Automatable
@@ -12431,7 +12176,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1479
+            - testCaseID: TCXM_1476
               featureName: device-profile
               priority: P2
               automation: Automatable
@@ -12520,7 +12265,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1480
+            - testCaseID: TCXM_1477
               featureName: device-profile
               priority: P2
               automation: Automatable
@@ -12609,7 +12354,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1481
+            - testCaseID: TCXM_1478
               featureName: device-profile
               priority: P2
               automation: Automatable
@@ -12698,7 +12443,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_1482
+            - testCaseID: TCXM_1479
               featureName: device-profile
               priority: P2
               automation: Automatable
@@ -12742,6 +12487,261 @@ features:
                               origin: CC
                               type: number
                               value: 3000
+                          type: device-profile
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: test-device-001
+                    name: TestProfile
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_1480
+              featureName: device-profile
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify device-profile with string value variation 1 for 'host-name'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with string type variation: test-value-1'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/device-profile-feature
+                    objectType: device-profile
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: host-name
+                              origin: CC
+                              type: string
+                              value: test-value-1
+                            - name: default-vrf
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: ip-settings
+                              origin: CC
+                              type: string
+                              value: DHCP
+                            - name: location
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: device-profile
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: test-device-001
+                    name: TestProfile
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_1481
+              featureName: device-profile
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify device-profile with string value variation 2 for 'host-name'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with string type variation: TestValue2'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/device-profile-feature
+                    objectType: device-profile
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: host-name
+                              origin: CC
+                              type: string
+                              value: TestValue2
+                            - name: default-vrf
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: ip-settings
+                              origin: CC
+                              type: string
+                              value: DHCP
+                            - name: location
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: device-profile
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: test-device-001
+                    name: TestProfile
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_1482
+              featureName: device-profile
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify device-profile with string value variation 3 for 'host-name'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with string type variation: test_value_3'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/device-profile-feature
+                    objectType: device-profile
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: host-name
+                              origin: CC
+                              type: string
+                              value: test_value_3
+                            - name: default-vrf
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: ip-settings
+                              origin: CC
+                              type: string
+                              value: DHCP
+                            - name: location
+                              origin: CC
+                              type: string
+                              value: testValue
                           type: device-profile
                     operation: add
                   expectedStatus: 201
@@ -12842,14 +12842,14 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T08:09:14Z
+                  description: Schedule deployment to device at 2026-05-01T08:24:13Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T08:09:14Z"
+                    deployAt: "2026-05-01T08:24:13Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -12914,14 +12914,14 @@ features:
                       captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T08:09:14Z
+                  description: Schedule deployment to site at 2026-05-01T08:24:13Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T08:09:14Z"
+                    deployAt: "2026-05-01T08:24:13Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -12990,7 +12990,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T08:09:14Z"
+                    deployAt: "2026-05-01T08:24:13Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -13001,14 +13001,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T09:09:14Z
+                  description: Edit deployment schedule to 2026-05-01T09:24:13Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:09:14Z"
+                    deployAt: "2026-05-01T09:24:13Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -13077,7 +13077,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T08:09:14Z"
+                    deployAt: "2026-05-01T08:24:13Z"
                     sites:
                         - test-site-001
                     timezone: UTC

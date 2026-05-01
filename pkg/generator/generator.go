@@ -215,6 +215,7 @@ func (g *Generator) generateFeatureTestGroup(feature *model.Feature, paths []*mo
 	if len(paths) == 0 {
 		return nil
 	}
+	feature = g.featureWithoutDuplicatedChildParams(feature, paths)
 
 	// Sort paths so explicitly registered paths (BlueprintCategory != "") come LAST.
 	// Most path-selector loops use "last wins" (createPath = path each iteration),
