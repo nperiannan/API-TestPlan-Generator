@@ -94,7 +94,7 @@ func (g *Generator) generateEnumTransitionTest(
 
 	// Step 1: Create with value A
 	body := g.generateRequestBody(feature, createPath)
-	body["name"] = resourceName
+	g.setBodyResourceName(feature, body, resourceName)
 	g.setBodyParameterValue(body, param.Name, valA)
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name:           "createWithValueA",
@@ -125,7 +125,7 @@ func (g *Generator) generateEnumTransitionTest(
 	// Step 3: Update to value B (only if updatePath exists)
 	if updatePath != nil {
 		updateBody := g.generateUpdateRequestBody(feature, updatePath)
-		updateBody["name"] = resourceName
+		g.setBodyResourceName(feature, updateBody, resourceName)
 		g.setBodyParameterValue(updateBody, param.Name, valB)
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name:           "updateToValueB",
@@ -156,7 +156,7 @@ func (g *Generator) generateEnumTransitionTest(
 
 		// Step 5: Round-trip back to A
 		roundTripBody := g.generateUpdateRequestBody(feature, updatePath)
-		roundTripBody["name"] = resourceName
+		g.setBodyResourceName(feature, roundTripBody, resourceName)
 		g.setBodyParameterValue(roundTripBody, param.Name, valA)
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name:           "roundTripToValueA",
@@ -214,7 +214,7 @@ func (g *Generator) generateWellKnownValueTransitionTest(
 
 	// Create with valA
 	body := g.generateRequestBody(feature, createPath)
-	body["name"] = resourceName
+	g.setBodyResourceName(feature, body, resourceName)
 	g.setBodyParameterValue(body, param.Name, valA)
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name: "createWithInitialValue", Description: fmt.Sprintf("Create with %s='%s'", param.Name, valA),
@@ -233,7 +233,7 @@ func (g *Generator) generateWellKnownValueTransitionTest(
 	if updatePath != nil {
 		// Update to valB
 		upBody := g.generateUpdateRequestBody(feature, updatePath)
-		upBody["name"] = resourceName
+		g.setBodyResourceName(feature, upBody, resourceName)
 		g.setBodyParameterValue(upBody, param.Name, valB)
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name: "updateToNewValue", Description: fmt.Sprintf("Update %s to '%s'", param.Name, valB),

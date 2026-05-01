@@ -21,6 +21,9 @@ func (g *Generator) generateAdditionalCoverageTests(feature *model.Feature, path
 	if primaryPath == nil {
 		return tests
 	}
+	if !isConfigurationDeploymentPath(primaryPath) {
+		return tests
+	}
 	profileName := "TestProfile-Additional"
 
 	// 1. Scheduled deployment to devices (1 test)
@@ -127,14 +130,14 @@ func (g *Generator) generateScheduledDeploymentTest(feature *model.Feature, fp *
 
 	switch targetType {
 	case model.TargetTypeSite:
-		deployPath = fmt.Sprintf("/configuration-profile/%s/sites/deploy", profileName)
+		deployPath = "/configuration-profile/{name}/sites/deploy"
 		deployBody = map[string]interface{}{
 			"sites":    []string{"test-site-001"},
 			"deployAt": deployTime,
 			"timezone": "UTC",
 		}
 	case model.TargetTypeDevice:
-		deployPath = fmt.Sprintf("/configuration-profile/%s/devices/deploy", profileName)
+		deployPath = "/configuration-profile/{name}/devices/deploy"
 		deployBody = map[string]interface{}{
 			"devices":  []string{"test-device-001"},
 			"deployAt": deployTime,
@@ -187,14 +190,14 @@ func (g *Generator) generateEditScheduleTest(feature *model.Feature, fp *model.F
 
 	switch targetType {
 	case model.TargetTypeSite:
-		scheduleDeployPath = fmt.Sprintf("/configuration-profile/%s/sites/deploy", profileName)
+		scheduleDeployPath = "/configuration-profile/{name}/sites/deploy"
 		scheduleBody = map[string]interface{}{
 			"sites":    []string{"test-site-001"},
 			"deployAt": initialDeployTime,
 			"timezone": "UTC",
 		}
 	case model.TargetTypeDevice:
-		scheduleDeployPath = fmt.Sprintf("/configuration-profile/%s/devices/deploy", profileName)
+		scheduleDeployPath = "/configuration-profile/{name}/devices/deploy"
 		scheduleBody = map[string]interface{}{
 			"devices":  []string{"test-device-001"},
 			"deployAt": initialDeployTime,
@@ -225,14 +228,14 @@ func (g *Generator) generateEditScheduleTest(feature *model.Feature, fp *model.F
 
 	switch targetType {
 	case model.TargetTypeSite:
-		editPath = fmt.Sprintf("/configuration-profile/%s/sites/deploy/edit-schedule", profileName)
+		editPath = "/configuration-profile/{name}/sites/deploy/edit-schedule"
 		editBody = map[string]interface{}{
 			"sites":    []string{"test-site-001"},
 			"deployAt": newDeployTime,
 			"timezone": "UTC",
 		}
 	case model.TargetTypeDevice:
-		editPath = fmt.Sprintf("/configuration-profile/%s/devices/deploy/edit-schedule", profileName)
+		editPath = "/configuration-profile/{name}/devices/deploy/edit-schedule"
 		editBody = map[string]interface{}{
 			"devices":  []string{"test-device-001"},
 			"deployAt": newDeployTime,
@@ -283,14 +286,14 @@ func (g *Generator) generateClearScheduleTest(feature *model.Feature, fp *model.
 
 	switch targetType {
 	case model.TargetTypeSite:
-		scheduleDeployPath = fmt.Sprintf("/configuration-profile/%s/sites/deploy", profileName)
+		scheduleDeployPath = "/configuration-profile/{name}/sites/deploy"
 		scheduleBody = map[string]interface{}{
 			"sites":    []string{"test-site-001"},
 			"deployAt": deployTime,
 			"timezone": "UTC",
 		}
 	case model.TargetTypeDevice:
-		scheduleDeployPath = fmt.Sprintf("/configuration-profile/%s/devices/deploy", profileName)
+		scheduleDeployPath = "/configuration-profile/{name}/devices/deploy"
 		scheduleBody = map[string]interface{}{
 			"devices":  []string{"test-device-001"},
 			"deployAt": deployTime,
@@ -321,12 +324,12 @@ func (g *Generator) generateClearScheduleTest(feature *model.Feature, fp *model.
 
 	switch targetType {
 	case model.TargetTypeSite:
-		clearPath = fmt.Sprintf("/configuration-profile/%s/sites/deploy/clear-schedule", profileName)
+		clearPath = "/configuration-profile/{name}/sites/deploy/clear-schedule"
 		clearBody = map[string]interface{}{
 			"sites": []string{"test-site-001"},
 		}
 	case model.TargetTypeDevice:
-		clearPath = fmt.Sprintf("/configuration-profile/%s/devices/deploy/clear-schedule", profileName)
+		clearPath = "/configuration-profile/{name}/devices/deploy/clear-schedule"
 		clearBody = map[string]interface{}{
 			"devices": []string{"test-device-001"},
 		}
@@ -368,7 +371,7 @@ func (g *Generator) generateCloneProfileTest(feature *model.Feature, fp *model.F
 	tc.Steps = append(tc.Steps, createStep)
 
 	// Step 2: Clone the profile
-	clonePath := fmt.Sprintf("/configuration-profile/%s/clone", profileName)
+	clonePath := "/configuration-profile/{name}/clone"
 	cloneBody := map[string]interface{}{
 		"newProfileName": fmt.Sprintf("%s-Cloned", profileName),
 	}
@@ -409,7 +412,7 @@ func (g *Generator) generateCloneObjectTest(feature *model.Feature, fp *model.Fe
 	tc.Steps = append(tc.Steps, createStep)
 
 	// Step 2: Clone the object
-	clonePath := fmt.Sprintf("/configuration-profile/%s/feature/object/clone", profileName)
+	clonePath := "/configuration-profile/{name}/feature/object/clone"
 	featurePath, objectType, _, ok := deepScannedMetadata(feature, fp)
 	if !ok {
 		return tc
@@ -519,7 +522,7 @@ func (g *Generator) generateConflictDetectionTest(feature *model.Feature, fp *mo
 		Description:    "Deploy to device — establishes previousDeployedValue baseline",
 		Method:         "POST",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/devices/deploy", profileName),
+		Path:           "/configuration-profile/{name}/devices/deploy",
 		PathParams:     map[string]string{"name": profileName},
 		Body:           map[string]interface{}{"devices": []string{deviceHostName}, "deployNow": true},
 		ExpectedStatus: 202,
@@ -532,7 +535,7 @@ func (g *Generator) generateConflictDetectionTest(feature *model.Feature, fp *mo
 		Description:    "Verify initial deployment completed successfully",
 		Method:         "GET",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/device/%s/deploy/status", profileName, deviceHostName),
+		Path:           "/configuration-profile/{name}/device/{hostName}/deploy/status",
 		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
@@ -571,7 +574,7 @@ func (g *Generator) generateConflictDetectionTest(feature *model.Feature, fp *mo
 		Description:    "GET conflicts for this device — expect hasConflicts=true because device was changed out-of-band",
 		Method:         "GET",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/device/%s/conflicts", profileName, deviceHostName),
+		Path:           "/configuration-profile/{name}/device/{hostName}/conflicts",
 		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
 		QueryParams:    map[string]string{"detailLevel": "detailed"},
 		ExpectedStatus: 200,
@@ -608,7 +611,7 @@ func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp 
 		Description:    "Deploy to establish previousDeployedValue baseline",
 		Method:         "POST",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/devices/deploy", profileName),
+		Path:           "/configuration-profile/{name}/devices/deploy",
 		PathParams:     map[string]string{"name": profileName},
 		Body:           map[string]interface{}{"devices": []string{deviceHostName}, "deployNow": true},
 		ExpectedStatus: 202,
@@ -644,7 +647,7 @@ func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp 
 		Description:    "Confirm hasConflicts=true before resolution",
 		Method:         "GET",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/device/%s/conflicts", profileName, deviceHostName),
+		Path:           "/configuration-profile/{name}/device/{hostName}/conflicts",
 		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
 		QueryParams:    map[string]string{"detailLevel": "summary"},
 		ExpectedStatus: 200,
@@ -685,7 +688,7 @@ func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp 
 		Description:    "Re-deploy profile to push cloud value back to device",
 		Method:         "POST",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/devices/deploy", profileName),
+		Path:           "/configuration-profile/{name}/devices/deploy",
 		PathParams:     map[string]string{"name": profileName},
 		Body:           map[string]interface{}{"devices": []string{deviceHostName}, "deployNow": true},
 		ExpectedStatus: 202,
@@ -698,7 +701,7 @@ func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp 
 		Description:    "Verify re-deployment completed successfully",
 		Method:         "GET",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/device/%s/deploy/status", profileName, deviceHostName),
+		Path:           "/configuration-profile/{name}/device/{hostName}/deploy/status",
 		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
@@ -714,7 +717,7 @@ func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp 
 		Description:    "GET conflicts after CC resolution — expect hasConflicts=false",
 		Method:         "GET",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/device/%s/conflicts", profileName, deviceHostName),
+		Path:           "/configuration-profile/{name}/device/{hostName}/conflicts",
 		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
 		QueryParams:    map[string]string{"detailLevel": "summary"},
 		ExpectedStatus: 200,
@@ -750,7 +753,7 @@ func (g *Generator) generateConflictResolutionDDTest(feature *model.Feature, fp 
 		Description:    "Deploy to establish previousDeployedValue baseline",
 		Method:         "POST",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/devices/deploy", profileName),
+		Path:           "/configuration-profile/{name}/devices/deploy",
 		PathParams:     map[string]string{"name": profileName},
 		Body:           map[string]interface{}{"devices": []string{deviceHostName}, "deployNow": true},
 		ExpectedStatus: 202,
@@ -786,7 +789,7 @@ func (g *Generator) generateConflictResolutionDDTest(feature *model.Feature, fp 
 		Description:    "Confirm hasConflicts=true before resolution",
 		Method:         "GET",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/device/%s/conflicts", profileName, deviceHostName),
+		Path:           "/configuration-profile/{name}/device/{hostName}/conflicts",
 		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
 		QueryParams:    map[string]string{"detailLevel": "summary"},
 		ExpectedStatus: 200,
@@ -827,7 +830,7 @@ func (g *Generator) generateConflictResolutionDDTest(feature *model.Feature, fp 
 		Description:    "GET conflicts after DD resolution — expect hasConflicts=false (device value is now accepted cloud baseline)",
 		Method:         "GET",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/device/%s/conflicts", profileName, deviceHostName),
+		Path:           "/configuration-profile/{name}/device/{hostName}/conflicts",
 		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
 		QueryParams:    map[string]string{"detailLevel": "summary"},
 		ExpectedStatus: 200,
@@ -956,7 +959,7 @@ func (g *Generator) generateOverrideCRUDLifecycleTest(feature *model.Feature, fp
 		Description: fmt.Sprintf("Create device-level override for %s with %s", feature.Name, propDesc),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/create-modify", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/create-modify",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":           objectID,
@@ -976,7 +979,7 @@ func (g *Generator) generateOverrideCRUDLifecycleTest(feature *model.Feature, fp
 		Description: fmt.Sprintf("Retrieve device-level override for %s and verify overridden values", feature.Name),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/retrieve", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/retrieve",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":     objectID,
@@ -1002,7 +1005,7 @@ func (g *Generator) generateOverrideCRUDLifecycleTest(feature *model.Feature, fp
 		Description: fmt.Sprintf("Modify device-level override for %s — update property values", feature.Name),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/create-modify", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/create-modify",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":         objectID,
@@ -1022,7 +1025,7 @@ func (g *Generator) generateOverrideCRUDLifecycleTest(feature *model.Feature, fp
 		Description: fmt.Sprintf("Remove device-level override for %s", feature.Name),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/remove", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/remove",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":     objectID,
@@ -1041,7 +1044,7 @@ func (g *Generator) generateOverrideCRUDLifecycleTest(feature *model.Feature, fp
 		Description: fmt.Sprintf("Retrieve override after removal — verify no device-level override exists for %s", feature.Name),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/retrieve", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/retrieve",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":     objectID,
@@ -1083,7 +1086,7 @@ func (g *Generator) generateOverrideModelLevelTest(feature *model.Feature, fp *m
 		Description: fmt.Sprintf("Create model-level override for %s on model %s with %s", feature.Name, modelID, propDesc),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/create-modify", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/create-modify",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":           objectID,
@@ -1103,7 +1106,7 @@ func (g *Generator) generateOverrideModelLevelTest(feature *model.Feature, fp *m
 		Description: fmt.Sprintf("Retrieve model-level override for %s on model %s", feature.Name, modelID),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/retrieve", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/retrieve",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":     objectID,
@@ -1123,7 +1126,7 @@ func (g *Generator) generateOverrideModelLevelTest(feature *model.Feature, fp *m
 		Description: fmt.Sprintf("Remove model-level override for %s on model %s", feature.Name, modelID),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/remove", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/remove",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":     objectID,
@@ -1164,7 +1167,7 @@ func (g *Generator) generateOverrideModelGroupLevelTest(feature *model.Feature, 
 		Description: fmt.Sprintf("Create model-group override for %s on group '%s' with %s", feature.Name, modelGroupID, propDesc),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/create-modify", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/create-modify",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":           objectID,
@@ -1184,7 +1187,7 @@ func (g *Generator) generateOverrideModelGroupLevelTest(feature *model.Feature, 
 		Description: fmt.Sprintf("Retrieve model-group override for %s on group '%s'", feature.Name, modelGroupID),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/retrieve", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/retrieve",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":     objectID,
@@ -1204,7 +1207,7 @@ func (g *Generator) generateOverrideModelGroupLevelTest(feature *model.Feature, 
 		Description: fmt.Sprintf("Remove model-group override for %s on group '%s'", feature.Name, modelGroupID),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/remove", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/remove",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":     objectID,
@@ -1244,7 +1247,7 @@ func (g *Generator) generateGetAllOverridesTest(feature *model.Feature, fp *mode
 		Description: fmt.Sprintf("Create device override for %s to ensure GET all overrides returns results", feature.Name),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/create-modify", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/create-modify",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":           objectID,
@@ -1264,7 +1267,7 @@ func (g *Generator) generateGetAllOverridesTest(feature *model.Feature, fp *mode
 		Description:    fmt.Sprintf("GET all overrides for profile — verify %s override listed", feature.Name),
 		Method:         "GET",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/feature/object/overrides", profileName),
+		Path:           "/configuration-profile/{name}/feature/object/overrides",
 		PathParams:     map[string]string{"name": profileName},
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
@@ -1322,7 +1325,7 @@ func (g *Generator) generateOverridePrecedenceTest(feature *model.Feature, fp *m
 		Description: fmt.Sprintf("Create model-level override for %s on model %s", feature.Name, modelID),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/create-modify", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/create-modify",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":           objectID,
@@ -1342,7 +1345,7 @@ func (g *Generator) generateOverridePrecedenceTest(feature *model.Feature, fp *m
 		Description: fmt.Sprintf("Create device-level override for %s (should take precedence over model override)", feature.Name),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/create-modify", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/create-modify",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":           objectID,
@@ -1362,7 +1365,7 @@ func (g *Generator) generateOverridePrecedenceTest(feature *model.Feature, fp *m
 		Description: "Retrieve override for device — verify device-level value is returned (device > model > model-group > profile)",
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/retrieve", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/retrieve",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":     objectID,
@@ -1406,7 +1409,7 @@ func (g *Generator) generateOverrideDeployVerifyTest(feature *model.Feature, fp 
 		Description: fmt.Sprintf("Create device-level override for %s with %s", feature.Name, propDesc),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/create-modify", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/create-modify",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":           objectID,
@@ -1426,7 +1429,7 @@ func (g *Generator) generateOverrideDeployVerifyTest(feature *model.Feature, fp 
 		Description:    "Deploy configuration with device override to device",
 		Method:         "POST",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/devices/deploy", profileName),
+		Path:           "/configuration-profile/{name}/devices/deploy",
 		PathParams:     map[string]string{"name": profileName},
 		Body:           map[string]interface{}{"devices": []string{deviceHostName}, "deployNow": true},
 		ExpectedStatus: 202,
@@ -1441,7 +1444,7 @@ func (g *Generator) generateOverrideDeployVerifyTest(feature *model.Feature, fp 
 		Description:    "Verify deployment with override completed successfully",
 		Method:         "GET",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/device/%s/deploy/status", profileName, deviceHostName),
+		Path:           "/configuration-profile/{name}/device/{hostName}/deploy/status",
 		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
@@ -1457,7 +1460,7 @@ func (g *Generator) generateOverrideDeployVerifyTest(feature *model.Feature, fp 
 		Description:    "GET conflicts — expect hasConflicts=false since override values were deployed intentionally",
 		Method:         "GET",
 		API:            model.APITypeREST,
-		Path:           fmt.Sprintf("/configuration-profile/%s/device/%s/conflicts", profileName, deviceHostName),
+		Path:           "/configuration-profile/{name}/device/{hostName}/conflicts",
 		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
@@ -1488,7 +1491,7 @@ func (g *Generator) generateOverrideRemoveNonExistentTest(feature *model.Feature
 		Description: fmt.Sprintf("POST remove override with non-existent objectId for %s — expect 404", feature.Name),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/remove", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/remove",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":     nonExistentObjectID,
@@ -1523,7 +1526,7 @@ func (g *Generator) generateOverrideInvalidTypeTest(feature *model.Feature, fp *
 		Description: fmt.Sprintf("POST create override with invalid overrideType for %s — expect 400 Bad Request", feature.Name),
 		Method:      "POST",
 		API:         model.APITypeREST,
-		Path:        fmt.Sprintf("/configuration-profile/%s/feature/object/override/create-modify", profileName),
+		Path:        "/configuration-profile/{name}/feature/object/override/create-modify",
 		PathParams:  map[string]string{"name": profileName},
 		Body: map[string]interface{}{
 			"objectId":           objectID,

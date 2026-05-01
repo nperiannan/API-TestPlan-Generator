@@ -26,6 +26,27 @@ func getDeploymentLevels() []struct {
 	}
 }
 
+func getDeploymentLevelsForPath(createPath *model.FeaturePath) []struct {
+	scopeType  model.ScopeType
+	targetType model.TargetType
+} {
+	if !isConfigurationDeploymentPath(createPath) {
+		return nil
+	}
+	return getDeploymentLevels()
+}
+
+func (g *Generator) addDeploymentStepsForCreatePath(tc *model.TestCase, feature *model.Feature, createPath *model.FeaturePath, profileName string, scopeType model.ScopeType, targetType model.TargetType) {
+	if !isConfigurationDeploymentPath(createPath) {
+		tc.ScopeType = ""
+		tc.TargetType = ""
+		tc.DeploymentMethod = ""
+		tc.IsDeploymentTest = false
+		return
+	}
+	g.addDeploymentSteps(tc, feature, profileName, scopeType, targetType)
+}
+
 // generatePermutationTests generates comprehensive test variations
 // based on parameter combinations, query params, and path params
 // This creates ~1000+ valid test cases across all features
@@ -91,7 +112,7 @@ func (g *Generator) generateRequiredParamPermutations(feature *model.Feature, cr
 	// Generate test for each required parameter with different valid values
 	// Increased from 3 to 5 variations per parameter for more comprehensive coverage
 	// For each variation, generate tests for all 3 deployment levels (device, site, site-group)
-	deploymentLevels := getDeploymentLevels()
+	deploymentLevels := getDeploymentLevelsForPath(createPath)
 
 	for i, param := range requiredParams {
 		// Generate 5 variations per required parameter with different valid values
@@ -135,7 +156,7 @@ func (g *Generator) generateRequiredParamPermutations(feature *model.Feature, cr
 				if nameVal, ok := body["name"].(string); ok {
 					resourceName = nameVal
 				}
-				g.addDeploymentSteps(&tc, feature, resourceName, level.scopeType, level.targetType)
+				g.addDeploymentStepsForCreatePath(&tc, feature, createPath, resourceName, level.scopeType, level.targetType)
 
 				tests = append(tests, tc)
 			}
@@ -170,7 +191,7 @@ func (g *Generator) generateOptionalParamPermutations(feature *model.Feature, cr
 		maxCombinations = 5 // Limit to prevent explosion
 	}
 
-	deploymentLevels := getDeploymentLevels()
+	deploymentLevels := getDeploymentLevelsForPath(createPath)
 
 	for numOptional := 0; numOptional <= maxCombinations; numOptional++ {
 		// Generate 3 variations per combination level (increased from 2)
@@ -193,7 +214,7 @@ func (g *Generator) generateOptionalParamPermutations(feature *model.Feature, cr
 				// Build body with required + selected optional params
 				body := g.generateRequestBody(feature, createPath)
 				resourceName := fmt.Sprintf("TestResource-Opt%d-Var%d", numOptional, variation)
-				body["name"] = resourceName
+				g.setBodyResourceName(feature, body, resourceName)
 
 				// Add selected optional parameters
 				for i := 0; i < numOptional && i < len(optionalParams); i++ {
@@ -217,7 +238,7 @@ func (g *Generator) generateOptionalParamPermutations(feature *model.Feature, cr
 					},
 				}
 				tc.Steps = append(tc.Steps, createStep)
-				g.addDeploymentSteps(&tc, feature, resourceName, level.scopeType, level.targetType)
+				g.addDeploymentStepsForCreatePath(&tc, feature, createPath, resourceName, level.scopeType, level.targetType)
 
 				tests = append(tests, tc)
 			}
@@ -258,7 +279,7 @@ func (g *Generator) generatePathParamVariations(feature *model.Feature, createPa
 		}
 
 		body := g.generateRequestBody(feature, createPath)
-		body["name"] = resourceID
+		g.setBodyResourceName(feature, body, resourceID)
 
 		createStep := model.TestStep{
 			Name:           fmt.Sprintf("createResource%d", i+1),
@@ -290,7 +311,7 @@ func (g *Generator) generatePathParamVariations(feature *model.Feature, createPa
 		}
 
 		tc.Steps = append(tc.Steps, createStep)
-		g.addDeploymentSteps(&tc, feature, resourceID, model.ScopeTypeDevice, model.TargetTypeDevice)
+		g.addDeploymentStepsForCreatePath(&tc, feature, createPath, resourceID, model.ScopeTypeDevice, model.TargetTypeDevice)
 
 		tests = append(tests, tc)
 	}
@@ -341,7 +362,7 @@ func (g *Generator) generateBoundaryTest(feature *model.Feature, createPath, rea
 
 	body := g.generateRequestBody(feature, createPath)
 	resourceName := fmt.Sprintf("TestResource-%s-%s", param.Name, boundaryType)
-	body["name"] = resourceName
+	g.setBodyResourceName(feature, body, resourceName)
 
 	// Set boundary value
 	if boundaryType == "min" {
@@ -366,7 +387,7 @@ func (g *Generator) generateBoundaryTest(feature *model.Feature, createPath, rea
 		},
 	}
 	tc.Steps = append(tc.Steps, createStep)
-	g.addDeploymentSteps(&tc, feature, resourceName, model.ScopeTypeDevice, model.TargetTypeDevice)
+	g.addDeploymentStepsForCreatePath(&tc, feature, createPath, resourceName, model.ScopeTypeDevice, model.TargetTypeDevice)
 
 	return tc
 }
@@ -396,7 +417,7 @@ func (g *Generator) generateEnumValuePermutations(feature *model.Feature, create
 
 			body := g.generateRequestBody(feature, createPath)
 			resourceName := fmt.Sprintf("TestResource-%s-Enum%d", enumParam.name, i+1)
-			body["name"] = resourceName
+			g.setBodyResourceName(feature, body, resourceName)
 			g.setBodyParameterValue(body, enumParam.fullPath, enumVal)
 
 			createStep := model.TestStep{
@@ -415,7 +436,7 @@ func (g *Generator) generateEnumValuePermutations(feature *model.Feature, create
 				},
 			}
 			tc.Steps = append(tc.Steps, createStep)
-			g.addDeploymentSteps(&tc, feature, resourceName, model.ScopeTypeDevice, model.TargetTypeDevice)
+			g.addDeploymentStepsForCreatePath(&tc, feature, createPath, resourceName, model.ScopeTypeDevice, model.TargetTypeDevice)
 			tests = append(tests, tc)
 		}
 	}
@@ -468,7 +489,7 @@ func (g *Generator) collectEnumParameters(params []model.Parameter, parentPath s
 func (g *Generator) generateVariedBody(feature *model.Feature, createPath *model.FeaturePath, param model.Parameter, variation int) map[string]interface{} {
 	body := g.generateRequestBody(feature, createPath)
 	resourceName := fmt.Sprintf("TestResource-%s-Var%d", param.Name, variation)
-	body["name"] = resourceName
+	g.setBodyResourceName(feature, body, resourceName)
 	g.setBodyParameterValue(body, param.Name, g.getVariedValue(param, variation))
 	return body
 }
@@ -493,18 +514,41 @@ func (g *Generator) getVariedValue(param model.Parameter, variation int) interfa
 	}
 
 	// Fall back to type-based generation
+	if isNumericParameter(param) {
+		return 100 * variation
+	}
 	switch param.GoType {
 	case "string":
 		return fmt.Sprintf("testValue-%d", variation)
-	case "int", "int32", "int64":
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
 		return 100 * variation
-	case "bool":
+	case "bool", "boolean":
 		return variation%2 == 0
-	case "float64":
+	case "float32", "float64":
 		return float64(variation) * 1.5
 	default:
-		return fmt.Sprintf("value-%d", variation)
+		return fmt.Sprintf("testValue-%d", variation)
 	}
+}
+
+func isNumericParameter(param model.Parameter) bool {
+	if isNumericTypeName(param.GoType) || isNumericTypeName(param.YangType) {
+		return true
+	}
+	name := strings.ToLower(param.Name)
+	return strings.Contains(name, "priority") || strings.Contains(name, "sequence") || strings.Contains(name, "metric") || strings.Contains(name, "cost")
+}
+
+func isNumericTypeName(typeName string) bool {
+	typeName = strings.TrimSpace(strings.TrimPrefix(typeName, "[]"))
+	if idx := strings.LastIndex(typeName, ":"); idx >= 0 {
+		typeName = typeName[idx+1:]
+	}
+	switch strings.ToLower(typeName) {
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "decimal64", "float32", "float64", "number":
+		return true
+	}
+	return false
 }
 
 func (g *Generator) getMinBoundaryValue(param model.Parameter, constraint model.Constraint) interface{} {
@@ -603,7 +647,7 @@ func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, create
 		allEnumParams = allEnumParams[:4]
 	}
 
-	deploymentLevels := getDeploymentLevels()
+	deploymentLevels := getDeploymentLevelsForPath(createPath)
 
 	// For every unique pair of enum parameters, generate the full cross-product
 	for i := 0; i < len(allEnumParams); i++ {
@@ -629,7 +673,7 @@ func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, create
 
 					body := g.generateRequestBody(feature, createPath)
 					resourceName := fmt.Sprintf("TestResource-%s%s-%s%s", ep1.name, v1, ep2.name, v2)
-					body["name"] = resourceName
+					g.setBodyResourceName(feature, body, resourceName)
 					g.setBodyParameterValue(body, ep1.fullPath, v1)
 					g.setBodyParameterValue(body, ep2.fullPath, v2)
 
@@ -690,7 +734,7 @@ func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, create
 
 						deployBody := g.generateRequestBody(feature, createPath)
 						deployResourceName := fmt.Sprintf("TestResource-%s%s-%s%s-%s", ep1.name, v1, ep2.name, v2, level.targetType)
-						deployBody["name"] = deployResourceName
+						g.setBodyResourceName(feature, deployBody, deployResourceName)
 						g.setBodyParameterValue(deployBody, ep1.fullPath, v1)
 						g.setBodyParameterValue(deployBody, ep2.fullPath, v2)
 
@@ -704,7 +748,7 @@ func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, create
 							ExpectedStatus: 201,
 							Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 201}},
 						})
-						g.addDeploymentSteps(&dtc, feature, deployResourceName, level.scopeType, level.targetType)
+						g.addDeploymentStepsForCreatePath(&dtc, feature, createPath, deployResourceName, level.scopeType, level.targetType)
 						tests = append(tests, dtc)
 					}
 				}
@@ -755,13 +799,15 @@ func (g *Generator) generateCombinedParamPermutations(feature *model.Feature, cr
 
 				body := g.generateRequestBody(feature, createPath)
 				resourceName := fmt.Sprintf("TestResource-Combo-%s-%s-V%d", param1.Name, param2.Name, variation)
-				body["name"] = resourceName
-				body[param1.Name] = g.getVariedValue(param1, variation)
-				body[param2.Name] = g.getVariedValue(param2, variation+1) // Different variation
+				g.setBodyResourceName(feature, body, resourceName)
+				param1Value := g.getVariedValue(param1, variation)
+				param2Value := g.getVariedValue(param2, variation+1)
+				g.setOrAddBodyParameter(body, param1, param1Value)
+				g.setOrAddBodyParameter(body, param2, param2Value)
 
 				createStep := model.TestStep{
 					Name:           fmt.Sprintf("createWithCombination%d", variation),
-					Description:    fmt.Sprintf("Create with %s=%v and %s=%v", param1.Name, body[param1.Name], param2.Name, body[param2.Name]),
+					Description:    fmt.Sprintf("Create with %s=%v and %s=%v", param1.Name, param1Value, param2.Name, param2Value),
 					Method:         createPath.HTTPMethod,
 					API:            model.APITypeREST,
 					Path:           createPath.Path,
@@ -775,7 +821,7 @@ func (g *Generator) generateCombinedParamPermutations(feature *model.Feature, cr
 					},
 				}
 				tc.Steps = append(tc.Steps, createStep)
-				g.addDeploymentSteps(&tc, feature, resourceName, model.ScopeTypeDevice, model.TargetTypeDevice)
+				g.addDeploymentStepsForCreatePath(&tc, feature, createPath, resourceName, model.ScopeTypeDevice, model.TargetTypeDevice)
 
 				tests = append(tests, tc)
 			}
@@ -822,14 +868,15 @@ func (g *Generator) generateDataTypeVariations(feature *model.Feature, createPat
 
 			body := g.generateRequestBody(feature, createPath)
 			resourceName := fmt.Sprintf("TestResource-%s-Type%s-V%d", param.Name, dataType, variation)
-			body["name"] = resourceName
+			g.setBodyResourceName(feature, body, resourceName)
 
 			// Generate type-specific variations
-			g.setBodyParameterValue(body, param.Name, g.getDataTypeVariation(param, dataType, variation))
+			dataTypeValue := g.getDataTypeVariation(param, dataType, variation)
+			g.setOrAddBodyParameter(body, param, dataTypeValue)
 
 			createStep := model.TestStep{
 				Name:           fmt.Sprintf("createWithTypeVar%d", variation),
-				Description:    fmt.Sprintf("Create with %s type variation: %v", dataType, body[param.Name]),
+				Description:    fmt.Sprintf("Create with %s type variation: %v", dataType, dataTypeValue),
 				Method:         createPath.HTTPMethod,
 				API:            model.APITypeREST,
 				Path:           createPath.Path,
@@ -843,7 +890,7 @@ func (g *Generator) generateDataTypeVariations(feature *model.Feature, createPat
 				},
 			}
 			tc.Steps = append(tc.Steps, createStep)
-			g.addDeploymentSteps(&tc, feature, resourceName, model.ScopeTypeDevice, model.TargetTypeDevice)
+			g.addDeploymentStepsForCreatePath(&tc, feature, createPath, resourceName, model.ScopeTypeDevice, model.TargetTypeDevice)
 
 			tests = append(tests, tc)
 		}
@@ -867,7 +914,7 @@ func (g *Generator) getDataTypeVariation(param model.Parameter, dataType string,
 		}
 		return fmt.Sprintf("value-%d", variation)
 
-	case "int", "int32", "int64":
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
 		// Return different numeric ranges
 		values := []int{10, 100, 1000, 50, 500}
 		if variation <= len(values) {
@@ -879,7 +926,7 @@ func (g *Generator) getDataTypeVariation(param model.Parameter, dataType string,
 		// Alternate boolean values
 		return variation%2 == 1
 
-	case "float64":
+	case "float32", "float64":
 		// Return different float values
 		values := []float64{1.5, 2.7, 3.14, 10.5, 100.25}
 		if variation <= len(values) {
@@ -888,6 +935,9 @@ func (g *Generator) getDataTypeVariation(param model.Parameter, dataType string,
 		return float64(variation) * 1.5
 
 	default:
-		return fmt.Sprintf("value-%d", variation)
+		if isNumericParameter(param) {
+			return 100 * variation
+		}
+		return fmt.Sprintf("testValue-%d", variation)
 	}
 }

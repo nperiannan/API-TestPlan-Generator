@@ -19,11 +19,35 @@ func (g *Generator) normalizeSuite(suite *model.TestSuite) {
 			for testIndex := range tests {
 				for stepIndex := range tests[testIndex].Steps {
 					step := &tests[testIndex].Steps[stepIndex]
+					normalizeDeepScannedBody(step.Body)
 					g.ensureStepPathParams(step)
 					ensureCaptureMetadata(step)
 				}
 			}
 			suite.Features[featureIndex].Tests[category] = tests
+		}
+	}
+}
+
+func normalizeDeepScannedBody(body interface{}) {
+	bodyMap, ok := body.(map[string]interface{})
+	if !ok {
+		return
+	}
+	if _, ok := bodyMap["objects"]; !ok {
+		return
+	}
+	allowed := map[string]bool{
+		"featurePath": true,
+		"objectType":  true,
+		"operation":   true,
+		"objects":     true,
+		"filters":     true,
+		"objectIds":   true,
+	}
+	for key := range bodyMap {
+		if !allowed[key] {
+			delete(bodyMap, key)
 		}
 	}
 }

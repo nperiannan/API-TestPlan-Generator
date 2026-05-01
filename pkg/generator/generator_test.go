@@ -278,6 +278,76 @@ func TestDeepScannedBodyIncludesDeclaredKeysMissingFromParameters(t *testing.T) 
 	}
 }
 
+func TestDeepScannedBodySkipsSystemManagedIDKey(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	feature := &model.Feature{
+		Name: "common-settings",
+		Keys: []string{"id"},
+		Parameters: []model.Parameter{
+			{Name: "id", GoType: "string", Required: true},
+			{Name: "enabled", GoType: "bool", Required: true},
+		},
+	}
+	path := &model.FeaturePath{
+		BlueprintCategory: model.BlueprintCategoryService,
+		PathParams: []model.PathParameter{
+			{Name: "featurePath", FixedValue: "/common-settings-feature"},
+		},
+	}
+
+	body := gen.generateRequestBody(feature, path)
+	objects := body["objects"].([]interface{})
+	object := objects[0].(map[string]interface{})
+	properties := object["properties"].([]map[string]interface{})
+	for _, property := range properties {
+		if property["name"] == "id" {
+			t.Fatalf("system-managed id must not be emitted as payload property: %#v", body)
+		}
+	}
+	expected := expectedValuesFromBody(feature, body)
+	if _, exists := expected["id"]; exists {
+		t.Fatalf("system-managed id must not be emitted as payload property: %#v", body)
+	}
+	if expected["enabled"] != true {
+		t.Fatalf("expected non-system required field, got %#v", expected)
+	}
+}
+
+func TestDeleteNonExistentUsesEndpointMethodAndObjectIds(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	feature := &model.Feature{Name: "dns-server"}
+	deletePath := &model.FeaturePath{
+		HTTPMethod:        "POST",
+		Path:              "/global-profile/{name}/feature/object/delete",
+		BlueprintCategory: model.BlueprintCategoryGlobal,
+		PathParams: []model.PathParameter{
+			{Name: "featurePath", FixedValue: "/dns-server-feature"},
+		},
+	}
+
+	testCase := gen.generateDeleteNonExistentTest(feature, deletePath)
+	if len(testCase.Steps) != 1 {
+		t.Fatalf("expected one step, got %#v", testCase.Steps)
+	}
+	step := testCase.Steps[0]
+	if step.Method != "POST" {
+		t.Fatalf("expected endpoint method POST, got %s", step.Method)
+	}
+	body, ok := step.Body.(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected body map, got %#v", step.Body)
+	}
+	if _, exists := body["operation"]; exists {
+		t.Fatalf("deep-scanned non-existent delete must use objectIds, got %#v", body)
+	}
+	objectIDs, ok := body["objectIds"].([]string)
+	if !ok || len(objectIDs) != 1 || objectIDs[0] == "" {
+		t.Fatalf("expected non-empty objectIds body, got %#v", body)
+	}
+}
+
 func TestSelectPrimaryObjectPathSkipsDeployStatusPaths(t *testing.T) {
 	paths := []*model.FeaturePath{
 		{

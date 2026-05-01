@@ -312,7 +312,8 @@ func (g *Generator) generateNegativeTests(feature *model.Feature, paths []*model
 
 	// Test with invalid type (string where number expected, etc.)
 	for _, param := range feature.Parameters {
-		if param.GoType == "int" || param.GoType == "int32" || param.GoType == "int64" ||
+		if param.GoType == "int" || param.GoType == "int8" || param.GoType == "int16" || param.GoType == "int32" || param.GoType == "int64" ||
+			param.GoType == "uint" || param.GoType == "uint8" || param.GoType == "uint16" || param.GoType == "uint32" || param.GoType == "uint64" ||
 			param.GoType == "float32" || param.GoType == "float64" {
 			tests = append(tests, g.generateInvalidTypeTest(feature, param, createPath))
 		}
@@ -324,7 +325,7 @@ func (g *Generator) generateNegativeTests(feature *model.Feature, paths []*model
 	}
 
 	// Test deployment-specific negative scenarios
-	if createPath != nil && createPath.SupportsDeployment {
+	if createPath != nil && createPath.SupportsDeployment && isConfigurationDeploymentPath(createPath) {
 		tests = append(tests, g.generateDeployWithoutScopeTest(feature, createPath))
 	}
 
@@ -338,9 +339,6 @@ func (g *Generator) generateNegativeTests(feature *model.Feature, paths []*model
 	}
 	if deletePath != nil {
 		tests = append(tests, g.generateDeleteNonExistentTest(feature, deletePath))
-	} else if createPath != nil {
-		// Fallback: use create path with DELETE method as proxy
-		tests = append(tests, g.generateDeleteNonExistentTest(feature, createPath))
 	}
 
 	return tests
@@ -536,27 +534,26 @@ func (g *Generator) generateDeleteNonExistentTest(
 		Steps:       []model.TestStep{},
 	}
 
-	// Use the delete endpoint if available, otherwise use the create path with a sentinel name
 	deletePath := path.Path
-	method := "DELETE"
-	if path.HTTPMethod == "DELETE" {
-		// path is already a delete path
-	} else {
-		// We'll POST to a path that doesn't exist to simulate
-		deletePath = path.Path
+	method := path.HTTPMethod
+	deleteBody := map[string]interface{}{
+		"name":      "does-not-exist-9999",
+		"operation": "delete",
+	}
+	if _, _, _, ok := deepScannedMetadata(feature, path); ok {
+		deleteBody = map[string]interface{}{
+			"objectIds": []string{"00000000-0000-0000-0000-000000000000"},
+		}
 	}
 
 	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:        "deleteNonExistent",
-		Description: fmt.Sprintf("Attempt to delete %s 'does-not-exist-9999' which was never created", feature.Name),
-		Method:      method,
-		API:         model.APITypeREST,
-		Path:        deletePath,
-		PathParams:  map[string]string{"name": "does-not-exist-9999"},
-		Body: map[string]interface{}{
-			"name":      "does-not-exist-9999",
-			"operation": "delete",
-		},
+		Name:           "deleteNonExistent",
+		Description:    fmt.Sprintf("Attempt to delete %s 'does-not-exist-9999' which was never created", feature.Name),
+		Method:         method,
+		API:            model.APITypeREST,
+		Path:           deletePath,
+		PathParams:     pathParamsFor(deletePath, "does-not-exist-9999"),
+		Body:           deleteBody,
 		ExpectedStatus: 404,
 		Validations: []model.Validation{
 			{
@@ -578,6 +575,9 @@ func (g *Generator) generateBodyOmittingRequiredField(feature *model.Feature, fp
 		for _, param := range feature.Parameters {
 			if param.Name == excludeParam {
 				continue // omit this required field to trigger validation error
+			}
+			if isSystemManagedField(param.Name) {
+				continue
 			}
 			if param.Required || keySet[param.Name] {
 				properties = append(properties, map[string]interface{}{
@@ -959,7 +959,7 @@ func (g *Generator) generateDeployWithoutScopeTest(
 
 	// Create resource
 	body := g.generateRequestBody(feature, createPath)
-	body["name"] = "TestProfile-NoScope"
+	g.setBodyResourceName(feature, body, "TestProfile-NoScope")
 
 	createStep := model.TestStep{
 		Name:           "createResource",
@@ -1060,6 +1060,9 @@ func (g *Generator) generateBodyOmittingOptionalField(feature *model.Feature, fp
 			if param.Name == excludeParam {
 				continue // skip this optional field
 			}
+			if isSystemManagedField(param.Name) {
+				continue
+			}
 			if param.Required || keySet[param.Name] {
 				properties = append(properties, map[string]interface{}{
 					"name":   param.Name,
@@ -1086,6 +1089,9 @@ func (g *Generator) generateBodyOmittingOptionalField(feature *model.Feature, fp
 	body := make(map[string]interface{})
 	for _, param := range feature.Parameters {
 		if param.Name == excludeParam {
+			continue
+		}
+		if isSystemManagedField(param.Name) {
 			continue
 		}
 		if param.Required {

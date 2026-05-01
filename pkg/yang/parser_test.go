@@ -1,6 +1,7 @@
 package yang
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/extremenetworks/testcase-generator/pkg/model"
@@ -64,6 +65,45 @@ func TestParseLeafListCapturesConstraintsAndDescription(t *testing.T) {
 	assertConstraint(t, param.Constraints, model.ConstraintTypeMinLength, 0)
 	assertConstraint(t, param.Constraints, model.ConstraintTypeMaxLength, 64)
 	assertConstraint(t, param.Constraints, model.ConstraintTypePattern, "[a-z]+")
+}
+
+func TestParseLeafCapturesSingleQuotedPattern(t *testing.T) {
+	parser := NewParser("")
+	scanner := newSliceScanner([]string{
+		`type string {`,
+		`pattern '[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+';`,
+		`}`,
+		`description "IPv4 address.";`,
+		`}`,
+	})
+
+	param := parser.parseLeaf(scanner, `leaf server {`)
+	assertConstraint(t, param.Constraints, model.ConstraintTypePattern, `[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+`)
+	if param.Description != "IPv4 address." {
+		t.Fatalf("expected leaf description, got %q", param.Description)
+	}
+}
+
+func TestParseLeafInlineEnumerationKeepsLeafDescription(t *testing.T) {
+	parser := NewParser("")
+	scanner := newSliceScanner([]string{
+		`type enumeration {`,
+		`enum anycast {`,
+		`description "AnyCast Gateway.";`,
+		`}`,
+		`enum virtual-router {`,
+		`description "Virtual Router Gateway.";`,
+		`}`,
+		`}`,
+		`description "Specifies the type of IPv4 gateway.";`,
+		`}`,
+	})
+
+	param := parser.parseLeaf(scanner, `leaf ipv4-gateway-type {`)
+	assertConstraint(t, param.Constraints, model.ConstraintTypeEnum, []string{"anycast", "virtual-router"})
+	if param.Description != "Specifies the type of IPv4 gateway." {
+		t.Fatalf("expected leaf description, got %q", param.Description)
+	}
 }
 
 func TestParseNestedListCapturesKeysAndMarksKeyLeavesRequired(t *testing.T) {
@@ -160,7 +200,7 @@ func TestParseFeaturesSkipsExtensionDescriptionExamplesAndKeepsGroupingLists(t *
 func assertConstraint(t *testing.T, constraints []model.Constraint, constraintType model.ConstraintType, expected interface{}) {
 	t.Helper()
 	for _, constraint := range constraints {
-		if constraint.Type == constraintType && constraint.Value == expected {
+		if constraint.Type == constraintType && reflect.DeepEqual(constraint.Value, expected) {
 			return
 		}
 	}

@@ -18,29 +18,29 @@ func (g *Generator) addDeploymentSteps(tc *model.TestCase, feature *model.Featur
 	switch targetType {
 	case model.TargetTypeSite, model.TargetTypeSiteGroup:
 		// Deploy to sites
-		deployPath = fmt.Sprintf("/configuration-profile/%s/sites/deploy", profileName)
+		deployPath = "/configuration-profile/{name}/sites/deploy"
 		deployBody = map[string]interface{}{
 			"sites":     []string{"test-site-001"},
 			"deployNow": true,
 		}
-		statusPath = fmt.Sprintf("/configuration-profile/%s/site/test-site-001/deploy/status", profileName)
+		statusPath = "/configuration-profile/{name}/site/{siteName}/deploy/status"
 
 	case model.TargetTypeDevice:
 		// Deploy to devices
-		deployPath = fmt.Sprintf("/configuration-profile/%s/devices/deploy", profileName)
+		deployPath = "/configuration-profile/{name}/devices/deploy"
 		deployBody = map[string]interface{}{
 			"devices":   []string{"test-device-001"},
 			"deployNow": true,
 		}
-		statusPath = fmt.Sprintf("/configuration-profile/%s/device/test-device-001/deploy/status", profileName)
+		statusPath = "/configuration-profile/{name}/device/{hostName}/deploy/status"
 
 	default:
 		// For any other target type, use overall profile deployment
-		deployPath = fmt.Sprintf("/configuration-profile/%s/deploy", profileName)
+		deployPath = "/configuration-profile/{name}/deploy"
 		deployBody = map[string]interface{}{
 			"deployNow": true,
 		}
-		statusPath = fmt.Sprintf("/configuration-profile/%s/deploy/status", profileName)
+		statusPath = "/configuration-profile/{name}/deploy/status"
 	}
 
 	// Deploy step
@@ -153,7 +153,7 @@ func (g *Generator) generateDeploymentTest(
 
 	// Step 1: Create configuration using the feature's actual body structure
 	createBody := g.generateRequestBody(feature, createPath)
-	createBody["name"] = profileName
+	g.setBodyResourceName(feature, createBody, profileName)
 
 	createStep := model.TestStep{
 		Name:           fmt.Sprintf("create%s", feature.Name),
@@ -436,7 +436,7 @@ func (g *Generator) generateFullDeploymentTest(
 
 	// Step 1: Create configuration
 	createBody := g.generateRequestBody(feature, createPath)
-	createBody["name"] = profileName
+	g.setBodyResourceName(feature, createBody, profileName)
 
 	createStep := model.TestStep{
 		Name:           fmt.Sprintf("create%s", feature.Name),
@@ -608,7 +608,7 @@ func (g *Generator) generateSimplifiedDeploymentTest(
 
 	// Step 1: Create configuration
 	createBody := g.generateRequestBody(feature, createPath)
-	createBody["name"] = profileName
+	g.setBodyResourceName(feature, createBody, profileName)
 
 	createStep := model.TestStep{
 		Name:           fmt.Sprintf("create%s", feature.Name),

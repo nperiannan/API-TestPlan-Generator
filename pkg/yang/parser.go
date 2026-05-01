@@ -553,28 +553,7 @@ func (p *Parser) parseLeaf(scanner lineScanner, leafLine string) Parameter {
 
 		// Parse enum values
 		if strings.HasPrefix(line, "enum ") {
-			enumValue := extractQuotedString(line)
-			if enumValue == "" {
-				// Handle enum without quotes
-				re := regexp.MustCompile(`enum\\s+(\\S+)`)
-				matches := re.FindStringSubmatch(line)
-				if len(matches) > 1 {
-					enumValue = strings.TrimSuffix(matches[1], ";")
-				}
-			}
-			if enumValue != "" {
-				// Collect enum values
-				var enumValues []string
-				if len(param.Constraints) > 0 && param.Constraints[len(param.Constraints)-1].Type == model.ConstraintTypeEnum {
-					enumValues = param.Constraints[len(param.Constraints)-1].Value.([]string)
-					param.Constraints = param.Constraints[:len(param.Constraints)-1]
-				}
-				enumValues = append(enumValues, enumValue)
-				param.Constraints = append(param.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeEnum,
-					Value: enumValues,
-				})
-			}
+			addEnumConstraint(&param, extractEnumValue(line))
 		}
 	}
 
@@ -646,26 +625,7 @@ func (p *Parser) parseLeafList(scanner lineScanner, leafListLine string) Paramet
 		}
 
 		if strings.HasPrefix(line, "enum ") {
-			enumValue := extractQuotedString(line)
-			if enumValue == "" {
-				re := regexp.MustCompile(`enum\s+(\S+)`)
-				matches := re.FindStringSubmatch(line)
-				if len(matches) > 1 {
-					enumValue = strings.TrimSuffix(matches[1], ";")
-				}
-			}
-			if enumValue != "" {
-				var enumValues []string
-				if len(param.Constraints) > 0 && param.Constraints[len(param.Constraints)-1].Type == model.ConstraintTypeEnum {
-					enumValues = param.Constraints[len(param.Constraints)-1].Value.([]string)
-					param.Constraints = param.Constraints[:len(param.Constraints)-1]
-				}
-				enumValues = append(enumValues, enumValue)
-				param.Constraints = append(param.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeEnum,
-					Value: enumValues,
-				})
-			}
+			addEnumConstraint(&param, extractEnumValue(line))
 		}
 
 		if strings.HasPrefix(line, "min-elements ") {
@@ -897,15 +857,7 @@ func (p *Parser) parseTypedef(scanner lineScanner, typedefLine string, currentMo
 
 		// Parse enum values
 		if strings.HasPrefix(trimmed, "enum ") {
-			enumValue := extractQuotedString(trimmed)
-			if enumValue == "" {
-				// Handle enum without quotes
-				re := regexp.MustCompile(`enum\\s+(\\S+)`)
-				matches := re.FindStringSubmatch(trimmed)
-				if len(matches) > 1 {
-					enumValue = strings.TrimSuffix(matches[1], ";")
-				}
-			}
+			enumValue := extractEnumValue(trimmed)
 			if enumValue != "" {
 				typedef.EnumValues = append(typedef.EnumValues, enumValue)
 			}
@@ -980,12 +932,9 @@ func (p *Parser) resolveTypedef(typeName string) *Typedef {
 
 // parseInlineTypeConstraints parses constraints within type definition
 func (p *Parser) parseInlineTypeConstraints(scanner lineScanner, param *Parameter) {
+	depth := 1
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-
-		if line == "}" || strings.HasSuffix(line, "};") {
-			break
-		}
 
 		// Parse length
 		if strings.HasPrefix(line, "length ") {
@@ -1007,6 +956,16 @@ func (p *Parser) parseInlineTypeConstraints(scanner lineScanner, param *Paramete
 				Type:  model.ConstraintTypePattern,
 				Value: extractQuotedString(line),
 			})
+		}
+
+		if strings.HasPrefix(line, "enum ") {
+			addEnumConstraint(param, extractEnumValue(line))
+		}
+
+		depth += strings.Count(line, "{")
+		depth -= strings.Count(line, "}")
+		if depth <= 0 {
+			break
 		}
 	}
 }
@@ -1148,12 +1107,53 @@ func parseMultiLineDescription(scanner lineScanner) string {
 }
 
 func extractQuotedString(line string) string {
-	re := regexp.MustCompile(`"([^"]*)"`)
-	matches := re.FindStringSubmatch(line)
-	if len(matches) > 1 {
-		return matches[1]
+	for _, quote := range []byte{'"', '\''} {
+		start := strings.IndexByte(line, quote)
+		if start < 0 {
+			continue
+		}
+		end := -1
+		for i := len(line) - 1; i > start; i-- {
+			if line[i] == quote && line[i-1] != '\\' {
+				end = i
+				break
+			}
+		}
+		if end > start {
+			return line[start+1 : end]
+		}
 	}
 	return ""
+}
+
+func extractEnumValue(line string) string {
+	if value := extractQuotedString(line); value != "" {
+		return value
+	}
+	re := regexp.MustCompile(`enum\s+([^\s{;]+)`)
+	matches := re.FindStringSubmatch(line)
+	if len(matches) > 1 {
+		return strings.Trim(matches[1], `"'`)
+	}
+	return ""
+}
+
+func addEnumConstraint(param *Parameter, enumValue string) {
+	if enumValue == "" {
+		return
+	}
+	var enumValues []string
+	if len(param.Constraints) > 0 && param.Constraints[len(param.Constraints)-1].Type == model.ConstraintTypeEnum {
+		if existing, ok := param.Constraints[len(param.Constraints)-1].Value.([]string); ok {
+			enumValues = existing
+			param.Constraints = param.Constraints[:len(param.Constraints)-1]
+		}
+	}
+	enumValues = append(enumValues, enumValue)
+	param.Constraints = append(param.Constraints, model.Constraint{
+		Type:  model.ConstraintTypeEnum,
+		Value: enumValues,
+	})
 }
 
 func parseDefaultValue(line string, goType string) interface{} {

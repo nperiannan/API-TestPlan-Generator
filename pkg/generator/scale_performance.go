@@ -166,7 +166,7 @@ func (g *Generator) generateScaleTests(feature *model.Feature, paths []*model.Fe
 			break
 		}
 	}
-	if deployPath != nil && createPath != nil {
+	if deployPath != nil && createPath != nil && isConfigurationDeploymentPath(createPath) {
 		tests = append(tests, g.generateMultiDeviceDeploymentTest(feature, createPath))
 	}
 
@@ -205,7 +205,7 @@ func (g *Generator) generateMultipleInstancesTest(
 	// Create multiple instances with unique values
 	for i := 0; i < scaleLimit; i++ {
 		body := g.generateRequestBody(feature, createPath)
-		body["name"] = fmt.Sprintf("TestResource-%d", i)
+		g.setBodyResourceName(feature, body, fmt.Sprintf("TestResource-%d", i))
 		g.incrementUniqueBodyValues(body, feature, i)
 
 		step := model.TestStep{
@@ -275,7 +275,7 @@ func (g *Generator) generateLargeListTest(
 			for i := 0; i < g.config.ScaleFactor; i++ {
 				items[i] = fmt.Sprintf("item-%d", i)
 			}
-			body[param.Name] = items
+			g.setOrAddBodyParameter(body, param, items)
 		}
 	}
 
@@ -361,7 +361,7 @@ func (g *Generator) generatePerformanceTests(feature *model.Feature, paths []*mo
 			break
 		}
 	}
-	if deployPath != nil && createPath != nil {
+	if deployPath != nil && createPath != nil && isConfigurationDeploymentPath(createPath) {
 		tests = append(tests, g.generateDeploymentPerformanceTest(feature, createPath))
 	}
 
@@ -390,7 +390,7 @@ func (g *Generator) generateCreatePerformanceTest(
 
 	for i := 0; i < g.config.PerformanceIterations; i++ {
 		body := g.generateRequestBody(feature, createPath)
-		body["name"] = fmt.Sprintf("PerfTest-%d", i)
+		g.setBodyResourceName(feature, body, fmt.Sprintf("PerfTest-%d", i))
 		g.incrementUniqueBodyValues(body, feature, i)
 
 		step := model.TestStep{
@@ -536,7 +536,7 @@ func (g *Generator) generateMultiDeviceDeploymentTest(
 
 	// Create profile
 	profileBody := g.generateRequestBody(feature, createPath)
-	profileBody["name"] = "MultiDeviceProfile"
+	g.setBodyResourceName(feature, profileBody, "MultiDeviceProfile")
 
 	createStep := model.TestStep{
 		Name:           "createProfile",
@@ -562,10 +562,11 @@ func (g *Generator) generateMultiDeviceDeploymentTest(
 			Description: fmt.Sprintf("Deploy to device %d", i),
 			Method:      "POST",
 			API:         model.APITypeREST,
-			Path:        "/api/v1/deployment",
+			Path:        "/configuration-profile/{name}/devices/deploy",
+			PathParams:  map[string]string{"name": "MultiDeviceProfile"},
 			Body: map[string]interface{}{
-				"profileName": "MultiDeviceProfile",
-				"deviceName":  fmt.Sprintf("device-%d", i),
+				"devices":   []string{fmt.Sprintf("device-%d", i)},
+				"deployNow": true,
 			},
 			ExpectedStatus: 200,
 			Validations: []model.Validation{
@@ -602,7 +603,7 @@ func (g *Generator) generateRapidUpdatesTest(
 
 	// Create initial resource
 	body := g.generateRequestBody(feature, createPath)
-	body["name"] = "RapidUpdateTest"
+	g.setBodyResourceName(feature, body, "RapidUpdateTest")
 
 	createStep := model.TestStep{
 		Name:           "createResource",
@@ -624,8 +625,10 @@ func (g *Generator) generateRapidUpdatesTest(
 	// Perform rapid updates
 	for i := 0; i < 10; i++ {
 		updateBody := g.generateUpdateRequestBody(feature, updatePath)
-		updateBody["name"] = "RapidUpdateTest"
-		updateBody["description"] = fmt.Sprintf("Update iteration %d", i)
+		g.setBodyResourceName(feature, updateBody, "RapidUpdateTest")
+		if param, ok := findFeatureParameter(feature, "description"); ok {
+			g.setOrAddBodyParameter(updateBody, param, fmt.Sprintf("Update iteration %d", i))
+		}
 
 		updateStep := model.TestStep{
 			Name:           fmt.Sprintf("rapidUpdate%d", i),
@@ -671,12 +674,12 @@ func (g *Generator) generateMaxCapacityTest(
 	tc.Metadata["maxInstances"] = maxInstances
 	for i := 0; i < maxInstances; i++ {
 		body := g.generateRequestBody(feature, createPath)
-		body["name"] = fmt.Sprintf("MaxCapacityTest-%d", i)
+		g.setBodyResourceName(feature, body, fmt.Sprintf("MaxCapacityTest-%d", i))
 		g.incrementUniqueBodyValues(body, feature, i)
 
 		// If feature has priority parameter, use different priorities
-		if hasParameter(feature, "priority") {
-			body["priority"] = i%10 + 1 // Cycle through priorities 1-10
+		if param, ok := findFeatureParameter(feature, "priority"); ok {
+			g.setOrAddBodyParameter(body, param, i%10+1) // Cycle through priorities 1-10
 		}
 
 		step := model.TestStep{
@@ -721,7 +724,7 @@ func (g *Generator) generateUpdatePerformanceTest(
 
 	// Create initial resource
 	body := g.generateRequestBody(feature, createPath)
-	body["name"] = "UpdatePerfTest"
+	g.setBodyResourceName(feature, body, "UpdatePerfTest")
 
 	createStep := model.TestStep{
 		Name:           "createResource",
@@ -743,8 +746,10 @@ func (g *Generator) generateUpdatePerformanceTest(
 	// Perform update performance test
 	for i := 0; i < g.config.PerformanceIterations; i++ {
 		updateBody := g.generateUpdateRequestBody(feature, updatePath)
-		updateBody["name"] = "UpdatePerfTest"
-		updateBody["description"] = fmt.Sprintf("Performance test iteration %d", i)
+		g.setBodyResourceName(feature, updateBody, "UpdatePerfTest")
+		if param, ok := findFeatureParameter(feature, "description"); ok {
+			g.setOrAddBodyParameter(updateBody, param, fmt.Sprintf("Performance test iteration %d", i))
+		}
 
 		updateStep := model.TestStep{
 			Name:           fmt.Sprintf("update%d", i),
@@ -796,7 +801,7 @@ func (g *Generator) generateDeletePerformanceTest(
 	for i := 0; i < g.config.PerformanceIterations; i++ {
 		// Create resource
 		body := g.generateRequestBody(feature, createPath)
-		body["name"] = fmt.Sprintf("DeletePerfTest-%d", i)
+		g.setBodyResourceName(feature, body, fmt.Sprintf("DeletePerfTest-%d", i))
 		g.incrementUniqueBodyValues(body, feature, i)
 
 		captureName := fmt.Sprintf("OBJECT_ID_DELETE_%d", i)
@@ -866,7 +871,7 @@ func (g *Generator) generateDeploymentPerformanceTest(
 
 	// Create profile
 	profileBody := g.generateRequestBody(feature, createPath)
-	profileBody["name"] = "DeploymentPerfTest"
+	g.setBodyResourceName(feature, profileBody, "DeploymentPerfTest")
 
 	createStep := model.TestStep{
 		Name:           "createProfile",
@@ -892,10 +897,11 @@ func (g *Generator) generateDeploymentPerformanceTest(
 			Description: fmt.Sprintf("Deployment iteration %d", i),
 			Method:      "POST",
 			API:         model.APITypeREST,
-			Path:        "/api/v1/deployment",
+			Path:        "/configuration-profile/{name}/devices/deploy",
+			PathParams:  map[string]string{"name": "DeploymentPerfTest"},
 			Body: map[string]interface{}{
-				"profileName": "DeploymentPerfTest",
-				"deviceName":  fmt.Sprintf("perf-device-%d", i),
+				"devices":   []string{fmt.Sprintf("perf-device-%d", i)},
+				"deployNow": true,
 			},
 			ExpectedStatus: 200,
 			Validations: []model.Validation{

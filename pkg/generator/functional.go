@@ -92,7 +92,7 @@ func (g *Generator) generateFunctionalTests(feature *model.Feature, paths []*mod
 	}
 
 	// Generate deployment tests for configuration profiles
-	if createPath != nil && feature.Parameters != nil && len(feature.Parameters) > 0 && createPath.ProfileType == model.ProfileTypeConfiguration && len(deployPaths) > 0 {
+	if createPath != nil && feature.Parameters != nil && len(feature.Parameters) > 0 && isConfigurationDeploymentPath(createPath) && len(deployPaths) > 0 {
 		// Generate full deployment test with all steps (scope, target, deploy, verify)
 		tests = append(tests, g.generateDeploymentTest(
 			feature, createPath, readPath, deletePath,
@@ -342,11 +342,17 @@ func (g *Generator) generateSampleBody(feature *model.Feature, schema interface{
 	if len(feature.Parameters) > 0 {
 		body["name"] = "TestResource"
 		for _, param := range feature.Parameters {
+			if isSystemManagedField(param.Name) {
+				continue
+			}
 			if param.Required || keySet[param.Name] {
 				body[param.Name] = g.getSampleValue(param)
 			}
 		}
 		for _, key := range feature.Keys {
+			if isSystemManagedField(key) {
+				continue
+			}
 			if _, exists := body[key]; !exists {
 				body[key] = g.getSampleValue(syntheticKeyParameter(key))
 			}
@@ -375,6 +381,63 @@ func isFeatureKey(feature *model.Feature, paramName string) bool {
 	return keySetForFeature(feature)[paramName]
 }
 
+func findFeatureParameter(feature *model.Feature, name string) (model.Parameter, bool) {
+	if feature == nil {
+		return model.Parameter{}, false
+	}
+	for _, param := range feature.Parameters {
+		if param.Name == name {
+			return param, true
+		}
+	}
+	return model.Parameter{}, false
+}
+
+func (g *Generator) setBodyResourceName(feature *model.Feature, body map[string]interface{}, resourceName string) {
+	if body == nil || resourceName == "" {
+		return
+	}
+	if isDeepScannedBody(body) {
+		if param, ok := findFeatureParameter(feature, "name"); ok && !isSystemManagedField(param.Name) {
+			g.setOrAddBodyParameter(body, param, resourceName)
+		}
+		return
+	}
+	body["name"] = resourceName
+}
+
+func isDeepScannedBody(body map[string]interface{}) bool {
+	if body == nil {
+		return false
+	}
+	_, ok := body["objects"]
+	return ok
+}
+
+func isConfigurationDeploymentPath(path *model.FeaturePath) bool {
+	if path == nil {
+		return false
+	}
+	if path.BlueprintCategory == model.BlueprintCategoryGlobal || path.BlueprintCategory == model.BlueprintCategoryService {
+		return false
+	}
+	if path.BlueprintCategory == model.BlueprintCategoryWired || path.BlueprintCategory == model.BlueprintCategoryWireless {
+		return true
+	}
+	return path.ProfileType == model.ProfileTypeConfiguration
+}
+
+func inferJSONType(value interface{}) string {
+	switch value.(type) {
+	case bool:
+		return "boolean"
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+		return "number"
+	default:
+		return "string"
+	}
+}
+
 func syntheticKeyParameter(key string) model.Parameter {
 	return model.Parameter{
 		Name:        key,
@@ -394,6 +457,9 @@ func (g *Generator) appendMissingKeyProperties(feature *model.Feature, propertie
 		}
 	}
 	for _, key := range feature.Keys {
+		if isSystemManagedField(key) {
+			continue
+		}
 		if present[key] {
 			continue
 		}
@@ -704,12 +770,45 @@ func (g *Generator) setBodyParameterValue(body map[string]interface{}, paramName
 						return
 					}
 				}
+				origin := "CC"
+				if len(props) > 0 {
+					if existingOrigin, ok := props[0]["origin"].(string); ok && existingOrigin != "" {
+						origin = existingOrigin
+					}
+				}
+				props = append(props, map[string]interface{}{
+					"name":   paramName,
+					"type":   inferJSONType(value),
+					"value":  value,
+					"origin": origin,
+				})
+				obj["properties"] = props
+				return
 			}
 		}
 	} else {
 		// Simple body format
 		body[paramName] = value
 	}
+}
+
+func bodyParameterValue(body map[string]interface{}, paramName string) interface{} {
+	if body == nil {
+		return nil
+	}
+	if objects, ok := body["objects"].([]interface{}); ok && len(objects) > 0 {
+		if obj, ok := objects[0].(map[string]interface{}); ok {
+			if props, ok := obj["properties"].([]map[string]interface{}); ok {
+				for _, prop := range props {
+					if prop["name"] == paramName {
+						return prop["value"]
+					}
+				}
+			}
+		}
+		return nil
+	}
+	return body[paramName]
 }
 
 // setOrAddBodyParameter sets a parameter's value in the body, adding the
@@ -1676,6 +1775,9 @@ func (g *Generator) generateRequiredOnlyBody(feature *model.Feature, fp *model.F
 	if fpValue, objectType, origin, ok := deepScannedMetadata(feature, fp); ok {
 		properties := []map[string]interface{}{}
 		for _, param := range feature.Parameters {
+			if isSystemManagedField(param.Name) {
+				continue
+			}
 			if param.Required || keySet[param.Name] {
 				properties = append(properties, map[string]interface{}{
 					"name":   param.Name,
@@ -1701,11 +1803,17 @@ func (g *Generator) generateRequiredOnlyBody(feature *model.Feature, fp *model.F
 	// Simple format: include only required fields
 	body := make(map[string]interface{})
 	for _, param := range feature.Parameters {
+		if isSystemManagedField(param.Name) {
+			continue
+		}
 		if param.Required || keySet[param.Name] {
 			body[param.Name] = g.getSampleValue(param)
 		}
 	}
 	for _, key := range feature.Keys {
+		if isSystemManagedField(key) {
+			continue
+		}
 		if _, exists := body[key]; !exists {
 			body[key] = g.getSampleValue(syntheticKeyParameter(key))
 		}
@@ -1761,6 +1869,9 @@ func (g *Generator) generateBodyWithoutParam(feature *model.Feature, fp *model.F
 			if param.Name == excludeParam {
 				continue // omit the defaulted field
 			}
+			if isSystemManagedField(param.Name) {
+				continue
+			}
 			if param.Required || keySet[param.Name] {
 				properties = append(properties, map[string]interface{}{
 					"name":   param.Name,
@@ -1789,12 +1900,18 @@ func (g *Generator) generateBodyWithoutParam(feature *model.Feature, fp *model.F
 		if param.Name == excludeParam {
 			continue
 		}
+		if isSystemManagedField(param.Name) {
+			continue
+		}
 		if param.Required || keySet[param.Name] {
 			body[param.Name] = g.getSampleValue(param)
 		}
 	}
 	for _, key := range feature.Keys {
 		if key == excludeParam {
+			continue
+		}
+		if isSystemManagedField(key) {
 			continue
 		}
 		if _, exists := body[key]; !exists {
@@ -1965,7 +2082,9 @@ func (g *Generator) getUpdatedValue(param model.Parameter) interface{} {
 	if strings.Contains(paramNameLower, "address") || strings.Contains(paramNameLower, "server") || strings.Contains(paramNameLower, "host") || strings.Contains(paramNameLower, "ip") {
 		return "8.8.4.4"
 	}
-	if param.GoType == "int" || param.GoType == "int32" || param.GoType == "uint16" || param.GoType == "uint8" || param.GoType == "uint32" {
+	if param.GoType == "int" || param.GoType == "int8" || param.GoType == "int16" || param.GoType == "int32" || param.GoType == "int64" ||
+		param.GoType == "uint" || param.GoType == "uint8" || param.GoType == "uint16" || param.GoType == "uint32" || param.GoType == "uint64" ||
+		param.GoType == "float32" || param.GoType == "float64" {
 		return 50
 	}
 
@@ -2316,6 +2435,9 @@ func (g *Generator) generateBodyWithOptionalField(feature *model.Feature, fp *mo
 	properties := []map[string]interface{}{}
 	keySet := keySetForFeature(feature)
 	for _, param := range feature.Parameters {
+		if isSystemManagedField(param.Name) {
+			continue
+		}
 		var value interface{}
 		if param.Name == optParamName {
 			value = optParamValue

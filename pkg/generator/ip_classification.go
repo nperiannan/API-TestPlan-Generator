@@ -124,7 +124,7 @@ func (g *Generator) generateIPPositiveTests(
 		}
 
 		body := g.generateRequestBody(feature, createPath)
-		body["name"] = fmt.Sprintf("TestResource-IP-%s", ipCase.label)
+		g.setBodyResourceName(feature, body, fmt.Sprintf("TestResource-IP-%s", ipCase.label))
 		g.setOrAddBodyParameter(body, param, ipCase.value)
 		// Set companion mask field to correct type for the IP version used
 		setMaskForIPVersion(body, feature.Parameters, ipCase.value)
@@ -187,7 +187,7 @@ func (g *Generator) generateIPNegativeTests(
 		}
 
 		body := g.generateRequestBody(feature, createPath)
-		body["name"] = fmt.Sprintf("TestResource-BadIP-%s", ipCase.label)
+		g.setBodyResourceName(feature, body, fmt.Sprintf("TestResource-BadIP-%s", ipCase.label))
 		g.setOrAddBodyParameter(body, param, ipCase.value)
 
 		tc.Steps = append(tc.Steps, model.TestStep{
