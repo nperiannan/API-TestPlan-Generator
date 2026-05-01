@@ -2148,18 +2148,100 @@ async function loadGuiPlans() {
     const data = await apiJSON('/api/gui/plans');
     if (data.plans && data.plans.length > 0) {
       document.getElementById('guiPlansSection').style.display = 'block';
-      let html = '<table><thead><tr><th>Category</th><th>Feature</th><th>File</th><th>Size</th><th>Action</th></tr></thead><tbody>';
+      let html = '<table><thead><tr><th>Category</th><th>Feature</th><th>File</th><th>Size</th><th>Actions</th></tr></thead><tbody>';
       data.plans.forEach(function(p) {
         html += '<tr><td>' + escapeHtml(p.category) + '</td>';
         html += '<td><strong>' + escapeHtml(p.feature) + '</strong></td>';
         html += '<td style="font-family:monospace;font-size:.85em;">' + escapeHtml(p.fileName) + '</td>';
         html += '<td>' + (p.size > 1024 ? Math.round(p.size/1024) + ' KB' : p.size + ' B') + '</td>';
-        html += '<td><button class="btn btn-sm btn-primary" onclick="openViewer(\'' + escapeHtml(p.category) + '\',\'' + escapeHtml(p.feature) + '\')">View</button></td></tr>';
+        html += '<td style="display:flex;gap:6px;align-items:center;">';
+        html += '<button class="btn btn-sm btn-primary" onclick="viewGUIPlan(\'' + escapeHtml(p.category) + '\',\'' + escapeHtml(p.feature) + '\')">View</button>';
+        html += '<div class="download-menu">';
+        html += '<button class="btn btn-sm btn-secondary" style="color:#333;" onclick="toggleDownload(this)">&#11015; Download</button>';
+        html += '<div class="download-options">';
+        html += '<div class="download-option" onclick="downloadGUIPlan(\'' + escapeHtml(p.category) + '\',\'' + escapeHtml(p.feature) + '\',\'yaml\')">&#128196; YAML</div>';
+        html += '<div class="download-option" onclick="downloadGUIPlan(\'' + escapeHtml(p.category) + '\',\'' + escapeHtml(p.feature) + '\',\'json\')">&#128203; JSON</div>';
+        html += '<div class="download-option" style="font-weight:600;color:#1a73e8;" onclick="downloadGUIPlan(\'' + escapeHtml(p.category) + '\',\'' + escapeHtml(p.feature) + '\',\'xlsx\')">&#128209; Excel (.xlsx)</div>';
+        html += '</div></div></td></tr>';
       });
       html += '</tbody></table>';
       document.getElementById('guiPlansList').innerHTML = html;
     }
   } catch(e) {}
+}
+
+function downloadGUIPlan(category, feature, format) {
+  var url = API + '/api/gui/plans/' + encodeURIComponent(category) + '/' + encodeURIComponent(feature) + '/download?format=' + format;
+  window.open(url, '_blank');
+  document.querySelectorAll('.download-options').forEach(function(d) { d.classList.remove('show'); });
+}
+
+async function viewGUIPlan(category, feature) {
+  try {
+    const data = await apiJSON('/api/gui/plans/' + encodeURIComponent(category) + '/' + encodeURIComponent(feature));
+    var plan = data;
+    var screens = plan.screens || [];
+    var summary = plan.summary || {};
+
+    // Open viewer modal with GUI plan content
+    viewerState = { category: category, feature: feature, format: 'gui', cache: {} };
+    document.getElementById('viewerTitle').textContent = category + ' / ' + feature + ' (GUI)';
+    document.getElementById('viewerModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    // Highlight no tab (custom content)
+    document.querySelectorAll('.viewer-tab').forEach(function(t) { t.classList.remove('active'); });
+
+    var body = document.getElementById('viewerBody');
+    var info = document.getElementById('viewerInfo');
+
+    // Summary
+    var html = '<div style="padding:16px;background:#f5f8ff;border-radius:8px;margin-bottom:16px;">';
+    html += '<h3 style="margin:0 0 8px;">GUI Test Plan: ' + escapeHtml(plan.sourceInfo.featureName) + '</h3>';
+    html += '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:.9em;">';
+    html += '<div><strong>Screens:</strong> ' + summary.totalScreens + '</div>';
+    html += '<div><strong>Widgets:</strong> ' + summary.totalWidgets + '</div>';
+    html += '<div><strong>Tests:</strong> ' + summary.totalTests + '</div>';
+    if (plan.sourceInfo.figmaSection) html += '<div><strong>Figma:</strong> ' + escapeHtml(plan.sourceInfo.figmaSection) + '</div>';
+    if (plan.sourceInfo.jiraIssueKey) html += '<div><strong>Jira:</strong> ' + escapeHtml(plan.sourceInfo.jiraIssueKey) + '</div>';
+    html += '</div>';
+    if (summary.testsByCategory) {
+      html += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">';
+      var catColors = {functional:'#1a73e8',boundary:'#f57c00',negative:'#c62828'};
+      Object.keys(summary.testsByCategory).forEach(function(cat) {
+        html += '<span style="background:' + (catColors[cat]||'#888') + ';color:#fff;padding:2px 10px;border-radius:12px;font-size:.82em;">' + cat + ': ' + summary.testsByCategory[cat] + '</span>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // Test case table
+    html += '<table><thead><tr><th onclick="sortViewerTable(0)">Test Case ID</th><th onclick="sortViewerTable(1)">Screen</th><th onclick="sortViewerTable(2)">Type</th><th onclick="sortViewerTable(3)">Priority</th><th onclick="sortViewerTable(4)">Description</th><th>Steps</th></tr></thead><tbody>';
+    screens.forEach(function(s) {
+      (s.tests || []).forEach(function(tc) {
+        var priC = {P1:'#c62828',P2:'#f57c00',P3:'#1a73e8',P4:'#888'};
+        var rowBg = {functional:'#f5f8ff',boundary:'#fff8e1',negative:'#fff3f0'};
+        html += '<tr style="background:' + (rowBg[tc.type]||'#fff') + ';">';
+        html += '<td style="font-family:monospace;white-space:nowrap;">' + escapeHtml(tc.testCaseID) + '</td>';
+        html += '<td style="font-size:.85em;">' + escapeHtml(tc.screen) + '</td>';
+        html += '<td><span style="background:#e8eaf6;padding:1px 6px;border-radius:3px;font-size:.85em;">' + escapeHtml(tc.type) + '</span></td>';
+        html += '<td><span style="color:' + (priC[tc.priority]||'#888') + ';font-weight:600;">' + tc.priority + '</span></td>';
+        html += '<td>' + escapeHtml(tc.description) + '</td>';
+        html += '<td style="text-align:center;">' + (tc.steps||[]).length + '</td>';
+        html += '</tr>';
+      });
+    });
+    html += '</tbody></table>';
+
+    body.innerHTML = html;
+    info.textContent = summary.totalTests + ' test cases across ' + summary.totalScreens + ' screens';
+
+    // Wire download button
+    var dlBtn = document.getElementById('viewerDownloadBtn');
+    dlBtn.onclick = function() { downloadGUIPlan(category, feature, 'xlsx'); };
+  } catch (e) {
+    showToast('Failed to load GUI plan: ' + e.message, 'error');
+  }
 }
 
 // --- Generate ---

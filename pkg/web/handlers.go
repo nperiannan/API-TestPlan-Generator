@@ -1381,3 +1381,272 @@ func (s *Server) handleJiraProjects(c *gin.Context) {
 	}
 	c.JSON(resp.StatusCode, result)
 }
+
+// ---------- GUI Test Plan Download ----------
+
+func (s *Server) handleDownloadGUITestPlan(c *gin.Context) {
+	category := c.Param("category")
+	feature := c.Param("feature")
+	format := c.DefaultQuery("format", "xlsx")
+
+	path := filepath.Join(s.config.TestPlansDir, category, feature+".yaml")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "GUI test plan not found"})
+		return
+	}
+	filename := fmt.Sprintf("%s-%s", category, feature)
+
+	switch format {
+	case "yaml":
+		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s.yaml", filename))
+		c.Data(http.StatusOK, "application/x-yaml", data)
+	case "json":
+		var parsed interface{}
+		if err := yaml.Unmarshal(data, &parsed); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse YAML"})
+			return
+		}
+		jsonData, _ := json.MarshalIndent(parsed, "", "  ")
+		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s.json", filename))
+		c.Data(http.StatusOK, "application/json", jsonData)
+	case "xlsx":
+		xlsxData, err := guiYamlToExcel(data)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to convert to Excel: " + err.Error()})
+			return
+		}
+		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s.xlsx", filename))
+		c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", xlsxData)
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported format, use yaml/json/xlsx"})
+	}
+}
+
+func (s *Server) handleGetGUITestPlan(c *gin.Context) {
+	category := c.Param("category")
+	feature := c.Param("feature")
+
+	path := filepath.Join(s.config.TestPlansDir, category, feature+".yaml")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "GUI test plan not found"})
+		return
+	}
+
+	var parsed interface{}
+	if err := yaml.Unmarshal(data, &parsed); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse"})
+		return
+	}
+	c.JSON(http.StatusOK, parsed)
+}
+
+// guiYamlToExcel converts a GUI test plan YAML to an Excel workbook.
+func guiYamlToExcel(data []byte) ([]byte, error) {
+	var plan struct {
+		Version     string `yaml:"version"`
+		GeneratedAt string `yaml:"generatedAt"`
+		TestType    string `yaml:"testType"`
+		SourceInfo  struct {
+			FeatureName  string `yaml:"featureName"`
+			Category     string `yaml:"category"`
+			APITestPlan  string `yaml:"apiTestPlan"`
+			FigmaSection string `yaml:"figmaSection"`
+			JiraIssueKey string `yaml:"jiraIssueKey"`
+		} `yaml:"sourceInfo"`
+		Screens []struct {
+			ScreenName string `yaml:"screenName"`
+			Widgets    []struct {
+				Name     string `yaml:"name"`
+				TypeName string `yaml:"typeName"`
+			} `yaml:"widgets"`
+			Tests []struct {
+				TestCaseID  string `yaml:"testCaseID"`
+				FeatureName string `yaml:"featureName"`
+				Priority    string `yaml:"priority"`
+				Type        string `yaml:"type"`
+				Description string `yaml:"description"`
+				Screen      string `yaml:"screen"`
+				Steps       []struct {
+					StepNumber int    `yaml:"stepNumber"`
+					Action     string `yaml:"action"`
+					Target     string `yaml:"target"`
+					Value      string `yaml:"value"`
+					Expected   string `yaml:"expected"`
+				} `yaml:"steps"`
+			} `yaml:"tests"`
+		} `yaml:"screens"`
+		Summary struct {
+			TotalScreens    int            `yaml:"totalScreens"`
+			TotalWidgets    int            `yaml:"totalWidgets"`
+			TotalTests      int            `yaml:"totalTests"`
+			TestsByCategory map[string]int `yaml:"testsByCategory"`
+		} `yaml:"summary"`
+	}
+	if err := yaml.Unmarshal(data, &plan); err != nil {
+		return nil, fmt.Errorf("parsing YAML: %w", err)
+	}
+
+	f := excelize.NewFile()
+
+	headerStyle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 11, Color: "FFFFFF"},
+		Fill:      excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"4472C4"}},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true},
+		Border: []excelize.Border{
+			{Type: "left", Style: 1, Color: "000000"},
+			{Type: "right", Style: 1, Color: "000000"},
+			{Type: "top", Style: 1, Color: "000000"},
+			{Type: "bottom", Style: 1, Color: "000000"},
+		},
+	})
+	dataStyle, _ := f.NewStyle(&excelize.Style{
+		Alignment: &excelize.Alignment{Vertical: "top", WrapText: true},
+		Border: []excelize.Border{
+			{Type: "left", Style: 1, Color: "000000"},
+			{Type: "right", Style: 1, Color: "000000"},
+			{Type: "top", Style: 1, Color: "000000"},
+			{Type: "bottom", Style: 1, Color: "000000"},
+		},
+	})
+
+	// Summary sheet
+	f.SetSheetName("Sheet1", "Summary")
+	summaryData := [][]string{
+		{"GUI Test Plan Summary"},
+		{"Feature", plan.SourceInfo.FeatureName},
+		{"Category", plan.SourceInfo.Category},
+		{"Generated At", plan.GeneratedAt},
+		{"API Test Plan", plan.SourceInfo.APITestPlan},
+		{"Figma Section", plan.SourceInfo.FigmaSection},
+		{"Jira Issue", plan.SourceInfo.JiraIssueKey},
+		{""},
+		{"Total Screens", fmt.Sprintf("%d", plan.Summary.TotalScreens)},
+		{"Total Widgets", fmt.Sprintf("%d", plan.Summary.TotalWidgets)},
+		{"Total Tests", fmt.Sprintf("%d", plan.Summary.TotalTests)},
+	}
+	for cat, count := range plan.Summary.TestsByCategory {
+		summaryData = append(summaryData, []string{fmt.Sprintf("Tests (%s)", cat), fmt.Sprintf("%d", count)})
+	}
+	for i, row := range summaryData {
+		for j, val := range row {
+			cn, _ := excelize.ColumnNumberToName(j + 1)
+			cell := fmt.Sprintf("%s%d", cn, i+1)
+			f.SetCellValue("Summary", cell, val)
+			if i == 0 {
+				f.SetCellStyle("Summary", cell, cell, headerStyle)
+			}
+		}
+	}
+	f.SetColWidth("Summary", "A", "A", 20)
+	f.SetColWidth("Summary", "B", "B", 60)
+
+	// All Tests sheet — flat table of every test case
+	allSheet := "All Tests"
+	f.NewSheet(allSheet)
+	headers := []string{"Test Case ID", "Screen", "Type", "Priority", "Description", "Precondition", "Test Steps", "Expected Results"}
+	colWidths := []float64{22, 30, 12, 8, 70, 40, 80, 60}
+	for ci, h := range headers {
+		cn, _ := excelize.ColumnNumberToName(ci + 1)
+		cell := fmt.Sprintf("%s1", cn)
+		f.SetCellValue(allSheet, cell, h)
+		f.SetCellStyle(allSheet, cell, cell, headerStyle)
+	}
+	for ci, w := range colWidths {
+		cn, _ := excelize.ColumnNumberToName(ci + 1)
+		f.SetColWidth(allSheet, cn, cn, w)
+	}
+
+	allRow := 2
+	for _, screen := range plan.Screens {
+		for _, tc := range screen.Tests {
+			// Build step descriptions and expected results
+			var stepLines, expectedLines []string
+			for _, step := range tc.Steps {
+				stepLine := fmt.Sprintf("%d. %s → %s", step.StepNumber, step.Action, step.Target)
+				if step.Value != "" {
+					stepLine += fmt.Sprintf(" [value: %s]", step.Value)
+				}
+				stepLines = append(stepLines, stepLine)
+				expectedLines = append(expectedLines, fmt.Sprintf("%d. %s", step.StepNumber, step.Expected))
+			}
+
+			vals := []string{
+				tc.TestCaseID,
+				tc.Screen,
+				tc.Type,
+				tc.Priority,
+				tc.Description,
+				fmt.Sprintf("Navigate to %s screen. Feature data available.", screen.ScreenName),
+				strings.Join(stepLines, "\n"),
+				strings.Join(expectedLines, "\n"),
+			}
+			for ci, v := range vals {
+				cn, _ := excelize.ColumnNumberToName(ci + 1)
+				cell := fmt.Sprintf("%s%d", cn, allRow)
+				f.SetCellValue(allSheet, cell, v)
+				f.SetCellStyle(allSheet, cell, cell, dataStyle)
+			}
+			allRow++
+		}
+	}
+
+	// Per-screen sheets
+	for _, screen := range plan.Screens {
+		if len(screen.Tests) == 0 {
+			continue
+		}
+		sheetName := screen.ScreenName
+		if len(sheetName) > 31 {
+			sheetName = sheetName[:31]
+		}
+		f.NewSheet(sheetName)
+		for ci, h := range headers {
+			cn, _ := excelize.ColumnNumberToName(ci + 1)
+			cell := fmt.Sprintf("%s1", cn)
+			f.SetCellValue(sheetName, cell, h)
+			f.SetCellStyle(sheetName, cell, cell, headerStyle)
+		}
+		for ci, w := range colWidths {
+			cn, _ := excelize.ColumnNumberToName(ci + 1)
+			f.SetColWidth(sheetName, cn, cn, w)
+		}
+
+		for i, tc := range screen.Tests {
+			row := i + 2
+			var stepLines, expectedLines []string
+			for _, step := range tc.Steps {
+				stepLine := fmt.Sprintf("%d. %s → %s", step.StepNumber, step.Action, step.Target)
+				if step.Value != "" {
+					stepLine += fmt.Sprintf(" [value: %s]", step.Value)
+				}
+				stepLines = append(stepLines, stepLine)
+				expectedLines = append(expectedLines, fmt.Sprintf("%d. %s", step.StepNumber, step.Expected))
+			}
+
+			vals := []string{
+				tc.TestCaseID,
+				tc.Screen,
+				tc.Type,
+				tc.Priority,
+				tc.Description,
+				fmt.Sprintf("Navigate to %s screen. Feature data available.", screen.ScreenName),
+				strings.Join(stepLines, "\n"),
+				strings.Join(expectedLines, "\n"),
+			}
+			for ci, v := range vals {
+				cn, _ := excelize.ColumnNumberToName(ci + 1)
+				cell := fmt.Sprintf("%s%d", cn, row)
+				f.SetCellValue(sheetName, cell, v)
+				f.SetCellStyle(sheetName, cell, cell, dataStyle)
+			}
+		}
+	}
+
+	buf, err := f.WriteToBuffer()
+	if err != nil {
+		return nil, fmt.Errorf("writing Excel: %w", err)
+	}
+	return buf.Bytes(), nil
+}

@@ -162,6 +162,8 @@ func (s *Server) registerRoutes() {
 		// GUI Test Plan Generation
 		api.POST("/gui/generate", s.handleGUIGenerate)
 		api.GET("/gui/plans", s.handleGUITestPlanList)
+		api.GET("/gui/plans/:category/:feature", s.handleGetGUITestPlan)
+		api.GET("/gui/plans/:category/:feature/download", s.handleDownloadGUITestPlan)
 	}
 }
 
