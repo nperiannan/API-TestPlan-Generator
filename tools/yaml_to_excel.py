@@ -1,20 +1,71 @@
 """
-Convert radius-server.yaml test cases to Excel format matching the
-NVO-11239 template structure.
+Convert generated YAML test plans to Excel format.
 
-Columns: Test Case ID, Testcase Title, Status, Type, Description, Precondition,
-         Test Step Description, Test Step Expected Result, Priority
+Column definitions, ordering, widths, and styling are driven by
+config/yaml2excel.yaml so users can customise the export without
+editing Python code.
 
-Each test category (boundary, functional, negative, performance, scale)
-goes into its own sheet.
+Usage:
+    python yaml_to_excel.py <input.yaml> [output.xlsx] [--config <yaml2excel.yaml>]
 """
 
 import yaml
 import json
 import re
+import sys
+import os
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
+
+
+# ── Default config (used when yaml2excel.yaml is not found) ─────────
+
+DEFAULT_CONFIG = {
+    'sheetPerCategory': True,
+    'categoryOrder': ['functional', 'boundary', 'negative', 'performance', 'scale'],
+    'headerStyle': {
+        'bold': True,
+        'fontSize': 11,
+        'fontColor': 'FFFFFF',
+        'fillColor': '4472C4',
+    },
+    'columns': [
+        {'header': 'Test Case ID',              'yamlPath': 'testCaseID',           'width': 16},
+        {'header': 'Testcase Title',            'yamlPath': '@title',               'width': 50},
+        {'header': 'Status',                    'yamlPath': '@constant',            'width': 18, 'default': 'To Be Automated'},
+        {'header': 'Type',                      'yamlPath': 'type',                 'width': 14},
+        {'header': 'Priority',                  'yamlPath': 'priority',             'width': 10},
+        {'header': 'Description',               'yamlPath': 'description',          'width': 60},
+        {'header': 'Precondition',              'yamlPath': '@constant',            'width': 50, 'default': 'QA environment available with EP1-NGC Framework integration'},
+        {'header': 'Test Step Description',     'yamlPath': '@steps.description',   'width': 80},
+        {'header': 'Test Step Expected Result',  'yamlPath': '@steps.expected',     'width': 60},
+    ],
+}
+
+
+def load_config(config_path=None):
+    """Load column config from yaml2excel.yaml, falling back to defaults."""
+    if config_path and os.path.isfile(config_path):
+        with open(config_path, 'r', encoding='utf-8') as f:
+            cfg = yaml.safe_load(f)
+        print(f"Loaded column config: {config_path}")
+        return cfg
+
+    # Try standard locations relative to script
+    candidates = [
+        os.path.join(os.path.dirname(__file__), '..', 'config', 'yaml2excel.yaml'),
+        os.path.join(os.getcwd(), 'config', 'yaml2excel.yaml'),
+    ]
+    for path in candidates:
+        if os.path.isfile(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                cfg = yaml.safe_load(f)
+            print(f"Loaded column config: {os.path.abspath(path)}")
+            return cfg
+
+    print("Using default column config (config/yaml2excel.yaml not found)")
+    return DEFAULT_CONFIG
 
 
 def format_body_as_payload(body):
