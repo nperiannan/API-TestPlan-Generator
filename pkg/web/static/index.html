@@ -98,6 +98,24 @@ tbody tr:hover td{background:#fafafa;}
 .view-panel{border:1px solid #e0e0e0;border-radius:8px;background:#fafafa;max-height:600px;overflow:auto;}
 .view-panel pre{padding:16px;font-size:.82em;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;font-family:'Cascadia Code','Fira Code','Courier New',monospace;}
 
+/* Viewer modal */
+.viewer-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:none;z-index:1000;align-items:stretch;justify-content:center;padding:24px;}
+.viewer-overlay.show{display:flex;}
+.viewer-modal{background:#fff;border-radius:12px;width:100%;max-width:1200px;margin:auto;display:flex;flex-direction:column;max-height:100%;overflow:hidden;}
+.viewer-header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #e0e0e0;flex-shrink:0;}
+.viewer-header h3{color:#1a73e8;margin:0;font-size:1.1em;}
+.viewer-tabs{display:flex;gap:0;border-bottom:1px solid #e0e0e0;flex-shrink:0;padding:0 24px;}
+.viewer-tab{padding:10px 20px;cursor:pointer;font-weight:600;font-size:.88em;color:#888;border-bottom:3px solid transparent;transition:all .2s;}
+.viewer-tab:hover{color:#1a73e8;background:#f5f8ff;}
+.viewer-tab.active{color:#1a73e8;border-bottom-color:#1a73e8;}
+.viewer-body{flex:1;overflow:auto;padding:0;}
+.viewer-body pre{padding:20px 24px;margin:0;font-size:.82em;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;font-family:'Cascadia Code','Fira Code','Courier New',monospace;}
+.viewer-body table{width:100%;font-size:.82em;border-collapse:collapse;}
+.viewer-body table th{background:#f5f5f5;padding:8px 12px;text-align:left;font-weight:600;position:sticky;top:0;}
+.viewer-body table td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.viewer-body table tr:hover{background:#f5f8ff;}
+.viewer-footer{display:flex;justify-content:flex-end;gap:10px;padding:12px 24px;border-top:1px solid #e0e0e0;flex-shrink:0;}
+
 /* Toast */
 .toast{position:fixed;top:20px;right:20px;padding:14px 20px;border-radius:8px;color:#fff;font-weight:600;z-index:2000;transform:translateX(120%);transition:transform .3s ease;}
 .toast.show{transform:translateX(0);}
@@ -188,16 +206,6 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
       </div>
     </div>
 
-    <!-- Inline viewer -->
-    <div class="section" id="viewerSection" style="display:none;">
-      <div class="section-header">
-        <h2 id="viewerTitle">Viewing</h2>
-        <button class="btn btn-sm btn-secondary" onclick="closeViewer()">&#10005; Close</button>
-      </div>
-      <div class="section-body">
-        <div class="view-panel"><pre id="viewerContent"></pre></div>
-      </div>
-    </div>
   </div>
 
   <!-- VERSIONS TAB -->
@@ -271,6 +279,29 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
   </div>
 
   <footer>Test Plan Dashboard &mdash; Powered by TestGen + MinIO</footer>
+</div>
+
+<!-- Viewer Modal -->
+<div class="viewer-overlay" id="viewerModal">
+  <div class="viewer-modal">
+    <div class="viewer-header">
+      <h3 id="viewerTitle">Viewing</h3>
+      <button class="btn btn-sm btn-secondary" style="color:#333;" onclick="closeViewer()">&#10005; Close</button>
+    </div>
+    <div class="viewer-tabs">
+      <div class="viewer-tab active" onclick="switchViewerFormat('yaml')">&#128196; YAML</div>
+      <div class="viewer-tab" onclick="switchViewerFormat('json')">&#128203; JSON</div>
+      <div class="viewer-tab" onclick="switchViewerFormat('csv')">&#128200; CSV</div>
+      <div class="viewer-tab" onclick="switchViewerFormat('xlsx')">&#128209; Excel Preview</div>
+    </div>
+    <div class="viewer-body" id="viewerBody">
+      <pre id="viewerContent"></pre>
+    </div>
+    <div class="viewer-footer">
+      <span id="viewerInfo" style="flex:1;font-size:.82em;color:#888;"></span>
+      <button class="btn btn-sm btn-primary" id="viewerDownloadBtn" onclick="downloadViewerContent()">&#11015; Download</button>
+    </div>
+  </div>
 </div>
 
 <!-- Version Modal -->
@@ -446,21 +477,169 @@ async function loadTestPlans() {
   }
 }
 
+let viewerState = { category: '', feature: '', format: 'yaml', cache: {} };
+
 async function viewTestPlan(category, feature) {
-  try {
-    const res = await api(`/api/testplans/${category}/${feature}?format=yaml`);
-    const text = await res.text();
-    document.getElementById('viewerTitle').textContent = `${category} / ${feature}`;
-    document.getElementById('viewerContent').textContent = text;
-    document.getElementById('viewerSection').style.display = 'block';
-    document.getElementById('viewerSection').scrollIntoView({ behavior: 'smooth' });
-  } catch (e) {
-    showToast('Failed to load test plan: ' + e.message, 'error');
-  }
+  viewerState = { category, feature, format: 'yaml', cache: {} };
+  document.getElementById('viewerTitle').textContent = `${category} / ${feature}`;
+  document.getElementById('viewerModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  // Highlight first tab
+  document.querySelectorAll('.viewer-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+  await loadViewerContent('yaml');
 }
 
 function closeViewer() {
-  document.getElementById('viewerSection').style.display = 'none';
+  document.getElementById('viewerModal').classList.remove('show');
+  document.body.style.overflow = '';
+  viewerState.cache = {};
+}
+
+async function switchViewerFormat(format) {
+  viewerState.format = format;
+  document.querySelectorAll('.viewer-tab').forEach(t => {
+    t.classList.toggle('active', t.textContent.toLowerCase().includes(format === 'xlsx' ? 'excel' : format));
+  });
+  await loadViewerContent(format);
+}
+
+async function loadViewerContent(format) {
+  const { category, feature } = viewerState;
+  const body = document.getElementById('viewerBody');
+  const info = document.getElementById('viewerInfo');
+  const dlBtn = document.getElementById('viewerDownloadBtn');
+
+  body.innerHTML = '<div class="loading" style="padding:60px;"><div class="spinner"></div></div>';
+
+  try {
+    if (format === 'xlsx') {
+      // Excel preview: fetch JSON and render as table
+      const data = viewerState.cache['json'] || await (await api(`/api/testplans/${category}/${feature}?format=json`)).json();
+      viewerState.cache['json'] = data;
+      body.innerHTML = renderExcelPreview(data);
+      info.textContent = 'Excel preview (download for full .xlsx file)';
+      dlBtn.onclick = () => downloadTestPlan(category, feature, 'xlsx');
+    } else if (format === 'csv') {
+      let text = viewerState.cache['csv'];
+      if (!text) {
+        const res = await api(`/api/testplans/${category}/${feature}/download?format=csv`);
+        text = await res.text();
+        viewerState.cache['csv'] = text;
+      }
+      body.innerHTML = renderCSVPreview(text);
+      info.textContent = `${text.split('\n').filter(l=>l.trim()).length - 1} test cases`;
+      dlBtn.onclick = () => downloadTestPlan(category, feature, 'csv');
+    } else {
+      let text = viewerState.cache[format];
+      if (!text) {
+        if (format === 'json') {
+          const data = await (await api(`/api/testplans/${category}/${feature}?format=json`)).json();
+          viewerState.cache['json_obj'] = data;
+          text = JSON.stringify(data, null, 2);
+        } else {
+          const res = await api(`/api/testplans/${category}/${feature}?format=yaml`);
+          text = await res.text();
+        }
+        viewerState.cache[format] = text;
+      }
+      const pre = document.createElement('pre');
+      pre.id = 'viewerContent';
+      pre.textContent = text;
+      body.innerHTML = '';
+      body.appendChild(pre);
+      const lines = text.split('\n').length;
+      info.textContent = `${lines} lines · ${formatSize(new Blob([text]).size)}`;
+      dlBtn.onclick = () => downloadTestPlan(category, feature, format);
+    }
+  } catch (e) {
+    body.innerHTML = `<div style="padding:40px;text-align:center;color:#e53935;">Failed to load: ${e.message}</div>`;
+  }
+}
+
+function renderExcelPreview(data) {
+  const features = data.features || [];
+  if (!features.length) return '<div style="padding:40px;text-align:center;color:#888;">No test data</div>';
+
+  let html = '';
+  for (const feat of features) {
+    const tests = feat.tests || {};
+    for (const [cat, cases] of Object.entries(tests)) {
+      if (!cases || !cases.length) continue;
+      html += `<div style="padding:12px 24px 4px;"><strong style="color:#1a73e8;">${cat.charAt(0).toUpperCase() + cat.slice(1)}</strong> <span style="color:#888;">(${cases.length} tests)</span></div>`;
+      html += '<table><thead><tr><th>Test Case ID</th><th>Title</th><th>Priority</th><th>Method</th><th>Path</th><th>Has Payload</th></tr></thead><tbody>';
+      for (const tc of cases.slice(0, 50)) {
+        const step = (tc.steps || [])[0] || {};
+        const hasBody = step.body ? '&#10003;' : '&#10007;';
+        const bodyColor = step.body ? '#43a047' : '#e53935';
+        const title = (tc.description || '').length > 80 ? tc.description.substring(0, 77) + '...' : tc.description;
+        html += `<tr>
+          <td style="font-family:monospace;white-space:nowrap;">${tc.testCaseID || ''}</td>
+          <td>${title || ''}</td>
+          <td>${tc.priority || ''}</td>
+          <td><strong>${step.method || ''}</strong></td>
+          <td style="font-family:monospace;font-size:.9em;">${step.path || ''}</td>
+          <td style="text-align:center;color:${bodyColor};">${hasBody}</td>
+        </tr>`;
+      }
+      if (cases.length > 50) {
+        html += `<tr><td colspan="6" style="text-align:center;color:#888;padding:12px;">... and ${cases.length - 50} more test cases. Download Excel for full data.</td></tr>`;
+      }
+      html += '</tbody></table>';
+    }
+  }
+  return html;
+}
+
+function renderCSVPreview(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  if (lines.length < 2) return '<div style="padding:40px;text-align:center;color:#888;">No CSV data</div>';
+
+  const headers = lines[0].split(',');
+  let html = '<table><thead><tr>';
+  headers.forEach(h => { html += `<th>${h}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  const maxRows = Math.min(lines.length, 101);
+  for (let i = 1; i < maxRows; i++) {
+    // Simple CSV parse (handles quoted fields)
+    const cells = parseCSVLine(lines[i]);
+    html += '<tr>';
+    cells.forEach((c, ci) => {
+      let val = c.length > 120 ? c.substring(0, 117) + '...' : c;
+      html += `<td style="${ci === 0 ? 'font-family:monospace;white-space:nowrap;' : ''}">${escapeHtml(val)}</td>`;
+    });
+    html += '</tr>';
+  }
+  if (lines.length > 101) {
+    html += `<tr><td colspan="${headers.length}" style="text-align:center;color:#888;padding:12px;">... and ${lines.length - 101} more rows. Download CSV for full data.</td></tr>`;
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
+function parseCSVLine(line) {
+  const cells = [];
+  let current = '', inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"' && (i === 0 || line[i-1] !== '\\')) {
+      inQuotes = !inQuotes;
+    } else if (ch === ',' && !inQuotes) {
+      cells.push(current); current = '';
+    } else {
+      current += ch;
+    }
+  }
+  cells.push(current);
+  return cells;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function downloadViewerContent() {
+  downloadTestPlan(viewerState.category, viewerState.feature, viewerState.format);
 }
 
 function downloadTestPlan(category, feature, format) {
@@ -482,6 +661,14 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('.download-menu')) {
     document.querySelectorAll('.download-options').forEach(d => d.classList.remove('show'));
   }
+});
+
+// Close viewer modal on Escape or overlay click
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeViewer();
+});
+document.getElementById('viewerModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeViewer();
 });
 
 // --- Versions ---
