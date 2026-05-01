@@ -135,6 +135,7 @@ func (s *Server) registerRoutes() {
 		// Jira
 		api.GET("/jira/config", s.handleJiraConfig)
 		api.GET("/jira/search", s.handleJiraSearch)
+		api.GET("/jira/issue/:key/related", s.handleJiraIssueRelated)
 		api.GET("/jira/issue/:key", s.handleJiraIssue)
 		api.GET("/jira/projects", s.handleJiraProjects)
 	}

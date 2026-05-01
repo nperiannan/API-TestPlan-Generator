@@ -59,6 +59,26 @@ thead th{background:#f5f5f5;padding:10px 14px;text-align:left;font-weight:600;co
 tbody td{padding:9px 14px;border-bottom:1px solid #eee;vertical-align:middle;}
 tbody tr:hover td{background:#fafafa;}
 
+/* Jira detail */
+.jira-detail{background:#f5f8ff;border-radius:10px;padding:20px;}
+.jira-detail h3{margin:0 0 8px;color:#222;}
+.jira-meta{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px;font-size:.9em;}
+.jira-counts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0;}
+.jira-count{background:#fff;border:1px solid #e0e7ff;border-radius:8px;padding:10px;text-align:center;}
+.jira-count .val{font-size:1.35em;font-weight:700;color:#1a73e8;}
+.jira-count .lbl{font-size:.78em;color:#667;text-transform:uppercase;letter-spacing:.3px;}
+.jira-section{background:#fff;border:1px solid #e5e7eb;border-radius:8px;margin-top:14px;overflow:hidden;}
+.jira-section h4{margin:0;padding:10px 14px;background:#f8fafc;color:#1a73e8;border-bottom:1px solid #e5e7eb;font-size:.95em;}
+.jira-section-body{padding:12px 14px;}
+.jira-empty{color:#888;font-size:.88em;}
+.jira-doc{white-space:normal;font-size:.88em;line-height:1.55;}
+.jira-doc p{margin:0 0 8px;}
+.jira-doc ul,.jira-doc ol{margin:6px 0 8px 22px;}
+.jira-doc h4{background:transparent;border:0;color:#222;padding:6px 0;margin:0;font-size:1em;}
+.jira-comment{border-top:1px solid #eee;padding:12px 0;}
+.jira-comment:first-child{border-top:0;padding-top:0;}
+.jira-comment-meta{font-size:.82em;color:#666;margin-bottom:6px;}
+
 /* Test count badges */
 .tc-badge{display:inline-block;min-width:36px;padding:2px 6px;border-radius:10px;font-size:.8em;font-weight:600;text-align:center;}
 .tc-functional{background:#e3f2fd;color:#1565c0;}
@@ -703,7 +723,7 @@ function parseCSVLine(line) {
 }
 
 function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function downloadViewerContent() {
@@ -1085,13 +1105,17 @@ function renderJiraIssues(data, container) {
 
 async function viewJiraIssue(key) {
   const container = document.getElementById('jiraResults');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   try {
-    const issue = await apiJSON('/api/jira/issue/' + key);
+    const [issue, related] = await Promise.all([
+      apiJSON('/api/jira/issue/' + key),
+      apiJSON('/api/jira/issue/' + key + '/related').catch(() => ({ children: { issues: [] } }))
+    ]);
     const f = issue.fields || {};
     let html = '<div style="margin-bottom:16px;"><button class="btn btn-sm btn-secondary" style="color:#333;" onclick="loadRecentJira()">&#8592; Back to list</button></div>';
-    html += '<div style="background:#f5f8ff;border-radius:10px;padding:20px;">';
+    html += '<div class="jira-detail">';
     html += '<h3 style="margin:0 0 8px;">'+escapeHtml(key)+': '+escapeHtml(f.summary||'')+'</h3>';
-    html += '<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;font-size:.9em;">';
+    html += '<div class="jira-meta">';
     if (f.status) html += '<div><strong>Status:</strong> '+escapeHtml(f.status.name||'')+'</div>';
     if (f.priority) html += '<div><strong>Priority:</strong> '+escapeHtml(f.priority.name||'')+'</div>';
     if (f.issuetype) html += '<div><strong>Type:</strong> '+escapeHtml(f.issuetype.name||'')+'</div>';
@@ -1099,47 +1123,153 @@ async function viewJiraIssue(key) {
     if (f.created) html += '<div><strong>Created:</strong> '+new Date(f.created).toLocaleDateString()+'</div>';
     if (f.updated) html += '<div><strong>Updated:</strong> '+new Date(f.updated).toLocaleDateString()+'</div>';
     html += '</div>';
+
+    const children = (((related || {}).children || {}).issues) || [];
+    const links = f.issuelinks || [];
+    const subtasks = f.subtasks || [];
+    const attachments = f.attachment || [];
+    const commentBlock = f.comment || {};
+    const comments = commentBlock.comments || [];
+    const commentTotal = commentBlock.total || comments.length;
+
+    html += '<div class="jira-counts">';
+    html += renderJiraCount('Children', children.length);
+    html += renderJiraCount('Subtasks', subtasks.length);
+    html += renderJiraCount('Links', links.length);
+    html += renderJiraCount('Attachments', attachments.length);
+    html += renderJiraCount('Comments', commentTotal);
+    html += '</div>';
+
     if (f.labels && f.labels.length) {
       html += '<div style="margin-bottom:12px;"><strong>Labels:</strong> ' + f.labels.map(l => '<span style="background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:10px;font-size:.82em;margin-right:4px;">'+escapeHtml(l)+'</span>').join('') + '</div>';
     }
+    if (f.parent) html += renderJiraIssueSection('Parent', [f.parent]);
+    html += renderJiraIssueSection('Child Stories / Tasks', children);
+    html += renderJiraIssueSection('Subtasks', subtasks);
+    html += renderJiraLinksSection(links);
+    html += renderJiraAttachmentsSection(attachments);
     if (f.description) {
-      html += '<div style="margin-top:12px;"><strong>Description:</strong></div>';
-      html += '<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-top:8px;max-height:400px;overflow-y:auto;white-space:pre-wrap;font-size:.88em;">'+renderAtlassianDoc(f.description)+'</div>';
+      html += '<div class="jira-section"><h4>Description</h4><div class="jira-section-body jira-doc" style="max-height:420px;overflow:auto;">'+renderAtlassianDoc(f.description)+'</div></div>';
     }
+    html += renderJiraCommentsSection(comments, commentTotal);
     html += '</div>';
     container.innerHTML = html;
   } catch (e) {
     showToast('Failed to load issue: ' + e.message, 'error');
+    container.innerHTML = '<p style="color:#c62828;">Failed to load issue: ' + escapeHtml(e.message) + '</p>';
   }
 }
 
-function renderAtlassianDoc(doc) {
-  if (!doc || !doc.content) return '<em>No description</em>';
-  let text = '';
-  for (const block of doc.content) {
-    if (block.type === 'paragraph' && block.content) {
-      for (const node of block.content) {
-        if (node.type === 'text') text += escapeHtml(node.text || '');
-      }
-      text += '\n';
-    } else if (block.type === 'heading' && block.content) {
-      for (const node of block.content) {
-        if (node.type === 'text') text += escapeHtml(node.text || '');
-      }
-      text += '\n';
-    } else if (block.type === 'bulletList' && block.content) {
-      for (const item of block.content) {
-        text += '  • ';
-        if (item.content) {
-          for (const p of item.content) {
-            if (p.content) for (const n of p.content) { if (n.type === 'text') text += escapeHtml(n.text || ''); }
-          }
-        }
-        text += '\n';
-      }
-    }
+function renderJiraCount(label, value) {
+  return '<div class="jira-count"><div class="val">'+value+'</div><div class="lbl">'+escapeHtml(label)+'</div></div>';
+}
+
+function jiraBrowseUrl(issue) {
+  const self = issue && issue.self ? issue.self : '';
+  const base = self.includes('/rest/') ? self.split('/rest/')[0] : 'https://extremenetworks.atlassian.net';
+  return base + '/browse/' + encodeURIComponent(issue.key || '');
+}
+
+function renderJiraIssueSection(title, issues) {
+  if (!issues || !issues.length) return renderJiraSection(title, '<span class="jira-empty">None found.</span>');
+  let html = '<table><thead><tr><th>Key</th><th>Type</th><th>Summary</th><th>Status</th><th>Priority</th><th>Assignee</th><th>Updated</th></tr></thead><tbody>';
+  for (const issue of issues) {
+    const f = issue.fields || {};
+    const type = f.issuetype ? escapeHtml(f.issuetype.name || '') : '';
+    const status = f.status ? escapeHtml(f.status.name || '') : '';
+    const priority = f.priority ? escapeHtml(f.priority.name || '') : '';
+    const assignee = f.assignee ? escapeHtml(f.assignee.displayName || '') : '<span style="color:#aaa;">Unassigned</span>';
+    const updated = f.updated ? new Date(f.updated).toLocaleDateString() : '';
+    html += '<tr>';
+    html += '<td><a href="javascript:void(0)" onclick="viewJiraIssue(\''+escapeHtml(issue.key)+'\')" style="color:#1a73e8;font-weight:600;">'+escapeHtml(issue.key)+'</a> <a href="'+jiraBrowseUrl(issue)+'" target="_blank" rel="noopener" style="color:#888;text-decoration:none;">&#8599;</a></td>';
+    html += '<td>'+type+'</td><td>'+escapeHtml(f.summary || '')+'</td><td>'+status+'</td><td>'+priority+'</td><td>'+assignee+'</td><td>'+updated+'</td>';
+    html += '</tr>';
   }
-  return text || '<em>No description</em>';
+  html += '</tbody></table>';
+  return renderJiraSection(title + ' (' + issues.length + ')', html);
+}
+
+function renderJiraLinksSection(links) {
+  if (!links || !links.length) return renderJiraSection('Linked Issues', '<span class="jira-empty">None found.</span>');
+  let html = '<table><thead><tr><th>Relation</th><th>Key</th><th>Type</th><th>Summary</th><th>Status</th><th>Priority</th></tr></thead><tbody>';
+  for (const link of links) {
+    const issue = link.outwardIssue || link.inwardIssue;
+    if (!issue) continue;
+    const relation = link.outwardIssue ? ((link.type || {}).outward || '') : ((link.type || {}).inward || '');
+    const f = issue.fields || {};
+    html += '<tr>';
+    html += '<td>'+escapeHtml(relation)+'</td>';
+    html += '<td><a href="javascript:void(0)" onclick="viewJiraIssue(\''+escapeHtml(issue.key)+'\')" style="color:#1a73e8;font-weight:600;">'+escapeHtml(issue.key)+'</a> <a href="'+jiraBrowseUrl(issue)+'" target="_blank" rel="noopener" style="color:#888;text-decoration:none;">&#8599;</a></td>';
+    html += '<td>'+escapeHtml((f.issuetype || {}).name || '')+'</td><td>'+escapeHtml(f.summary || '')+'</td><td>'+escapeHtml((f.status || {}).name || '')+'</td><td>'+escapeHtml((f.priority || {}).name || '')+'</td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  return renderJiraSection('Linked Issues (' + links.length + ')', html);
+}
+
+function renderJiraAttachmentsSection(attachments) {
+  if (!attachments || !attachments.length) return renderJiraSection('Attachments', '<span class="jira-empty">None found.</span>');
+  let html = '<table><thead><tr><th>File</th><th>Type</th><th>Size</th><th>Author</th><th>Created</th></tr></thead><tbody>';
+  for (const a of attachments) {
+    html += '<tr>';
+    html += '<td><a href="'+escapeHtml(a.content || '#')+'" target="_blank" rel="noopener" style="color:#1a73e8;font-weight:600;">'+escapeHtml(a.filename || 'attachment')+'</a></td>';
+    html += '<td>'+escapeHtml(a.mimeType || '')+'</td><td>'+formatSize(a.size || 0)+'</td><td>'+escapeHtml((a.author || {}).displayName || '')+'</td><td>'+(a.created ? new Date(a.created).toLocaleString() : '')+'</td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  return renderJiraSection('Attachments (' + attachments.length + ')', html);
+}
+
+function renderJiraCommentsSection(comments, total) {
+  if (!comments || !comments.length) return renderJiraSection('Comments', '<span class="jira-empty">None found.</span>');
+  let html = '';
+  for (const comment of comments) {
+    const author = (comment.author || {}).displayName || 'Unknown';
+    const updated = comment.updated || comment.created;
+    html += '<div class="jira-comment">';
+    html += '<div class="jira-comment-meta"><strong>'+escapeHtml(author)+'</strong>'+(updated ? ' - '+new Date(updated).toLocaleString() : '')+'</div>';
+    html += '<div class="jira-doc">'+renderAtlassianDoc(comment.body)+'</div>';
+    html += '</div>';
+  }
+  return renderJiraSection('Comments (' + total + ')', html);
+}
+
+function renderJiraSection(title, body) {
+  return '<div class="jira-section"><h4>'+escapeHtml(title)+'</h4><div class="jira-section-body">'+body+'</div></div>';
+}
+
+function renderAtlassianDoc(doc) {
+  if (!doc) return '<em>No content</em>';
+  if (typeof doc === 'string') return escapeHtml(doc).replace(/\n/g, '<br>');
+
+  const renderNode = (node) => {
+    if (!node) return '';
+    if (node.type === 'text') {
+      let text = escapeHtml(node.text || '');
+      for (const mark of node.marks || []) {
+        if (mark.type === 'strong') text = '<strong>'+text+'</strong>';
+        else if (mark.type === 'em') text = '<em>'+text+'</em>';
+        else if (mark.type === 'code') text = '<code>'+text+'</code>';
+        else if (mark.type === 'link' && mark.attrs && mark.attrs.href) text = '<a href="'+escapeHtml(mark.attrs.href)+'" target="_blank" rel="noopener">'+text+'</a>';
+      }
+      return text;
+    }
+    const content = (node.content || []).map(renderNode).join('');
+    if (node.type === 'doc') return content;
+    if (node.type === 'paragraph') return '<p>'+content+'</p>';
+    if (node.type === 'hardBreak') return '<br>';
+    if (node.type === 'heading') return '<h4>'+content+'</h4>';
+    if (node.type === 'bulletList') return '<ul>'+content+'</ul>';
+    if (node.type === 'orderedList') return '<ol>'+content+'</ol>';
+    if (node.type === 'listItem') return '<li>'+content+'</li>';
+    if (node.type === 'blockquote') return '<blockquote>'+content+'</blockquote>';
+    if (node.type === 'codeBlock') return '<pre>'+content+'</pre>';
+    if (node.type === 'mention') return escapeHtml((node.attrs || {}).text || '');
+    if (node.type === 'inlineCard') return '<a href="'+escapeHtml((node.attrs || {}).url || '#')+'" target="_blank" rel="noopener">'+escapeHtml((node.attrs || {}).url || 'link')+'</a>';
+    return content;
+  };
+
+  return renderNode(doc) || '<em>No content</em>';
 }
 
 // Handle Enter key in Jira search

@@ -1215,19 +1215,32 @@ func (s *Server) handleJiraSearch(c *gin.Context) {
 		maxResultsInt = 50
 	}
 
-	// Use POST /rest/api/3/search/jql (new Jira Cloud endpoint)
+	result, statusCode, searchErr := s.searchJiraIssues(jcfg, jql, maxResultsInt, []string{"summary", "status", "priority", "assignee", "created", "updated", "issuetype", "labels", "parent"})
+	if searchErr != nil {
+		if statusCode == 0 {
+			statusCode = http.StatusBadGateway
+		}
+		c.JSON(statusCode, gin.H{"error": searchErr.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (s *Server) searchJiraIssues(jcfg *jiraConfig, jql string, maxResults int, fields []string) (interface{}, int, error) {
+	if maxResults <= 0 {
+		maxResults = 50
+	}
 	body := map[string]interface{}{
 		"jql":        jql,
-		"maxResults": maxResultsInt,
-		"fields":     []string{"summary", "status", "priority", "assignee", "created", "updated", "issuetype", "labels"},
+		"maxResults": maxResults,
+		"fields":     fields,
 	}
 	bodyBytes, _ := json.Marshal(body)
 
 	apiURL := fmt.Sprintf("%s/rest/api/3/search/jql", jcfg.URL)
 	req, err := http.NewRequest("POST", apiURL, bytes.NewReader(bodyBytes))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return nil, 0, err
 	}
 	auth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", jcfg.Email, jcfg.Token)))
 	req.Header.Set("Authorization", "Basic "+auth)
@@ -1237,24 +1250,20 @@ func (s *Server) handleJiraSearch(c *gin.Context) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to reach Jira: " + err.Error()})
-		return
+		return nil, 0, fmt.Errorf("failed to reach Jira: %w", err)
 	}
 	defer resp.Body.Close()
 
 	respBody, _ := io.ReadAll(resp.Body)
-
 	if resp.StatusCode != http.StatusOK {
-		c.JSON(resp.StatusCode, gin.H{"error": fmt.Sprintf("Jira returned HTTP %d: %s", resp.StatusCode, string(respBody))})
-		return
+		return nil, resp.StatusCode, fmt.Errorf("Jira returned HTTP %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var result interface{}
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse Jira response"})
-		return
+		return nil, resp.StatusCode, fmt.Errorf("failed to parse Jira response: %s", string(respBody))
 	}
-	c.JSON(http.StatusOK, result)
+	return result, resp.StatusCode, nil
 }
 
 // fetchJiraIssue fetches a single issue by key, returns parsed JSON, status code, and error
@@ -1302,6 +1311,38 @@ func (s *Server) handleJiraIssue(c *gin.Context) {
 		return
 	}
 	c.JSON(statusCode, result)
+}
+
+// handleJiraIssueRelated returns child stories/tasks for an issue key.
+func (s *Server) handleJiraIssueRelated(c *gin.Context) {
+	jcfg, err := s.loadJiraConfig()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Jira not configured"})
+		return
+	}
+
+	key := strings.TrimSpace(c.Param("key"))
+	issueKeyRe := regexp.MustCompile(`^[A-Z]+-\d+$`)
+	if !issueKeyRe.MatchString(key) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid Jira issue key"})
+		return
+	}
+
+	children, statusCode, searchErr := s.searchJiraIssues(
+		jcfg,
+		fmt.Sprintf("parent = %s ORDER BY created DESC", key),
+		100,
+		[]string{"summary", "status", "priority", "assignee", "created", "updated", "issuetype", "labels", "parent"},
+	)
+	if searchErr != nil {
+		if statusCode == 0 {
+			statusCode = http.StatusBadGateway
+		}
+		c.JSON(statusCode, gin.H{"error": searchErr.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"children": children})
 }
 
 // handleJiraProjects lists accessible Jira projects
