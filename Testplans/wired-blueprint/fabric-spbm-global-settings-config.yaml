@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_2995
+            - testCaseID: TCXM_3023
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -67,7 +67,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2996
+            - testCaseID: TCXM_3024
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -123,8 +123,442 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
+            - testCaseID: TCXM_3046
+              featureName: fabric-spbm-global-settings-config
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy fabric-spbm-global-settings-config with boundary value for 'nickname-server-prefix' (minLength)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create fabric-spbm-global-settings-config with fabric-spbm-global-settings-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: ""
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify fabric-spbm-global-settings-config accepted boundary value for 'nickname-server-prefix'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-global-settings-config retrieved — response contains fabric-spbm-global-settings-config
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-global-settings-config retrieved — response contains fabric-spbm-global-settings-config
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: minLength
+                deploymentSample: boundary
+                field: nickname-server-prefix
+            - testCaseID: TCXM_3047
+              featureName: fabric-spbm-global-settings-config
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy fabric-spbm-global-settings-config with boundary value for 'nickname-server-prefix' (maxLength)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create fabric-spbm-global-settings-config with fabric-spbm-global-settings-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify fabric-spbm-global-settings-config accepted boundary value for 'nickname-server-prefix'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-global-settings-config retrieved — response contains fabric-spbm-global-settings-config
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-global-settings-config retrieved — response contains fabric-spbm-global-settings-config
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: maxLength
+                deploymentSample: boundary
+                field: nickname-server-prefix
         functional:
-            - testCaseID: TCXM_2906
+            - testCaseID: TCXM_2934
               featureName: fabric-spbm-global-settings-config
               priority: P1
               automation: Automatable
@@ -236,7 +670,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='nickname-server-prefix')].value
                       expected: A.00.00
                       description: Verify 'nickname-server-prefix' value is 'A.00.00' as set during create
-            - testCaseID: TCXM_2907
+            - testCaseID: TCXM_2935
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -327,7 +761,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify fabric-spbm-global-settings-config retrieved — response contains modify enabled=false
-            - testCaseID: TCXM_2908
+            - testCaseID: TCXM_2936
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -408,12 +842,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config no longer exists in the response
-            - testCaseID: TCXM_2909
+            - testCaseID: TCXM_2937
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for fabric-spbm-global-settings-config (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for fabric-spbm-global-settings-config (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -533,7 +967,24 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config deleted successfully
-            - testCaseID: TCXM_2910
+                - name: verifyDeletion
+                  description: Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config no longer exists in the response
+            - testCaseID: TCXM_2938
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -624,7 +1075,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify fabric-spbm-global-settings-config retrieved — response contains modify enabled=false
-            - testCaseID: TCXM_2911
+            - testCaseID: TCXM_2939
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -700,7 +1151,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of fabric-spbm-global-settings-config with fabric-spbm-global-settings-config is rejected (409 Conflict)
-            - testCaseID: TCXM_2912
+            - testCaseID: TCXM_2940
               featureName: fabric-spbm-global-settings-config
               priority: P1
               automation: Automatable
@@ -903,7 +1354,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2913
+            - testCaseID: TCXM_2941
               featureName: fabric-spbm-global-settings-config
               priority: P1
               automation: Automatable
@@ -1106,7 +1557,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2914
+            - testCaseID: TCXM_2942
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -1296,7 +1747,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2915
+            - testCaseID: TCXM_2943
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -1347,7 +1798,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_2916
+            - testCaseID: TCXM_2944
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -1437,7 +1888,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='nickname-server-prefix')].value
                       expected: A.00.00
                       description: Verify field 'nickname-server-prefix' has value 'A.00.00' as sent on create
-            - testCaseID: TCXM_2917
+            - testCaseID: TCXM_2945
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -1497,7 +1948,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: true
                       description: Verify optional field 'enabled' value is 'true' as set on create
-            - testCaseID: TCXM_2918
+            - testCaseID: TCXM_2946
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -1557,7 +2008,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='nickname-server-enabled')].value
                       expected: false
                       description: Verify optional field 'nickname-server-enabled' value is 'false' as set on create
-            - testCaseID: TCXM_2919
+            - testCaseID: TCXM_2947
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -1617,7 +2068,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='nickname-server-prefix')].value
                       expected: A.00.00
                       description: Verify optional field 'nickname-server-prefix' value is 'A.00.00' as set on create
-            - testCaseID: TCXM_2920
+            - testCaseID: TCXM_2948
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -1681,7 +2132,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: true
                       description: Verify 'enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_2921
+            - testCaseID: TCXM_2949
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -1745,7 +2196,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: false
                       description: Verify 'enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_2922
+            - testCaseID: TCXM_2950
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -1809,7 +2260,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='nickname-server-prefix')].value
                       expected: test-value-1
                       description: Verify 'nickname-server-prefix' YANG type 'string' value is persisted
-            - testCaseID: TCXM_2923
+            - testCaseID: TCXM_2951
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -1873,7 +2324,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='nickname-server-prefix')].value
                       expected: test-value-2
                       description: Verify 'nickname-server-prefix' YANG type 'string' value is persisted
-            - testCaseID: TCXM_2924
+            - testCaseID: TCXM_2952
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -1925,7 +2376,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: true
                       description: Verify 'enabled' equals YANG-defined default value true
-            - testCaseID: TCXM_2925
+            - testCaseID: TCXM_2953
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -1977,7 +2428,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='nickname-server-enabled')].value
                       expected: false
                       description: Verify 'nickname-server-enabled' equals YANG-defined default value false
-            - testCaseID: TCXM_2926
+            - testCaseID: TCXM_2954
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -2029,7 +2480,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='nickname-server-prefix')].value
                       expected: A.00.00
                       description: Verify 'nickname-server-prefix' equals YANG-defined default value A.00.00
-            - testCaseID: TCXM_2927
+            - testCaseID: TCXM_2955
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -2219,7 +2670,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2928
+            - testCaseID: TCXM_2956
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -2409,7 +2860,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2929
+            - testCaseID: TCXM_2957
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -2599,7 +3050,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2930
+            - testCaseID: TCXM_2958
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -2789,7 +3240,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2931
+            - testCaseID: TCXM_2959
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -2979,7 +3430,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2932
+            - testCaseID: TCXM_2960
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -3169,7 +3620,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2933
+            - testCaseID: TCXM_2961
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -3359,7 +3810,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2934
+            - testCaseID: TCXM_2962
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -3549,7 +4000,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2935
+            - testCaseID: TCXM_2963
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -3739,7 +4190,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2936
+            - testCaseID: TCXM_2964
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -3929,7 +4380,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2937
+            - testCaseID: TCXM_2965
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -4119,7 +4570,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2938
+            - testCaseID: TCXM_2966
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -4309,7 +4760,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2939
+            - testCaseID: TCXM_2967
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -4499,7 +4950,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2940
+            - testCaseID: TCXM_2968
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -4689,7 +5140,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2941
+            - testCaseID: TCXM_2969
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -4879,7 +5330,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2942
+            - testCaseID: TCXM_2970
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -5069,7 +5520,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2943
+            - testCaseID: TCXM_2971
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -5259,7 +5710,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2944
+            - testCaseID: TCXM_2972
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -5449,7 +5900,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2945
+            - testCaseID: TCXM_2973
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -5639,7 +6090,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2946
+            - testCaseID: TCXM_2974
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -5829,7 +6280,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2947
+            - testCaseID: TCXM_2975
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -6019,7 +6470,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2948
+            - testCaseID: TCXM_2976
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -6209,7 +6660,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2949
+            - testCaseID: TCXM_2977
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -6399,7 +6850,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2950
+            - testCaseID: TCXM_2978
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -6589,7 +7040,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2951
+            - testCaseID: TCXM_2979
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -6781,7 +7232,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2952
+            - testCaseID: TCXM_2980
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -6973,7 +7424,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2953
+            - testCaseID: TCXM_2981
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -7165,7 +7616,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2954
+            - testCaseID: TCXM_2982
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -7357,7 +7808,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2955
+            - testCaseID: TCXM_2983
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -7549,7 +8000,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2956
+            - testCaseID: TCXM_2984
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -7741,7 +8192,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2957
+            - testCaseID: TCXM_2985
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -7933,7 +8384,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2958
+            - testCaseID: TCXM_2986
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -8125,7 +8576,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2959
+            - testCaseID: TCXM_2987
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -8317,7 +8768,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2960
+            - testCaseID: TCXM_2988
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -8509,7 +8960,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2961
+            - testCaseID: TCXM_2989
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -8699,7 +9150,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2962
+            - testCaseID: TCXM_2990
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -8889,7 +9340,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2963
+            - testCaseID: TCXM_2991
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -9079,7 +9530,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2964
+            - testCaseID: TCXM_2992
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -9269,7 +9720,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2965
+            - testCaseID: TCXM_2993
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -9459,7 +9910,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2966
+            - testCaseID: TCXM_2994
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -9649,7 +10100,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2967
+            - testCaseID: TCXM_2995
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -9839,7 +10290,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2968
+            - testCaseID: TCXM_2996
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -10029,7 +10480,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2969
+            - testCaseID: TCXM_2997
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -10219,7 +10670,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2970
+            - testCaseID: TCXM_2998
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -10409,7 +10860,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2971
+            - testCaseID: TCXM_2999
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -10599,7 +11050,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2972
+            - testCaseID: TCXM_3000
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -10789,7 +11240,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2973
+            - testCaseID: TCXM_3001
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -10979,7 +11430,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2974
+            - testCaseID: TCXM_3002
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -11169,7 +11620,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2975
+            - testCaseID: TCXM_3003
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -11359,7 +11810,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2976
+            - testCaseID: TCXM_3004
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -11549,7 +12000,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2977
+            - testCaseID: TCXM_3005
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -11739,7 +12190,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2978
+            - testCaseID: TCXM_3006
               featureName: fabric-spbm-global-settings-config
               priority: P1
               automation: Automatable
@@ -11900,14 +12351,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to device at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -11917,7 +12368,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2979
+            - testCaseID: TCXM_3007
               featureName: fabric-spbm-global-settings-config
               priority: P1
               automation: Automatable
@@ -12078,14 +12529,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to site at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -12095,7 +12546,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2980
+            - testCaseID: TCXM_3008
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -12260,7 +12711,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -12271,14 +12722,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T10:34:54Z
+                  description: Edit deployment schedule to 2026-05-01T11:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:34:54Z"
+                    deployAt: "2026-05-01T11:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -12288,7 +12739,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2981
+            - testCaseID: TCXM_3009
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -12453,7 +12904,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -12479,7 +12930,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2982
+            - testCaseID: TCXM_3010
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -12541,7 +12992,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2983
+            - testCaseID: TCXM_3011
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -12606,7 +13057,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2984
+            - testCaseID: TCXM_3012
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -12859,7 +13310,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_2985
+            - testCaseID: TCXM_3013
               featureName: fabric-spbm-global-settings-config
               priority: P1
               automation: Automatable
@@ -13212,7 +13663,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_2986
+            - testCaseID: TCXM_3014
               featureName: fabric-spbm-global-settings-config
               priority: P1
               automation: Automatable
@@ -13567,7 +14018,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for fabric-spbm-global-settings-config — device value accepted as new cloud baseline
-            - testCaseID: TCXM_2987
+            - testCaseID: TCXM_3015
               featureName: fabric-spbm-global-settings-config
               priority: P1
               automation: Automatable
@@ -13807,7 +14258,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_2988
+            - testCaseID: TCXM_3016
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -14004,7 +14455,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_2989
+            - testCaseID: TCXM_3017
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -14201,7 +14652,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_2990
+            - testCaseID: TCXM_3018
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -14383,7 +14834,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_2991
+            - testCaseID: TCXM_3019
               featureName: fabric-spbm-global-settings-config
               priority: P1
               automation: Automatable
@@ -14579,7 +15030,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_2992
+            - testCaseID: TCXM_3020
               featureName: fabric-spbm-global-settings-config
               priority: P1
               automation: Automatable
@@ -14793,7 +15244,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2993
+            - testCaseID: TCXM_3021
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -14908,7 +15359,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_2994
+            - testCaseID: TCXM_3022
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -14937,8 +15388,358 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
+            - testCaseID: TCXM_3045
+              featureName: fabric-spbm-global-settings-config
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for fabric-spbm-global-settings-config (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create fabric-spbm-global-settings-config with fabric-spbm-global-settings-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: A.00.00
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config was created
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-global-settings-config retrieved — response contains fabric-spbm-global-settings-config
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-global-settings-config retrieved — response contains fabric-spbm-global-settings-config
+                - name: updateResource
+                  description: Update fabric-spbm-global-settings-config — modify enabled=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: spbm-global
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-global-settings-config updated successfully with modify enabled=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-global-settings-config updated successfully with modify enabled=false
+                - name: verifyUpdate
+                  description: Verify fabric-spbm-global-settings-config was updated — modify enabled=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-global-settings-config retrieved — response contains modify enabled=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-global-settings-config retrieved — response contains modify enabled=false
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: deleteResource
+                  description: Delete fabric-spbm-global-settings-config with fabric-spbm-global-settings-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config deleted successfully
+                - name: verifyDeletion
+                  description: Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-global-settings-config with fabric-spbm-global-settings-config no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_2997
+            - testCaseID: TCXM_3025
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -14983,7 +15784,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2998
+            - testCaseID: TCXM_3026
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -15024,7 +15825,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2999
+            - testCaseID: TCXM_3027
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -15065,7 +15866,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3000
+            - testCaseID: TCXM_3028
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -15095,7 +15896,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enabled' is omitted
-            - testCaseID: TCXM_3001
+            - testCaseID: TCXM_3029
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -15125,7 +15926,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'nickname-server-enabled' is omitted
-            - testCaseID: TCXM_3002
+            - testCaseID: TCXM_3030
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -15155,7 +15956,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'nickname-server-prefix' is omitted
-            - testCaseID: TCXM_3003
+            - testCaseID: TCXM_3031
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -15203,7 +16004,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3004
+            - testCaseID: TCXM_3032
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -15251,7 +16052,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3005
+            - testCaseID: TCXM_3033
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -15294,7 +16095,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3006
+            - testCaseID: TCXM_3034
               featureName: fabric-spbm-global-settings-config
               priority: P2
               automation: Automatable
@@ -15319,7 +16120,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_3012
+            - testCaseID: TCXM_3040
               featureName: fabric-spbm-global-settings-config
               priority: P4
               automation: Automatable
@@ -15711,7 +16512,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_3013
+            - testCaseID: TCXM_3041
               featureName: fabric-spbm-global-settings-config
               priority: P4
               automation: Automatable
@@ -15933,7 +16734,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_3014
+            - testCaseID: TCXM_3042
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -16292,7 +17093,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_3015
+            - testCaseID: TCXM_3043
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -16893,7 +17694,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_3016
+            - testCaseID: TCXM_3044
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -17158,7 +17959,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_3007
+            - testCaseID: TCXM_3035
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -20468,7 +21269,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_3008
+            - testCaseID: TCXM_3036
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -20511,7 +21312,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_3009
+            - testCaseID: TCXM_3037
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -22255,7 +23056,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_3010
+            - testCaseID: TCXM_3038
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -22564,7 +23365,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_3011
+            - testCaseID: TCXM_3039
               featureName: fabric-spbm-global-settings-config
               priority: P3
               automation: Automatable
@@ -29175,3 +29976,358 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_3048
+              featureName: fabric-spbm-global-settings-config
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative fabric-spbm-global-settings-config instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for fabric-spbm-global-settings-config with fabric-spbm-global-settings-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: A.00.00
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for fabric-spbm-global-settings-config with fabric-spbm-global-settings-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: A.00.00
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for fabric-spbm-global-settings-config with fabric-spbm-global-settings-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: A.00.00
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for fabric-spbm-global-settings-config with fabric-spbm-global-settings-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: A.00.00
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for fabric-spbm-global-settings-config with fabric-spbm-global-settings-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-global-feature
+                    objectType: spbm-global
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: nickname-server-enabled
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: nickname-server-prefix
+                              origin: CC
+                              type: string
+                              value: A.00.00
+                          type: spbm-global
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-global-settings-config created successfully with fabric-spbm-global-settings-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

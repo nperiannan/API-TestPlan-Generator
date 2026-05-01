@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_2831
+            - testCaseID: TCXM_2855
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -75,7 +75,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2832
+            - testCaseID: TCXM_2856
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -139,7 +139,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2833
+            - testCaseID: TCXM_2857
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -203,7 +203,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2834
+            - testCaseID: TCXM_2858
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -267,7 +267,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2835
+            - testCaseID: TCXM_2859
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -331,7 +331,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2836
+            - testCaseID: TCXM_2860
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -395,7 +395,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2837
+            - testCaseID: TCXM_2861
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -463,7 +463,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2838
+            - testCaseID: TCXM_2862
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -531,7 +531,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2839
+            - testCaseID: TCXM_2863
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -599,7 +599,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2840
+            - testCaseID: TCXM_2864
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -667,7 +667,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2841
+            - testCaseID: TCXM_2865
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -735,7 +735,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2842
+            - testCaseID: TCXM_2866
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -803,8 +803,458 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
+            - testCaseID: TCXM_2931
+              featureName: fabric-isis-global-config
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy fabric-isis-global-config with boundary value for 'area-type' (enum)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create fabric-isis-global-config with fabric-isis-global-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                            - name: sys-admin-state
+                              origin: CC
+                              type: string
+                              value: "ON"
+                            - name: sys-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: sys-name
+                              origin: CC
+                              type: string
+                              value: test-sys
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: ""
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify fabric-isis-global-config accepted boundary value for 'area-type'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-isis-global-config retrieved — response contains fabric-isis-global-config
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-isis-global-config retrieved — response contains fabric-isis-global-config
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: enum
+                deploymentSample: boundary
+                field: area-type
+            - testCaseID: TCXM_2932
+              featureName: fabric-isis-global-config
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy fabric-isis-global-config with boundary value for 'sys-admin-state' (enum)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create fabric-isis-global-config with fabric-isis-global-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                            - name: sys-admin-state
+                              origin: CC
+                              type: string
+                              value: "OFF"
+                            - name: sys-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: sys-name
+                              origin: CC
+                              type: string
+                              value: test-sys
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: ""
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify fabric-isis-global-config accepted boundary value for 'sys-admin-state'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-isis-global-config retrieved — response contains fabric-isis-global-config
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-isis-global-config retrieved — response contains fabric-isis-global-config
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: enum
+                deploymentSample: boundary
+                field: sys-admin-state
         functional:
-            - testCaseID: TCXM_2658
+            - testCaseID: TCXM_2682
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -942,7 +1392,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-name')].value
                       expected: ""
                       description: Verify 'area-name' value is '' as set during create
-            - testCaseID: TCXM_2659
+            - testCaseID: TCXM_2683
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1041,7 +1491,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify fabric-isis-global-config retrieved — response contains modify area-type=REMOTE
-            - testCaseID: TCXM_2660
+            - testCaseID: TCXM_2684
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -1130,12 +1580,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify fabric-isis-global-config with fabric-isis-global-config no longer exists in the response
-            - testCaseID: TCXM_2661
+            - testCaseID: TCXM_2685
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for fabric-isis-global-config (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for fabric-isis-global-config (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -1263,7 +1713,24 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify fabric-isis-global-config with fabric-isis-global-config deleted successfully
-            - testCaseID: TCXM_2662
+                - name: verifyDeletion
+                  description: Verify fabric-isis-global-config with fabric-isis-global-config is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-isis-global-config with fabric-isis-global-config no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-isis-global-config with fabric-isis-global-config no longer exists in the response
+            - testCaseID: TCXM_2686
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1362,7 +1829,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify fabric-isis-global-config retrieved — response contains modify area-type=REMOTE
-            - testCaseID: TCXM_2663
+            - testCaseID: TCXM_2687
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -1454,7 +1921,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of fabric-isis-global-config with fabric-isis-global-config is rejected (409 Conflict)
-            - testCaseID: TCXM_2664
+            - testCaseID: TCXM_2688
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -1665,7 +2132,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2665
+            - testCaseID: TCXM_2689
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -1876,7 +2343,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2666
+            - testCaseID: TCXM_2690
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2074,7 +2541,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2667
+            - testCaseID: TCXM_2691
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2125,7 +2592,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_2668
+            - testCaseID: TCXM_2692
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2267,7 +2734,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='manual-area-address')].value
                       expected: 8.8.8.8
                       description: Verify field 'manual-area-address' has value '8.8.8.8' as sent on create
-            - testCaseID: TCXM_2669
+            - testCaseID: TCXM_2693
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -2327,7 +2794,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-type')].value
                       expected: HOME
                       description: Verify optional field 'area-type' value is 'HOME' as set on create
-            - testCaseID: TCXM_2670
+            - testCaseID: TCXM_2694
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -2387,7 +2854,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-admin-state')].value
                       expected: "ON"
                       description: Verify optional field 'sys-admin-state' value is 'ON' as set on create
-            - testCaseID: TCXM_2671
+            - testCaseID: TCXM_2695
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -2447,7 +2914,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-id')].value
                       expected: testValue
                       description: Verify optional field 'sys-id' value is 'testValue' as set on create
-            - testCaseID: TCXM_2672
+            - testCaseID: TCXM_2696
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -2507,7 +2974,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-name')].value
                       expected: test-sys
                       description: Verify optional field 'sys-name' value is 'test-sys' as set on create
-            - testCaseID: TCXM_2673
+            - testCaseID: TCXM_2697
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -2567,7 +3034,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-name')].value
                       expected: ""
                       description: Verify optional field 'area-name' value is '' as set on create
-            - testCaseID: TCXM_2674
+            - testCaseID: TCXM_2698
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -2627,7 +3094,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-source-address')].value
                       expected: 8.8.8.8
                       description: Verify optional field 'ip-source-address' value is '8.8.8.8' as set on create
-            - testCaseID: TCXM_2675
+            - testCaseID: TCXM_2699
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -2687,7 +3154,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='manual-area-address')].value
                       expected: 8.8.8.8
                       description: Verify optional field 'manual-area-address' value is '8.8.8.8' as set on create
-            - testCaseID: TCXM_2676
+            - testCaseID: TCXM_2700
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2759,7 +3226,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-type')].value
                       expected: HOME
                       description: Verify 'area-type' YANG type 'intent-types:area-type-enum' value is persisted
-            - testCaseID: TCXM_2677
+            - testCaseID: TCXM_2701
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2831,7 +3298,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-type')].value
                       expected: REMOTE
                       description: Verify 'area-type' YANG type 'intent-types:area-type-enum' value is persisted
-            - testCaseID: TCXM_2678
+            - testCaseID: TCXM_2702
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2903,7 +3370,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-admin-state')].value
                       expected: "OFF"
                       description: Verify 'sys-admin-state' YANG type 'intent-types:sys-admin-state-enum' value is persisted
-            - testCaseID: TCXM_2679
+            - testCaseID: TCXM_2703
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -2975,7 +3442,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-admin-state')].value
                       expected: "ON"
                       description: Verify 'sys-admin-state' YANG type 'intent-types:sys-admin-state-enum' value is persisted
-            - testCaseID: TCXM_2680
+            - testCaseID: TCXM_2704
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3047,7 +3514,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-id')].value
                       expected: test-value-1
                       description: Verify 'sys-id' YANG type 'string' value is persisted
-            - testCaseID: TCXM_2681
+            - testCaseID: TCXM_2705
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3119,7 +3586,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-id')].value
                       expected: test-value-2
                       description: Verify 'sys-id' YANG type 'string' value is persisted
-            - testCaseID: TCXM_2682
+            - testCaseID: TCXM_2706
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3195,7 +3662,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-source-address')].value
                       expected: 192.168.1.1
                       description: Verify 'ip-source-address' YANG type 'ietf-inet:ipv4-address' value is persisted
-            - testCaseID: TCXM_2683
+            - testCaseID: TCXM_2707
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3271,7 +3738,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-source-address')].value
                       expected: 10.0.0.1
                       description: Verify 'ip-source-address' YANG type 'ietf-inet:ipv4-address' value is persisted
-            - testCaseID: TCXM_2684
+            - testCaseID: TCXM_2708
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3323,7 +3790,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-type')].value
                       expected: HOME
                       description: Verify 'area-type' equals YANG-defined default value HOME
-            - testCaseID: TCXM_2685
+            - testCaseID: TCXM_2709
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3375,7 +3842,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-admin-state')].value
                       expected: "ON"
                       description: Verify 'sys-admin-state' equals YANG-defined default value ON
-            - testCaseID: TCXM_2686
+            - testCaseID: TCXM_2710
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3427,7 +3894,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-name')].value
                       expected: ""
                       description: 'Verify ''area-name'' equals YANG-defined default value '
-            - testCaseID: TCXM_2687
+            - testCaseID: TCXM_2711
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3625,7 +4092,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2688
+            - testCaseID: TCXM_2712
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -3823,7 +4290,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2689
+            - testCaseID: TCXM_2713
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4021,7 +4488,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2690
+            - testCaseID: TCXM_2714
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4219,7 +4686,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2691
+            - testCaseID: TCXM_2715
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4417,7 +4884,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2692
+            - testCaseID: TCXM_2716
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4615,7 +5082,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2693
+            - testCaseID: TCXM_2717
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -4813,7 +5280,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2694
+            - testCaseID: TCXM_2718
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5011,7 +5478,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2695
+            - testCaseID: TCXM_2719
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5209,7 +5676,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2696
+            - testCaseID: TCXM_2720
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5407,7 +5874,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2697
+            - testCaseID: TCXM_2721
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5605,7 +6072,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2698
+            - testCaseID: TCXM_2722
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -5803,7 +6270,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2699
+            - testCaseID: TCXM_2723
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6001,7 +6468,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2700
+            - testCaseID: TCXM_2724
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6199,7 +6666,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2701
+            - testCaseID: TCXM_2725
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6397,7 +6864,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2702
+            - testCaseID: TCXM_2726
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6595,7 +7062,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2703
+            - testCaseID: TCXM_2727
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6793,7 +7260,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2704
+            - testCaseID: TCXM_2728
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -6991,7 +7458,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2705
+            - testCaseID: TCXM_2729
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -7189,7 +7656,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2706
+            - testCaseID: TCXM_2730
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -7387,7 +7854,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2707
+            - testCaseID: TCXM_2731
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -7585,7 +8052,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2708
+            - testCaseID: TCXM_2732
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -7783,7 +8250,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2709
+            - testCaseID: TCXM_2733
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -7981,7 +8448,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2710
+            - testCaseID: TCXM_2734
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8179,7 +8646,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2711
+            - testCaseID: TCXM_2735
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8377,7 +8844,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2712
+            - testCaseID: TCXM_2736
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8575,7 +9042,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2713
+            - testCaseID: TCXM_2737
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8773,7 +9240,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2714
+            - testCaseID: TCXM_2738
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -8971,7 +9438,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2715
+            - testCaseID: TCXM_2739
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9169,7 +9636,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2716
+            - testCaseID: TCXM_2740
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9367,7 +9834,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2717
+            - testCaseID: TCXM_2741
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9565,7 +10032,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2718
+            - testCaseID: TCXM_2742
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9763,7 +10230,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2719
+            - testCaseID: TCXM_2743
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -9961,7 +10428,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2720
+            - testCaseID: TCXM_2744
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -10159,7 +10626,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2721
+            - testCaseID: TCXM_2745
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -10357,7 +10824,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2722
+            - testCaseID: TCXM_2746
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -10555,7 +11022,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2723
+            - testCaseID: TCXM_2747
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -10755,7 +11222,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2724
+            - testCaseID: TCXM_2748
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -10955,7 +11422,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2725
+            - testCaseID: TCXM_2749
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -11155,7 +11622,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2726
+            - testCaseID: TCXM_2750
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -11355,7 +11822,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2727
+            - testCaseID: TCXM_2751
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -11555,7 +12022,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2728
+            - testCaseID: TCXM_2752
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -11755,7 +12222,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2729
+            - testCaseID: TCXM_2753
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -11955,7 +12422,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2730
+            - testCaseID: TCXM_2754
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -12155,7 +12622,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2731
+            - testCaseID: TCXM_2755
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -12355,7 +12822,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2732
+            - testCaseID: TCXM_2756
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -12555,7 +13022,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2733
+            - testCaseID: TCXM_2757
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -12753,7 +13220,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2734
+            - testCaseID: TCXM_2758
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -12951,7 +13418,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2735
+            - testCaseID: TCXM_2759
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -13149,7 +13616,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2736
+            - testCaseID: TCXM_2760
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -13347,7 +13814,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2737
+            - testCaseID: TCXM_2761
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -13545,7 +14012,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2738
+            - testCaseID: TCXM_2762
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -13743,7 +14210,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2739
+            - testCaseID: TCXM_2763
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -13945,7 +14412,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2740
+            - testCaseID: TCXM_2764
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -14147,7 +14614,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2741
+            - testCaseID: TCXM_2765
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -14345,7 +14812,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2742
+            - testCaseID: TCXM_2766
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -14543,7 +15010,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2743
+            - testCaseID: TCXM_2767
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -14741,7 +15208,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2744
+            - testCaseID: TCXM_2768
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -14939,7 +15406,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2745
+            - testCaseID: TCXM_2769
               featureName: fabric-isis-global-config
               priority: P4
               automation: Automatable
@@ -15014,7 +15481,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-admin-state')].value
                       expected: "OFF"
                       description: Verify sys-admin-state=OFF
-            - testCaseID: TCXM_2746
+            - testCaseID: TCXM_2770
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -15212,7 +15679,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2747
+            - testCaseID: TCXM_2771
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -15410,7 +15877,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2748
+            - testCaseID: TCXM_2772
               featureName: fabric-isis-global-config
               priority: P4
               automation: Automatable
@@ -15485,7 +15952,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-admin-state')].value
                       expected: "ON"
                       description: Verify sys-admin-state=ON
-            - testCaseID: TCXM_2749
+            - testCaseID: TCXM_2773
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -15683,7 +16150,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2750
+            - testCaseID: TCXM_2774
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -15881,7 +16348,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2751
+            - testCaseID: TCXM_2775
               featureName: fabric-isis-global-config
               priority: P4
               automation: Automatable
@@ -15956,7 +16423,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-admin-state')].value
                       expected: "OFF"
                       description: Verify sys-admin-state=OFF
-            - testCaseID: TCXM_2752
+            - testCaseID: TCXM_2776
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -16154,7 +16621,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2753
+            - testCaseID: TCXM_2777
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -16352,7 +16819,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2754
+            - testCaseID: TCXM_2778
               featureName: fabric-isis-global-config
               priority: P4
               automation: Automatable
@@ -16427,7 +16894,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sys-admin-state')].value
                       expected: "ON"
                       description: Verify sys-admin-state=ON
-            - testCaseID: TCXM_2755
+            - testCaseID: TCXM_2779
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -16625,7 +17092,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2756
+            - testCaseID: TCXM_2780
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -16823,7 +17290,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2757
+            - testCaseID: TCXM_2781
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -17021,7 +17488,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2758
+            - testCaseID: TCXM_2782
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -17219,7 +17686,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2759
+            - testCaseID: TCXM_2783
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -17417,7 +17884,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2760
+            - testCaseID: TCXM_2784
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -17615,7 +18082,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2761
+            - testCaseID: TCXM_2785
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -17813,7 +18280,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2762
+            - testCaseID: TCXM_2786
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -18011,7 +18478,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2763
+            - testCaseID: TCXM_2787
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -18209,7 +18676,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2764
+            - testCaseID: TCXM_2788
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -18407,7 +18874,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2765
+            - testCaseID: TCXM_2789
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -18605,7 +19072,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2766
+            - testCaseID: TCXM_2790
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -18803,7 +19270,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2767
+            - testCaseID: TCXM_2791
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -19001,7 +19468,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2768
+            - testCaseID: TCXM_2792
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -19199,7 +19666,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2769
+            - testCaseID: TCXM_2793
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -19397,7 +19864,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2770
+            - testCaseID: TCXM_2794
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -19595,7 +20062,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2771
+            - testCaseID: TCXM_2795
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -19793,7 +20260,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2772
+            - testCaseID: TCXM_2796
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -19991,7 +20458,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2773
+            - testCaseID: TCXM_2797
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -20189,7 +20656,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2774
+            - testCaseID: TCXM_2798
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -20387,7 +20854,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2775
+            - testCaseID: TCXM_2799
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -20585,7 +21052,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2776
+            - testCaseID: TCXM_2800
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -20783,7 +21250,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2777
+            - testCaseID: TCXM_2801
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -20981,7 +21448,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2778
+            - testCaseID: TCXM_2802
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -21150,14 +21617,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to device at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -21167,7 +21634,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2779
+            - testCaseID: TCXM_2803
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -21336,14 +21803,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to site at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -21353,7 +21820,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2780
+            - testCaseID: TCXM_2804
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -21526,7 +21993,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -21537,14 +22004,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T10:34:54Z
+                  description: Edit deployment schedule to 2026-05-01T11:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:34:54Z"
+                    deployAt: "2026-05-01T11:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -21554,7 +22021,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2781
+            - testCaseID: TCXM_2805
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -21727,7 +22194,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -21753,7 +22220,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2782
+            - testCaseID: TCXM_2806
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -21823,7 +22290,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2783
+            - testCaseID: TCXM_2807
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -21896,7 +22363,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2784
+            - testCaseID: TCXM_2808
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -22157,7 +22624,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_2785
+            - testCaseID: TCXM_2809
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -22518,7 +22985,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_2786
+            - testCaseID: TCXM_2810
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -22881,7 +23348,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for fabric-isis-global-config — device value accepted as new cloud baseline
-            - testCaseID: TCXM_2787
+            - testCaseID: TCXM_2811
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -23129,7 +23596,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_2788
+            - testCaseID: TCXM_2812
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -23334,7 +23801,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_2789
+            - testCaseID: TCXM_2813
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -23539,7 +24006,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_2790
+            - testCaseID: TCXM_2814
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -23729,7 +24196,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_2791
+            - testCaseID: TCXM_2815
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -23933,7 +24400,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_2792
+            - testCaseID: TCXM_2816
               featureName: fabric-isis-global-config
               priority: P1
               automation: Automatable
@@ -24155,7 +24622,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2793
+            - testCaseID: TCXM_2817
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -24270,7 +24737,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_2794
+            - testCaseID: TCXM_2818
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -24299,7 +24766,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_2795
+            - testCaseID: TCXM_2819
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -24453,7 +24920,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_2796
+            - testCaseID: TCXM_2820
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -24615,7 +25082,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_2797
+            - testCaseID: TCXM_2821
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -24668,7 +25135,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2798
+            - testCaseID: TCXM_2822
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -24721,7 +25188,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2799
+            - testCaseID: TCXM_2823
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -24774,7 +25241,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2800
+            - testCaseID: TCXM_2824
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -24827,7 +25294,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2801
+            - testCaseID: TCXM_2825
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -24880,7 +25347,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2802
+            - testCaseID: TCXM_2826
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -24933,7 +25400,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2803
+            - testCaseID: TCXM_2827
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -24986,7 +25453,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2804
+            - testCaseID: TCXM_2828
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25039,7 +25506,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2805
+            - testCaseID: TCXM_2829
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25092,7 +25559,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2806
+            - testCaseID: TCXM_2830
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25145,7 +25612,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2807
+            - testCaseID: TCXM_2831
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25198,7 +25665,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2808
+            - testCaseID: TCXM_2832
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25251,7 +25718,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2809
+            - testCaseID: TCXM_2833
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25304,7 +25771,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2810
+            - testCaseID: TCXM_2834
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25357,7 +25824,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2811
+            - testCaseID: TCXM_2835
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25410,7 +25877,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2812
+            - testCaseID: TCXM_2836
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25463,7 +25930,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2813
+            - testCaseID: TCXM_2837
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25516,7 +25983,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2814
+            - testCaseID: TCXM_2838
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25569,7 +26036,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2815
+            - testCaseID: TCXM_2839
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25622,7 +26089,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2816
+            - testCaseID: TCXM_2840
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25675,7 +26142,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2817
+            - testCaseID: TCXM_2841
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25728,7 +26195,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2818
+            - testCaseID: TCXM_2842
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25781,7 +26248,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2819
+            - testCaseID: TCXM_2843
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25834,7 +26301,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2820
+            - testCaseID: TCXM_2844
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25887,7 +26354,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2821
+            - testCaseID: TCXM_2845
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25940,7 +26407,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2822
+            - testCaseID: TCXM_2846
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -25993,7 +26460,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2823
+            - testCaseID: TCXM_2847
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -26046,7 +26513,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2824
+            - testCaseID: TCXM_2848
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -26099,7 +26566,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2825
+            - testCaseID: TCXM_2849
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -26152,7 +26619,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2826
+            - testCaseID: TCXM_2850
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -26205,7 +26672,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2827
+            - testCaseID: TCXM_2851
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -26258,7 +26725,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2828
+            - testCaseID: TCXM_2852
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -26311,7 +26778,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2829
+            - testCaseID: TCXM_2853
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -26364,7 +26831,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2830
+            - testCaseID: TCXM_2854
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -26417,8 +26884,366 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
+            - testCaseID: TCXM_2930
+              featureName: fabric-isis-global-config
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for fabric-isis-global-config (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create fabric-isis-global-config with fabric-isis-global-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                            - name: sys-admin-state
+                              origin: CC
+                              type: string
+                              value: "ON"
+                            - name: sys-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: sys-name
+                              origin: CC
+                              type: string
+                              value: test-sys
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: ""
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify fabric-isis-global-config with fabric-isis-global-config was created
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-isis-global-config retrieved — response contains fabric-isis-global-config
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-isis-global-config retrieved — response contains fabric-isis-global-config
+                - name: updateResource
+                  description: Update fabric-isis-global-config — modify area-type=REMOTE
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: REMOTE
+                          type: isis
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-isis-global-config updated successfully with modify area-type=REMOTE
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-isis-global-config updated successfully with modify area-type=REMOTE
+                - name: verifyUpdate
+                  description: Verify fabric-isis-global-config was updated — modify area-type=REMOTE
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-isis-global-config retrieved — response contains modify area-type=REMOTE
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-isis-global-config retrieved — response contains modify area-type=REMOTE
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: deleteResource
+                  description: Delete fabric-isis-global-config with fabric-isis-global-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-isis-global-config with fabric-isis-global-config deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-isis-global-config with fabric-isis-global-config deleted successfully
+                - name: verifyDeletion
+                  description: Verify fabric-isis-global-config with fabric-isis-global-config is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-isis-global-config with fabric-isis-global-config no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-isis-global-config with fabric-isis-global-config no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_2843
+            - testCaseID: TCXM_2867
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26467,7 +27292,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2844
+            - testCaseID: TCXM_2868
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26516,7 +27341,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2845
+            - testCaseID: TCXM_2869
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26569,7 +27394,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2846
+            - testCaseID: TCXM_2870
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26622,7 +27447,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2847
+            - testCaseID: TCXM_2871
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26671,7 +27496,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2848
+            - testCaseID: TCXM_2872
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26720,7 +27545,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2849
+            - testCaseID: TCXM_2873
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26769,7 +27594,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2850
+            - testCaseID: TCXM_2874
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26822,7 +27647,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2851
+            - testCaseID: TCXM_2875
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26871,7 +27696,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2852
+            - testCaseID: TCXM_2876
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26920,7 +27745,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2853
+            - testCaseID: TCXM_2877
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -26969,7 +27794,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2854
+            - testCaseID: TCXM_2878
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27022,7 +27847,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2855
+            - testCaseID: TCXM_2879
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -27052,7 +27877,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'area-type' is omitted
-            - testCaseID: TCXM_2856
+            - testCaseID: TCXM_2880
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -27082,7 +27907,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'sys-admin-state' is omitted
-            - testCaseID: TCXM_2857
+            - testCaseID: TCXM_2881
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -27112,7 +27937,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'sys-id' is omitted
-            - testCaseID: TCXM_2858
+            - testCaseID: TCXM_2882
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -27142,7 +27967,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'sys-name' is omitted
-            - testCaseID: TCXM_2859
+            - testCaseID: TCXM_2883
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -27172,7 +27997,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'area-name' is omitted
-            - testCaseID: TCXM_2860
+            - testCaseID: TCXM_2884
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -27202,7 +28027,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'ip-source-address' is omitted
-            - testCaseID: TCXM_2861
+            - testCaseID: TCXM_2885
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -27232,7 +28057,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'manual-area-address' is omitted
-            - testCaseID: TCXM_2862
+            - testCaseID: TCXM_2886
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27288,7 +28113,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2863
+            - testCaseID: TCXM_2887
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27344,7 +28169,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2864
+            - testCaseID: TCXM_2888
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27395,7 +28220,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2865
+            - testCaseID: TCXM_2889
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27419,7 +28244,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_2866
+            - testCaseID: TCXM_2890
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27472,7 +28297,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2867
+            - testCaseID: TCXM_2891
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27525,7 +28350,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2868
+            - testCaseID: TCXM_2892
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27578,7 +28403,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2869
+            - testCaseID: TCXM_2893
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27631,7 +28456,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2870
+            - testCaseID: TCXM_2894
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27684,7 +28509,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2871
+            - testCaseID: TCXM_2895
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27737,7 +28562,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2872
+            - testCaseID: TCXM_2896
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27790,7 +28615,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2873
+            - testCaseID: TCXM_2897
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27843,7 +28668,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2874
+            - testCaseID: TCXM_2898
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27896,7 +28721,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2875
+            - testCaseID: TCXM_2899
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -27949,7 +28774,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2876
+            - testCaseID: TCXM_2900
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28002,7 +28827,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2877
+            - testCaseID: TCXM_2901
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28055,7 +28880,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2878
+            - testCaseID: TCXM_2902
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28108,7 +28933,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2879
+            - testCaseID: TCXM_2903
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28161,7 +28986,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2880
+            - testCaseID: TCXM_2904
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28214,7 +29039,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2881
+            - testCaseID: TCXM_2905
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28267,7 +29092,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2882
+            - testCaseID: TCXM_2906
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28320,7 +29145,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2883
+            - testCaseID: TCXM_2907
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28373,7 +29198,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2884
+            - testCaseID: TCXM_2908
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28426,7 +29251,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2885
+            - testCaseID: TCXM_2909
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28479,7 +29304,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2886
+            - testCaseID: TCXM_2910
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28532,7 +29357,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2887
+            - testCaseID: TCXM_2911
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28585,7 +29410,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2888
+            - testCaseID: TCXM_2912
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28638,7 +29463,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2889
+            - testCaseID: TCXM_2913
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28691,7 +29516,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2890
+            - testCaseID: TCXM_2914
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28744,7 +29569,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2891
+            - testCaseID: TCXM_2915
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28797,7 +29622,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2892
+            - testCaseID: TCXM_2916
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28850,7 +29675,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2893
+            - testCaseID: TCXM_2917
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28903,7 +29728,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2894
+            - testCaseID: TCXM_2918
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -28956,7 +29781,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2895
+            - testCaseID: TCXM_2919
               featureName: fabric-isis-global-config
               priority: P2
               automation: Automatable
@@ -29010,7 +29835,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_2901
+            - testCaseID: TCXM_2925
               featureName: fabric-isis-global-config
               priority: P4
               automation: Automatable
@@ -29482,7 +30307,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_2902
+            - testCaseID: TCXM_2926
               featureName: fabric-isis-global-config
               priority: P4
               automation: Automatable
@@ -29704,7 +30529,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_2903
+            - testCaseID: TCXM_2927
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -30071,7 +30896,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_2904
+            - testCaseID: TCXM_2928
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -30752,7 +31577,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_2905
+            - testCaseID: TCXM_2929
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -31025,7 +31850,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_2896
+            - testCaseID: TCXM_2920
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -35135,7 +35960,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_2897
+            - testCaseID: TCXM_2921
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -35186,7 +36011,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_2898
+            - testCaseID: TCXM_2922
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -36938,7 +37763,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_2899
+            - testCaseID: TCXM_2923
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -37255,7 +38080,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_2900
+            - testCaseID: TCXM_2924
               featureName: fabric-isis-global-config
               priority: P3
               automation: Automatable
@@ -45466,3 +46291,398 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_2933
+              featureName: fabric-isis-global-config
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative fabric-isis-global-config instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for fabric-isis-global-config with fabric-isis-global-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                            - name: sys-admin-state
+                              origin: CC
+                              type: string
+                              value: "ON"
+                            - name: sys-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: sys-name
+                              origin: CC
+                              type: string
+                              value: test-sys
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: ""
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for fabric-isis-global-config with fabric-isis-global-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                            - name: sys-admin-state
+                              origin: CC
+                              type: string
+                              value: "ON"
+                            - name: sys-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: sys-name
+                              origin: CC
+                              type: string
+                              value: test-sys
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: ""
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for fabric-isis-global-config with fabric-isis-global-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                            - name: sys-admin-state
+                              origin: CC
+                              type: string
+                              value: "ON"
+                            - name: sys-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: sys-name
+                              origin: CC
+                              type: string
+                              value: test-sys
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: ""
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for fabric-isis-global-config with fabric-isis-global-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                            - name: sys-admin-state
+                              origin: CC
+                              type: string
+                              value: "ON"
+                            - name: sys-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: sys-name
+                              origin: CC
+                              type: string
+                              value: test-sys
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: ""
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for fabric-isis-global-config with fabric-isis-global-config
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                            - name: sys-admin-state
+                              origin: CC
+                              type: string
+                              value: "ON"
+                            - name: sys-id
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: sys-name
+                              origin: CC
+                              type: string
+                              value: test-sys
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: ""
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-isis-global-config created successfully with fabric-isis-global-config
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

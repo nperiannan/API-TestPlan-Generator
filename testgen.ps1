@@ -1,4 +1,4 @@
-# testgen.ps1 — Generate API test plans and export to Excel
+# testgen.ps1 — Generate API test plans and export to Excel/CSV
 # Reads source paths from config/config.yaml
 # Usage:
 #   .\testgen.ps1                          # Generate wired features (default)
@@ -124,8 +124,14 @@ Write-Host ""
 Write-Host "Running testgen..." -ForegroundColor Green
 Write-Host ""
 
-# Build command args
-$args = @(
+# Build command parameters
+$featureParameters = if ($featureFilter -ne "") {
+    @("--features", $featureFilter)
+} else {
+    @("--features", "")
+}
+
+$testgenParameters = @(
     "--yang-dir", $yangDir,
     "--rest-spec", $restSpec,
     "--nosapi-spec", $nosapiSpec,
@@ -138,18 +144,10 @@ $args = @(
     "--scale-factor", "100",
     "--performance-iterations", "10",
     "--one-file-per-feature", "true"
-)
-
-if ($featureFilter -ne "") {
-    $args += "--features"
-    $args += $featureFilter
-} else {
-    $args += "--features"
-    $args += ""
-}
+) + $featureParameters
 
 # Run the generator
-& .\bin\windows\testgen.exe @args
+& .\bin\windows\testgen.exe @testgenParameters
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -190,10 +188,40 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $xlsxCount = (Get-ChildItem -Path $xlsxDir -Filter '*.xlsx' -ErrorAction SilentlyContinue | Measure-Object).Count
+
+# ── CSV export (batch) ──────────────────────────────────────────────
+
+Write-Host ""
+Write-Host "=======================================================" -ForegroundColor Cyan
+Write-Host " Exporting to CSV..." -ForegroundColor Cyan
+Write-Host "=======================================================" -ForegroundColor Cyan
+Write-Host ""
+
+if (-not (Test-Path 'bin\windows\yaml2csv.exe')) {
+    Write-Host "bin\windows\yaml2csv.exe not found. Building..." -ForegroundColor Yellow
+    New-Item -ItemType Directory -Force -Path bin\windows | Out-Null
+    go build -o bin\windows\yaml2csv.exe ./cmd/yaml2csv/
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "yaml2csv build failed — skipping CSV export" -ForegroundColor Red
+        exit 0
+    }
+}
+
+$csvDir = Join-Path $PSScriptRoot 'TestplansCsv'
+& .\bin\windows\yaml2csv.exe
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "CSV export failed" -ForegroundColor Red
+    exit 1
+}
+
+$csvCount = (Get-ChildItem -Path $csvDir -Filter '*.csv' -ErrorAction SilentlyContinue | Measure-Object).Count
+
 Write-Host ""
 Write-Host "=======================================================" -ForegroundColor Cyan
 Write-Host " All done!" -ForegroundColor Green
 Write-Host "=======================================================" -ForegroundColor Cyan
 Write-Host " Test plans  : $featureCount YAML files in $((Resolve-Path $outDir).Path)" -ForegroundColor Green
 Write-Host " Excel files : $xlsxCount .xlsx files in $xlsxDir" -ForegroundColor Green
+Write-Host " CSV files   : $csvCount .csv files in $csvDir" -ForegroundColor Green
 Write-Host "=======================================================" -ForegroundColor Cyan

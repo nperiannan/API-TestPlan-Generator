@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_5725
+            - testCaseID: TCXM_5791
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -75,7 +75,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5726
+            - testCaseID: TCXM_5792
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -139,7 +139,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5727
+            - testCaseID: TCXM_5793
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -203,7 +203,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5728
+            - testCaseID: TCXM_5794
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -267,7 +267,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5729
+            - testCaseID: TCXM_5795
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -335,7 +335,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5730
+            - testCaseID: TCXM_5796
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -403,8 +403,458 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
+            - testCaseID: TCXM_5824
+              featureName: port-storm-control
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy port-storm-control with boundary value for 'rate-limit-broadcast-value' (min)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=0, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 0
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=0, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=0, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify port-storm-control accepted boundary value for 'rate-limit-broadcast-value'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-storm-control retrieved — response contains enable-broadcast=false, rate-limit-broadcast-value=0, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-storm-control retrieved — response contains enable-broadcast=false, rate-limit-broadcast-value=0, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: min
+                deploymentSample: boundary
+                field: rate-limit-broadcast-value
+            - testCaseID: TCXM_5825
+              featureName: port-storm-control
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy port-storm-control with boundary value for 'rate-limit-broadcast-value' (max)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100000000, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 100000000
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100000000, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100000000, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify port-storm-control accepted boundary value for 'rate-limit-broadcast-value'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-storm-control retrieved — response contains enable-broadcast=false, rate-limit-broadcast-value=100000000, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-storm-control retrieved — response contains enable-broadcast=false, rate-limit-broadcast-value=100000000, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: max
+                deploymentSample: boundary
+                field: rate-limit-broadcast-value
         functional:
-            - testCaseID: TCXM_5608
+            - testCaseID: TCXM_5674
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -542,7 +992,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-multicast')].value
                       expected: false
                       description: Verify 'enable-multicast' value is 'false' as set during create
-            - testCaseID: TCXM_5609
+            - testCaseID: TCXM_5675
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -641,7 +1091,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false
-            - testCaseID: TCXM_5610
+            - testCaseID: TCXM_5676
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -730,12 +1180,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false no longer exists in the response
-            - testCaseID: TCXM_5611
+            - testCaseID: TCXM_5677
               featureName: port-storm-control
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for port-storm-control (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for port-storm-control (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -863,7 +1313,24 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false deleted successfully
-            - testCaseID: TCXM_5612
+                - name: verifyDeletion
+                  description: Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false no longer exists in the response
+            - testCaseID: TCXM_5678
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -962,7 +1429,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false
-            - testCaseID: TCXM_5613
+            - testCaseID: TCXM_5679
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -1054,7 +1521,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false is rejected (409 Conflict)
-            - testCaseID: TCXM_5614
+            - testCaseID: TCXM_5680
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -1265,7 +1732,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5615
+            - testCaseID: TCXM_5681
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -1476,7 +1943,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5616
+            - testCaseID: TCXM_5682
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -1674,7 +2141,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5617
+            - testCaseID: TCXM_5683
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -1725,7 +2192,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_5618
+            - testCaseID: TCXM_5684
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -1854,7 +2321,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-multicast-value')].value
                       expected: 100
                       description: Verify field 'rate-limit-multicast-value' has value '100' as sent on create
-            - testCaseID: TCXM_5619
+            - testCaseID: TCXM_5685
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -1914,7 +2381,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-broadcast')].value
                       expected: false
                       description: Verify optional field 'enable-broadcast' value is 'false' as set on create
-            - testCaseID: TCXM_5620
+            - testCaseID: TCXM_5686
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -1974,7 +2441,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-broadcast-value')].value
                       expected: 100
                       description: Verify optional field 'rate-limit-broadcast-value' value is '100' as set on create
-            - testCaseID: TCXM_5621
+            - testCaseID: TCXM_5687
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -2034,7 +2501,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-unknown-unicast')].value
                       expected: false
                       description: Verify optional field 'enable-unknown-unicast' value is 'false' as set on create
-            - testCaseID: TCXM_5622
+            - testCaseID: TCXM_5688
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -2094,7 +2561,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-unknown-unicast-value')].value
                       expected: 100
                       description: Verify optional field 'rate-limit-unknown-unicast-value' value is '100' as set on create
-            - testCaseID: TCXM_5623
+            - testCaseID: TCXM_5689
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -2154,7 +2621,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-multicast')].value
                       expected: false
                       description: Verify optional field 'enable-multicast' value is 'false' as set on create
-            - testCaseID: TCXM_5624
+            - testCaseID: TCXM_5690
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -2214,7 +2681,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-multicast-value')].value
                       expected: 100
                       description: Verify optional field 'rate-limit-multicast-value' value is '100' as set on create
-            - testCaseID: TCXM_5625
+            - testCaseID: TCXM_5691
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2286,7 +2753,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-broadcast')].value
                       expected: true
                       description: Verify 'enable-broadcast' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5626
+            - testCaseID: TCXM_5692
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2358,7 +2825,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-broadcast')].value
                       expected: false
                       description: Verify 'enable-broadcast' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5627
+            - testCaseID: TCXM_5693
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2430,7 +2897,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-broadcast-value')].value
                       expected: 0
                       description: Verify 'rate-limit-broadcast-value' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_5628
+            - testCaseID: TCXM_5694
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2502,7 +2969,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='rate-limit-broadcast-value')].value
                       expected: 100000000
                       description: Verify 'rate-limit-broadcast-value' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_5629
+            - testCaseID: TCXM_5695
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2554,7 +3021,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-broadcast')].value
                       expected: false
                       description: Verify 'enable-broadcast' equals YANG-defined default value false
-            - testCaseID: TCXM_5630
+            - testCaseID: TCXM_5696
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2606,7 +3073,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-unknown-unicast')].value
                       expected: false
                       description: Verify 'enable-unknown-unicast' equals YANG-defined default value false
-            - testCaseID: TCXM_5631
+            - testCaseID: TCXM_5697
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2658,7 +3125,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enable-multicast')].value
                       expected: false
                       description: Verify 'enable-multicast' equals YANG-defined default value false
-            - testCaseID: TCXM_5632
+            - testCaseID: TCXM_5698
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -2856,7 +3323,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5633
+            - testCaseID: TCXM_5699
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3054,7 +3521,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5634
+            - testCaseID: TCXM_5700
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3252,7 +3719,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5635
+            - testCaseID: TCXM_5701
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3450,7 +3917,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5636
+            - testCaseID: TCXM_5702
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3648,7 +4115,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5637
+            - testCaseID: TCXM_5703
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -3846,7 +4313,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5638
+            - testCaseID: TCXM_5704
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -4044,7 +4511,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5639
+            - testCaseID: TCXM_5705
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -4242,7 +4709,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5640
+            - testCaseID: TCXM_5706
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -4440,7 +4907,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5641
+            - testCaseID: TCXM_5707
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -4638,7 +5105,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5642
+            - testCaseID: TCXM_5708
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -4836,7 +5303,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5643
+            - testCaseID: TCXM_5709
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -5034,7 +5501,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5644
+            - testCaseID: TCXM_5710
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -5232,7 +5699,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5645
+            - testCaseID: TCXM_5711
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -5430,7 +5897,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5646
+            - testCaseID: TCXM_5712
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -5628,7 +6095,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5647
+            - testCaseID: TCXM_5713
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -5826,7 +6293,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5648
+            - testCaseID: TCXM_5714
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -6024,7 +6491,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5649
+            - testCaseID: TCXM_5715
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -6222,7 +6689,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5650
+            - testCaseID: TCXM_5716
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -6420,7 +6887,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5651
+            - testCaseID: TCXM_5717
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -6618,7 +7085,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5652
+            - testCaseID: TCXM_5718
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -6816,7 +7283,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5653
+            - testCaseID: TCXM_5719
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -7014,7 +7481,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5654
+            - testCaseID: TCXM_5720
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -7212,7 +7679,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5655
+            - testCaseID: TCXM_5721
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -7410,7 +7877,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5656
+            - testCaseID: TCXM_5722
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -7608,7 +8075,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5657
+            - testCaseID: TCXM_5723
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -7806,7 +8273,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5658
+            - testCaseID: TCXM_5724
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8004,7 +8471,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5659
+            - testCaseID: TCXM_5725
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8202,7 +8669,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5660
+            - testCaseID: TCXM_5726
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8400,7 +8867,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5661
+            - testCaseID: TCXM_5727
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8598,7 +9065,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5662
+            - testCaseID: TCXM_5728
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8796,7 +9263,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5663
+            - testCaseID: TCXM_5729
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -8994,7 +9461,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5664
+            - testCaseID: TCXM_5730
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -9192,7 +9659,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5665
+            - testCaseID: TCXM_5731
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -9390,7 +9857,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5666
+            - testCaseID: TCXM_5732
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -9588,7 +10055,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5667
+            - testCaseID: TCXM_5733
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -9786,7 +10253,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5668
+            - testCaseID: TCXM_5734
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -9985,7 +10452,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5669
+            - testCaseID: TCXM_5735
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -10184,7 +10651,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5670
+            - testCaseID: TCXM_5736
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -10383,7 +10850,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5671
+            - testCaseID: TCXM_5737
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -10582,7 +11049,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5672
+            - testCaseID: TCXM_5738
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -10781,7 +11248,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5673
+            - testCaseID: TCXM_5739
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -10980,7 +11447,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5674
+            - testCaseID: TCXM_5740
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -11179,7 +11646,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5675
+            - testCaseID: TCXM_5741
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -11378,7 +11845,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5676
+            - testCaseID: TCXM_5742
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -11577,7 +12044,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5677
+            - testCaseID: TCXM_5743
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -11776,7 +12243,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5678
+            - testCaseID: TCXM_5744
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -11974,7 +12441,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5679
+            - testCaseID: TCXM_5745
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -12172,7 +12639,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5680
+            - testCaseID: TCXM_5746
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -12370,7 +12837,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5681
+            - testCaseID: TCXM_5747
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -12568,7 +13035,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5682
+            - testCaseID: TCXM_5748
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -12770,7 +13237,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5683
+            - testCaseID: TCXM_5749
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -12972,7 +13439,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5684
+            - testCaseID: TCXM_5750
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -13170,7 +13637,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5685
+            - testCaseID: TCXM_5751
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -13368,7 +13835,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5686
+            - testCaseID: TCXM_5752
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -13566,7 +14033,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5687
+            - testCaseID: TCXM_5753
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -13764,7 +14231,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5688
+            - testCaseID: TCXM_5754
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -13962,7 +14429,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5689
+            - testCaseID: TCXM_5755
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -14160,7 +14627,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5690
+            - testCaseID: TCXM_5756
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -14358,7 +14825,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5691
+            - testCaseID: TCXM_5757
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -14556,7 +15023,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5692
+            - testCaseID: TCXM_5758
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -14754,7 +15221,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5693
+            - testCaseID: TCXM_5759
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -14952,7 +15419,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5694
+            - testCaseID: TCXM_5760
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -15150,7 +15617,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5695
+            - testCaseID: TCXM_5761
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -15348,7 +15815,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5696
+            - testCaseID: TCXM_5762
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -15546,7 +16013,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5697
+            - testCaseID: TCXM_5763
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -15744,7 +16211,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5698
+            - testCaseID: TCXM_5764
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -15942,7 +16409,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5699
+            - testCaseID: TCXM_5765
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -16140,7 +16607,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5700
+            - testCaseID: TCXM_5766
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -16338,7 +16805,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5701
+            - testCaseID: TCXM_5767
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -16536,601 +17003,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5702
-              featureName: port-storm-control
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify port-storm-control with bool value variation 1 for 'enable-broadcast'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    objectType: port-storm-control
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: enable-broadcast
-                              origin: CC
-                              type: boolean
-                              value: true
-                            - name: rate-limit-broadcast-value
-                              origin: CC
-                              type: number
-                              value: 100
-                            - name: enable-unknown-unicast
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: rate-limit-unknown-unicast-value
-                              origin: CC
-                              type: number
-                              value: 100
-                            - name: enable-multicast
-                              origin: CC
-                              type: boolean
-                              value: false
-                          type: port-storm-control
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_5703
-              featureName: port-storm-control
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify port-storm-control with bool value variation 2 for 'enable-broadcast'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with bool type variation: false'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    objectType: port-storm-control
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: enable-broadcast
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: rate-limit-broadcast-value
-                              origin: CC
-                              type: number
-                              value: 100
-                            - name: enable-unknown-unicast
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: rate-limit-unknown-unicast-value
-                              origin: CC
-                              type: number
-                              value: 100
-                            - name: enable-multicast
-                              origin: CC
-                              type: boolean
-                              value: false
-                          type: port-storm-control
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_5704
-              featureName: port-storm-control
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify port-storm-control with bool value variation 3 for 'enable-broadcast'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    objectType: port-storm-control
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: enable-broadcast
-                              origin: CC
-                              type: boolean
-                              value: true
-                            - name: rate-limit-broadcast-value
-                              origin: CC
-                              type: number
-                              value: 100
-                            - name: enable-unknown-unicast
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: rate-limit-unknown-unicast-value
-                              origin: CC
-                              type: number
-                              value: 100
-                            - name: enable-multicast
-                              origin: CC
-                              type: boolean
-                              value: false
-                          type: port-storm-control
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_5705
+            - testCaseID: TCXM_5768
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -17328,7 +17201,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5706
+            - testCaseID: TCXM_5769
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -17526,7 +17399,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5707
+            - testCaseID: TCXM_5770
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -17724,7 +17597,601 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5708
+            - testCaseID: TCXM_5771
+              featureName: port-storm-control
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify port-storm-control with bool value variation 1 for 'enable-broadcast'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5772
+              featureName: port-storm-control
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify port-storm-control with bool value variation 2 for 'enable-broadcast'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with bool type variation: false'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5773
+              featureName: port-storm-control
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify port-storm-control with bool value variation 3 for 'enable-broadcast'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5774
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -17893,14 +18360,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to device at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -17910,7 +18377,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5709
+            - testCaseID: TCXM_5775
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -18079,14 +18546,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to site at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -18096,7 +18563,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5710
+            - testCaseID: TCXM_5776
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -18269,7 +18736,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -18280,14 +18747,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T10:34:54Z
+                  description: Edit deployment schedule to 2026-05-01T11:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:34:54Z"
+                    deployAt: "2026-05-01T11:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -18297,7 +18764,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5711
+            - testCaseID: TCXM_5777
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -18470,7 +18937,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -18496,7 +18963,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5712
+            - testCaseID: TCXM_5778
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -18566,7 +19033,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5713
+            - testCaseID: TCXM_5779
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -18639,7 +19106,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5714
+            - testCaseID: TCXM_5780
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -18900,7 +19367,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_5715
+            - testCaseID: TCXM_5781
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -19261,7 +19728,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_5716
+            - testCaseID: TCXM_5782
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -19624,7 +20091,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for port-storm-control — device value accepted as new cloud baseline
-            - testCaseID: TCXM_5717
+            - testCaseID: TCXM_5783
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -19872,7 +20339,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_5718
+            - testCaseID: TCXM_5784
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -20077,7 +20544,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_5719
+            - testCaseID: TCXM_5785
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -20282,7 +20749,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_5720
+            - testCaseID: TCXM_5786
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -20472,7 +20939,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_5721
+            - testCaseID: TCXM_5787
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -20676,7 +21143,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_5722
+            - testCaseID: TCXM_5788
               featureName: port-storm-control
               priority: P1
               automation: Automatable
@@ -20898,7 +21365,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5723
+            - testCaseID: TCXM_5789
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -21013,7 +21480,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_5724
+            - testCaseID: TCXM_5790
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -21042,8 +21509,366 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
+            - testCaseID: TCXM_5823
+              featureName: port-storm-control
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for port-storm-control (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false was created
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-storm-control retrieved — response contains enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-storm-control retrieved — response contains enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                - name: updateResource
+                  description: Update port-storm-control — modify enable-broadcast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-storm-control updated successfully with modify enable-broadcast=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-storm-control updated successfully with modify enable-broadcast=false
+                - name: verifyUpdate
+                  description: Verify port-storm-control was updated — modify enable-broadcast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-storm-control retrieved — response contains modify enable-broadcast=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-storm-control retrieved — response contains modify enable-broadcast=false
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: deleteResource
+                  description: Delete port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false deleted successfully
+                - name: verifyDeletion
+                  description: Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_5731
+            - testCaseID: TCXM_5797
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21095,7 +21920,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5732
+            - testCaseID: TCXM_5798
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21147,7 +21972,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5733
+            - testCaseID: TCXM_5799
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21199,7 +22024,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5734
+            - testCaseID: TCXM_5800
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21251,7 +22076,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5735
+            - testCaseID: TCXM_5801
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21307,7 +22132,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5736
+            - testCaseID: TCXM_5802
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21363,7 +22188,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5737
+            - testCaseID: TCXM_5803
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -21393,7 +22218,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enable-broadcast' is omitted
-            - testCaseID: TCXM_5738
+            - testCaseID: TCXM_5804
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -21423,7 +22248,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'rate-limit-broadcast-value' is omitted
-            - testCaseID: TCXM_5739
+            - testCaseID: TCXM_5805
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -21453,7 +22278,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enable-unknown-unicast' is omitted
-            - testCaseID: TCXM_5740
+            - testCaseID: TCXM_5806
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -21483,7 +22308,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'rate-limit-unknown-unicast-value' is omitted
-            - testCaseID: TCXM_5741
+            - testCaseID: TCXM_5807
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -21513,7 +22338,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enable-multicast' is omitted
-            - testCaseID: TCXM_5742
+            - testCaseID: TCXM_5808
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -21543,7 +22368,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'rate-limit-multicast-value' is omitted
-            - testCaseID: TCXM_5743
+            - testCaseID: TCXM_5809
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21595,7 +22420,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5744
+            - testCaseID: TCXM_5810
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21647,7 +22472,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5745
+            - testCaseID: TCXM_5811
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21703,7 +22528,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5746
+            - testCaseID: TCXM_5812
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21754,7 +22579,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5747
+            - testCaseID: TCXM_5813
               featureName: port-storm-control
               priority: P2
               automation: Automatable
@@ -21779,7 +22604,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_5752
+            - testCaseID: TCXM_5818
               featureName: port-storm-control
               priority: P4
               automation: Automatable
@@ -22251,7 +23076,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_5753
+            - testCaseID: TCXM_5819
               featureName: port-storm-control
               priority: P4
               automation: Automatable
@@ -22473,7 +23298,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_5754
+            - testCaseID: TCXM_5820
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -22840,7 +23665,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_5755
+            - testCaseID: TCXM_5821
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -23521,7 +24346,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_5756
+            - testCaseID: TCXM_5822
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -23794,7 +24619,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_5748
+            - testCaseID: TCXM_5814
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -27904,7 +28729,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_5749
+            - testCaseID: TCXM_5815
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -29656,7 +30481,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_5750
+            - testCaseID: TCXM_5816
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -29973,7 +30798,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_5751
+            - testCaseID: TCXM_5817
               featureName: port-storm-control
               priority: P3
               automation: Automatable
@@ -38184,3 +39009,398 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_5826
+              featureName: port-storm-control
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative port-storm-control instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for port-storm-control with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-storm-control
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-broadcast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-broadcast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-unknown-unicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: rate-limit-unknown-unicast-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: enable-multicast
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-storm-control
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-storm-control created successfully with enable-broadcast=false, rate-limit-broadcast-value=100, enable-unknown-unicast=false, rate-limit-unknown-unicast-value=100, enable-multicast=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

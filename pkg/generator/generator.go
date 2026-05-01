@@ -298,6 +298,7 @@ foundFeaturePath:
 			group.Tests[category] = g.generatePerformanceTests(feature, paths)
 		}
 	}
+	g.addRepresentativeDeploymentSamples(group, feature, paths)
 
 	return group
 }

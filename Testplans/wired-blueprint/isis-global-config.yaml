@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -10,9 +10,237 @@ features:
       blueprintCategory: wired-blueprint
       description: ""
       tests:
-        boundary: []
+        boundary:
+            - testCaseID: TCXM_3872
+              featureName: isis-global-config
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy isis-global-config with boundary value for 'intent-set' (enum)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: test-area
+                            - name: intent-set
+                              origin: CC
+                              type: string
+                              value: SYS_ADMIN_STATE
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify isis-global-config accepted boundary value for 'intent-set'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    filters:
+                        - key: intent-device-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: area-type
+                          value: testValue
+                        - key: area-name
+                          value: test-area
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - Verify isis-global-config retrieved — response contains intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify isis-global-config retrieved — response contains intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: enum
+                deploymentSample: boundary
+                field: intent-set
         functional:
-            - testCaseID: TCXM_3721
+            - testCaseID: TCXM_3760
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -113,7 +341,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-device-id')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify 'intent-device-id' value is '123e4567-e89b-12d3-a456-426614174000' as set during create
-            - testCaseID: TCXM_3722
+            - testCaseID: TCXM_3761
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -223,7 +451,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify isis-global-config retrieved — response contains modify asset-device-id=550e8400-e29b-41d4-a716-446655440000 (entry: intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area)'
-            - testCaseID: TCXM_3723
+            - testCaseID: TCXM_3762
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -311,12 +539,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area no longer exists in the response
-            - testCaseID: TCXM_3724
+            - testCaseID: TCXM_3763
               featureName: isis-global-config
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for isis-global-config (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for isis-global-config (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -462,7 +690,31 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area deleted successfully
-            - testCaseID: TCXM_3725
+                - name: verifyDeletion
+                  description: Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    filters:
+                        - key: intent-device-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: area-type
+                          value: testValue
+                        - key: area-name
+                          value: test-area
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area no longer exists in the response
+            - testCaseID: TCXM_3764
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -572,7 +824,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify isis-global-config retrieved — response contains modify asset-device-id=550e8400-e29b-41d4-a716-446655440000 (entry: intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area)'
-            - testCaseID: TCXM_3726
+            - testCaseID: TCXM_3765
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -648,7 +900,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area is rejected (409 Conflict)
-            - testCaseID: TCXM_3727
+            - testCaseID: TCXM_3766
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -851,7 +1103,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3728
+            - testCaseID: TCXM_3767
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -1054,7 +1306,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3729
+            - testCaseID: TCXM_3768
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1244,7 +1496,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3730
+            - testCaseID: TCXM_3769
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1323,7 +1575,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-device-id')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify identity/required field 'intent-device-id' has value '123e4567-e89b-12d3-a456-426614174000' as created
-            - testCaseID: TCXM_3731
+            - testCaseID: TCXM_3770
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1428,7 +1680,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-set')].value
                       expected: SYS_ADMIN_STATE
                       description: Verify field 'intent-set' has value 'SYS_ADMIN_STATE' as sent on create
-            - testCaseID: TCXM_3732
+            - testCaseID: TCXM_3771
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1507,7 +1759,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='asset-device-id')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify optional field 'asset-device-id' value is '123e4567-e89b-12d3-a456-426614174000' as set on create
-            - testCaseID: TCXM_3733
+            - testCaseID: TCXM_3772
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -1586,7 +1838,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-set')].value
                       expected: SYS_ADMIN_STATE
                       description: Verify optional field 'intent-set' value is 'SYS_ADMIN_STATE' as set on create
-            - testCaseID: TCXM_3734
+            - testCaseID: TCXM_3773
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1657,7 +1909,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-device-id')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify 'intent-device-id' YANG type 'leafref' value is persisted
-            - testCaseID: TCXM_3735
+            - testCaseID: TCXM_3774
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1728,7 +1980,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-device-id')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify 'intent-device-id' YANG type 'leafref' value is persisted
-            - testCaseID: TCXM_3736
+            - testCaseID: TCXM_3775
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1803,7 +2055,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-set')].value
                       expected: SYS_ADMIN_STATE
                       description: Verify 'intent-set' YANG type 'intent-types:intent-set-isis-global-config-enum' value is persisted
-            - testCaseID: TCXM_3737
+            - testCaseID: TCXM_3776
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -1878,7 +2130,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='intent-set')].value
                       expected: SYS_ID
                       description: Verify 'intent-set' YANG type 'intent-types:intent-set-isis-global-config-enum' value is persisted
-            - testCaseID: TCXM_3738
+            - testCaseID: TCXM_3777
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -2068,7 +2320,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3739
+            - testCaseID: TCXM_3778
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -2258,7 +2510,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3740
+            - testCaseID: TCXM_3779
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -2448,7 +2700,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3741
+            - testCaseID: TCXM_3780
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -2638,7 +2890,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3742
+            - testCaseID: TCXM_3781
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -2828,7 +3080,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3743
+            - testCaseID: TCXM_3782
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3018,7 +3270,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3744
+            - testCaseID: TCXM_3783
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3208,7 +3460,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3745
+            - testCaseID: TCXM_3784
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3398,7 +3650,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3746
+            - testCaseID: TCXM_3785
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3588,7 +3840,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3747
+            - testCaseID: TCXM_3786
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -3778,7 +4030,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3748
+            - testCaseID: TCXM_3787
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -3968,7 +4220,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3749
+            - testCaseID: TCXM_3788
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4158,7 +4410,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3750
+            - testCaseID: TCXM_3789
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4348,7 +4600,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3751
+            - testCaseID: TCXM_3790
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4538,7 +4790,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3752
+            - testCaseID: TCXM_3791
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4728,7 +4980,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3753
+            - testCaseID: TCXM_3792
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -4918,7 +5170,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3754
+            - testCaseID: TCXM_3793
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5112,7 +5364,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3755
+            - testCaseID: TCXM_3794
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5306,7 +5558,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3756
+            - testCaseID: TCXM_3795
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5500,7 +5752,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3757
+            - testCaseID: TCXM_3796
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5694,7 +5946,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3758
+            - testCaseID: TCXM_3797
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -5888,7 +6140,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3759
+            - testCaseID: TCXM_3798
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6082,7 +6334,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3760
+            - testCaseID: TCXM_3799
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6280,7 +6532,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3761
+            - testCaseID: TCXM_3800
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6478,7 +6730,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3762
+            - testCaseID: TCXM_3801
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6676,7 +6928,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3763
+            - testCaseID: TCXM_3802
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -6874,7 +7126,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3764
+            - testCaseID: TCXM_3803
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7072,7 +7324,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3765
+            - testCaseID: TCXM_3804
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7270,7 +7522,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3766
+            - testCaseID: TCXM_3805
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7462,7 +7714,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3767
+            - testCaseID: TCXM_3806
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7654,7 +7906,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3768
+            - testCaseID: TCXM_3807
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -7846,7 +8098,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3769
+            - testCaseID: TCXM_3808
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8038,7 +8290,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3770
+            - testCaseID: TCXM_3809
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8230,7 +8482,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3771
+            - testCaseID: TCXM_3810
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8422,7 +8674,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3772
+            - testCaseID: TCXM_3811
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8614,7 +8866,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3773
+            - testCaseID: TCXM_3812
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8806,7 +9058,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3774
+            - testCaseID: TCXM_3813
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -8998,7 +9250,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3775
+            - testCaseID: TCXM_3814
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9190,7 +9442,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3776
+            - testCaseID: TCXM_3815
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9384,7 +9636,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3777
+            - testCaseID: TCXM_3816
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9578,7 +9830,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3778
+            - testCaseID: TCXM_3817
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9772,7 +10024,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3779
+            - testCaseID: TCXM_3818
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -9966,7 +10218,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3780
+            - testCaseID: TCXM_3819
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -10160,7 +10412,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3781
+            - testCaseID: TCXM_3820
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -10354,7 +10606,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3782
+            - testCaseID: TCXM_3821
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -10548,7 +10800,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3783
+            - testCaseID: TCXM_3822
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -10742,7 +10994,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3784
+            - testCaseID: TCXM_3823
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -10936,7 +11188,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3785
+            - testCaseID: TCXM_3824
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11130,7 +11382,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3786
+            - testCaseID: TCXM_3825
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11324,7 +11576,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3787
+            - testCaseID: TCXM_3826
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11522,7 +11774,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3788
+            - testCaseID: TCXM_3827
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11720,7 +11972,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3789
+            - testCaseID: TCXM_3828
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -11918,7 +12170,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3790
+            - testCaseID: TCXM_3829
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12108,7 +12360,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3791
+            - testCaseID: TCXM_3830
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12298,7 +12550,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3792
+            - testCaseID: TCXM_3831
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12488,7 +12740,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3793
+            - testCaseID: TCXM_3832
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12682,7 +12934,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3794
+            - testCaseID: TCXM_3833
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -12876,7 +13128,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3795
+            - testCaseID: TCXM_3834
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13070,7 +13322,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3796
+            - testCaseID: TCXM_3835
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -13231,14 +13483,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to device at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -13248,7 +13500,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_3797
+            - testCaseID: TCXM_3836
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -13409,14 +13661,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to site at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -13426,7 +13678,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_3798
+            - testCaseID: TCXM_3837
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13591,7 +13843,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -13602,14 +13854,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T10:34:54Z
+                  description: Edit deployment schedule to 2026-05-01T11:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:34:54Z"
+                    deployAt: "2026-05-01T11:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -13619,7 +13871,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_3799
+            - testCaseID: TCXM_3838
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13784,7 +14036,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -13810,7 +14062,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_3800
+            - testCaseID: TCXM_3839
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13872,7 +14124,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_3801
+            - testCaseID: TCXM_3840
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -13937,7 +14189,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_3802
+            - testCaseID: TCXM_3841
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -14190,7 +14442,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_3803
+            - testCaseID: TCXM_3842
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -14543,7 +14795,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_3804
+            - testCaseID: TCXM_3843
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -14898,7 +15150,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for isis-global-config — device value accepted as new cloud baseline
-            - testCaseID: TCXM_3805
+            - testCaseID: TCXM_3844
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -15138,7 +15390,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_3806
+            - testCaseID: TCXM_3845
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -15335,7 +15587,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_3807
+            - testCaseID: TCXM_3846
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -15532,7 +15784,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_3808
+            - testCaseID: TCXM_3847
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -15714,7 +15966,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_3809
+            - testCaseID: TCXM_3848
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -15914,7 +16166,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_3810
+            - testCaseID: TCXM_3849
               featureName: isis-global-config
               priority: P1
               automation: Automatable
@@ -16128,7 +16380,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3811
+            - testCaseID: TCXM_3850
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -16243,7 +16495,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_3812
+            - testCaseID: TCXM_3851
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -16272,7 +16524,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_3813
+            - testCaseID: TCXM_3852
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -16475,8 +16727,391 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
+            - testCaseID: TCXM_3871
+              featureName: isis-global-config
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for isis-global-config (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: test-area
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area was created
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    filters:
+                        - key: intent-device-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: area-type
+                          value: testValue
+                        - key: area-name
+                          value: test-area
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - Verify isis-global-config retrieved — response contains intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify isis-global-config retrieved — response contains intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                - name: updateResource
+                  description: 'Update isis-global-config — modify asset-device-id=550e8400-e29b-41d4-a716-446655440000 (entry: intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area)'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: test-area
+                            - name: asset-device-id
+                              origin: CC
+                              type: string
+                              value: 550e8400-e29b-41d4-a716-446655440000
+                          type: isis
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - 'Verify isis-global-config updated successfully with modify asset-device-id=550e8400-e29b-41d4-a716-446655440000 (entry: intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area)'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: 'Verify isis-global-config updated successfully with modify asset-device-id=550e8400-e29b-41d4-a716-446655440000 (entry: intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area)'
+                - name: verifyUpdate
+                  description: 'Verify isis-global-config was updated — modify asset-device-id=550e8400-e29b-41d4-a716-446655440000 (entry: intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area)'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    filters:
+                        - key: intent-device-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: area-type
+                          value: testValue
+                        - key: area-name
+                          value: test-area
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - 'Verify isis-global-config retrieved — response contains modify asset-device-id=550e8400-e29b-41d4-a716-446655440000 (entry: intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area)'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: 'Verify isis-global-config retrieved — response contains modify asset-device-id=550e8400-e29b-41d4-a716-446655440000 (entry: intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area)'
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: deleteResource
+                  description: Delete isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area deleted successfully
+                - name: verifyDeletion
+                  description: Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    filters:
+                        - key: intent-device-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: area-type
+                          value: testValue
+                        - key: area-name
+                          value: test-area
+                    objectType: isis
+                  expectedStatus: 200
+                  validations:
+                    - Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_3814
+            - testCaseID: TCXM_3853
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -16522,7 +17157,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'intent-device-id'
-            - testCaseID: TCXM_3815
+            - testCaseID: TCXM_3854
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -16567,7 +17202,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3816
+            - testCaseID: TCXM_3855
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -16611,7 +17246,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3817
+            - testCaseID: TCXM_3856
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -16655,7 +17290,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3818
+            - testCaseID: TCXM_3857
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -16697,7 +17332,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'asset-device-id' is omitted
-            - testCaseID: TCXM_3819
+            - testCaseID: TCXM_3858
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -16739,7 +17374,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'intent-set' is omitted
-            - testCaseID: TCXM_3820
+            - testCaseID: TCXM_3859
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -16782,7 +17417,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3821
+            - testCaseID: TCXM_3860
               featureName: isis-global-config
               priority: P2
               automation: Automatable
@@ -16807,7 +17442,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_3827
+            - testCaseID: TCXM_3866
               featureName: isis-global-config
               priority: P4
               automation: Automatable
@@ -17199,7 +17834,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_3828
+            - testCaseID: TCXM_3867
               featureName: isis-global-config
               priority: P4
               automation: Automatable
@@ -17491,7 +18126,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_3829
+            - testCaseID: TCXM_3868
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -17970,7 +18605,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_3830
+            - testCaseID: TCXM_3869
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -18571,7 +19206,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_3831
+            - testCaseID: TCXM_3870
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -18836,7 +19471,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_3822
+            - testCaseID: TCXM_3861
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -22146,7 +22781,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_3823
+            - testCaseID: TCXM_3862
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -22293,7 +22928,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_3824
+            - testCaseID: TCXM_3863
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -24037,7 +24672,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_3825
+            - testCaseID: TCXM_3864
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -24466,7 +25101,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_3826
+            - testCaseID: TCXM_3865
               featureName: isis-global-config
               priority: P3
               automation: Automatable
@@ -31077,3 +31712,358 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_3873
+              featureName: isis-global-config
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative isis-global-config instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: test-area
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000, area-type=testValue, area-name=test-area
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000-1, area-type=testValue-1, area-name=test-area-1
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-1
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue-1
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: test-area-1
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000-1, area-type=testValue-1, area-name=test-area-1
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000-1, area-type=testValue-1, area-name=test-area-1
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000-2, area-type=testValue-2, area-name=test-area-2
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-2
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue-2
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: test-area-2
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000-2, area-type=testValue-2, area-name=test-area-2
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000-2, area-type=testValue-2, area-name=test-area-2
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000-3, area-type=testValue-3, area-name=test-area-3
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-3
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue-3
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: test-area-3
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000-3, area-type=testValue-3, area-name=test-area-3
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000-3, area-type=testValue-3, area-name=test-area-3
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for isis-global-config with intent-device-id=123e4567-e89b-12d3-a456-426614174000-4, area-type=testValue-4, area-name=test-area-4
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/isis-feature
+                    objectType: isis
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: intent-device-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-4
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: testValue-4
+                            - name: area-name
+                              origin: CC
+                              type: string
+                              value: test-area-4
+                          type: isis
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000-4, area-type=testValue-4, area-name=test-area-4
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify isis-global-config created successfully with intent-device-id=123e4567-e89b-12d3-a456-426614174000-4, area-type=testValue-4, area-name=test-area-4
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

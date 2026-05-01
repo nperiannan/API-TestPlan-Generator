@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -12,7 +12,7 @@ features:
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_4870
+            - testCaseID: TCXM_4916
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -111,7 +111,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-advertised')].value
                       expected: false
                       description: Verify 'voice-vlan-advertised' value is 'false' as set during create
-            - testCaseID: TCXM_4871
+            - testCaseID: TCXM_4917
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -198,7 +198,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-cdp retrieved — response contains modify power-available-advertised=false
-            - testCaseID: TCXM_4872
+            - testCaseID: TCXM_4918
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -275,12 +275,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false no longer exists in the response
-            - testCaseID: TCXM_4873
+            - testCaseID: TCXM_4919
               featureName: port-cdp
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for port-cdp (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for port-cdp (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -396,7 +396,24 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false deleted successfully
-            - testCaseID: TCXM_4874
+                - name: verifyDeletion
+                  description: Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false no longer exists in the response
+            - testCaseID: TCXM_4920
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -483,7 +500,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-cdp retrieved — response contains modify power-available-advertised=false
-            - testCaseID: TCXM_4875
+            - testCaseID: TCXM_4921
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -551,7 +568,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of port-cdp with power-available-advertised=false, voice-vlan-advertised=false is rejected (409 Conflict)
-            - testCaseID: TCXM_4876
+            - testCaseID: TCXM_4922
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -750,7 +767,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4877
+            - testCaseID: TCXM_4923
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -949,7 +966,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4878
+            - testCaseID: TCXM_4924
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1135,7 +1152,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4879
+            - testCaseID: TCXM_4925
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1186,7 +1203,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_4880
+            - testCaseID: TCXM_4926
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1263,7 +1280,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-advertised')].value
                       expected: false
                       description: Verify field 'voice-vlan-advertised' has value 'false' as sent on create
-            - testCaseID: TCXM_4881
+            - testCaseID: TCXM_4927
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -1323,7 +1340,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='power-available-advertised')].value
                       expected: false
                       description: Verify optional field 'power-available-advertised' value is 'false' as set on create
-            - testCaseID: TCXM_4882
+            - testCaseID: TCXM_4928
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -1383,7 +1400,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-advertised')].value
                       expected: false
                       description: Verify optional field 'voice-vlan-advertised' value is 'false' as set on create
-            - testCaseID: TCXM_4883
+            - testCaseID: TCXM_4929
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1443,7 +1460,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='power-available-advertised')].value
                       expected: true
                       description: Verify 'power-available-advertised' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_4884
+            - testCaseID: TCXM_4930
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1503,7 +1520,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='power-available-advertised')].value
                       expected: false
                       description: Verify 'power-available-advertised' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_4885
+            - testCaseID: TCXM_4931
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1555,7 +1572,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='power-available-advertised')].value
                       expected: false
                       description: Verify 'power-available-advertised' equals YANG-defined default value false
-            - testCaseID: TCXM_4886
+            - testCaseID: TCXM_4932
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1607,7 +1624,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='voice-vlan-advertised')].value
                       expected: false
                       description: Verify 'voice-vlan-advertised' equals YANG-defined default value false
-            - testCaseID: TCXM_4887
+            - testCaseID: TCXM_4933
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1793,7 +1810,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4888
+            - testCaseID: TCXM_4934
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -1979,7 +1996,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4889
+            - testCaseID: TCXM_4935
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -2165,7 +2182,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4890
+            - testCaseID: TCXM_4936
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -2351,7 +2368,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4891
+            - testCaseID: TCXM_4937
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -2537,7 +2554,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4892
+            - testCaseID: TCXM_4938
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -2723,7 +2740,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4893
+            - testCaseID: TCXM_4939
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -2909,7 +2926,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4894
+            - testCaseID: TCXM_4940
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -3095,7 +3112,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4895
+            - testCaseID: TCXM_4941
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -3281,7 +3298,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4896
+            - testCaseID: TCXM_4942
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -3467,7 +3484,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4897
+            - testCaseID: TCXM_4943
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -3653,7 +3670,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4898
+            - testCaseID: TCXM_4944
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -3839,7 +3856,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4899
+            - testCaseID: TCXM_4945
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4025,7 +4042,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4900
+            - testCaseID: TCXM_4946
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4211,7 +4228,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4901
+            - testCaseID: TCXM_4947
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4397,7 +4414,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4902
+            - testCaseID: TCXM_4948
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4583,7 +4600,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4903
+            - testCaseID: TCXM_4949
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4769,7 +4786,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4904
+            - testCaseID: TCXM_4950
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -4955,7 +4972,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4905
+            - testCaseID: TCXM_4951
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -5142,7 +5159,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4906
+            - testCaseID: TCXM_4952
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -5329,7 +5346,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4907
+            - testCaseID: TCXM_4953
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -5516,7 +5533,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4908
+            - testCaseID: TCXM_4954
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -5703,7 +5720,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4909
+            - testCaseID: TCXM_4955
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -5890,7 +5907,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4910
+            - testCaseID: TCXM_4956
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -6077,7 +6094,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4911
+            - testCaseID: TCXM_4957
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -6264,7 +6281,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4912
+            - testCaseID: TCXM_4958
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -6451,7 +6468,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4913
+            - testCaseID: TCXM_4959
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -6638,7 +6655,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4914
+            - testCaseID: TCXM_4960
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -6825,7 +6842,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4915
+            - testCaseID: TCXM_4961
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7011,7 +7028,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4916
+            - testCaseID: TCXM_4962
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7197,7 +7214,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4917
+            - testCaseID: TCXM_4963
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7383,7 +7400,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4918
+            - testCaseID: TCXM_4964
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7569,7 +7586,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4919
+            - testCaseID: TCXM_4965
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7755,7 +7772,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4920
+            - testCaseID: TCXM_4966
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -7941,7 +7958,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4921
+            - testCaseID: TCXM_4967
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -8098,14 +8115,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to device at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -8115,7 +8132,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_4922
+            - testCaseID: TCXM_4968
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -8272,14 +8289,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to site at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -8289,7 +8306,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_4923
+            - testCaseID: TCXM_4969
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -8450,7 +8467,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -8461,14 +8478,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T10:34:54Z
+                  description: Edit deployment schedule to 2026-05-01T11:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:34:54Z"
+                    deployAt: "2026-05-01T11:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -8478,7 +8495,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_4924
+            - testCaseID: TCXM_4970
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -8639,7 +8656,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -8665,7 +8682,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_4925
+            - testCaseID: TCXM_4971
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -8723,7 +8740,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_4926
+            - testCaseID: TCXM_4972
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -8784,7 +8801,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_4927
+            - testCaseID: TCXM_4973
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -9033,7 +9050,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_4928
+            - testCaseID: TCXM_4974
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -9382,7 +9399,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_4929
+            - testCaseID: TCXM_4975
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -9733,7 +9750,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for port-cdp — device value accepted as new cloud baseline
-            - testCaseID: TCXM_4930
+            - testCaseID: TCXM_4976
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -9969,7 +9986,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_4931
+            - testCaseID: TCXM_4977
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -10162,7 +10179,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_4932
+            - testCaseID: TCXM_4978
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -10355,7 +10372,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_4933
+            - testCaseID: TCXM_4979
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -10533,7 +10550,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_4934
+            - testCaseID: TCXM_4980
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -10725,7 +10742,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_4935
+            - testCaseID: TCXM_4981
               featureName: port-cdp
               priority: P1
               automation: Automatable
@@ -10935,7 +10952,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4936
+            - testCaseID: TCXM_4982
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -11050,7 +11067,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_4937
+            - testCaseID: TCXM_4983
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -11079,8 +11096,354 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
+            - testCaseID: TCXM_4997
+              featureName: port-cdp
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for port-cdp (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create port-cdp with power-available-advertised=false, voice-vlan-advertised=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-cdp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false was created
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-cdp retrieved — response contains power-available-advertised=false, voice-vlan-advertised=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-cdp retrieved — response contains power-available-advertised=false, voice-vlan-advertised=false
+                - name: updateResource
+                  description: Update port-cdp — modify power-available-advertised=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-cdp
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-cdp updated successfully with modify power-available-advertised=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-cdp updated successfully with modify power-available-advertised=false
+                - name: verifyUpdate
+                  description: Verify port-cdp was updated — modify power-available-advertised=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-cdp retrieved — response contains modify power-available-advertised=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-cdp retrieved — response contains modify power-available-advertised=false
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: deleteResource
+                  description: Delete port-cdp with power-available-advertised=false, voice-vlan-advertised=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false deleted successfully
+                - name: verifyDeletion
+                  description: Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-cdp with power-available-advertised=false, voice-vlan-advertised=false no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_4938
+            - testCaseID: TCXM_4984
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -11110,7 +11473,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'power-available-advertised' is omitted
-            - testCaseID: TCXM_4939
+            - testCaseID: TCXM_4985
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -11140,7 +11503,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'voice-vlan-advertised' is omitted
-            - testCaseID: TCXM_4940
+            - testCaseID: TCXM_4986
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -11179,7 +11542,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_4941
+            - testCaseID: TCXM_4987
               featureName: port-cdp
               priority: P2
               automation: Automatable
@@ -11204,7 +11567,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_4946
+            - testCaseID: TCXM_4992
               featureName: port-cdp
               priority: P4
               automation: Automatable
@@ -11556,7 +11919,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_4947
+            - testCaseID: TCXM_4993
               featureName: port-cdp
               priority: P4
               automation: Automatable
@@ -11778,7 +12141,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_4948
+            - testCaseID: TCXM_4994
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -12133,7 +12496,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_4949
+            - testCaseID: TCXM_4995
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -12694,7 +13057,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_4950
+            - testCaseID: TCXM_4996
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -12955,7 +13318,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_4942
+            - testCaseID: TCXM_4988
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -15865,7 +16228,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_4943
+            - testCaseID: TCXM_4989
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -17605,7 +17968,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_4944
+            - testCaseID: TCXM_4990
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -17910,7 +18273,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_4945
+            - testCaseID: TCXM_4991
               featureName: port-cdp
               priority: P3
               automation: Automatable
@@ -23721,3 +24084,338 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_4998
+              featureName: port-cdp
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative port-cdp instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for port-cdp with power-available-advertised=false, voice-vlan-advertised=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-cdp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for port-cdp with power-available-advertised=false, voice-vlan-advertised=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-cdp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for port-cdp with power-available-advertised=false, voice-vlan-advertised=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-cdp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for port-cdp with power-available-advertised=false, voice-vlan-advertised=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-cdp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for port-cdp with power-available-advertised=false, voice-vlan-advertised=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-cdp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: power-available-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: voice-vlan-advertised
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-cdp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-cdp created successfully with power-available-advertised=false, voice-vlan-advertised=false
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

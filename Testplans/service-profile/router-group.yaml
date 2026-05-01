@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_6318
+            - testCaseID: TCXM_6394
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -49,7 +49,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_6319
+            - testCaseID: TCXM_6395
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -87,8 +87,514 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
+            - testCaseID: TCXM_6416
+              featureName: router-group
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy router-group with boundary value for 'vrd-association' (minLength)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for router-group deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createResource
+                  description: Create router-group with group-name=test-group, vrd-association=
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    objectType: router-group
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: group-name
+                              origin: CC
+                              type: string
+                              value: test-group
+                            - name: vrd-association
+                              origin: CC
+                              type: string
+                              value: ""
+                          type: router-group
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify router-group created successfully with group-name=test-group, vrd-association=
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify router-group created successfully with group-name=test-group, vrd-association=
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify router-group accepted boundary value for 'vrd-association'
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    filters:
+                        - key: group-name
+                          value: test-group
+                        - key: vrd-association
+                          value: ""
+                    objectType: router-group
+                  expectedStatus: 200
+                  validations:
+                    - Verify router-group retrieved — response contains group-name=test-group, vrd-association=
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify router-group retrieved — response contains group-name=test-group, vrd-association=
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for router-group service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-router-group-Boundary-1
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: minLength
+                deploymentSample: boundary
+                field: vrd-association
+            - testCaseID: TCXM_6417
+              featureName: router-group
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy router-group with boundary value for 'vrd-association' (maxLength)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for router-group deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createResource
+                  description: Create router-group with group-name=test-group, vrd-association=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEF
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    objectType: router-group
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: group-name
+                              origin: CC
+                              type: string
+                              value: test-group
+                            - name: vrd-association
+                              origin: CC
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEF
+                          type: router-group
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify router-group created successfully with group-name=test-group, vrd-association=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEF
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify router-group created successfully with group-name=test-group, vrd-association=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEF
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify router-group accepted boundary value for 'vrd-association'
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    filters:
+                        - key: group-name
+                          value: test-group
+                        - key: vrd-association
+                          value: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEF
+                    objectType: router-group
+                  expectedStatus: 200
+                  validations:
+                    - Verify router-group retrieved — response contains group-name=test-group, vrd-association=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEF
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify router-group retrieved — response contains group-name=test-group, vrd-association=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEF
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for router-group service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-router-group-Boundary-2
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: maxLength
+                deploymentSample: boundary
+                field: vrd-association
         functional:
-            - testCaseID: TCXM_6263
+            - testCaseID: TCXM_6339
               featureName: router-group
               priority: P1
               automation: Automatable
@@ -178,7 +684,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrd-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify 'vrd-association' value is '123e4567-e89b-12d3-a456-426614174000' as set during create
-            - testCaseID: TCXM_6264
+            - testCaseID: TCXM_6340
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -278,7 +784,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify router-group retrieved — response contains modify description=Updated by automated test (entry: group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000)'
-            - testCaseID: TCXM_6265
+            - testCaseID: TCXM_6341
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -360,12 +866,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 no longer exists in the response
-            - testCaseID: TCXM_6266
+            - testCaseID: TCXM_6342
               featureName: router-group
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for router-group (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for router-group (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -499,7 +1005,29 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 deleted successfully
-            - testCaseID: TCXM_6267
+                - name: verifyDeletion
+                  description: Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    filters:
+                        - key: group-name
+                          value: test-group
+                        - key: vrd-association
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                    objectType: router-group
+                  expectedStatus: 200
+                  validations:
+                    - Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 no longer exists in the response
+            - testCaseID: TCXM_6343
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -599,7 +1127,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify router-group retrieved — response contains modify description=Updated by automated test (entry: group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000)'
-            - testCaseID: TCXM_6268
+            - testCaseID: TCXM_6344
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -667,7 +1195,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 is rejected (409 Conflict)
-            - testCaseID: TCXM_6269
+            - testCaseID: TCXM_6345
               featureName: router-group
               priority: P1
               automation: Automatable
@@ -915,7 +1443,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6270
+            - testCaseID: TCXM_6346
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -997,7 +1525,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrd-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify identity/required field 'vrd-association' has value '123e4567-e89b-12d3-a456-426614174000' as created
-            - testCaseID: TCXM_6271
+            - testCaseID: TCXM_6347
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1105,7 +1633,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrd-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify field 'vrd-association' has value '123e4567-e89b-12d3-a456-426614174000' as sent on create
-            - testCaseID: TCXM_6272
+            - testCaseID: TCXM_6348
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -1174,7 +1702,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='group-name')].value
                       expected: test-group
                       description: Verify optional field 'group-name' value is 'test-group' as set on create
-            - testCaseID: TCXM_6273
+            - testCaseID: TCXM_6349
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -1247,7 +1775,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='description')].value
                       expected: Test resource created by automated test
                       description: Verify optional field 'description' value is 'Test resource created by automated test' as set on create
-            - testCaseID: TCXM_6274
+            - testCaseID: TCXM_6350
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -1320,7 +1848,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='member-devices')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify optional field 'member-devices' value is '123e4567-e89b-12d3-a456-426614174000' as set on create
-            - testCaseID: TCXM_6275
+            - testCaseID: TCXM_6351
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -1389,7 +1917,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrd-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify optional field 'vrd-association' value is '123e4567-e89b-12d3-a456-426614174000' as set on create
-            - testCaseID: TCXM_6276
+            - testCaseID: TCXM_6352
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1454,7 +1982,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='group-name')].value
                       expected: test-value-1
                       description: Verify 'group-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_6277
+            - testCaseID: TCXM_6353
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1519,7 +2047,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='group-name')].value
                       expected: test-value-2
                       description: Verify 'group-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_6278
+            - testCaseID: TCXM_6354
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1557,7 +2085,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6279
+            - testCaseID: TCXM_6355
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1595,7 +2123,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6280
+            - testCaseID: TCXM_6356
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1633,7 +2161,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6281
+            - testCaseID: TCXM_6357
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1671,7 +2199,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6282
+            - testCaseID: TCXM_6358
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1709,7 +2237,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6283
+            - testCaseID: TCXM_6359
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1747,7 +2275,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6284
+            - testCaseID: TCXM_6360
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1785,7 +2313,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6285
+            - testCaseID: TCXM_6361
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1823,7 +2351,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6286
+            - testCaseID: TCXM_6362
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1861,7 +2389,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6287
+            - testCaseID: TCXM_6363
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1899,7 +2427,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6288
+            - testCaseID: TCXM_6364
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1936,7 +2464,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6289
+            - testCaseID: TCXM_6365
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -1973,7 +2501,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6290
+            - testCaseID: TCXM_6366
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2014,7 +2542,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6291
+            - testCaseID: TCXM_6367
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2055,7 +2583,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6292
+            - testCaseID: TCXM_6368
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2096,7 +2624,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6293
+            - testCaseID: TCXM_6369
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2137,7 +2665,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6294
+            - testCaseID: TCXM_6370
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2178,7 +2706,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6295
+            - testCaseID: TCXM_6371
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2219,7 +2747,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6296
+            - testCaseID: TCXM_6372
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2256,7 +2784,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6297
+            - testCaseID: TCXM_6373
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2293,7 +2821,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6298
+            - testCaseID: TCXM_6374
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2330,7 +2858,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6299
+            - testCaseID: TCXM_6375
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2375,7 +2903,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6300
+            - testCaseID: TCXM_6376
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2420,7 +2948,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6301
+            - testCaseID: TCXM_6377
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2465,7 +2993,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6302
+            - testCaseID: TCXM_6378
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2506,7 +3034,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6303
+            - testCaseID: TCXM_6379
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2547,7 +3075,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6304
+            - testCaseID: TCXM_6380
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2588,7 +3116,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6305
+            - testCaseID: TCXM_6381
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2629,7 +3157,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6306
+            - testCaseID: TCXM_6382
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2670,7 +3198,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6307
+            - testCaseID: TCXM_6383
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2711,7 +3239,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6308
+            - testCaseID: TCXM_6384
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2748,7 +3276,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6309
+            - testCaseID: TCXM_6385
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2785,7 +3313,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6310
+            - testCaseID: TCXM_6386
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2822,7 +3350,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6311
+            - testCaseID: TCXM_6387
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2863,7 +3391,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6312
+            - testCaseID: TCXM_6388
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2904,7 +3432,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6313
+            - testCaseID: TCXM_6389
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -2945,7 +3473,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6314
+            - testCaseID: TCXM_6390
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -3246,7 +3774,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_6315
+            - testCaseID: TCXM_6391
               featureName: router-group
               priority: P1
               automation: Automatable
@@ -3646,7 +4174,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_6316
+            - testCaseID: TCXM_6392
               featureName: router-group
               priority: P1
               automation: Automatable
@@ -4046,7 +4574,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_6317
+            - testCaseID: TCXM_6393
               featureName: router-group
               priority: P1
               automation: Automatable
@@ -4312,8 +4840,412 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
+            - testCaseID: TCXM_6415
+              featureName: router-group
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for router-group (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for router-group deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createResource
+                  description: Create router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    objectType: router-group
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: group-name
+                              origin: CC
+                              type: string
+                              value: test-group
+                            - name: vrd-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                          type: router-group
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify router-group created successfully with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify router-group created successfully with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 was created
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    filters:
+                        - key: group-name
+                          value: test-group
+                        - key: vrd-association
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                    objectType: router-group
+                  expectedStatus: 200
+                  validations:
+                    - Verify router-group retrieved — response contains group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify router-group retrieved — response contains group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000
+                - name: updateResource
+                  description: 'Update router-group — modify description=Updated by automated test (entry: group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000)'
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    objectType: router-group
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: group-name
+                              origin: CC
+                              type: string
+                              value: test-group
+                            - name: vrd-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                            - name: description
+                              origin: CC
+                              type: string
+                              value: Updated by automated test
+                          type: router-group
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - 'Verify router-group updated successfully with modify description=Updated by automated test (entry: group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000)'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: 'Verify router-group updated successfully with modify description=Updated by automated test (entry: group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000)'
+                - name: verifyUpdate
+                  description: 'Verify router-group was updated — modify description=Updated by automated test (entry: group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000)'
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    filters:
+                        - key: group-name
+                          value: test-group
+                        - key: vrd-association
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                    objectType: router-group
+                  expectedStatus: 200
+                  validations:
+                    - 'Verify router-group retrieved — response contains modify description=Updated by automated test (entry: group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000)'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: 'Verify router-group retrieved — response contains modify description=Updated by automated test (entry: group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000)'
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for router-group service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-router-group-CRUD
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: deleteResource
+                  description: Delete router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 deleted successfully
+                - name: verifyDeletion
+                  description: Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    filters:
+                        - key: group-name
+                          value: test-group
+                        - key: vrd-association
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                    objectType: router-group
+                  expectedStatus: 200
+                  validations:
+                    - Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000 no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_6320
+            - testCaseID: TCXM_6396
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -4354,7 +5286,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6321
+            - testCaseID: TCXM_6397
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -4391,7 +5323,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6322
+            - testCaseID: TCXM_6398
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -4428,7 +5360,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6323
+            - testCaseID: TCXM_6399
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -4466,7 +5398,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'group-name' is omitted
-            - testCaseID: TCXM_6324
+            - testCaseID: TCXM_6400
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -4504,7 +5436,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'description' is omitted
-            - testCaseID: TCXM_6325
+            - testCaseID: TCXM_6401
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -4542,7 +5474,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'member-devices' is omitted
-            - testCaseID: TCXM_6326
+            - testCaseID: TCXM_6402
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -4580,7 +5512,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vrd-association' is omitted
-            - testCaseID: TCXM_6327
+            - testCaseID: TCXM_6403
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -4624,7 +5556,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6328
+            - testCaseID: TCXM_6404
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -4668,7 +5600,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6329
+            - testCaseID: TCXM_6405
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -4707,7 +5639,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6330
+            - testCaseID: TCXM_6406
               featureName: router-group
               priority: P2
               automation: Automatable
@@ -4732,7 +5664,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_6335
+            - testCaseID: TCXM_6411
               featureName: router-group
               priority: P4
               automation: Automatable
@@ -5084,7 +6016,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_6336
+            - testCaseID: TCXM_6412
               featureName: router-group
               priority: P4
               automation: Automatable
@@ -5356,7 +6288,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_6337
+            - testCaseID: TCXM_6413
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -5791,7 +6723,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_6338
+            - testCaseID: TCXM_6414
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -6353,7 +7285,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_6331
+            - testCaseID: TCXM_6407
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -9263,7 +10195,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_6332
+            - testCaseID: TCXM_6408
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -9406,7 +10338,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_6333
+            - testCaseID: TCXM_6409
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -9791,7 +10723,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_6334
+            - testCaseID: TCXM_6410
               featureName: router-group
               priority: P3
               automation: Automatable
@@ -15602,3 +16534,373 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_6418
+              featureName: router-group
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative router-group instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for router-group deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for router-group with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    objectType: router-group
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: group-name
+                              origin: CC
+                              type: string
+                              value: test-group
+                            - name: vrd-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                          type: router-group
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify router-group created successfully with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify router-group created successfully with group-name=test-group, vrd-association=123e4567-e89b-12d3-a456-426614174000
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for router-group with group-name=test-group-1, vrd-association=123e4567-e89b-12d3-a456-426614174000-1
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    objectType: router-group
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: group-name
+                              origin: CC
+                              type: string
+                              value: test-group-1
+                            - name: vrd-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-1
+                          type: router-group
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify router-group created successfully with group-name=test-group-1, vrd-association=123e4567-e89b-12d3-a456-426614174000-1
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify router-group created successfully with group-name=test-group-1, vrd-association=123e4567-e89b-12d3-a456-426614174000-1
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for router-group with group-name=test-group-2, vrd-association=123e4567-e89b-12d3-a456-426614174000-2
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    objectType: router-group
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: group-name
+                              origin: CC
+                              type: string
+                              value: test-group-2
+                            - name: vrd-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-2
+                          type: router-group
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify router-group created successfully with group-name=test-group-2, vrd-association=123e4567-e89b-12d3-a456-426614174000-2
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify router-group created successfully with group-name=test-group-2, vrd-association=123e4567-e89b-12d3-a456-426614174000-2
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for router-group with group-name=test-group-3, vrd-association=123e4567-e89b-12d3-a456-426614174000-3
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    objectType: router-group
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: group-name
+                              origin: CC
+                              type: string
+                              value: test-group-3
+                            - name: vrd-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-3
+                          type: router-group
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify router-group created successfully with group-name=test-group-3, vrd-association=123e4567-e89b-12d3-a456-426614174000-3
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify router-group created successfully with group-name=test-group-3, vrd-association=123e4567-e89b-12d3-a456-426614174000-3
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for router-group with group-name=test-group-4, vrd-association=123e4567-e89b-12d3-a456-426614174000-4
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /router-group-feature
+                    objectType: router-group
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: group-name
+                              origin: CC
+                              type: string
+                              value: test-group-4
+                            - name: vrd-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-4
+                          type: router-group
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify router-group created successfully with group-name=test-group-4, vrd-association=123e4567-e89b-12d3-a456-426614174000-4
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify router-group created successfully with group-name=test-group-4, vrd-association=123e4567-e89b-12d3-a456-426614174000-4
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for router-group service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-router-group-Scale
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

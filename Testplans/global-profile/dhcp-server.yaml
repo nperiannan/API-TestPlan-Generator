@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_1800
+            - testCaseID: TCXM_1812
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -61,7 +61,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_1801
+            - testCaseID: TCXM_1813
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -111,7 +111,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_1802
+            - testCaseID: TCXM_1814
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -161,7 +161,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_1803
+            - testCaseID: TCXM_1815
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -211,7 +211,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_1804
+            - testCaseID: TCXM_1816
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -261,7 +261,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_1805
+            - testCaseID: TCXM_1817
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -311,7 +311,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_1806
+            - testCaseID: TCXM_1818
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -365,7 +365,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_1807
+            - testCaseID: TCXM_1819
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -420,7 +420,7 @@ features:
                       expected: create
                       description: Verify operation type is 'create'
         functional:
-            - testCaseID: TCXM_1740
+            - testCaseID: TCXM_1752
               featureName: dhcp-server
               priority: P1
               automation: Automatable
@@ -515,7 +515,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify 'server' value is '8.8.8.8' as set during create
-            - testCaseID: TCXM_1741
+            - testCaseID: TCXM_1753
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -604,7 +604,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify dhcp-server retrieved — response contains modify name=updated-resource (entry: priority=1, server=8.8.8.8)'
-            - testCaseID: TCXM_1742
+            - testCaseID: TCXM_1754
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -675,12 +675,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dhcp-server with dhcp-server no longer exists in the response
-            - testCaseID: TCXM_1743
+            - testCaseID: TCXM_1755
               featureName: dhcp-server
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for dhcp-server (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for dhcp-server (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -794,7 +794,22 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dhcp-server with dhcp-server deleted successfully
-            - testCaseID: TCXM_1744
+                - name: verifyDeletion
+                  description: Verify dhcp-server with dhcp-server is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/retrieve
+                  body:
+                    featurePath: /dhcp-server-feature
+                    objectType: dhcp-server
+                  expectedStatus: 200
+                  validations:
+                    - Verify dhcp-server with dhcp-server no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify dhcp-server with dhcp-server no longer exists in the response
+            - testCaseID: TCXM_1756
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -883,7 +898,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify dhcp-server retrieved — response contains modify name=updated-resource (entry: priority=1, server=8.8.8.8)'
-            - testCaseID: TCXM_1745
+            - testCaseID: TCXM_1757
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -947,7 +962,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of dhcp-server with dhcp-server is rejected (409 Conflict)
-            - testCaseID: TCXM_1746
+            - testCaseID: TCXM_1758
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1020,7 +1035,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify identity/required field 'server' has value '8.8.8.8' as created
-            - testCaseID: TCXM_1747
+            - testCaseID: TCXM_1759
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1106,7 +1121,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='name')].value
                       expected: test-resource
                       description: Verify field 'name' has value 'test-resource' as sent on create
-            - testCaseID: TCXM_1748
+            - testCaseID: TCXM_1760
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -1170,7 +1185,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='name')].value
                       expected: test-resource
                       description: Verify optional field 'name' value is 'test-resource' as set on create
-            - testCaseID: TCXM_1749
+            - testCaseID: TCXM_1761
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1226,7 +1241,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 1
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_1750
+            - testCaseID: TCXM_1762
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1282,7 +1297,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 100
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_1751
+            - testCaseID: TCXM_1763
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1338,7 +1353,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_1752
+            - testCaseID: TCXM_1764
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1394,7 +1409,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_1753
+            - testCaseID: TCXM_1765
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1435,7 +1450,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1754
+            - testCaseID: TCXM_1766
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1476,7 +1491,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1755
+            - testCaseID: TCXM_1767
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1517,7 +1532,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1756
+            - testCaseID: TCXM_1768
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1558,7 +1573,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1757
+            - testCaseID: TCXM_1769
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1599,7 +1614,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1758
+            - testCaseID: TCXM_1770
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1640,7 +1655,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1759
+            - testCaseID: TCXM_1771
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1681,7 +1696,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1760
+            - testCaseID: TCXM_1772
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1722,7 +1737,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1761
+            - testCaseID: TCXM_1773
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1763,7 +1778,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1762
+            - testCaseID: TCXM_1774
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1804,7 +1819,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1763
+            - testCaseID: TCXM_1775
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1843,7 +1858,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1764
+            - testCaseID: TCXM_1776
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1882,7 +1897,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1765
+            - testCaseID: TCXM_1777
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1921,7 +1936,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1766
+            - testCaseID: TCXM_1778
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1960,7 +1975,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1767
+            - testCaseID: TCXM_1779
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -1999,7 +2014,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1768
+            - testCaseID: TCXM_1780
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2038,7 +2053,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1769
+            - testCaseID: TCXM_1781
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2077,7 +2092,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1770
+            - testCaseID: TCXM_1782
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2116,7 +2131,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1771
+            - testCaseID: TCXM_1783
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2155,7 +2170,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1772
+            - testCaseID: TCXM_1784
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2194,7 +2209,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1773
+            - testCaseID: TCXM_1785
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2233,7 +2248,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1774
+            - testCaseID: TCXM_1786
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2272,7 +2287,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1775
+            - testCaseID: TCXM_1787
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2311,7 +2326,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1776
+            - testCaseID: TCXM_1788
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2350,7 +2365,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1777
+            - testCaseID: TCXM_1789
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2389,7 +2404,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1778
+            - testCaseID: TCXM_1790
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2428,7 +2443,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1779
+            - testCaseID: TCXM_1791
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2467,7 +2482,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1780
+            - testCaseID: TCXM_1792
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2506,7 +2521,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1781
+            - testCaseID: TCXM_1793
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -2545,7 +2560,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1782
+            - testCaseID: TCXM_1794
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -2677,7 +2692,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1783
+            - testCaseID: TCXM_1795
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -2716,7 +2731,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1784
+            - testCaseID: TCXM_1796
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -2755,7 +2770,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1785
+            - testCaseID: TCXM_1797
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -2794,7 +2809,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1786
+            - testCaseID: TCXM_1798
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -2833,7 +2848,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1787
+            - testCaseID: TCXM_1799
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -2872,7 +2887,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1788
+            - testCaseID: TCXM_1800
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -2911,7 +2926,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1789
+            - testCaseID: TCXM_1801
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -2950,7 +2965,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1790
+            - testCaseID: TCXM_1802
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -2989,7 +3004,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1791
+            - testCaseID: TCXM_1803
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -3028,7 +3043,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1792
+            - testCaseID: TCXM_1804
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -3067,7 +3082,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1793
+            - testCaseID: TCXM_1805
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -3106,7 +3121,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1794
+            - testCaseID: TCXM_1806
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -3145,7 +3160,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1795
+            - testCaseID: TCXM_1807
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -3184,7 +3199,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1796
+            - testCaseID: TCXM_1808
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -3223,7 +3238,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1797
+            - testCaseID: TCXM_1809
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -3262,7 +3277,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1798
+            - testCaseID: TCXM_1810
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -3301,7 +3316,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1799
+            - testCaseID: TCXM_1811
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -3341,7 +3356,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_1808
+            - testCaseID: TCXM_1820
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3377,7 +3392,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'priority'
-            - testCaseID: TCXM_1809
+            - testCaseID: TCXM_1821
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3413,7 +3428,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'server'
-            - testCaseID: TCXM_1810
+            - testCaseID: TCXM_1822
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3452,7 +3467,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1811
+            - testCaseID: TCXM_1823
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3487,7 +3502,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1812
+            - testCaseID: TCXM_1824
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3526,7 +3541,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1813
+            - testCaseID: TCXM_1825
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3561,7 +3576,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1814
+            - testCaseID: TCXM_1826
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3600,7 +3615,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1815
+            - testCaseID: TCXM_1827
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3635,7 +3650,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1816
+            - testCaseID: TCXM_1828
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3674,7 +3689,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1817
+            - testCaseID: TCXM_1829
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3712,7 +3727,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1818
+            - testCaseID: TCXM_1830
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3750,7 +3765,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1819
+            - testCaseID: TCXM_1831
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3788,7 +3803,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1820
+            - testCaseID: TCXM_1832
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3826,7 +3841,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1821
+            - testCaseID: TCXM_1833
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -3862,7 +3877,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'name' is omitted
-            - testCaseID: TCXM_1822
+            - testCaseID: TCXM_1834
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3904,7 +3919,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1823
+            - testCaseID: TCXM_1835
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3946,7 +3961,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1824
+            - testCaseID: TCXM_1836
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -3984,7 +3999,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1825
+            - testCaseID: TCXM_1837
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4021,7 +4036,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1826
+            - testCaseID: TCXM_1838
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4043,7 +4058,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_1827
+            - testCaseID: TCXM_1839
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4082,7 +4097,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1828
+            - testCaseID: TCXM_1840
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4121,7 +4136,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1829
+            - testCaseID: TCXM_1841
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4160,7 +4175,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1830
+            - testCaseID: TCXM_1842
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4199,7 +4214,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1831
+            - testCaseID: TCXM_1843
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4238,7 +4253,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1832
+            - testCaseID: TCXM_1844
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4277,7 +4292,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1833
+            - testCaseID: TCXM_1845
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4316,7 +4331,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1834
+            - testCaseID: TCXM_1846
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4355,7 +4370,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1835
+            - testCaseID: TCXM_1847
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4394,7 +4409,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1836
+            - testCaseID: TCXM_1848
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4433,7 +4448,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1837
+            - testCaseID: TCXM_1849
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4472,7 +4487,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1838
+            - testCaseID: TCXM_1850
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4511,7 +4526,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1839
+            - testCaseID: TCXM_1851
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4550,7 +4565,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1840
+            - testCaseID: TCXM_1852
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4589,7 +4604,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1841
+            - testCaseID: TCXM_1853
               featureName: dhcp-server
               priority: P2
               automation: Automatable
@@ -4629,7 +4644,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_1846
+            - testCaseID: TCXM_1858
               featureName: dhcp-server
               priority: P4
               automation: Automatable
@@ -5001,7 +5016,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_1847
+            - testCaseID: TCXM_1859
               featureName: dhcp-server
               priority: P4
               automation: Automatable
@@ -5203,7 +5218,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_1848
+            - testCaseID: TCXM_1860
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -5620,7 +5635,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_1849
+            - testCaseID: TCXM_1861
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -6182,7 +6197,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_1842
+            - testCaseID: TCXM_1854
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -9292,7 +9307,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_1843
+            - testCaseID: TCXM_1855
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -9329,7 +9344,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_1844
+            - testCaseID: TCXM_1856
               featureName: dhcp-server
               priority: P3
               automation: Automatable
@@ -9696,7 +9711,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_1845
+            - testCaseID: TCXM_1857
               featureName: dhcp-server
               priority: P3
               automation: Automatable

@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_5853
+            - testCaseID: TCXM_5923
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -67,7 +67,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5854
+            - testCaseID: TCXM_5924
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -123,8 +123,452 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
+            - testCaseID: TCXM_5953
+              featureName: qos-classifier-profile-config
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy qos-classifier-profile-config with boundary value for 'profile-name' (minLength)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=a
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    objectType: qos-policy
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: qos-global-config-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                            - name: profile-name
+                              origin: CC
+                              type: string
+                              value: a
+                            - name: profile-type
+                              origin: CC
+                              type: string
+                              value: INTERFACE_SSID_ONLY
+                          type: qos-policy
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=a
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=a
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify qos-classifier-profile-config accepted boundary value for 'profile-name'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    filters:
+                        - key: qos-global-config-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: profile-name
+                          value: a
+                    objectType: qos-policy
+                  expectedStatus: 200
+                  validations:
+                    - Verify qos-classifier-profile-config retrieved — response contains qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=a
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify qos-classifier-profile-config retrieved — response contains qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=a
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: minLength
+                deploymentSample: boundary
+                field: profile-name
+            - testCaseID: TCXM_5954
+              featureName: qos-classifier-profile-config
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy qos-classifier-profile-config with boundary value for 'profile-name' (maxLength)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=abcdefghijklmnopqrstuvwxyzABCDEF
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    objectType: qos-policy
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: qos-global-config-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                            - name: profile-name
+                              origin: CC
+                              type: string
+                              value: abcdefghijklmnopqrstuvwxyzABCDEF
+                            - name: profile-type
+                              origin: CC
+                              type: string
+                              value: INTERFACE_SSID_ONLY
+                          type: qos-policy
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=abcdefghijklmnopqrstuvwxyzABCDEF
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=abcdefghijklmnopqrstuvwxyzABCDEF
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify qos-classifier-profile-config accepted boundary value for 'profile-name'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    filters:
+                        - key: qos-global-config-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: profile-name
+                          value: abcdefghijklmnopqrstuvwxyzABCDEF
+                    objectType: qos-policy
+                  expectedStatus: 200
+                  validations:
+                    - Verify qos-classifier-profile-config retrieved — response contains qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=abcdefghijklmnopqrstuvwxyzABCDEF
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify qos-classifier-profile-config retrieved — response contains qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=abcdefghijklmnopqrstuvwxyzABCDEF
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: maxLength
+                deploymentSample: boundary
+                field: profile-name
         functional:
-            - testCaseID: TCXM_5757
+            - testCaseID: TCXM_5827
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -241,7 +685,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='profile-type')].value
                       expected: INTERFACE_SSID_ONLY
                       description: Verify 'profile-type' value is 'INTERFACE_SSID_ONLY' as set during create
-            - testCaseID: TCXM_5758
+            - testCaseID: TCXM_5828
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -345,7 +789,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify qos-classifier-profile-config retrieved — response contains update entry where qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile, profile-type=INTERFACE_SSID_ONLY
-            - testCaseID: TCXM_5759
+            - testCaseID: TCXM_5829
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -431,12 +875,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile no longer exists in the response
-            - testCaseID: TCXM_5760
+            - testCaseID: TCXM_5830
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for qos-classifier-profile-config (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for qos-classifier-profile-config (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -574,7 +1018,29 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile deleted successfully
-            - testCaseID: TCXM_5761
+                - name: verifyDeletion
+                  description: Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    filters:
+                        - key: qos-global-config-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: profile-name
+                          value: test-profile
+                    objectType: qos-policy
+                  expectedStatus: 200
+                  validations:
+                    - Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile no longer exists in the response
+            - testCaseID: TCXM_5831
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -678,7 +1144,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify qos-classifier-profile-config retrieved — response contains update entry where qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile, profile-type=INTERFACE_SSID_ONLY
-            - testCaseID: TCXM_5762
+            - testCaseID: TCXM_5832
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -754,7 +1220,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile is rejected (409 Conflict)
-            - testCaseID: TCXM_5763
+            - testCaseID: TCXM_5833
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -957,7 +1423,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5764
+            - testCaseID: TCXM_5834
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -1160,7 +1626,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5765
+            - testCaseID: TCXM_5835
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -1350,7 +1816,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5766
+            - testCaseID: TCXM_5836
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -1445,7 +1911,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='profile-type')].value
                       expected: INTERFACE_SSID_ONLY
                       description: Verify identity/required field 'profile-type' has value 'INTERFACE_SSID_ONLY' as created
-            - testCaseID: TCXM_5767
+            - testCaseID: TCXM_5837
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -1540,7 +2006,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='profile-type')].value
                       expected: INTERFACE_SSID_ONLY
                       description: Verify field 'profile-type' has value 'INTERFACE_SSID_ONLY' as sent on create
-            - testCaseID: TCXM_5768
+            - testCaseID: TCXM_5838
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -1609,7 +2075,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='qos-global-config-id')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify 'qos-global-config-id' YANG type 'leafref' value is persisted
-            - testCaseID: TCXM_5769
+            - testCaseID: TCXM_5839
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -1678,7 +2144,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='qos-global-config-id')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify 'qos-global-config-id' YANG type 'leafref' value is persisted
-            - testCaseID: TCXM_5770
+            - testCaseID: TCXM_5840
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -1747,7 +2213,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='profile-name')].value
                       expected: test-profile
                       description: Verify 'profile-name' YANG type 'qos-name' value is persisted
-            - testCaseID: TCXM_5771
+            - testCaseID: TCXM_5841
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -1816,7 +2282,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='profile-name')].value
                       expected: test-profile
                       description: Verify 'profile-name' YANG type 'qos-name' value is persisted
-            - testCaseID: TCXM_5772
+            - testCaseID: TCXM_5842
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -1885,7 +2351,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='profile-type')].value
                       expected: INTERFACE_SSID_ONLY
                       description: Verify 'profile-type' YANG type 'asset-types:qos-classifier-profile-type-enum' value is persisted
-            - testCaseID: TCXM_5773
+            - testCaseID: TCXM_5843
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -1954,7 +2420,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='profile-type')].value
                       expected: IEEE_8021P
                       description: Verify 'profile-type' YANG type 'asset-types:qos-classifier-profile-type-enum' value is persisted
-            - testCaseID: TCXM_5774
+            - testCaseID: TCXM_5844
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -2144,7 +2610,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5775
+            - testCaseID: TCXM_5845
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -2334,7 +2800,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5776
+            - testCaseID: TCXM_5846
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -2524,7 +2990,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5777
+            - testCaseID: TCXM_5847
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -2714,7 +3180,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5778
+            - testCaseID: TCXM_5848
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -2904,7 +3370,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5779
+            - testCaseID: TCXM_5849
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -3094,7 +3560,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5780
+            - testCaseID: TCXM_5850
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -3284,7 +3750,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5781
+            - testCaseID: TCXM_5851
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -3474,7 +3940,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5782
+            - testCaseID: TCXM_5852
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -3664,7 +4130,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5783
+            - testCaseID: TCXM_5853
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -3854,7 +4320,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5784
+            - testCaseID: TCXM_5854
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -4044,7 +4510,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5785
+            - testCaseID: TCXM_5855
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -4234,7 +4700,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5786
+            - testCaseID: TCXM_5856
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -4424,7 +4890,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5787
+            - testCaseID: TCXM_5857
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -4614,7 +5080,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5788
+            - testCaseID: TCXM_5858
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -4804,7 +5270,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5789
+            - testCaseID: TCXM_5859
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -4994,7 +5460,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5790
+            - testCaseID: TCXM_5860
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -5184,7 +5650,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5791
+            - testCaseID: TCXM_5861
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -5374,7 +5840,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5792
+            - testCaseID: TCXM_5862
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -5564,7 +6030,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5793
+            - testCaseID: TCXM_5863
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -5754,7 +6220,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5794
+            - testCaseID: TCXM_5864
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -5944,7 +6410,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5795
+            - testCaseID: TCXM_5865
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -6134,7 +6600,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5796
+            - testCaseID: TCXM_5866
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -6324,7 +6790,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5797
+            - testCaseID: TCXM_5867
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -6514,7 +6980,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5798
+            - testCaseID: TCXM_5868
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -6704,7 +7170,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5799
+            - testCaseID: TCXM_5869
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -6894,7 +7360,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5800
+            - testCaseID: TCXM_5870
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -7084,7 +7550,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5801
+            - testCaseID: TCXM_5871
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -7274,7 +7740,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5802
+            - testCaseID: TCXM_5872
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -7464,7 +7930,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5803
+            - testCaseID: TCXM_5873
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -7654,7 +8120,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5804
+            - testCaseID: TCXM_5874
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -7846,7 +8312,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5805
+            - testCaseID: TCXM_5875
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -8038,7 +8504,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5806
+            - testCaseID: TCXM_5876
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -8230,7 +8696,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5807
+            - testCaseID: TCXM_5877
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -8422,7 +8888,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5808
+            - testCaseID: TCXM_5878
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -8614,7 +9080,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5809
+            - testCaseID: TCXM_5879
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -8806,7 +9272,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5810
+            - testCaseID: TCXM_5880
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -8998,7 +9464,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5811
+            - testCaseID: TCXM_5881
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -9190,7 +9656,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5812
+            - testCaseID: TCXM_5882
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -9382,7 +9848,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5813
+            - testCaseID: TCXM_5883
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -9574,7 +10040,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5814
+            - testCaseID: TCXM_5884
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -9764,7 +10230,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5815
+            - testCaseID: TCXM_5885
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -9954,7 +10420,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5816
+            - testCaseID: TCXM_5886
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -10144,7 +10610,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5817
+            - testCaseID: TCXM_5887
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -10334,7 +10800,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5818
+            - testCaseID: TCXM_5888
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -10524,7 +10990,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5819
+            - testCaseID: TCXM_5889
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -10714,7 +11180,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5820
+            - testCaseID: TCXM_5890
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -10904,7 +11370,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5821
+            - testCaseID: TCXM_5891
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -11094,7 +11560,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5822
+            - testCaseID: TCXM_5892
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -11284,7 +11750,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5823
+            - testCaseID: TCXM_5893
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -11474,7 +11940,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5824
+            - testCaseID: TCXM_5894
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -11664,7 +12130,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5825
+            - testCaseID: TCXM_5895
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -11854,7 +12320,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5826
+            - testCaseID: TCXM_5896
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -12044,7 +12510,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5827
+            - testCaseID: TCXM_5897
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -12234,7 +12700,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5828
+            - testCaseID: TCXM_5898
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -12424,7 +12890,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5829
+            - testCaseID: TCXM_5899
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -12614,7 +13080,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5830
+            - testCaseID: TCXM_5900
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -12804,7 +13270,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5831
+            - testCaseID: TCXM_5901
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -12994,7 +13460,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5832
+            - testCaseID: TCXM_5902
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -13184,7 +13650,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5833
+            - testCaseID: TCXM_5903
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -13374,7 +13840,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5834
+            - testCaseID: TCXM_5904
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -13564,7 +14030,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5835
+            - testCaseID: TCXM_5905
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -13725,14 +14191,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to device at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -13742,7 +14208,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5836
+            - testCaseID: TCXM_5906
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -13903,14 +14369,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to site at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -13920,7 +14386,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5837
+            - testCaseID: TCXM_5907
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -14085,7 +14551,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -14096,14 +14562,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T10:34:54Z
+                  description: Edit deployment schedule to 2026-05-01T11:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:34:54Z"
+                    deployAt: "2026-05-01T11:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -14113,7 +14579,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5838
+            - testCaseID: TCXM_5908
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -14278,7 +14744,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -14304,7 +14770,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5839
+            - testCaseID: TCXM_5909
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -14366,7 +14832,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5840
+            - testCaseID: TCXM_5910
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -14431,7 +14897,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5841
+            - testCaseID: TCXM_5911
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -14686,7 +15152,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_5842
+            - testCaseID: TCXM_5912
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -15041,7 +15507,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_5843
+            - testCaseID: TCXM_5913
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -15398,7 +15864,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for qos-classifier-profile-config — device value accepted as new cloud baseline
-            - testCaseID: TCXM_5844
+            - testCaseID: TCXM_5914
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -15646,7 +16112,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_5845
+            - testCaseID: TCXM_5915
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -15847,7 +16313,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_5846
+            - testCaseID: TCXM_5916
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -16048,7 +16514,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_5847
+            - testCaseID: TCXM_5917
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -16234,7 +16700,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_5848
+            - testCaseID: TCXM_5918
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -16434,7 +16900,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_5849
+            - testCaseID: TCXM_5919
               featureName: qos-classifier-profile-config
               priority: P1
               automation: Automatable
@@ -16652,7 +17118,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5850
+            - testCaseID: TCXM_5920
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -16767,7 +17233,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_5851
+            - testCaseID: TCXM_5921
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -16800,7 +17266,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_5852
+            - testCaseID: TCXM_5922
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -16977,8 +17443,381 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
+            - testCaseID: TCXM_5952
+              featureName: qos-classifier-profile-config
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for qos-classifier-profile-config (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    objectType: qos-policy
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: qos-global-config-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                            - name: profile-name
+                              origin: CC
+                              type: string
+                              value: test-profile
+                            - name: profile-type
+                              origin: CC
+                              type: string
+                              value: INTERFACE_SSID_ONLY
+                          type: qos-policy
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile was created
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    filters:
+                        - key: qos-global-config-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: profile-name
+                          value: test-profile
+                    objectType: qos-policy
+                  expectedStatus: 200
+                  validations:
+                    - Verify qos-classifier-profile-config retrieved — response contains qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify qos-classifier-profile-config retrieved — response contains qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile
+                - name: updateResource
+                  description: Update qos-classifier-profile-config — update entry where qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile, profile-type=INTERFACE_SSID_ONLY
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    objectType: qos-policy
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: qos-global-config-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                            - name: profile-name
+                              origin: CC
+                              type: string
+                              value: test-profile
+                            - name: profile-type
+                              origin: CC
+                              type: string
+                              value: INTERFACE_SSID_ONLY
+                          type: qos-policy
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - Verify qos-classifier-profile-config updated successfully with update entry where qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile, profile-type=INTERFACE_SSID_ONLY
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify qos-classifier-profile-config updated successfully with update entry where qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile, profile-type=INTERFACE_SSID_ONLY
+                - name: verifyUpdate
+                  description: Verify qos-classifier-profile-config was updated — update entry where qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile, profile-type=INTERFACE_SSID_ONLY
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    filters:
+                        - key: qos-global-config-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: profile-name
+                          value: test-profile
+                    objectType: qos-policy
+                  expectedStatus: 200
+                  validations:
+                    - Verify qos-classifier-profile-config retrieved — response contains update entry where qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile, profile-type=INTERFACE_SSID_ONLY
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify qos-classifier-profile-config retrieved — response contains update entry where qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile, profile-type=INTERFACE_SSID_ONLY
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: deleteResource
+                  description: Delete qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile deleted successfully
+                - name: verifyDeletion
+                  description: Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    filters:
+                        - key: qos-global-config-id
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                        - key: profile-name
+                          value: test-profile
+                    objectType: qos-policy
+                  expectedStatus: 200
+                  validations:
+                    - Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_5855
+            - testCaseID: TCXM_5925
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17024,7 +17863,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'qos-global-config-id'
-            - testCaseID: TCXM_5856
+            - testCaseID: TCXM_5926
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17070,7 +17909,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'profile-name'
-            - testCaseID: TCXM_5857
+            - testCaseID: TCXM_5927
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17112,7 +17951,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'profile-type'
-            - testCaseID: TCXM_5858
+            - testCaseID: TCXM_5928
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17153,7 +17992,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_5859
+            - testCaseID: TCXM_5929
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17198,7 +18037,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_5860
+            - testCaseID: TCXM_5930
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17239,7 +18078,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_5861
+            - testCaseID: TCXM_5931
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17280,7 +18119,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_5862
+            - testCaseID: TCXM_5932
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17324,7 +18163,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5863
+            - testCaseID: TCXM_5933
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17368,7 +18207,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5864
+            - testCaseID: TCXM_5934
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17412,7 +18251,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5865
+            - testCaseID: TCXM_5935
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17456,7 +18295,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5866
+            - testCaseID: TCXM_5936
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17500,7 +18339,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5867
+            - testCaseID: TCXM_5937
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17544,7 +18383,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5868
+            - testCaseID: TCXM_5938
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17592,7 +18431,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5869
+            - testCaseID: TCXM_5939
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17640,7 +18479,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5870
+            - testCaseID: TCXM_5940
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17683,7 +18522,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5871
+            - testCaseID: TCXM_5941
               featureName: qos-classifier-profile-config
               priority: P2
               automation: Automatable
@@ -17708,7 +18547,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_5877
+            - testCaseID: TCXM_5947
               featureName: qos-classifier-profile-config
               priority: P4
               automation: Automatable
@@ -18100,7 +18939,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_5878
+            - testCaseID: TCXM_5948
               featureName: qos-classifier-profile-config
               priority: P4
               automation: Automatable
@@ -18372,7 +19211,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_5879
+            - testCaseID: TCXM_5949
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -18811,7 +19650,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_5880
+            - testCaseID: TCXM_5950
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -19412,7 +20251,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_5881
+            - testCaseID: TCXM_5951
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -19677,7 +20516,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_5872
+            - testCaseID: TCXM_5942
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -22987,7 +23826,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_5873
+            - testCaseID: TCXM_5943
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -23030,7 +23869,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_5874
+            - testCaseID: TCXM_5944
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -24774,7 +25613,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_5875
+            - testCaseID: TCXM_5945
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -25163,7 +26002,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_5876
+            - testCaseID: TCXM_5946
               featureName: qos-classifier-profile-config
               priority: P3
               automation: Automatable
@@ -31774,3 +32613,358 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_5955
+              featureName: qos-classifier-profile-config
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative qos-classifier-profile-config instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    objectType: qos-policy
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: qos-global-config-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                            - name: profile-name
+                              origin: CC
+                              type: string
+                              value: test-profile
+                            - name: profile-type
+                              origin: CC
+                              type: string
+                              value: INTERFACE_SSID_ONLY
+                          type: qos-policy
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000, profile-name=test-profile
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-1, profile-name=test-profile-1
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    objectType: qos-policy
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: qos-global-config-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-1
+                            - name: profile-name
+                              origin: CC
+                              type: string
+                              value: test-profile-1
+                            - name: profile-type
+                              origin: CC
+                              type: string
+                              value: INTERFACE_SSID_ONLY
+                          type: qos-policy
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-1, profile-name=test-profile-1
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-1, profile-name=test-profile-1
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-2, profile-name=test-profile-2
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    objectType: qos-policy
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: qos-global-config-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-2
+                            - name: profile-name
+                              origin: CC
+                              type: string
+                              value: test-profile-2
+                            - name: profile-type
+                              origin: CC
+                              type: string
+                              value: INTERFACE_SSID_ONLY
+                          type: qos-policy
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-2, profile-name=test-profile-2
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-2, profile-name=test-profile-2
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-3, profile-name=test-profile-3
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    objectType: qos-policy
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: qos-global-config-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-3
+                            - name: profile-name
+                              origin: CC
+                              type: string
+                              value: test-profile-3
+                            - name: profile-type
+                              origin: CC
+                              type: string
+                              value: INTERFACE_SSID_ONLY
+                          type: qos-policy
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-3, profile-name=test-profile-3
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-3, profile-name=test-profile-3
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for qos-classifier-profile-config with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-4, profile-name=test-profile-4
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /infrastructure-feature/qos-feature
+                    objectType: qos-policy
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: qos-global-config-id
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000-4
+                            - name: profile-name
+                              origin: CC
+                              type: string
+                              value: test-profile-4
+                            - name: profile-type
+                              origin: CC
+                              type: string
+                              value: INTERFACE_SSID_ONLY
+                          type: qos-policy
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-4, profile-name=test-profile-4
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify qos-classifier-profile-config created successfully with qos-global-config-id=123e4567-e89b-12d3-a456-426614174000-4, profile-name=test-profile-4
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

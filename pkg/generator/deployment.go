@@ -482,17 +482,7 @@ func (g *Generator) generateServiceProfileScopedDeploymentTest(feature *model.Fe
 }
 
 func (g *Generator) appendServiceProfileConfigurationSetup(tc *model.TestCase, feature *model.Feature, createPath, readPath *model.FeaturePath, serviceProfileName, configurationProfileName string) {
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:           "createServiceProfile",
-		Description:    "Create service profile container before adding service feature configuration",
-		Method:         "POST",
-		API:            model.APITypeREST,
-		Path:           serviceProfileCreatePath,
-		PathParams:     map[string]string{"name": serviceProfileName},
-		Body:           map[string]interface{}{"description": fmt.Sprintf("Service profile for %s deployment test", feature.Name)},
-		ExpectedStatus: 201,
-		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 201}},
-	})
+	tc.Steps = append(tc.Steps, serviceProfileContainerStep(feature, serviceProfileName))
 
 	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, createPath, serviceProfileName))
 
@@ -510,22 +500,7 @@ func (g *Generator) appendServiceProfileConfigurationSetup(tc *model.TestCase, f
 		})
 	}
 
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:        "createConfigurationProfileWithServiceProfile",
-		Description: "Create configuration profile and link the service profile so its configuration can be deployed",
-		Method:      "POST",
-		API:         model.APITypeREST,
-		Path:        configurationProfilePath,
-		PathParams:  map[string]string{"name": configurationProfileName},
-		Body: map[string]interface{}{
-			"blueprints":          []string{"wired-blueprint"},
-			"serviceProfiles":     []string{serviceProfileName},
-			"networkArchitecture": "standard",
-			"description":         fmt.Sprintf("Configuration profile for %s service-profile deployment", feature.Name),
-		},
-		ExpectedStatus: 201,
-		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 201}},
-	})
+	tc.Steps = append(tc.Steps, configurationProfileWithServiceProfileStep(feature, configurationProfileName, serviceProfileName))
 
 }
 

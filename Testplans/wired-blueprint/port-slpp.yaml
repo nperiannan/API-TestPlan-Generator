@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_5590
+            - testCaseID: TCXM_5652
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -63,7 +63,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_5591
+            - testCaseID: TCXM_5653
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -115,8 +115,434 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
+            - testCaseID: TCXM_5671
+              featureName: port-slpp
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy port-slpp with boundary value for 'timeout-value' (min)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create port-slpp with slpp-guard=false, timeout-value=0
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 0
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-slpp created successfully with slpp-guard=false, timeout-value=0
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-slpp created successfully with slpp-guard=false, timeout-value=0
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify port-slpp accepted boundary value for 'timeout-value'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-slpp retrieved — response contains slpp-guard=false, timeout-value=0
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-slpp retrieved — response contains slpp-guard=false, timeout-value=0
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: min
+                deploymentSample: boundary
+                field: timeout-value
+            - testCaseID: TCXM_5672
+              featureName: port-slpp
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy port-slpp with boundary value for 'timeout-value' (max)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create port-slpp with slpp-guard=false, timeout-value=86400
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 86400
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-slpp created successfully with slpp-guard=false, timeout-value=86400
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-slpp created successfully with slpp-guard=false, timeout-value=86400
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify port-slpp accepted boundary value for 'timeout-value'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-slpp retrieved — response contains slpp-guard=false, timeout-value=86400
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-slpp retrieved — response contains slpp-guard=false, timeout-value=86400
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: max
+                deploymentSample: boundary
+                field: timeout-value
         functional:
-            - testCaseID: TCXM_5515
+            - testCaseID: TCXM_5577
               featureName: port-slpp
               priority: P1
               automation: Automatable
@@ -215,7 +641,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='timeout-value')].value
                       expected: 60
                       description: Verify 'timeout-value' value is '60' as set during create
-            - testCaseID: TCXM_5516
+            - testCaseID: TCXM_5578
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -302,7 +728,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-slpp retrieved — response contains modify slpp-guard=false
-            - testCaseID: TCXM_5517
+            - testCaseID: TCXM_5579
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -379,12 +805,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-slpp with slpp-guard=false, timeout-value=60 no longer exists in the response
-            - testCaseID: TCXM_5518
+            - testCaseID: TCXM_5580
               featureName: port-slpp
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for port-slpp (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for port-slpp (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -500,7 +926,24 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-slpp with slpp-guard=false, timeout-value=60 deleted successfully
-            - testCaseID: TCXM_5519
+                - name: verifyDeletion
+                  description: Verify port-slpp with slpp-guard=false, timeout-value=60 is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-slpp with slpp-guard=false, timeout-value=60 no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-slpp with slpp-guard=false, timeout-value=60 no longer exists in the response
+            - testCaseID: TCXM_5581
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -587,7 +1030,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify port-slpp retrieved — response contains modify slpp-guard=false
-            - testCaseID: TCXM_5520
+            - testCaseID: TCXM_5582
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -655,7 +1098,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of port-slpp with slpp-guard=false, timeout-value=60 is rejected (409 Conflict)
-            - testCaseID: TCXM_5521
+            - testCaseID: TCXM_5583
               featureName: port-slpp
               priority: P1
               automation: Automatable
@@ -854,7 +1297,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5522
+            - testCaseID: TCXM_5584
               featureName: port-slpp
               priority: P1
               automation: Automatable
@@ -1053,7 +1496,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5523
+            - testCaseID: TCXM_5585
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -1239,7 +1682,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5524
+            - testCaseID: TCXM_5586
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -1290,7 +1733,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_5525
+            - testCaseID: TCXM_5587
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -1367,7 +1810,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='timeout-value')].value
                       expected: 60
                       description: Verify field 'timeout-value' has value '60' as sent on create
-            - testCaseID: TCXM_5526
+            - testCaseID: TCXM_5588
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -1427,7 +1870,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='slpp-guard')].value
                       expected: false
                       description: Verify optional field 'slpp-guard' value is 'false' as set on create
-            - testCaseID: TCXM_5527
+            - testCaseID: TCXM_5589
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -1487,7 +1930,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='timeout-value')].value
                       expected: 60
                       description: Verify optional field 'timeout-value' value is '60' as set on create
-            - testCaseID: TCXM_5528
+            - testCaseID: TCXM_5590
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -1547,7 +1990,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='slpp-guard')].value
                       expected: true
                       description: Verify 'slpp-guard' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5529
+            - testCaseID: TCXM_5591
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -1607,7 +2050,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='slpp-guard')].value
                       expected: false
                       description: Verify 'slpp-guard' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_5530
+            - testCaseID: TCXM_5592
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -1667,7 +2110,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='timeout-value')].value
                       expected: 0
                       description: Verify 'timeout-value' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_5531
+            - testCaseID: TCXM_5593
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -1727,7 +2170,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='timeout-value')].value
                       expected: 86400
                       description: Verify 'timeout-value' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_5532
+            - testCaseID: TCXM_5594
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -1779,7 +2222,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='slpp-guard')].value
                       expected: false
                       description: Verify 'slpp-guard' equals YANG-defined default value false
-            - testCaseID: TCXM_5533
+            - testCaseID: TCXM_5595
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -1831,7 +2274,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='timeout-value')].value
                       expected: 60
                       description: Verify 'timeout-value' equals YANG-defined default value 60
-            - testCaseID: TCXM_5534
+            - testCaseID: TCXM_5596
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -2017,7 +2460,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5535
+            - testCaseID: TCXM_5597
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -2203,7 +2646,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5536
+            - testCaseID: TCXM_5598
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -2389,7 +2832,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5537
+            - testCaseID: TCXM_5599
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -2575,7 +3018,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5538
+            - testCaseID: TCXM_5600
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -2761,7 +3204,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5539
+            - testCaseID: TCXM_5601
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -2947,7 +3390,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5540
+            - testCaseID: TCXM_5602
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -3133,7 +3576,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5541
+            - testCaseID: TCXM_5603
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -3319,7 +3762,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5542
+            - testCaseID: TCXM_5604
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -3505,7 +3948,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5543
+            - testCaseID: TCXM_5605
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -3691,7 +4134,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5544
+            - testCaseID: TCXM_5606
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -3877,7 +4320,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5545
+            - testCaseID: TCXM_5607
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -4063,7 +4506,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5546
+            - testCaseID: TCXM_5608
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -4249,7 +4692,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5547
+            - testCaseID: TCXM_5609
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -4435,7 +4878,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5548
+            - testCaseID: TCXM_5610
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -4621,7 +5064,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5549
+            - testCaseID: TCXM_5611
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -4807,7 +5250,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5550
+            - testCaseID: TCXM_5612
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -4993,7 +5436,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5551
+            - testCaseID: TCXM_5613
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -5179,7 +5622,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5552
+            - testCaseID: TCXM_5614
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -5366,7 +5809,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5553
+            - testCaseID: TCXM_5615
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -5553,7 +5996,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5554
+            - testCaseID: TCXM_5616
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -5740,7 +6183,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5555
+            - testCaseID: TCXM_5617
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -5927,7 +6370,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5556
+            - testCaseID: TCXM_5618
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -6114,7 +6557,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5557
+            - testCaseID: TCXM_5619
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -6301,7 +6744,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5558
+            - testCaseID: TCXM_5620
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -6488,7 +6931,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5559
+            - testCaseID: TCXM_5621
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -6675,7 +7118,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5560
+            - testCaseID: TCXM_5622
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -6862,7 +7305,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5561
+            - testCaseID: TCXM_5623
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -7049,7 +7492,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5562
+            - testCaseID: TCXM_5624
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -7235,7 +7678,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5563
+            - testCaseID: TCXM_5625
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -7421,7 +7864,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5564
+            - testCaseID: TCXM_5626
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -7607,7 +8050,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5565
+            - testCaseID: TCXM_5627
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -7793,7 +8236,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5566
+            - testCaseID: TCXM_5628
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -7979,565 +8422,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5567
-              featureName: port-slpp
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify port-slpp with bool value variation 1 for 'slpp-guard'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    objectType: port-slpp
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: slpp-guard
-                              origin: CC
-                              type: boolean
-                              value: true
-                            - name: timeout-value
-                              origin: CC
-                              type: number
-                              value: 60
-                          type: port-slpp
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_5568
-              featureName: port-slpp
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify port-slpp with bool value variation 2 for 'slpp-guard'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with bool type variation: false'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    objectType: port-slpp
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: slpp-guard
-                              origin: CC
-                              type: boolean
-                              value: false
-                            - name: timeout-value
-                              origin: CC
-                              type: number
-                              value: 60
-                          type: port-slpp
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_5569
-              featureName: port-slpp
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify port-slpp with bool value variation 3 for 'slpp-guard'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with bool type variation: true'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/interface-feature/port-feature
-                    objectType: port-slpp
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: slpp-guard
-                              origin: CC
-                              type: boolean
-                              value: true
-                            - name: timeout-value
-                              origin: CC
-                              type: number
-                              value: 60
-                          type: port-slpp
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_5570
+            - testCaseID: TCXM_5629
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -8723,7 +8608,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5571
+            - testCaseID: TCXM_5630
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -8909,7 +8794,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5572
+            - testCaseID: TCXM_5631
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -9095,7 +8980,565 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5573
+            - testCaseID: TCXM_5632
+              featureName: port-slpp
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify port-slpp with bool value variation 1 for 'slpp-guard'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 60
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5633
+              featureName: port-slpp
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify port-slpp with bool value variation 2 for 'slpp-guard'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with bool type variation: false'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 60
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5634
+              featureName: port-slpp
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify port-slpp with bool value variation 3 for 'slpp-guard'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with bool type variation: true'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 60
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_5635
               featureName: port-slpp
               priority: P1
               automation: Automatable
@@ -9252,14 +9695,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to device at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -9269,7 +9712,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5574
+            - testCaseID: TCXM_5636
               featureName: port-slpp
               priority: P1
               automation: Automatable
@@ -9426,14 +9869,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to site at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -9443,7 +9886,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_5575
+            - testCaseID: TCXM_5637
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -9604,7 +10047,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -9615,14 +10058,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T10:34:54Z
+                  description: Edit deployment schedule to 2026-05-01T11:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:34:54Z"
+                    deployAt: "2026-05-01T11:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -9632,7 +10075,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5576
+            - testCaseID: TCXM_5638
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -9793,7 +10236,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -9819,7 +10262,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_5577
+            - testCaseID: TCXM_5639
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -9877,7 +10320,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5578
+            - testCaseID: TCXM_5640
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -9938,7 +10381,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_5579
+            - testCaseID: TCXM_5641
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -10187,7 +10630,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_5580
+            - testCaseID: TCXM_5642
               featureName: port-slpp
               priority: P1
               automation: Automatable
@@ -10536,7 +10979,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_5581
+            - testCaseID: TCXM_5643
               featureName: port-slpp
               priority: P1
               automation: Automatable
@@ -10887,7 +11330,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for port-slpp — device value accepted as new cloud baseline
-            - testCaseID: TCXM_5582
+            - testCaseID: TCXM_5644
               featureName: port-slpp
               priority: P1
               automation: Automatable
@@ -11123,7 +11566,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_5583
+            - testCaseID: TCXM_5645
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -11316,7 +11759,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_5584
+            - testCaseID: TCXM_5646
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -11509,7 +11952,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_5585
+            - testCaseID: TCXM_5647
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -11687,7 +12130,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_5586
+            - testCaseID: TCXM_5648
               featureName: port-slpp
               priority: P1
               automation: Automatable
@@ -11879,7 +12322,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_5587
+            - testCaseID: TCXM_5649
               featureName: port-slpp
               priority: P1
               automation: Automatable
@@ -12089,7 +12532,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_5588
+            - testCaseID: TCXM_5650
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -12204,7 +12647,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_5589
+            - testCaseID: TCXM_5651
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -12233,8 +12676,354 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
+            - testCaseID: TCXM_5670
+              featureName: port-slpp
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for port-slpp (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create port-slpp with slpp-guard=false, timeout-value=60
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 60
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify port-slpp with slpp-guard=false, timeout-value=60 was created
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-slpp retrieved — response contains slpp-guard=false, timeout-value=60
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-slpp retrieved — response contains slpp-guard=false, timeout-value=60
+                - name: updateResource
+                  description: Update port-slpp — modify slpp-guard=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: port-slpp
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-slpp updated successfully with modify slpp-guard=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-slpp updated successfully with modify slpp-guard=false
+                - name: verifyUpdate
+                  description: Verify port-slpp was updated — modify slpp-guard=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-slpp retrieved — response contains modify slpp-guard=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-slpp retrieved — response contains modify slpp-guard=false
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: deleteResource
+                  description: Delete port-slpp with slpp-guard=false, timeout-value=60
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-slpp with slpp-guard=false, timeout-value=60 deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-slpp with slpp-guard=false, timeout-value=60 deleted successfully
+                - name: verifyDeletion
+                  description: Verify port-slpp with slpp-guard=false, timeout-value=60 is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                  expectedStatus: 200
+                  validations:
+                    - Verify port-slpp with slpp-guard=false, timeout-value=60 no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify port-slpp with slpp-guard=false, timeout-value=60 no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_5592
+            - testCaseID: TCXM_5654
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -12274,7 +13063,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5593
+            - testCaseID: TCXM_5655
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -12314,7 +13103,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5594
+            - testCaseID: TCXM_5656
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -12344,7 +13133,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'slpp-guard' is omitted
-            - testCaseID: TCXM_5595
+            - testCaseID: TCXM_5657
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -12374,7 +13163,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'timeout-value' is omitted
-            - testCaseID: TCXM_5596
+            - testCaseID: TCXM_5658
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -12414,7 +13203,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5597
+            - testCaseID: TCXM_5659
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -12453,7 +13242,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_5598
+            - testCaseID: TCXM_5660
               featureName: port-slpp
               priority: P2
               automation: Automatable
@@ -12478,7 +13267,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_5603
+            - testCaseID: TCXM_5665
               featureName: port-slpp
               priority: P4
               automation: Automatable
@@ -12830,7 +13619,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_5604
+            - testCaseID: TCXM_5666
               featureName: port-slpp
               priority: P4
               automation: Automatable
@@ -13052,7 +13841,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_5605
+            - testCaseID: TCXM_5667
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -13407,7 +14196,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_5606
+            - testCaseID: TCXM_5668
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -13968,7 +14757,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_5607
+            - testCaseID: TCXM_5669
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -14229,7 +15018,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_5599
+            - testCaseID: TCXM_5661
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -17139,7 +17928,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_5600
+            - testCaseID: TCXM_5662
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -18879,7 +19668,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_5601
+            - testCaseID: TCXM_5663
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -19184,7 +19973,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_5602
+            - testCaseID: TCXM_5664
               featureName: port-slpp
               priority: P3
               automation: Automatable
@@ -24995,3 +25784,338 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_5673
+              featureName: port-slpp
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative port-slpp instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for port-slpp with slpp-guard=false, timeout-value=60
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 60
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for port-slpp with slpp-guard=false, timeout-value=60
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 60
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for port-slpp with slpp-guard=false, timeout-value=60
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 60
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for port-slpp with slpp-guard=false, timeout-value=60
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 60
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for port-slpp with slpp-guard=false, timeout-value=60
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: port-slpp
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: slpp-guard
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: timeout-value
+                              origin: CC
+                              type: number
+                              value: 60
+                          type: port-slpp
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify port-slpp created successfully with slpp-guard=false, timeout-value=60
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

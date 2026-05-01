@@ -136,9 +136,10 @@ Features are classified into blueprint categories:
 - Read validations must assert values that were actually sent by create/update steps, or values that are proven defaults from YANG/OpenAPI. Do not validate optional fields using unrelated sample values.
 - Sample values must be selected from YANG type, constraints, enum/defaults, and descriptions in that order. Name-based heuristics are a fallback only.
 - IP/subnet/gateway fields require field-specific values: names should be names, subnet addresses should use subnet/CIDR-compatible values, masks should be masks or prefix lengths as described, and gateway addresses should be host addresses.
+- CRUD lifecycle tests must use real feature payloads and include the full `Create -> Read -> Update -> Read -> Delete -> Read` flow. Delete must be followed by a read-back verification, not just a delete response check.
 - Delete steps must carry enough identity to delete the exact object created by the test: object ID, object IDs, or all YANG key fields required by the API shape.
 - NOSAPI verification endpoints are optional unless confidently mapped. Do not attach unrelated NOSAPI endpoints just because names partially match.
-- When generation logic changes, regenerate `Testplans/`, `reports/summary_report.html`, and Excel output, then spot-check representative global, service, wired, wireless, and nested sub-object plans.
+- When generation logic changes, regenerate `Testplans/`, `reports/summary_report.html`, Excel output, and CSV output, then spot-check representative global, service, wired, wireless, and nested sub-object plans.
 
 ### Functional deployment workflow
 
@@ -150,6 +151,10 @@ Functional deployment tests are not plain API CRUD cases. Any generated case tha
 - Before deployment, validate that no conflict is detected for the target device.
 - After deployment, poll/check deployment status and require success.
 - When a NOS OpenAPI endpoint can be confidently mapped, verify that the deployed configuration is present on the NOS device.
+- Deployment coverage must be generic across all deployable feature categories, not hard-coded for a single feature. Wired, wireless, and service-profile features should use the same representative selection rules.
+- Do not mark every functional, boundary, or scale case as a deployment test. Keep most cases as fast API coverage, then add representative deployment samples for each deployable feature: at least one deployed CRUD lifecycle, deployed boundary samples when YANG constraints exist, and one deployed scale sample with a capped instance count.
+- Deployed CRUD lifecycle cases must use the feature's real create/read/update/delete payloads, deploy the created/updated configuration, delete it, read back deletion, and redeploy removal so device state follows cloud intent.
+- Deployed boundary and scale samples must reuse YANG/schema-derived payloads and the same scope, target-query, conflict pre-check, deploy, status, and NOS verification workflow as functional deployment tests.
 - Service-profile feature deployment must go through a configuration profile that links the service profile; do not treat service-profile CRUD as deployed until the configuration profile is scoped, target-queried, deployed, and verified.
 - Override cases must cover device, device model, and device group/model-group variations. Device-specific override cases should use the device resolved by target-query.
 - Conflict cases must deploy a baseline, verify it on NOS, induce an out-of-band NOS change, confirm conflict detection, verify deployment is blocked while unresolved, resolve by the intended CC/cloud-config or DC/device-config choice, deploy again, and verify the final NOS configuration.
@@ -158,8 +163,8 @@ Functional deployment tests are not plain API CRUD cases. Any generated case tha
 
 ### testgen.ps1 / testgen.sh
 
-- `testgen.ps1` — Windows PowerShell pipeline: generate → summary → Excel batch export
-- `testgen.sh`  — Linux bash equivalent; identical feature set
+- `testgen.ps1` — Windows PowerShell pipeline: generate → summary → Excel batch export → CSV batch export
+- `testgen.sh`  — Linux bash equivalent; identical feature set and export pipeline
 - Accepts a features argument: `wired` (default), `wireless`, `all`, or specific feature names
 - Auto-builds the required binary if not present
 

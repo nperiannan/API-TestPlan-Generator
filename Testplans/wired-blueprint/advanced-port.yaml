@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -411,6 +411,456 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
+            - testCaseID: TCXM_1162
+              featureName: advanced-port
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy advanced-port with boundary value for 'bpdu-recovery-timeout' (min)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=0
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-stp
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: enable-edge
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-protection
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-restrict
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: bpdu-recovery-timeout
+                              origin: CC
+                              type: number
+                              value: 0
+                          type: advanced-port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=0
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=0
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify advanced-port accepted boundary value for 'bpdu-recovery-timeout'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                  expectedStatus: 200
+                  validations:
+                    - Verify advanced-port retrieved — response contains enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=0
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify advanced-port retrieved — response contains enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=0
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: min
+                deploymentSample: boundary
+                field: bpdu-recovery-timeout
+            - testCaseID: TCXM_1163
+              featureName: advanced-port
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy advanced-port with boundary value for 'bpdu-recovery-timeout' (max)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=65535
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-stp
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: enable-edge
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-protection
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-restrict
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: bpdu-recovery-timeout
+                              origin: CC
+                              type: number
+                              value: 65535
+                          type: advanced-port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=65535
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=65535
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify advanced-port accepted boundary value for 'bpdu-recovery-timeout'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                  expectedStatus: 200
+                  validations:
+                    - Verify advanced-port retrieved — response contains enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=65535
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify advanced-port retrieved — response contains enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=65535
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: max
+                deploymentSample: boundary
+                field: bpdu-recovery-timeout
         functional:
             - testCaseID: TCXM_1000
               featureName: advanced-port
@@ -743,7 +1193,7 @@ features:
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for advanced-port (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for advanced-port (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -871,6 +1321,23 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300 deleted successfully
+                - name: verifyDeletion
+                  description: Verify advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300 is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                  expectedStatus: 200
+                  validations:
+                    - Verify advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300 no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300 no longer exists in the response
             - testCaseID: TCXM_1004
               featureName: advanced-port
               priority: P3
@@ -18948,14 +19415,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T09:34:53Z
+                  description: Schedule deployment to device at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:53Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -19134,14 +19601,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T09:34:53Z
+                  description: Schedule deployment to site at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:53Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -19324,7 +19791,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:53Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -19335,14 +19802,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T10:34:53Z
+                  description: Edit deployment schedule to 2026-05-01T11:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:34:53Z"
+                    deployAt: "2026-05-01T11:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -19525,7 +19992,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:53Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -22247,6 +22714,364 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
+            - testCaseID: TCXM_1161
+              featureName: advanced-port
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for advanced-port (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-stp
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: enable-edge
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-protection
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-restrict
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: bpdu-recovery-timeout
+                              origin: CC
+                              type: number
+                              value: 300
+                          type: advanced-port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300 was created
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                  expectedStatus: 200
+                  validations:
+                    - Verify advanced-port retrieved — response contains enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify advanced-port retrieved — response contains enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                - name: updateResource
+                  description: Update advanced-port — modify enable-stp=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: enable-stp
+                              origin: CC
+                              type: boolean
+                              value: false
+                          type: advanced-port
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - Verify advanced-port updated successfully with modify enable-stp=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify advanced-port updated successfully with modify enable-stp=false
+                - name: verifyUpdate
+                  description: Verify advanced-port was updated — modify enable-stp=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                  expectedStatus: 200
+                  validations:
+                    - Verify advanced-port retrieved — response contains modify enable-stp=false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify advanced-port retrieved — response contains modify enable-stp=false
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: deleteResource
+                  description: Delete advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300 deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300 deleted successfully
+                - name: verifyDeletion
+                  description: Verify advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300 is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                  expectedStatus: 200
+                  validations:
+                    - Verify advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300 no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300 no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
             - testCaseID: TCXM_1134
               featureName: advanced-port
@@ -40231,3 +41056,398 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_1164
+              featureName: advanced-port
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative advanced-port instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-stp
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: enable-edge
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-protection
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-restrict
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: bpdu-recovery-timeout
+                              origin: CC
+                              type: number
+                              value: 300
+                          type: advanced-port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-stp
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: enable-edge
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-protection
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-restrict
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: bpdu-recovery-timeout
+                              origin: CC
+                              type: number
+                              value: 300
+                          type: advanced-port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-stp
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: enable-edge
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-protection
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-restrict
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: bpdu-recovery-timeout
+                              origin: CC
+                              type: number
+                              value: 300
+                          type: advanced-port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-stp
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: enable-edge
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-protection
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-restrict
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: bpdu-recovery-timeout
+                              origin: CC
+                              type: number
+                              value: 300
+                          type: advanced-port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for advanced-port with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/interface-feature/port-feature
+                    objectType: advanced-port
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enable-stp
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: enable-edge
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-protection
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: enable-bpdu-restrict
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: bpdu-recovery-timeout
+                              origin: CC
+                              type: number
+                              value: 300
+                          type: advanced-port
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify advanced-port created successfully with enable-stp=true, enable-edge=false, enable-bpdu-protection=false, enable-bpdu-restrict=false, bpdu-recovery-timeout=300
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

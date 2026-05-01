@@ -64,7 +64,7 @@ func (g *Generator) generateFunctionalTests(feature *model.Feature, paths []*mod
 
 	// Additional non-deployment functional CRUD tests for better coverage
 
-	// Full CRUD lifecycle test (Create -> Read -> Update -> Read -> Delete)
+	// Full CRUD lifecycle test (Create -> Read -> Update -> Read -> Delete -> Read)
 	if createPath != nil && readPath != nil && updatePath != nil && deletePath != nil {
 		tests = append(tests, g.generateFullCRUDLifecycleTest(feature, createPath, readPath, updatePath, deletePath))
 	}
@@ -943,7 +943,7 @@ func (g *Generator) generateFullCRUDLifecycleTest(
 		FeatureName:      feature.Name,
 		Priority:         model.TestPriorityP3,
 		Type:             model.TestCategoryFunctional,
-		Description:      fmt.Sprintf("Full CRUD lifecycle test for %s (Create -> Read -> Update -> Read -> Delete)", feature.Name),
+		Description:      fmt.Sprintf("Full CRUD lifecycle test for %s (Create -> Read -> Update -> Read -> Delete -> Read)", feature.Name),
 		IsDeploymentTest: false,
 		Steps:            []model.TestStep{},
 	}
@@ -1014,7 +1014,19 @@ func (g *Generator) generateFullCRUDLifecycleTest(
 		Validations:    crudValidations(200, "delete", feature.Name, keyDesc),
 	}
 
-	tc.Steps = []model.TestStep{createStep, readStep1, updateStep, readStep2, deleteStep}
+	// Step 6: Read (verify delete)
+	readAfterDeleteStep := model.TestStep{
+		Name:           "verifyDeletion",
+		Description:    fmt.Sprintf("Verify %s with %s is no longer returned after delete", feature.Name, keyDesc),
+		Method:         readPath.HTTPMethod,
+		API:            model.APITypeREST,
+		Path:           readPath.Path,
+		Body:           g.generateReadBodyForRequestBody(feature, createPath, createBody),
+		ExpectedStatus: 200,
+		Validations:    deletionReadBackValidations(200, feature.Name, keyDesc),
+	}
+
+	tc.Steps = []model.TestStep{createStep, readStep1, updateStep, readStep2, deleteStep, readAfterDeleteStep}
 	return tc
 }
 
@@ -1976,6 +1988,41 @@ func (g *Generator) generateReadBody(feature *model.Feature, createPath *model.F
 	return nil
 }
 
+func (g *Generator) generateReadBodyForRequestBody(feature *model.Feature, createPath *model.FeaturePath, requestBody map[string]interface{}) map[string]interface{} {
+	body := g.generateReadBody(feature, createPath)
+	if body == nil || feature == nil || requestBody == nil || len(feature.Keys) == 0 {
+		return body
+	}
+
+	paramsByName := make(map[string]model.Parameter)
+	for _, param := range feature.Parameters {
+		paramsByName[param.Name] = param
+	}
+
+	filters := []map[string]interface{}{}
+	for _, key := range feature.Keys {
+		param, ok := paramsByName[key]
+		if !ok {
+			param = syntheticKeyParameter(key)
+		}
+		if isSystemManagedField(param.Name) {
+			continue
+		}
+		value := bodyParameterValue(requestBody, key)
+		if value == nil {
+			value = g.getSampleValue(param)
+		}
+		filters = append(filters, map[string]interface{}{
+			"key":   key,
+			"value": value,
+		})
+	}
+	if len(filters) > 0 {
+		body["filters"] = filters
+	}
+	return body
+}
+
 func (g *Generator) generateKeyFilters(feature *model.Feature) []map[string]interface{} {
 	var filters []map[string]interface{}
 	if feature == nil || len(feature.Keys) == 0 {
@@ -2270,6 +2317,16 @@ func crudValidations(statusCode int, operation string, featureName string, keyDe
 			Type:        model.ValidationTypeStatusCode,
 			Expected:    statusCode,
 			Description: desc,
+		},
+	}
+}
+
+func deletionReadBackValidations(statusCode int, featureName string, keyDescription string) []model.Validation {
+	return []model.Validation{
+		{
+			Type:        model.ValidationTypeStatusCode,
+			Expected:    statusCode,
+			Description: fmt.Sprintf("Verify %s with %s no longer exists in the response", featureName, keyDescription),
 		},
 	}
 }

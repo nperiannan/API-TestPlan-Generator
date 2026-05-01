@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/extremenetworks/testcase-generator/pkg/model"
@@ -848,6 +849,110 @@ func TestServiceProfileAdditionalCoverageIncludesConflictAndOverride(t *testing.
 	assertStepPath(t, tests[3].Steps, "createDeviceOverride", "/configuration-profile/{name}/feature/object/override/create-modify")
 }
 
+func TestFullCRUDLifecycleIncludesReadAfterDelete(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	feature := &model.Feature{
+		Name: "generic-feature",
+		Keys: []string{"name"},
+		Parameters: []model.Parameter{
+			{Name: "name", GoType: "string", Required: true},
+			{Name: "description", GoType: "string"},
+		},
+	}
+	createPath := genericObjectPath("generic-feature", model.BlueprintCategoryWired, model.ProfileTypeConfiguration, model.OperationTypeCreate, "/configuration-profile/{name}/feature/object/modify")
+	readPath := genericObjectPath("generic-feature", model.BlueprintCategoryWired, model.ProfileTypeConfiguration, model.OperationTypeRead, "/configuration-profile/{name}/feature/object/retrieve")
+	updatePath := genericObjectPath("generic-feature", model.BlueprintCategoryWired, model.ProfileTypeConfiguration, model.OperationTypeUpdate, "/configuration-profile/{name}/feature/object/modify")
+	deletePath := genericObjectPath("generic-feature", model.BlueprintCategoryWired, model.ProfileTypeConfiguration, model.OperationTypeDelete, "/configuration-profile/{name}/feature/object/delete")
+
+	testCase := gen.generateFullCRUDLifecycleTest(feature, createPath, readPath, updatePath, deletePath)
+
+	if len(testCase.Steps) != 6 {
+		t.Fatalf("expected CRUD lifecycle to include delete read-back step, got %d steps: %#v", len(testCase.Steps), testCase.Steps)
+	}
+	if testCase.Steps[5].Name != "verifyDeletion" || testCase.Steps[5].Path != readPath.Path {
+		t.Fatalf("expected final read-back deletion verification, got %#v", testCase.Steps[5])
+	}
+	if len(testCase.Steps[5].Validations) == 0 || !strings.Contains(testCase.Steps[5].Validations[0].Description, "no longer exists") {
+		t.Fatalf("expected delete read-back validation to assert absence, got %#v", testCase.Steps[5].Validations)
+	}
+}
+
+func TestRepresentativeDeploymentSamplesApplyToAllDeployableFeatureKinds(t *testing.T) {
+	tests := []struct {
+		name        string
+		category    model.BlueprintCategory
+		profileType model.ProfileType
+		basePath    string
+	}{
+		{
+			name:        "service profile feature",
+			category:    model.BlueprintCategoryService,
+			profileType: model.ProfileTypeService,
+			basePath:    "/service-profile/{name}",
+		},
+		{
+			name:        "configuration profile feature",
+			category:    model.BlueprintCategoryWired,
+			profileType: model.ProfileTypeConfiguration,
+			basePath:    "/configuration-profile/{name}",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := model.NewDefaultConfig()
+			config.ScaleFactor = 3
+			gen := NewGenerator(config, nil, nil, nil, nil)
+			feature := &model.Feature{
+				Name: "generic-deployable-feature",
+				Keys: []string{"name"},
+				Parameters: []model.Parameter{
+					{Name: "name", GoType: "string", Required: true, Constraints: []model.Constraint{{Type: model.ConstraintTypeMinLength, Value: 3}, {Type: model.ConstraintTypeMaxLength, Value: 32}}},
+					{Name: "priority", GoType: "uint8", Constraints: []model.Constraint{{Type: model.ConstraintTypeMin, Value: 1}, {Type: model.ConstraintTypeMax, Value: 10}}},
+					{Name: "enabled", GoType: "bool"},
+				},
+			}
+			paths := []*model.FeaturePath{
+				genericObjectPath(feature.Name, tt.category, tt.profileType, model.OperationTypeCreate, tt.basePath+"/feature/object/modify"),
+				genericObjectPath(feature.Name, tt.category, tt.profileType, model.OperationTypeRead, tt.basePath+"/feature/object/retrieve"),
+				genericObjectPath(feature.Name, tt.category, tt.profileType, model.OperationTypeUpdate, tt.basePath+"/feature/object/modify"),
+				genericObjectPath(feature.Name, tt.category, tt.profileType, model.OperationTypeDelete, tt.basePath+"/feature/object/delete"),
+				genericObjectPath(feature.Name, tt.category, tt.profileType, model.OperationTypeList, tt.basePath+"/feature/object/retrieve"),
+			}
+			group := &model.FeatureTestGroup{Tests: make(map[model.TestCategory][]model.TestCase)}
+
+			gen.addRepresentativeDeploymentSamples(group, feature, paths)
+
+			functional := group.Tests[model.TestCategoryFunctional]
+			if len(functional) != 1 || !functional[0].IsDeploymentTest {
+				t.Fatalf("expected one deployed CRUD functional sample, got %#v", functional)
+			}
+			assertStepPath(t, functional[0].Steps, "verifyNoConflictBeforeDeployment", deviceConflictCheckPath)
+			assertStepPath(t, functional[0].Steps, "deployProfileTodevice", deviceDeployPath)
+			assertStepPath(t, functional[0].Steps, "verifyDeletion", paths[1].Path)
+
+			boundary := group.Tests[model.TestCategoryBoundary]
+			if len(boundary) != deploymentBoundarySampleLimit {
+				t.Fatalf("expected %d deployed boundary samples, got %d", deploymentBoundarySampleLimit, len(boundary))
+			}
+			for _, testCase := range boundary {
+				if !testCase.IsDeploymentTest {
+					t.Fatalf("boundary sample should be deployable: %#v", testCase)
+				}
+				assertStepPath(t, testCase.Steps, "deployProfileTodevice", deviceDeployPath)
+			}
+			assertReadFilterValue(t, boundary[0].Steps, "verifyBoundaryCreate", "name", "abc")
+
+			scale := group.Tests[model.TestCategoryScale]
+			if len(scale) != 1 || !scale[0].IsDeploymentTest {
+				t.Fatalf("expected one deployed scale sample, got %#v", scale)
+			}
+			assertStepPath(t, scale[0].Steps, "deployProfileTodevice", deviceDeployPath)
+		})
+	}
+}
+
 func TestConflictResolutionCCBlocksDeploymentBeforeResolve(t *testing.T) {
 	config := model.NewDefaultConfig()
 	gen := NewGenerator(config, nil, nil, nil, nil)
@@ -892,11 +997,50 @@ func assertStepPath(t *testing.T, steps []model.TestStep, name, path string) {
 	t.Fatalf("step %s not found in %#v", name, steps)
 }
 
+func assertReadFilterValue(t *testing.T, steps []model.TestStep, stepName, key string, expected interface{}) {
+	t.Helper()
+	for _, step := range steps {
+		if step.Name != stepName {
+			continue
+		}
+		body, ok := step.Body.(map[string]interface{})
+		if !ok {
+			t.Fatalf("step %s expected map body, got %#v", stepName, step.Body)
+		}
+		filters, ok := body["filters"].([]map[string]interface{})
+		if !ok {
+			t.Fatalf("step %s expected filters, got %#v", stepName, body["filters"])
+		}
+		for _, filter := range filters {
+			if filter["key"] == key {
+				if filter["value"] != expected {
+					t.Fatalf("filter %s expected %v, got %v", key, expected, filter["value"])
+				}
+				return
+			}
+		}
+		t.Fatalf("filter %s not found in %#v", key, filters)
+	}
+	t.Fatalf("step %s not found in %#v", stepName, steps)
+}
+
 func wiredFeaturePath(featureName, featurePath string) *model.FeaturePath {
 	return &model.FeaturePath{
 		FeatureName:       featureName,
 		BlueprintCategory: model.BlueprintCategoryWired,
 		PathParams:        []model.PathParameter{{Name: "featurePath", FixedValue: featurePath}, {Name: "objectType", FixedValue: featureName}},
+	}
+}
+
+func genericObjectPath(featureName string, category model.BlueprintCategory, profileType model.ProfileType, operation model.OperationType, path string) *model.FeaturePath {
+	return &model.FeaturePath{
+		FeatureName:       featureName,
+		HTTPMethod:        "POST",
+		Path:              path,
+		OperationType:     operation,
+		BlueprintCategory: category,
+		ProfileType:       profileType,
+		PathParams:        []model.PathParameter{{Name: "featurePath", FixedValue: "/generic-feature-path"}, {Name: "objectType", FixedValue: featureName}},
 	}
 }
 

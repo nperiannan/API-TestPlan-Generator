@@ -78,8 +78,8 @@ API-TestPlan-Generator/
 │   ├── yaml2excel/                 # CLI: YAML → Excel converter
 │   └── yaml2csv/                   # CLI: YAML → CSV converter
 ├── generated-tests/                # Sample generated outputs (committed)
-├── testgen.ps1                     # Windows: generate test plans + Excel export
-├── testgen.sh                      # Linux:   generate test plans + Excel export
+├── testgen.ps1                     # Windows: generate test plans + Excel/CSV export
+├── testgen.sh                      # Linux:   generate test plans + Excel/CSV export
 ├── go.mod
 └── README.md
 ```
@@ -135,7 +135,8 @@ The scripts run the full pipeline automatically:
 1. Generate YAML test plans via `testgen`
 2. Print a per-category summary and total test count in the console
 3. Batch-export all YAMLs to Excel (`TestplansXlsx/`) via `yaml2excel`
-4. Print the final output locations
+4. Batch-export all YAMLs to CSV (`TestplansCsv/`) via `yaml2csv`
+5. Print the final output locations
 
 **Windows (PowerShell):**
 ```powershell

@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -10,9 +10,227 @@ features:
       blueprintCategory: wired-blueprint
       description: ""
       tests:
-        boundary: []
+        boundary:
+            - testCaseID: TCXM_3233
+              featureName: fabric-spbm-instance
+              priority: P2
+              automation: Automatable
+              type: boundary
+              description: Deploy fabric-spbm-instance with boundary value for 'area-type' (enum)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create fabric-spbm-instance with instance-id=100, area-type=HOME
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                          type: spbm-instance
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-instance created successfully with instance-id=100, area-type=HOME
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-instance created successfully with instance-id=100, area-type=HOME
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyBoundaryCreate
+                  description: Verify fabric-spbm-instance accepted boundary value for 'area-type'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    filters:
+                        - key: instance-id
+                          value: 100
+                        - key: area-type
+                          value: HOME
+                    objectType: spbm-instance
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-instance retrieved — response contains instance-id=100, area-type=HOME
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-instance retrieved — response contains instance-id=100, area-type=HOME
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                constraint: enum
+                deploymentSample: boundary
+                field: area-type
         functional:
-            - testCaseID: TCXM_3017
+            - testCaseID: TCXM_3049
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -116,7 +334,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-type')].value
                       expected: HOME
                       description: Verify 'area-type' value is 'HOME' as set during create
-            - testCaseID: TCXM_3018
+            - testCaseID: TCXM_3050
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -216,7 +434,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify fabric-spbm-instance retrieved — response contains modify vlans=updated-test-value (entry: instance-id=100, area-type=HOME)'
-            - testCaseID: TCXM_3019
+            - testCaseID: TCXM_3051
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -298,12 +516,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify fabric-spbm-instance with instance-id=100, area-type=HOME no longer exists in the response
-            - testCaseID: TCXM_3020
+            - testCaseID: TCXM_3052
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for fabric-spbm-instance (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for fabric-spbm-instance (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -437,7 +655,29 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify fabric-spbm-instance with instance-id=100, area-type=HOME deleted successfully
-            - testCaseID: TCXM_3021
+                - name: verifyDeletion
+                  description: Verify fabric-spbm-instance with instance-id=100, area-type=HOME is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    filters:
+                        - key: instance-id
+                          value: 100
+                        - key: area-type
+                          value: HOME
+                    objectType: spbm-instance
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-instance with instance-id=100, area-type=HOME no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-instance with instance-id=100, area-type=HOME no longer exists in the response
+            - testCaseID: TCXM_3053
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -537,7 +777,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify fabric-spbm-instance retrieved — response contains modify vlans=updated-test-value (entry: instance-id=100, area-type=HOME)'
-            - testCaseID: TCXM_3022
+            - testCaseID: TCXM_3054
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -605,7 +845,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of fabric-spbm-instance with instance-id=100, area-type=HOME is rejected (409 Conflict)
-            - testCaseID: TCXM_3023
+            - testCaseID: TCXM_3055
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -804,7 +1044,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3024
+            - testCaseID: TCXM_3056
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -1003,7 +1243,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3025
+            - testCaseID: TCXM_3057
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -1189,7 +1429,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3026
+            - testCaseID: TCXM_3058
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -1271,7 +1511,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-type')].value
                       expected: HOME
                       description: Verify identity/required field 'area-type' has value 'HOME' as created
-            - testCaseID: TCXM_3027
+            - testCaseID: TCXM_3059
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -1431,7 +1671,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='node-nick-name')].value
                       expected: test-node-nick
                       description: Verify field 'node-nick-name' has value 'test-node-nick' as sent on create
-            - testCaseID: TCXM_3028
+            - testCaseID: TCXM_3060
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -1504,7 +1744,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vlans')].value
                       expected: '[''4051'',''4052'']'
                       description: Verify optional field 'vlans' value is '['4051','4052']' as set on create
-            - testCaseID: TCXM_3029
+            - testCaseID: TCXM_3061
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -1577,7 +1817,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-shortcut-enabled')].value
                       expected: false
                       description: Verify optional field 'ip-shortcut-enabled' value is 'false' as set on create
-            - testCaseID: TCXM_3030
+            - testCaseID: TCXM_3062
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -1650,7 +1890,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ipv6-shortcut-enabled')].value
                       expected: false
                       description: Verify optional field 'ipv6-shortcut-enabled' value is 'false' as set on create
-            - testCaseID: TCXM_3031
+            - testCaseID: TCXM_3063
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -1723,7 +1963,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='primary-vlan')].value
                       expected: 4051
                       description: Verify optional field 'primary-vlan' value is '4051' as set on create
-            - testCaseID: TCXM_3032
+            - testCaseID: TCXM_3064
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -1796,7 +2036,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='multicast-enabled')].value
                       expected: false
                       description: Verify optional field 'multicast-enabled' value is 'false' as set on create
-            - testCaseID: TCXM_3033
+            - testCaseID: TCXM_3065
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -1869,7 +2109,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='node-nick-name')].value
                       expected: test-node-nick
                       description: Verify optional field 'node-nick-name' value is 'test-node-nick' as set on create
-            - testCaseID: TCXM_3034
+            - testCaseID: TCXM_3066
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -1934,7 +2174,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='instance-id')].value
                       expected: 1
                       description: Verify 'instance-id' YANG type 'int32' value is persisted
-            - testCaseID: TCXM_3035
+            - testCaseID: TCXM_3067
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -1999,7 +2239,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='instance-id')].value
                       expected: 100
                       description: Verify 'instance-id' YANG type 'int32' value is persisted
-            - testCaseID: TCXM_3036
+            - testCaseID: TCXM_3068
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2064,7 +2304,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-type')].value
                       expected: HOME
                       description: Verify 'area-type' YANG type 'intent-types:area-type-enum' value is persisted
-            - testCaseID: TCXM_3037
+            - testCaseID: TCXM_3069
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2129,7 +2369,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='area-type')].value
                       expected: REMOTE
                       description: Verify 'area-type' YANG type 'intent-types:area-type-enum' value is persisted
-            - testCaseID: TCXM_3038
+            - testCaseID: TCXM_3070
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2198,7 +2438,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vlans')].value
                       expected: '[''4051'',''4052'']'
                       description: Verify 'vlans' YANG type 'common-types:string-array' value is persisted
-            - testCaseID: TCXM_3039
+            - testCaseID: TCXM_3071
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2267,7 +2507,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vlans')].value
                       expected: '[''4051'',''4052'']'
                       description: Verify 'vlans' YANG type 'common-types:string-array' value is persisted
-            - testCaseID: TCXM_3040
+            - testCaseID: TCXM_3072
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2336,7 +2576,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-shortcut-enabled')].value
                       expected: true
                       description: Verify 'ip-shortcut-enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_3041
+            - testCaseID: TCXM_3073
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2405,7 +2645,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-shortcut-enabled')].value
                       expected: false
                       description: Verify 'ip-shortcut-enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_3042
+            - testCaseID: TCXM_3074
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2474,7 +2714,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='primary-vlan')].value
                       expected: 1
                       description: Verify 'primary-vlan' YANG type 'int64' value is persisted
-            - testCaseID: TCXM_3043
+            - testCaseID: TCXM_3075
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2543,7 +2783,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='primary-vlan')].value
                       expected: 100
                       description: Verify 'primary-vlan' YANG type 'int64' value is persisted
-            - testCaseID: TCXM_3044
+            - testCaseID: TCXM_3076
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2612,7 +2852,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='node-nick-name')].value
                       expected: test-value-1
                       description: Verify 'node-nick-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_3045
+            - testCaseID: TCXM_3077
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2681,7 +2921,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='node-nick-name')].value
                       expected: test-value-2
                       description: Verify 'node-nick-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_3046
+            - testCaseID: TCXM_3078
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2746,7 +2986,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vlans')].value
                       expected: '[''4051'',''4052'']'
                       description: Verify 'vlans' equals YANG-defined default value ['4051','4052']
-            - testCaseID: TCXM_3047
+            - testCaseID: TCXM_3079
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2811,7 +3051,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-shortcut-enabled')].value
                       expected: false
                       description: Verify 'ip-shortcut-enabled' equals YANG-defined default value false
-            - testCaseID: TCXM_3048
+            - testCaseID: TCXM_3080
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2876,7 +3116,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ipv6-shortcut-enabled')].value
                       expected: false
                       description: Verify 'ipv6-shortcut-enabled' equals YANG-defined default value false
-            - testCaseID: TCXM_3049
+            - testCaseID: TCXM_3081
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -2941,7 +3181,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='primary-vlan')].value
                       expected: 4051
                       description: Verify 'primary-vlan' equals YANG-defined default value 4051
-            - testCaseID: TCXM_3050
+            - testCaseID: TCXM_3082
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -3006,7 +3246,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='multicast-enabled')].value
                       expected: false
                       description: Verify 'multicast-enabled' equals YANG-defined default value false
-            - testCaseID: TCXM_3051
+            - testCaseID: TCXM_3083
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -3192,7 +3432,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3052
+            - testCaseID: TCXM_3084
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -3378,7 +3618,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3053
+            - testCaseID: TCXM_3085
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -3564,7 +3804,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3054
+            - testCaseID: TCXM_3086
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -3750,7 +3990,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3055
+            - testCaseID: TCXM_3087
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -3936,7 +4176,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3056
+            - testCaseID: TCXM_3088
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -4122,7 +4362,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3057
+            - testCaseID: TCXM_3089
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -4308,7 +4548,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3058
+            - testCaseID: TCXM_3090
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -4494,7 +4734,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3059
+            - testCaseID: TCXM_3091
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -4680,7 +4920,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3060
+            - testCaseID: TCXM_3092
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -4866,7 +5106,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3061
+            - testCaseID: TCXM_3093
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -5052,7 +5292,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3062
+            - testCaseID: TCXM_3094
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -5238,7 +5478,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3063
+            - testCaseID: TCXM_3095
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -5424,7 +5664,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3064
+            - testCaseID: TCXM_3096
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -5610,7 +5850,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3065
+            - testCaseID: TCXM_3097
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -5796,7 +6036,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3066
+            - testCaseID: TCXM_3098
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -5982,7 +6222,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3067
+            - testCaseID: TCXM_3099
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -6168,7 +6408,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3068
+            - testCaseID: TCXM_3100
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -6354,7 +6594,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3069
+            - testCaseID: TCXM_3101
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -6540,7 +6780,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3070
+            - testCaseID: TCXM_3102
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -6726,7 +6966,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3071
+            - testCaseID: TCXM_3103
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -6912,7 +7152,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3072
+            - testCaseID: TCXM_3104
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -7098,7 +7338,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3073
+            - testCaseID: TCXM_3105
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -7284,7 +7524,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3074
+            - testCaseID: TCXM_3106
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -7470,7 +7710,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3075
+            - testCaseID: TCXM_3107
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -7656,7 +7896,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3076
+            - testCaseID: TCXM_3108
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -7842,7 +8082,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3077
+            - testCaseID: TCXM_3109
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -8032,7 +8272,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3078
+            - testCaseID: TCXM_3110
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -8222,7 +8462,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3079
+            - testCaseID: TCXM_3111
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -8412,7 +8652,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3080
+            - testCaseID: TCXM_3112
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -8602,7 +8842,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3081
+            - testCaseID: TCXM_3113
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -8792,7 +9032,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3082
+            - testCaseID: TCXM_3114
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -8982,7 +9222,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3083
+            - testCaseID: TCXM_3115
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -9176,7 +9416,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3084
+            - testCaseID: TCXM_3116
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -9370,7 +9610,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3085
+            - testCaseID: TCXM_3117
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -9564,7 +9804,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3086
+            - testCaseID: TCXM_3118
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -9758,7 +9998,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3087
+            - testCaseID: TCXM_3119
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -9952,7 +10192,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3088
+            - testCaseID: TCXM_3120
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -10146,7 +10386,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3089
+            - testCaseID: TCXM_3121
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -10344,7 +10584,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3090
+            - testCaseID: TCXM_3122
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -10542,7 +10782,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3091
+            - testCaseID: TCXM_3123
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -10740,7 +10980,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3092
+            - testCaseID: TCXM_3124
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -10938,7 +11178,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3093
+            - testCaseID: TCXM_3125
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -11136,7 +11376,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3094
+            - testCaseID: TCXM_3126
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -11334,7 +11574,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3095
+            - testCaseID: TCXM_3127
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -11536,7 +11776,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3096
+            - testCaseID: TCXM_3128
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -11738,7 +11978,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3097
+            - testCaseID: TCXM_3129
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -11940,7 +12180,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3098
+            - testCaseID: TCXM_3130
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -12142,7 +12382,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3099
+            - testCaseID: TCXM_3131
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -12344,7 +12584,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3100
+            - testCaseID: TCXM_3132
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -12546,7 +12786,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3101
+            - testCaseID: TCXM_3133
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -12752,7 +12992,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3102
+            - testCaseID: TCXM_3134
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -12958,7 +13198,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3103
+            - testCaseID: TCXM_3135
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -13164,7 +13404,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3104
+            - testCaseID: TCXM_3136
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -13370,7 +13610,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3105
+            - testCaseID: TCXM_3137
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -13576,7 +13816,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3106
+            - testCaseID: TCXM_3138
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -13782,7 +14022,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3107
+            - testCaseID: TCXM_3139
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -13970,7 +14210,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3108
+            - testCaseID: TCXM_3140
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -14158,7 +14398,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3109
+            - testCaseID: TCXM_3141
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -14346,7 +14586,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3110
+            - testCaseID: TCXM_3142
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -14534,7 +14774,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3111
+            - testCaseID: TCXM_3143
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -14722,7 +14962,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3112
+            - testCaseID: TCXM_3144
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -14910,7 +15150,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3113
+            - testCaseID: TCXM_3145
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -15098,7 +15338,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3114
+            - testCaseID: TCXM_3146
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -15286,7 +15526,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3115
+            - testCaseID: TCXM_3147
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -15474,7 +15714,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3116
+            - testCaseID: TCXM_3148
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -15662,7 +15902,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3117
+            - testCaseID: TCXM_3149
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -15848,7 +16088,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3118
+            - testCaseID: TCXM_3150
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -16034,7 +16274,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3119
+            - testCaseID: TCXM_3151
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -16220,7 +16460,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3120
+            - testCaseID: TCXM_3152
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -16406,7 +16646,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3121
+            - testCaseID: TCXM_3153
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -16592,7 +16832,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3122
+            - testCaseID: TCXM_3154
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -16782,7 +17022,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3123
+            - testCaseID: TCXM_3155
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -16972,7 +17212,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3124
+            - testCaseID: TCXM_3156
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -17162,7 +17402,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3125
+            - testCaseID: TCXM_3157
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -17352,7 +17592,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3126
+            - testCaseID: TCXM_3158
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -17542,7 +17782,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3127
+            - testCaseID: TCXM_3159
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -17732,7 +17972,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3128
+            - testCaseID: TCXM_3160
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -17922,7 +18162,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3129
+            - testCaseID: TCXM_3161
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -18112,7 +18352,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3130
+            - testCaseID: TCXM_3162
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -18302,7 +18542,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3131
+            - testCaseID: TCXM_3163
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -18492,7 +18732,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3132
+            - testCaseID: TCXM_3164
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -18682,7 +18922,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3133
+            - testCaseID: TCXM_3165
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -18872,7 +19112,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3134
+            - testCaseID: TCXM_3166
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -19066,7 +19306,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3135
+            - testCaseID: TCXM_3167
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -19260,7 +19500,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3136
+            - testCaseID: TCXM_3168
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -19454,565 +19694,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3137
-              featureName: fabric-spbm-instance
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify fabric-spbm-instance with int32 value variation 1 for 'instance-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar1
-                  description: 'Create with int32 type variation: 10'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
-                    objectType: spbm-instance
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: instance-id
-                              origin: CC
-                              type: number
-                              value: 10
-                            - name: area-type
-                              origin: CC
-                              type: string
-                              value: HOME
-                          type: spbm-instance
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_3138
-              featureName: fabric-spbm-instance
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify fabric-spbm-instance with int32 value variation 2 for 'instance-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar2
-                  description: 'Create with int32 type variation: 200'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
-                    objectType: spbm-instance
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: instance-id
-                              origin: CC
-                              type: number
-                              value: 200
-                            - name: area-type
-                              origin: CC
-                              type: string
-                              value: HOME
-                          type: spbm-instance
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_3139
-              featureName: fabric-spbm-instance
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Deploy and verify fabric-spbm-instance with int32 value variation 3 for 'instance-id'
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createWithTypeVar3
-                  description: 'Create with int32 type variation: 3000'
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/modify
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
-                    objectType: spbm-instance
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: instance-id
-                              origin: CC
-                              type: number
-                              value: 3000
-                            - name: area-type
-                              origin: CC
-                              type: string
-                              value: HOME
-                          type: spbm-instance
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: retrieveDeviceLocation
-                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
-                  method: POST
-                  api: REST
-                  path: /authorized/sites-sitegroups/retrieve
-                  body: {}
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture siteGroupId for the device location
-                    - Capture siteGroupName for the device location
-                    - Capture siteId where the device is onboarded
-                    - Capture siteName where the device is onboarded
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupId
-                      captureAs: SITE_GROUP_ID
-                      description: Capture siteGroupId for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].siteGroupName
-                      captureAs: SITE_GROUP_NAME
-                      description: Capture siteGroupName for the device location
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteId
-                      captureAs: SITE_ID
-                      description: Capture siteId where the device is onboarded
-                    - type: jsonPathExists
-                      path: $.siteGroups[0].sites[0].siteName
-                      captureAs: SITE_NAME
-                      description: Capture siteName where the device is onboarded
-                - name: scopeProfileTodeviceLocation
-                  description: Scope configuration profile to the selected device location using the captured site group and site
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/scope
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    selectedSiteGroups:
-                        - siteGroupId: '{{SITE_GROUP_ID}}'
-                          siteGroupName: '{{SITE_GROUP_NAME}}'
-                          sites:
-                            - siteId: '{{SITE_ID}}'
-                              siteName: '{{SITE_NAME}}'
-                    selectedSites: []
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                    - Capture created target-query scope id
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                    - type: jsonPathExists
-                      path: $.scopeId
-                      captureAs: SCOPE_ID
-                      description: Capture created target-query scope id
-                - name: applySiteTargetQuery
-                  description: Apply target-query to the configuration profile using the captured siteId
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/target-query/profile
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    includeQuery:
-                        criteria:
-                            - field: siteId
-                              operator: IN
-                              values:
-                                - '{{SITE_ID}}'
-                        logicalOperator: AND
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Capture resolved device id from the scoped target-query
-                    - Capture resolved device hostname from the scoped target-query
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceId
-                      captureAs: DEVICE_ID
-                      description: Capture resolved device id from the scoped target-query
-                    - type: jsonPathExists
-                      path: $.resolvedDevices[0].deviceName
-                      captureAs: DEVICE_HOSTNAME
-                      description: Capture resolved device hostname from the scoped target-query
-                - name: verifyNoConflictBeforeDeployment
-                  description: Validate that no device conflict is detected before deployment is initiated
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/conflicts
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  queryParams:
-                    detailLevel: summary
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Deployment must start only when no conflict is detected
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.hasConflicts
-                      expected: false
-                      description: Deployment must start only when no conflict is detected
-                - name: deployProfileTodevice
-                  description: Initiate configuration-profile deployment to device using the deployment API
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/devices/deploy
-                  pathParams:
-                    name: TestProfile
-                  body:
-                    deployNow: true
-                    devices:
-                        - '{{DEVICE_HOSTNAME}}'
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Check deployment status and verify the deployment succeeded
-                  method: GET
-                  api: REST
-                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
-                  pathParams:
-                    hostName: '{{DEVICE_HOSTNAME}}'
-                    name: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_3140
+            - testCaseID: TCXM_3169
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -20198,7 +19880,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3141
+            - testCaseID: TCXM_3170
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -20384,7 +20066,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3142
+            - testCaseID: TCXM_3171
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -20570,7 +20252,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3143
+            - testCaseID: TCXM_3172
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -20760,7 +20442,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3144
+            - testCaseID: TCXM_3173
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -20950,7 +20632,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3145
+            - testCaseID: TCXM_3174
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -21140,7 +20822,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3146
+            - testCaseID: TCXM_3175
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -21330,7 +21012,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3147
+            - testCaseID: TCXM_3176
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -21520,7 +21202,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3148
+            - testCaseID: TCXM_3177
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -21710,7 +21392,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3149
+            - testCaseID: TCXM_3178
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -21900,7 +21582,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3150
+            - testCaseID: TCXM_3179
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -22090,7 +21772,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3151
+            - testCaseID: TCXM_3180
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -22280,7 +21962,565 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3152
+            - testCaseID: TCXM_3181
+              featureName: fabric-spbm-instance
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify fabric-spbm-instance with int32 value variation 1 for 'instance-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar1
+                  description: 'Create with int32 type variation: 10'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 10
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                          type: spbm-instance
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_3182
+              featureName: fabric-spbm-instance
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify fabric-spbm-instance with int32 value variation 2 for 'instance-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar2
+                  description: 'Create with int32 type variation: 200'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 200
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                          type: spbm-instance
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_3183
+              featureName: fabric-spbm-instance
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify fabric-spbm-instance with int32 value variation 3 for 'instance-id'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithTypeVar3
+                  description: 'Create with int32 type variation: 3000'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 3000
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                          type: spbm-instance
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_3184
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -22437,14 +22677,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to device at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -22454,7 +22694,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_3153
+            - testCaseID: TCXM_3185
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -22611,14 +22851,14 @@ features:
                       expected: false
                       description: Deployment must start only when no conflict is detected
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T09:34:54Z
+                  description: Schedule deployment to site at 2026-05-01T10:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/sites/deploy
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -22628,7 +22868,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_3154
+            - testCaseID: TCXM_3186
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -22789,7 +23029,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -22800,14 +23040,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T10:34:54Z
+                  description: Edit deployment schedule to 2026-05-01T11:04:31Z
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T10:34:54Z"
+                    deployAt: "2026-05-01T11:04:31Z"
                     devices:
                         - '{{DEVICE_HOSTNAME}}'
                     timezone: UTC
@@ -22817,7 +23057,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_3155
+            - testCaseID: TCXM_3187
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -22978,7 +23218,7 @@ features:
                   pathParams:
                     name: TestProfile
                   body:
-                    deployAt: "2026-05-01T09:34:54Z"
+                    deployAt: "2026-05-01T10:04:31Z"
                     sites:
                         - '{{SITE_NAME}}'
                     timezone: UTC
@@ -23004,7 +23244,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_3156
+            - testCaseID: TCXM_3188
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -23062,7 +23302,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_3157
+            - testCaseID: TCXM_3189
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -23123,7 +23363,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_3158
+            - testCaseID: TCXM_3190
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -23373,7 +23613,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_3159
+            - testCaseID: TCXM_3191
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -23723,7 +23963,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_3160
+            - testCaseID: TCXM_3192
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -24075,7 +24315,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for fabric-spbm-instance — device value accepted as new cloud baseline
-            - testCaseID: TCXM_3161
+            - testCaseID: TCXM_3193
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -24315,7 +24555,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_3162
+            - testCaseID: TCXM_3194
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -24510,7 +24750,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_3163
+            - testCaseID: TCXM_3195
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -24705,7 +24945,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_3164
+            - testCaseID: TCXM_3196
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -24885,7 +25125,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_3165
+            - testCaseID: TCXM_3197
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -25081,7 +25321,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_3166
+            - testCaseID: TCXM_3198
               featureName: fabric-spbm-instance
               priority: P1
               automation: Automatable
@@ -25293,7 +25533,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3167
+            - testCaseID: TCXM_3199
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -25408,7 +25648,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_3168
+            - testCaseID: TCXM_3200
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -25439,7 +25679,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_3169
+            - testCaseID: TCXM_3201
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -25612,8 +25852,377 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
+            - testCaseID: TCXM_3232
+              featureName: fabric-spbm-instance
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for fabric-spbm-instance (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createResource
+                  description: Create fabric-spbm-instance with instance-id=100, area-type=HOME
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                          type: spbm-instance
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-instance created successfully with instance-id=100, area-type=HOME
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-instance created successfully with instance-id=100, area-type=HOME
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify fabric-spbm-instance with instance-id=100, area-type=HOME was created
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    filters:
+                        - key: instance-id
+                          value: 100
+                        - key: area-type
+                          value: HOME
+                    objectType: spbm-instance
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-instance retrieved — response contains instance-id=100, area-type=HOME
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-instance retrieved — response contains instance-id=100, area-type=HOME
+                - name: updateResource
+                  description: 'Update fabric-spbm-instance — modify vlans=updated-test-value (entry: instance-id=100, area-type=HOME)'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                            - name: vlans
+                              origin: CC
+                              type: string
+                              value: updated-test-value
+                          type: spbm-instance
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - 'Verify fabric-spbm-instance updated successfully with modify vlans=updated-test-value (entry: instance-id=100, area-type=HOME)'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: 'Verify fabric-spbm-instance updated successfully with modify vlans=updated-test-value (entry: instance-id=100, area-type=HOME)'
+                - name: verifyUpdate
+                  description: 'Verify fabric-spbm-instance was updated — modify vlans=updated-test-value (entry: instance-id=100, area-type=HOME)'
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    filters:
+                        - key: instance-id
+                          value: 100
+                        - key: area-type
+                          value: HOME
+                    objectType: spbm-instance
+                  expectedStatus: 200
+                  validations:
+                    - 'Verify fabric-spbm-instance retrieved — response contains modify vlans=updated-test-value (entry: instance-id=100, area-type=HOME)'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: 'Verify fabric-spbm-instance retrieved — response contains modify vlans=updated-test-value (entry: instance-id=100, area-type=HOME)'
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: deleteResource
+                  description: Delete fabric-spbm-instance with instance-id=100, area-type=HOME
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-instance with instance-id=100, area-type=HOME deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-instance with instance-id=100, area-type=HOME deleted successfully
+                - name: verifyDeletion
+                  description: Verify fabric-spbm-instance with instance-id=100, area-type=HOME is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    filters:
+                        - key: instance-id
+                          value: 100
+                        - key: area-type
+                          value: HOME
+                    objectType: spbm-instance
+                  expectedStatus: 200
+                  validations:
+                    - Verify fabric-spbm-instance with instance-id=100, area-type=HOME no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify fabric-spbm-instance with instance-id=100, area-type=HOME no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_3170
+            - testCaseID: TCXM_3202
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -25655,7 +26264,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'instance-id'
-            - testCaseID: TCXM_3171
+            - testCaseID: TCXM_3203
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -25697,7 +26306,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'area-type'
-            - testCaseID: TCXM_3172
+            - testCaseID: TCXM_3204
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -25734,7 +26343,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3173
+            - testCaseID: TCXM_3205
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -25775,7 +26384,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_3174
+            - testCaseID: TCXM_3206
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -25815,7 +26424,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3175
+            - testCaseID: TCXM_3207
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -25855,7 +26464,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3176
+            - testCaseID: TCXM_3208
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -25895,7 +26504,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3177
+            - testCaseID: TCXM_3209
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -25935,7 +26544,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3178
+            - testCaseID: TCXM_3210
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -25973,7 +26582,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vlans' is omitted
-            - testCaseID: TCXM_3179
+            - testCaseID: TCXM_3211
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -26011,7 +26620,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'ip-shortcut-enabled' is omitted
-            - testCaseID: TCXM_3180
+            - testCaseID: TCXM_3212
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -26049,7 +26658,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'ipv6-shortcut-enabled' is omitted
-            - testCaseID: TCXM_3181
+            - testCaseID: TCXM_3213
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -26087,7 +26696,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'primary-vlan' is omitted
-            - testCaseID: TCXM_3182
+            - testCaseID: TCXM_3214
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -26125,7 +26734,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'multicast-enabled' is omitted
-            - testCaseID: TCXM_3183
+            - testCaseID: TCXM_3215
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -26163,7 +26772,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'node-nick-name' is omitted
-            - testCaseID: TCXM_3184
+            - testCaseID: TCXM_3216
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -26207,7 +26816,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3185
+            - testCaseID: TCXM_3217
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -26251,7 +26860,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3186
+            - testCaseID: TCXM_3218
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -26291,7 +26900,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3187
+            - testCaseID: TCXM_3219
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -26335,7 +26944,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3188
+            - testCaseID: TCXM_3220
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -26374,7 +26983,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3189
+            - testCaseID: TCXM_3221
               featureName: fabric-spbm-instance
               priority: P2
               automation: Automatable
@@ -26399,7 +27008,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_3195
+            - testCaseID: TCXM_3227
               featureName: fabric-spbm-instance
               priority: P4
               automation: Automatable
@@ -26751,7 +27360,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_3196
+            - testCaseID: TCXM_3228
               featureName: fabric-spbm-instance
               priority: P4
               automation: Automatable
@@ -27023,7 +27632,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_3197
+            - testCaseID: TCXM_3229
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -27458,7 +28067,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_3198
+            - testCaseID: TCXM_3230
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -28019,7 +28628,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_3199
+            - testCaseID: TCXM_3231
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -28280,7 +28889,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_3190
+            - testCaseID: TCXM_3222
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -31190,7 +31799,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_3191
+            - testCaseID: TCXM_3223
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -31333,7 +31942,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_3192
+            - testCaseID: TCXM_3224
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -33073,7 +33682,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_3193
+            - testCaseID: TCXM_3225
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -33458,7 +34067,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_3194
+            - testCaseID: TCXM_3226
               featureName: fabric-spbm-instance
               priority: P3
               automation: Automatable
@@ -39269,3 +39878,338 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_3234
+              featureName: fabric-spbm-instance
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative fabric-spbm-instance instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for fabric-spbm-instance with instance-id=100, area-type=HOME
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME
+                          type: spbm-instance
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-instance created successfully with instance-id=100, area-type=HOME
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-instance created successfully with instance-id=100, area-type=HOME
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for fabric-spbm-instance with instance-id=101, area-type=HOME-1
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 101
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME-1
+                          type: spbm-instance
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-instance created successfully with instance-id=101, area-type=HOME-1
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-instance created successfully with instance-id=101, area-type=HOME-1
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for fabric-spbm-instance with instance-id=102, area-type=HOME-2
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 102
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME-2
+                          type: spbm-instance
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-instance created successfully with instance-id=102, area-type=HOME-2
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-instance created successfully with instance-id=102, area-type=HOME-2
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for fabric-spbm-instance with instance-id=103, area-type=HOME-3
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 103
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME-3
+                          type: spbm-instance
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-instance created successfully with instance-id=103, area-type=HOME-3
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-instance created successfully with instance-id=103, area-type=HOME-3
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for fabric-spbm-instance with instance-id=104, area-type=HOME-4
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /network-feature/fabric-feature/spbm-instance-feature
+                    objectType: spbm-instance
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: instance-id
+                              origin: CC
+                              type: number
+                              value: 104
+                            - name: area-type
+                              origin: CC
+                              type: string
+                              value: HOME-4
+                          type: spbm-instance
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify fabric-spbm-instance created successfully with instance-id=104, area-type=HOME-4
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify fabric-spbm-instance created successfully with instance-id=104, area-type=HOME-4
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

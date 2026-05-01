@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -12,7 +12,7 @@ features:
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_7663
+            - testCaseID: TCXM_7763
               featureName: vlan
               priority: P1
               automation: Automatable
@@ -97,7 +97,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='state')].value
                       expected: testValue
                       description: Verify 'state' value is 'testValue' as set during create
-            - testCaseID: TCXM_7664
+            - testCaseID: TCXM_7764
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -184,7 +184,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify vlan retrieved — response contains modify config=updated-test-value
-            - testCaseID: TCXM_7665
+            - testCaseID: TCXM_7765
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -261,12 +261,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify vlan with config=testValue, state=testValue no longer exists in the response
-            - testCaseID: TCXM_7666
+            - testCaseID: TCXM_7766
               featureName: vlan
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for vlan (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for vlan (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -382,7 +382,24 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify vlan with config=testValue, state=testValue deleted successfully
-            - testCaseID: TCXM_7667
+                - name: verifyDeletion
+                  description: Verify vlan with config=testValue, state=testValue is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                  expectedStatus: 200
+                  validations:
+                    - Verify vlan with config=testValue, state=testValue no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify vlan with config=testValue, state=testValue no longer exists in the response
+            - testCaseID: TCXM_7767
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -469,7 +486,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify vlan retrieved — response contains modify config=updated-test-value
-            - testCaseID: TCXM_7668
+            - testCaseID: TCXM_7768
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -537,7 +554,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of vlan with config=testValue, state=testValue is rejected (409 Conflict)
-            - testCaseID: TCXM_7669
+            - testCaseID: TCXM_7769
               featureName: vlan
               priority: P1
               automation: Automatable
@@ -784,7 +801,7 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/vrrp/vlan/{vlan_id}
+                  path: /v0/state/vlan/{vlan_id}
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
@@ -801,7 +818,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_7670
+            - testCaseID: TCXM_7770
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -852,7 +869,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_7671
+            - testCaseID: TCXM_7771
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -929,7 +946,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='state')].value
                       expected: testValue
                       description: Verify field 'state' has value 'testValue' as sent on create
-            - testCaseID: TCXM_7672
+            - testCaseID: TCXM_7772
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -989,7 +1006,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='config')].value
                       expected: testValue
                       description: Verify optional field 'config' value is 'testValue' as set on create
-            - testCaseID: TCXM_7673
+            - testCaseID: TCXM_7773
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -1049,7 +1066,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='state')].value
                       expected: testValue
                       description: Verify optional field 'state' value is 'testValue' as set on create
-            - testCaseID: TCXM_7674
+            - testCaseID: TCXM_7774
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1109,7 +1126,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='config')].value
                       expected: testValue
                       description: Verify 'config' YANG type 'container' value is persisted
-            - testCaseID: TCXM_7675
+            - testCaseID: TCXM_7775
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1169,7 +1186,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='config')].value
                       expected: testValue
                       description: Verify 'config' YANG type 'container' value is persisted
-            - testCaseID: TCXM_7676
+            - testCaseID: TCXM_7776
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1207,7 +1224,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7677
+            - testCaseID: TCXM_7777
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1245,7 +1262,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7678
+            - testCaseID: TCXM_7778
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1283,7 +1300,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7679
+            - testCaseID: TCXM_7779
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1321,7 +1338,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7680
+            - testCaseID: TCXM_7780
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1359,7 +1376,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7681
+            - testCaseID: TCXM_7781
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1397,7 +1414,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7682
+            - testCaseID: TCXM_7782
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1435,7 +1452,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7683
+            - testCaseID: TCXM_7783
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1473,7 +1490,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7684
+            - testCaseID: TCXM_7784
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1511,7 +1528,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7685
+            - testCaseID: TCXM_7785
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1549,7 +1566,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7686
+            - testCaseID: TCXM_7786
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1586,7 +1603,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7687
+            - testCaseID: TCXM_7787
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1623,7 +1640,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7688
+            - testCaseID: TCXM_7788
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1660,7 +1677,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7689
+            - testCaseID: TCXM_7789
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1697,7 +1714,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7690
+            - testCaseID: TCXM_7790
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1734,7 +1751,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7691
+            - testCaseID: TCXM_7791
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -1771,7 +1788,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7692
+            - testCaseID: TCXM_7792
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -2015,12 +2032,13 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan
+                  path: /v0/configuration/vrrp/vlan/{vlan_id}
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
+                    vlan_id: "1"
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -2035,7 +2053,9 @@ features:
                   description: Apply conflicting vlan value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/vlan
+                  path: /v0/configuration/vlan/{vlan_id}
+                  pathParams:
+                    vlan_id: "1"
                   body:
                     action: modify
                     deviceHostName: '{{DEVICE_HOSTNAME}}'
@@ -2087,7 +2107,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify deployment is rejected while device conflict exists
-            - testCaseID: TCXM_7693
+            - testCaseID: TCXM_7793
               featureName: vlan
               priority: P1
               automation: Automatable
@@ -2331,14 +2351,13 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vrrp/vlan/{vlan_id}/vr/{vr_id}
+                  path: /v0/configuration/vlan/{vlan_id}
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
                     vlan_id: "1"
-                    vr_id: 550e8400-e29b-41d4-a716-446655440000
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -2353,7 +2372,7 @@ features:
                   description: Apply conflicting vlan value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/vlan/{vlan_id}
+                  path: /v0/configuration/slpp/vlan/{vlan_id}
                   pathParams:
                     vlan_id: "1"
                   body:
@@ -2490,13 +2509,12 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/igmp/vlan/{vlan_id}
+                  path: /v0/configuration/spbm/l2/isid/cvlan
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
-                    vlan_id: "1"
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -2527,7 +2545,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_7694
+            - testCaseID: TCXM_7794
               featureName: vlan
               priority: P1
               automation: Automatable
@@ -2771,12 +2789,13 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan
+                  path: /v0/configuration/slpp/vlan/{vlan_id}
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
+                    vlan_id: "1"
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -2791,10 +2810,7 @@ features:
                   description: Apply conflicting vlan value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vrrp/vlan/{vlan_id}/vr/{vr_id}
-                  pathParams:
-                    vlan_id: "1"
-                    vr_id: 550e8400-e29b-41d4-a716-446655440000
+                  path: /v0/state/dhcp-relay/vlan
                   body:
                     action: modify
                     deviceHostName: '{{DEVICE_HOSTNAME}}'
@@ -2929,13 +2945,13 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/port/{port}/allowed-vlan
+                  path: /v0/configuration/slpp/vlan/{vlan_id}
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
-                    port: 1/1
                     siteGroupId: '{{SITE_GROUP_ID}}'
                     siteId: '{{SITE_ID}}'
+                    vlan_id: "1"
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -2966,7 +2982,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_7695
+            - testCaseID: TCXM_7795
               featureName: vlan
               priority: P1
               automation: Automatable
@@ -3231,7 +3247,7 @@ features:
                   description: Verify the deployed vlan configuration is present on the NOS device
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/vlan/interfaces
+                  path: /v0/configuration/private-vlan
                   pathParams:
                     deviceId: '{{DEVICE_ID}}'
                     hostName: '{{DEVICE_HOSTNAME}}'
@@ -3247,8 +3263,431 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
+            - testCaseID: TCXM_7807
+              featureName: vlan
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Deployed CRUD lifecycle for vlan (Create -> Read -> Update -> Read -> Deploy -> Delete -> Read -> Redeploy removal)
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for vlan deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createResource
+                  description: Create vlan with config=testValue, state=testValue
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: config
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: state
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: vlan
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vlan created successfully with config=testValue, state=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vlan created successfully with config=testValue, state=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyCreation
+                  description: Verify vlan with config=testValue, state=testValue was created
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                  expectedStatus: 200
+                  validations:
+                    - Verify vlan retrieved — response contains config=testValue, state=testValue
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify vlan retrieved — response contains config=testValue, state=testValue
+                - name: updateResource
+                  description: Update vlan — modify config=updated-test-value
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                    objects:
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
+                          properties:
+                            - name: config
+                              origin: CC
+                              type: string
+                              value: updated-test-value
+                          type: vlan
+                    operation: update
+                  expectedStatus: 200
+                  validations:
+                    - Verify vlan updated successfully with modify config=updated-test-value
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify vlan updated successfully with modify config=updated-test-value
+                - name: verifyUpdate
+                  description: Verify vlan was updated — modify config=updated-test-value
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                  expectedStatus: 200
+                  validations:
+                    - Verify vlan retrieved — response contains modify config=updated-test-value
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify vlan retrieved — response contains modify config=updated-test-value
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for vlan service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-vlan-CRUD
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify the deployed vlan configuration is present on the NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/slpp/vlan/{vlan_id}
+                  pathParams:
+                    deviceId: '{{DEVICE_ID}}'
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    siteGroupId: '{{SITE_GROUP_ID}}'
+                    siteId: '{{SITE_ID}}'
+                    vlan_id: "1"
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+                - name: deleteResource
+                  description: Delete vlan with config=testValue, state=testValue
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/delete
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify vlan with config=testValue, state=testValue deleted successfully
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify vlan with config=testValue, state=testValue deleted successfully
+                - name: verifyDeletion
+                  description: Verify vlan with config=testValue, state=testValue is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                  expectedStatus: 200
+                  validations:
+                    - Verify vlan with config=testValue, state=testValue no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify vlan with config=testValue, state=testValue no longer exists in the response
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigRemovedFordevice
+                  description: Verify the deleted vlan configuration is no longer present on the NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/slpp/vlan/{vlan_id}
+                  pathParams:
+                    deviceId: '{{DEVICE_ID}}'
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    siteGroupId: '{{SITE_GROUP_ID}}'
+                    siteId: '{{SITE_ID}}'
+                    vlan_id: "1"
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches the deleted expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches the deleted expected state
+                  devicesScope: device
+              metadata:
+                deploymentSample: crud-lifecycle
         negative:
-            - testCaseID: TCXM_7696
+            - testCaseID: TCXM_7796
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -3278,7 +3717,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'config' is omitted
-            - testCaseID: TCXM_7697
+            - testCaseID: TCXM_7797
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -3308,7 +3747,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'state' is omitted
-            - testCaseID: TCXM_7698
+            - testCaseID: TCXM_7798
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -3347,7 +3786,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7699
+            - testCaseID: TCXM_7799
               featureName: vlan
               priority: P2
               automation: Automatable
@@ -3372,7 +3811,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_7703
+            - testCaseID: TCXM_7803
               featureName: vlan
               priority: P4
               automation: Automatable
@@ -3724,7 +4163,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_7704
+            - testCaseID: TCXM_7804
               featureName: vlan
               priority: P4
               automation: Automatable
@@ -3946,7 +4385,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_7705
+            - testCaseID: TCXM_7805
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -4301,7 +4740,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_7706
+            - testCaseID: TCXM_7806
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -4863,7 +5302,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_7700
+            - testCaseID: TCXM_7800
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -7773,7 +8212,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_7701
+            - testCaseID: TCXM_7801
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -8078,7 +8517,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_7702
+            - testCaseID: TCXM_7802
               featureName: vlan
               priority: P3
               automation: Automatable
@@ -13889,3 +14328,395 @@ features:
               metadata:
                 maxInstances: 200
                 testType: max-capacity
+            - testCaseID: TCXM_7808
+              featureName: vlan
+              priority: P2
+              automation: Automatable
+              type: scale
+              description: Deploy 5 representative vlan instances
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for vlan deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createDeploymentScaleInstance1
+                  description: Create deployment scale instance 1 for vlan with config=testValue, state=testValue
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: config
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: state
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: vlan
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vlan created successfully with config=testValue, state=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vlan created successfully with config=testValue, state=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance2
+                  description: Create deployment scale instance 2 for vlan with config=testValue, state=testValue
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: config
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: state
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: vlan
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vlan created successfully with config=testValue, state=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vlan created successfully with config=testValue, state=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance3
+                  description: Create deployment scale instance 3 for vlan with config=testValue, state=testValue
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: config
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: state
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: vlan
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vlan created successfully with config=testValue, state=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vlan created successfully with config=testValue, state=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance4
+                  description: Create deployment scale instance 4 for vlan with config=testValue, state=testValue
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: config
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: state
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: vlan
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vlan created successfully with config=testValue, state=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vlan created successfully with config=testValue, state=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createDeploymentScaleInstance5
+                  description: Create deployment scale instance 5 for vlan with config=testValue, state=testValue
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /l2-service-feature
+                    objectType: vlan
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: config
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: state
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: vlan
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vlan created successfully with config=testValue, state=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vlan created successfully with config=testValue, state=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for vlan service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-vlan-Scale
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify the deployed vlan configuration is present on the NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/state/vrrp/vlan/{vlan_id}/vr/{vr_id}
+                  pathParams:
+                    deviceId: '{{DEVICE_ID}}'
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    siteGroupId: '{{SITE_GROUP_ID}}'
+                    siteId: '{{SITE_ID}}'
+                    vlan_id: "1"
+                    vr_id: 550e8400-e29b-41d4-a716-446655440000
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+              metadata:
+                deploymentSample: scale
+                instanceCount: 5

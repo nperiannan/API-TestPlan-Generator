@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# testgen.sh — Generate API test plans and export to Excel (Linux)
+# testgen.sh — Generate API test plans and export to Excel/CSV (Linux)
 # Reads source paths from config/config.yaml
 #
 # Usage:
@@ -17,8 +17,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG="$SCRIPT_DIR/config/config.yaml"
 OUT_DIR="$SCRIPT_DIR/Testplans"
 XLSX_DIR="$SCRIPT_DIR/TestplansXlsx"
+CSV_DIR="$SCRIPT_DIR/TestplansCsv"
 TESTGEN="$SCRIPT_DIR/bin/linux/testgen"
 YAML2EXCEL="$SCRIPT_DIR/bin/linux/yaml2excel"
+YAML2CSV="$SCRIPT_DIR/bin/linux/yaml2csv"
 
 # ── Colours ────────────────────────────────────────────────────────
 CYAN='\033[0;36m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -191,10 +193,30 @@ fi
 "$YAML2EXCEL"
 
 XLSX_COUNT=$(find "$XLSX_DIR" -name '*.xlsx' 2>/dev/null | wc -l)
+
+# ── CSV export (batch) ──────────────────────────────────────────────
+
+echo ""
+echo -e "${CYAN}=======================================================${RESET}"
+echo -e "${CYAN} Exporting to CSV...${RESET}"
+echo -e "${CYAN}=======================================================${RESET}"
+echo ""
+
+if [[ ! -x "$YAML2CSV" ]]; then
+    echo -e "${YELLOW}bin/linux/yaml2csv not found. Building...${RESET}"
+    mkdir -p "$SCRIPT_DIR/bin/linux"
+    go build -o "$YAML2CSV" "$SCRIPT_DIR/cmd/yaml2csv/"
+fi
+
+"$YAML2CSV"
+
+CSV_COUNT=$(find "$CSV_DIR" -name '*.csv' 2>/dev/null | wc -l)
+
 echo ""
 echo -e "${CYAN}=======================================================${RESET}"
 echo -e "${GREEN} All done!${RESET}"
 echo -e "${CYAN}=======================================================${RESET}"
 echo -e "${GREEN} Test plans  : $FEATURE_COUNT YAML files in $OUT_DIR${RESET}"
 echo -e "${GREEN} Excel files : $XLSX_COUNT .xlsx files in $XLSX_DIR${RESET}"
+echo -e "${GREEN} CSV files   : $CSV_COUNT .csv files in $CSV_DIR${RESET}"
 echo -e "${CYAN}=======================================================${RESET}"

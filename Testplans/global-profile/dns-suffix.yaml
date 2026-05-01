@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T14:04:53+05:30"
+generatedAt: "2026-05-01T14:34:30+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_1990
+            - testCaseID: TCXM_2002
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -57,7 +57,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_1991
+            - testCaseID: TCXM_2003
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -104,7 +104,7 @@ features:
                       expected: create
                       description: Verify operation type is 'create'
         functional:
-            - testCaseID: TCXM_1965
+            - testCaseID: TCXM_1977
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -189,7 +189,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='fqdn')].value
                       expected: testValue
                       description: Verify 'fqdn' value is 'testValue' as set during create
-            - testCaseID: TCXM_1966
+            - testCaseID: TCXM_1978
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -269,7 +269,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-suffix retrieved — response contains update entry where fqdn=testValue
-            - testCaseID: TCXM_1967
+            - testCaseID: TCXM_1979
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -339,12 +339,12 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-suffix with fqdn=testValue no longer exists in the response
-            - testCaseID: TCXM_1968
+            - testCaseID: TCXM_1980
               featureName: dns-suffix
               priority: P3
               automation: Automatable
               type: functional
-              description: Full CRUD lifecycle test for dns-suffix (Create -> Read -> Update -> Read -> Delete)
+              description: Full CRUD lifecycle test for dns-suffix (Create -> Read -> Update -> Read -> Delete -> Read)
               isDeploymentTest: false
               steps:
                 - name: createResource
@@ -452,7 +452,25 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-suffix with fqdn=testValue deleted successfully
-            - testCaseID: TCXM_1969
+                - name: verifyDeletion
+                  description: Verify dns-suffix with fqdn=testValue is no longer returned after delete
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/retrieve
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
+                    objectType: dns-suffix
+                  expectedStatus: 200
+                  validations:
+                    - Verify dns-suffix with fqdn=testValue no longer exists in the response
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify dns-suffix with fqdn=testValue no longer exists in the response
+            - testCaseID: TCXM_1981
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -532,7 +550,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-suffix retrieved — response contains update entry where fqdn=testValue
-            - testCaseID: TCXM_1970
+            - testCaseID: TCXM_1982
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -588,7 +606,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of dns-suffix with fqdn=testValue is rejected (409 Conflict)
-            - testCaseID: TCXM_1971
+            - testCaseID: TCXM_1983
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -651,7 +669,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='fqdn')].value
                       expected: testValue
                       description: Verify identity/required field 'fqdn' has value 'testValue' as created
-            - testCaseID: TCXM_1972
+            - testCaseID: TCXM_1984
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -714,7 +732,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='fqdn')].value
                       expected: testValue
                       description: Verify field 'fqdn' has value 'testValue' as sent on create
-            - testCaseID: TCXM_1973
+            - testCaseID: TCXM_1985
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -769,7 +787,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='fqdn')].value
                       expected: testValue
                       description: Verify 'fqdn' YANG type 'string' value is persisted
-            - testCaseID: TCXM_1974
+            - testCaseID: TCXM_1986
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -824,7 +842,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='fqdn')].value
                       expected: testValue
                       description: Verify 'fqdn' YANG type 'string' value is persisted
-            - testCaseID: TCXM_1975
+            - testCaseID: TCXM_1987
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -857,7 +875,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1976
+            - testCaseID: TCXM_1988
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -890,7 +908,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1977
+            - testCaseID: TCXM_1989
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -923,7 +941,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1978
+            - testCaseID: TCXM_1990
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -956,7 +974,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1979
+            - testCaseID: TCXM_1991
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -989,7 +1007,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1980
+            - testCaseID: TCXM_1992
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1022,7 +1040,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1981
+            - testCaseID: TCXM_1993
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1055,7 +1073,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1982
+            - testCaseID: TCXM_1994
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1088,7 +1106,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1983
+            - testCaseID: TCXM_1995
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1121,7 +1139,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1984
+            - testCaseID: TCXM_1996
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1154,7 +1172,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1985
+            - testCaseID: TCXM_1997
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1185,7 +1203,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1986
+            - testCaseID: TCXM_1998
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1216,7 +1234,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1987
+            - testCaseID: TCXM_1999
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1247,7 +1265,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1988
+            - testCaseID: TCXM_2000
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1278,7 +1296,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1989
+            - testCaseID: TCXM_2001
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1310,7 +1328,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_1992
+            - testCaseID: TCXM_2004
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1346,7 +1364,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'fqdn'
-            - testCaseID: TCXM_1993
+            - testCaseID: TCXM_2005
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1381,7 +1399,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1994
+            - testCaseID: TCXM_2006
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1412,7 +1430,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1995
+            - testCaseID: TCXM_2007
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1443,7 +1461,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1996
+            - testCaseID: TCXM_2008
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1474,7 +1492,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1997
+            - testCaseID: TCXM_2009
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1508,7 +1526,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1998
+            - testCaseID: TCXM_2010
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1542,7 +1560,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1999
+            - testCaseID: TCXM_2011
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1580,7 +1598,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2000
+            - testCaseID: TCXM_2012
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1618,7 +1636,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2001
+            - testCaseID: TCXM_2013
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1651,7 +1669,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2002
+            - testCaseID: TCXM_2014
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1674,7 +1692,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_2007
+            - testCaseID: TCXM_2019
               featureName: dns-suffix
               priority: P4
               automation: Automatable
@@ -1966,7 +1984,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_2008
+            - testCaseID: TCXM_2020
               featureName: dns-suffix
               priority: P4
               automation: Automatable
@@ -2198,7 +2216,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_2009
+            - testCaseID: TCXM_2021
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -2527,7 +2545,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_2010
+            - testCaseID: TCXM_2022
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -3009,7 +3027,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_2003
+            - testCaseID: TCXM_2015
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -5319,7 +5337,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_2004
+            - testCaseID: TCXM_2016
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -5352,7 +5370,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_2005
+            - testCaseID: TCXM_2017
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -5631,7 +5649,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_2006
+            - testCaseID: TCXM_2018
               featureName: dns-suffix
               priority: P3
               automation: Automatable
