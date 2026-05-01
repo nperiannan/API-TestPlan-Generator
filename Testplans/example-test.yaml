@@ -1,47 +1,121 @@
-featurePath: /tpme/{serialNumber}/access-profiles
+featurePath: /network-feature/interface-feature/port-feature
 profileType: configuration
 test:
-    testCaseID: TCXM_1000
-    featureName: access-profile
+    testCaseID: TCXM_1006
+    featureName: advanced-port
     priority: P1
     automation: Automatable
     type: functional
-    description: Create access-profile and schedule deployment to device
+    description: Create advanced-port, scope to device, target to device, deploy, and verify on NOS devices
     scopeType: device
     targetType: device
-    deploymentMethod: scheduled
+    deploymentMethod: immediate
     isDeploymentTest: true
     steps:
-        - name: createaccess-profile
-          description: Create access-profile configuration with name=test-resource, snmp-credential=testValue
+        - name: createadvanced-port
+          description: Create advanced-port configuration
           method: POST
           api: REST
-          path: /global-profile/feature/object/modify
+          path: /configuration-profile/{name}/feature/object/modify
+          pathParams:
+            name: TestProfile
           body:
-            name: test-resource
-            snmp-credential: testValue
+            featurePath: /network-feature/interface-feature/port-feature
+            name: TestProfile
+            objectType: advanced-port
+            objects:
+                - operation: add
+                  properties:
+                    - name: enable-stp
+                      origin: CC
+                      type: boolean
+                      value: true
+                    - name: enable-edge
+                      origin: CC
+                      type: boolean
+                      value: false
+                    - name: enable-bpdu-protection
+                      origin: CC
+                      type: boolean
+                      value: false
+                    - name: enable-bpdu-restrict
+                      origin: CC
+                      type: boolean
+                      value: false
+                    - name: bpdu-recovery-timeout
+                      origin: CC
+                      type: number
+                      value: 300
+                  type: advanced-port
+            operation: add
           expectedStatus: 201
           validations:
-            - Verify access-profile created successfully with name=test-resource, snmp-credential=testValue
+            - Verify HTTP status code is 201
           assertions:
             - type: statusCode
               expected: 201
-              description: Verify access-profile created successfully with name=test-resource, snmp-credential=testValue
-        - name: scheduleDeploymentTodevice
-          description: Schedule deployment to device at 2026-05-01T06:09:11Z
+        - name: getProfile
+          description: Retrieve created profile
           method: POST
           api: REST
-          path: /configuration-profile/TestProfile-Additional/devices/deploy
+          path: /configuration-profile/{name}/feature/object/retrieve
           pathParams:
-            name: TestProfile-Additional
+            name: TestProfile
+          expectedStatus: 200
+          validations:
+            - Verify HTTP status code is 200
+          assertions:
+            - type: statusCode
+              expected: 200
+        - name: scopeProfileTodevice
+          description: Scope profile to device
+          method: PUT
+          api: REST
+          path: /configuration-profile/{name}/scope
+          pathParams:
+            name: TestProfile
           body:
-            deployAt: "2026-05-01T06:09:11Z"
+            scopeId: test-scope-001
+            scopeType: device
+          expectedStatus: 200
+          validations:
+            - Verify HTTP status code is 200
+          assertions:
+            - type: statusCode
+              expected: 200
+        - name: deployProfileTodevice
+          description: Deploy profile to device
+          method: POST
+          api: REST
+          path: /configuration-profile/{name}/devices/deploy
+          pathParams:
+            name: TestProfile
+          body:
+            deployNow: true
             devices:
                 - test-device-001
-            timezone: UTC
           expectedStatus: 202
           validations:
             - Verify HTTP status code is 202
           assertions:
             - type: statusCode
-              expected: "202"
+              expected: 202
+        - name: checkDeploymentStatus
+          description: Verify deployment status
+          method: GET
+          api: REST
+          path: /configuration-profile/{name}/device/{hostName}/deploy/status
+          pathParams:
+            hostName: test-device-001
+            name: TestProfile
+          expectedStatus: 200
+          validations:
+            - Verify HTTP status code is 200
+            - Verify '$.status' equals SUCCESS
+          assertions:
+            - type: statusCode
+              expected: 200
+            - type: jsonPathEquals
+              path: $.status
+              expected: SUCCESS
+          timeout: 300

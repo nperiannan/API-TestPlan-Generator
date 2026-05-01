@@ -60,6 +60,7 @@ type Parameter struct {
 	IsArray          bool
 	ArrayMinItems    int
 	ArrayMaxItems    int
+	Keys             []string
 	NestedProperties []Parameter
 }
 
@@ -81,6 +82,7 @@ func (p Parameter) ToModelParameter() model.Parameter {
 		IsArray:          p.IsArray,
 		ArrayMinItems:    p.ArrayMinItems,
 		ArrayMaxItems:    p.ArrayMaxItems,
+		Keys:             p.Keys,
 		NestedProperties: nestedModelParams,
 	}
 }

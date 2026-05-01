@@ -154,5 +154,6 @@ type Validation struct {
 	Type        ValidationType `yaml:"type"`
 	Path        string         `yaml:"path,omitempty"` // JSONPath for response validation
 	Expected    interface{}    `yaml:"expected,omitempty"`
+	CaptureAs   string         `yaml:"captureAs,omitempty"` // variable name captured from Path, e.g. OBJECT_ID
 	Description string         `yaml:"description,omitempty"`
 }

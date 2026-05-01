@@ -346,3 +346,141 @@ func TestBasicDeleteUsesCreatePathForSetup(t *testing.T) {
 		t.Fatalf("verify step should use read path, got %s", testCase.Steps[2].Path)
 	}
 }
+
+func TestNormalizeSuiteAddsPathParamsForPlaceholders(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	suite := &model.TestSuite{
+		Features: []model.FeatureTestGroup{{
+			FeatureName: "port",
+			Tests: map[model.TestCategory][]model.TestCase{
+				model.TestCategoryFunctional: {{
+					TestCaseID: "TC_0001",
+					Steps: []model.TestStep{{
+						Name: "getPort",
+						Path: "/configuration-profile/{name}/ports/{port}/status",
+					}},
+				}},
+			},
+		}},
+	}
+
+	gen.normalizeSuite(suite)
+	params := suite.Features[0].Tests[model.TestCategoryFunctional][0].Steps[0].PathParams
+	if params["name"] != "TestProfile" {
+		t.Fatalf("expected name path param, got %#v", params)
+	}
+	if params["port"] != "1/1" {
+		t.Fatalf("expected port path param, got %#v", params)
+	}
+}
+
+func TestObjectIDCaptureIncludesStructuredMetadata(t *testing.T) {
+	validations := withObjectIDCapture(statusValidation(201))
+	last := validations[len(validations)-1]
+	if last.CaptureAs != "OBJECT_ID" || last.Path != "$[0].id" {
+		t.Fatalf("expected structured object ID capture, got %#v", last)
+	}
+}
+
+func TestKeyTransitionDeleteUsesCapturedObjectIDBody(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	feature := &model.Feature{
+		Name:       "static-route",
+		Keys:       []string{"vr-name"},
+		Parameters: []model.Parameter{{Name: "vr-name", GoType: "string", Required: true}},
+	}
+	createPath := &model.FeaturePath{
+		HTTPMethod:        "POST",
+		Path:              "/service-profile/{name}/feature/object/modify",
+		BlueprintCategory: model.BlueprintCategoryService,
+		PathParams: []model.PathParameter{
+			{Name: "featurePath", FixedValue: "/static-route-feature"},
+			{Name: "objectType", FixedValue: "static-route"},
+		},
+	}
+	deletePath := &model.FeaturePath{
+		HTTPMethod:        "POST",
+		Path:              "/service-profile/{name}/feature/object/delete",
+		BlueprintCategory: model.BlueprintCategoryService,
+		PathParams:        []model.PathParameter{{Name: "featurePath", FixedValue: "/static-route-feature"}},
+	}
+
+	testCase := gen.generateKeyFieldTransitionTest(feature, createPath, nil, deletePath, feature.Parameters[0], []string{"vr-default", "vr-mgmt"})
+	var deleteStep *model.TestStep
+	for i := range testCase.Steps {
+		if testCase.Steps[i].Name == "deleteKeyA" {
+			deleteStep = &testCase.Steps[i]
+			break
+		}
+	}
+	if deleteStep == nil {
+		t.Fatalf("delete step not generated: %#v", testCase.Steps)
+	}
+	if deleteStep.ExpectedStatus != 200 {
+		t.Fatalf("expected delete status 200, got %d", deleteStep.ExpectedStatus)
+	}
+	body, ok := deleteStep.Body.(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected delete body map, got %#v", deleteStep.Body)
+	}
+	objectIDs, ok := body["objectIds"].([]string)
+	if !ok || len(objectIDs) != 1 || objectIDs[0] != "{{OBJECT_ID_A}}" {
+		t.Fatalf("expected captured objectIds body, got %#v", body)
+	}
+	if _, exists := body["objects"]; exists {
+		t.Fatalf("delete body must not use add/update objects payload: %#v", body)
+	}
+}
+
+func TestShouldIncludeFeatureExcludesUnclassifiedWhenCategoryFiltered(t *testing.T) {
+	config := model.NewDefaultConfig()
+	config.FeatureCategories = []model.BlueprintCategory{model.BlueprintCategoryWired}
+	gen := NewGenerator(config, nil, nil, nil, nil)
+
+	if gen.shouldIncludeFeature(&model.FeaturePath{Path: "/inventory/models/retrieve"}) {
+		t.Fatalf("unclassified REST endpoint should not be included in category-filtered generation")
+	}
+	if !gen.shouldIncludeFeature(&model.FeaturePath{Path: "/configuration-profile/{name}/feature/object/modify", BlueprintCategory: model.BlueprintCategoryWired}) {
+		t.Fatalf("matching categorized path should be included")
+	}
+}
+
+func TestEnumCrossProductReadBodyUsesYangFeaturePath(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	feature := &model.Feature{
+		Name: "device-profile",
+		Parameters: []model.Parameter{
+			{Name: "mode", GoType: "string", Constraints: []model.Constraint{{Type: model.ConstraintTypeEnum, Value: []string{"DHCP", "STATIC"}}}},
+			{Name: "mtu", GoType: "string", Constraints: []model.Constraint{{Type: model.ConstraintTypeEnum, Value: []string{"1500", "1522"}}}},
+		},
+	}
+	createPath := &model.FeaturePath{
+		HTTPMethod:        "POST",
+		Path:              "/configuration-profile/{name}/feature/object/modify",
+		BlueprintCategory: model.BlueprintCategoryWired,
+		PathParams: []model.PathParameter{
+			{Name: "featurePath", FixedValue: "/infrastructure-feature/device-profile-feature"},
+			{Name: "objectType", FixedValue: "device-profile"},
+		},
+	}
+	readPath := &model.FeaturePath{
+		HTTPMethod:        "POST",
+		Path:              "/configuration-profile/{name}/feature/object/retrieve",
+		BlueprintCategory: model.BlueprintCategoryWired,
+	}
+
+	tests := gen.generateEnumCrossProductTests(feature, createPath, readPath)
+	if len(tests) == 0 || len(tests[0].Steps) < 2 {
+		t.Fatalf("expected enum cross-product test with verify step, got %#v", tests)
+	}
+	body, ok := tests[0].Steps[1].Body.(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected read body map, got %#v", tests[0].Steps[1].Body)
+	}
+	if body["featurePath"] != "/infrastructure-feature/device-profile-feature" {
+		t.Fatalf("expected YANG featurePath, got %#v", body)
+	}
+}

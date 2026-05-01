@@ -74,6 +74,9 @@ func (s TestStep) MarshalYAML() (interface{}, error) {
 // describeValidation produces a fallback human-readable sentence for a
 // structured Validation that did not carry a Description.
 func describeValidation(v Validation) string {
+	if v.CaptureAs != "" && v.Path != "" {
+		return fmt.Sprintf("Capture response value '%s' as %s", v.Path, v.CaptureAs)
+	}
 	switch v.Type {
 	case ValidationTypeStatusCode:
 		if v.Expected != nil {

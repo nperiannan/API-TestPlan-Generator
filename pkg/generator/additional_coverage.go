@@ -39,7 +39,9 @@ func (g *Generator) generateAdditionalCoverageTests(feature *model.Feature, path
 	tests = append(tests, g.generateCloneProfileTest(feature, primaryPath, profileName))
 
 	// 6. Clone feature object test (1 test)
-	tests = append(tests, g.generateCloneObjectTest(feature, primaryPath, profileName))
+	if _, _, _, ok := deepScannedMetadata(feature, primaryPath); ok {
+		tests = append(tests, g.generateCloneObjectTest(feature, primaryPath, profileName))
+	}
 
 	// 7. Conflict detection test — deploy, simulate out-of-band device change, verify conflict detected (1 test)
 	tests = append(tests, g.generateConflictDetectionTest(feature, primaryPath, profileName+"-ConflictDetect"))
@@ -57,6 +59,11 @@ func (g *Generator) generateAdditionalCoverageTests(feature *model.Feature, path
 }
 
 func selectPrimaryObjectPath(paths []*model.FeaturePath) *model.FeaturePath {
+	for _, fp := range paths {
+		if fp != nil && fp.OperationType == model.OperationTypeCreate && isFeatureObjectPath(fp) {
+			return fp
+		}
+	}
 	for _, fp := range paths {
 		if isFeatureObjectPath(fp) {
 			return fp
@@ -83,11 +90,13 @@ func isFeatureObjectPath(fp *model.FeaturePath) bool {
 }
 
 func isControlEndpointPath(path string) bool {
-	lower := strings.ToLower(path)
-	return strings.Contains(lower, "/deploy") ||
-		strings.Contains(lower, "/scope") ||
-		strings.Contains(lower, "/target") ||
-		strings.Contains(lower, "/schedule")
+	for _, segment := range splitPath(strings.ToLower(path)) {
+		switch segment {
+		case "deploy", "scope", "target", "schedule", "edit-schedule", "clear-schedule", "status":
+			return true
+		}
+	}
+	return false
 }
 
 // generateScheduledDeploymentTest creates a test for scheduled deployment (deployAt instead of deployNow)
@@ -401,12 +410,16 @@ func (g *Generator) generateCloneObjectTest(feature *model.Feature, fp *model.Fe
 
 	// Step 2: Clone the object
 	clonePath := fmt.Sprintf("/configuration-profile/%s/feature/object/clone", profileName)
+	featurePath, objectType, _, ok := deepScannedMetadata(feature, fp)
+	if !ok {
+		return tc
+	}
 
 	// Build clone body with feature-specific details
 	cloneBody := map[string]interface{}{
-		"featurePath": fp.Path,
-		"objectType":  feature.Name,
-		"sourceId":    "original-object-1",
+		"featurePath": featurePath,
+		"objectType":  objectType,
+		"sourceId":    "{{OBJECT_ID}}",
 		"newId":       "cloned-object-1",
 	}
 
@@ -438,12 +451,13 @@ func (g *Generator) createBasicCreateStep(feature *model.Feature, fp *model.Feat
 	return model.TestStep{
 		Name:           "create" + feature.Name,
 		Description:    fmt.Sprintf("Create %s configuration with %s", feature.Name, keyDesc),
-		Method:         "POST",
+		Method:         fp.HTTPMethod,
 		API:            model.APITypeREST,
-		Path:           "/global-profile/feature/object/modify",
+		Path:           fp.Path,
+		PathParams:     pathParamsFor(fp.Path, profileName),
 		Body:           body,
 		ExpectedStatus: 201,
-		Validations:    crudValidations(201, "create", feature.Name, keyDesc),
+		Validations:    withObjectIDCapture(crudValidations(201, "create", feature.Name, keyDesc)),
 	}
 }
 
@@ -920,7 +934,7 @@ func describeOverrideProperties(props []map[string]interface{}) string {
 // create base → create override → retrieve override → modify override → remove override → verify removed
 func (g *Generator) generateOverrideCRUDLifecycleTest(feature *model.Feature, fp *model.FeaturePath, profileName string, overrideType string, featurePath string, objectType string) model.TestCase {
 	deviceID := "550e8400-e29b-41d4-a716-446655440000"
-	objectID := "660e8400-e29b-41d4-a716-446655440001"
+	objectID := "{{OBJECT_ID}}"
 	overrideProps := g.generateOverrideProperties(feature)
 	propDesc := describeOverrideProperties(overrideProps)
 
@@ -1047,7 +1061,7 @@ func (g *Generator) generateOverrideCRUDLifecycleTest(feature *model.Feature, fp
 // create base → create model override → retrieve → verify → remove
 func (g *Generator) generateOverrideModelLevelTest(feature *model.Feature, fp *model.FeaturePath, profileName string, featurePath string, objectType string) model.TestCase {
 	modelID := "5520"
-	objectID := "660e8400-e29b-41d4-a716-446655440001"
+	objectID := "{{OBJECT_ID}}"
 	overrideProps := g.generateOverrideProperties(feature)
 	propDesc := describeOverrideProperties(overrideProps)
 
@@ -1128,7 +1142,7 @@ func (g *Generator) generateOverrideModelLevelTest(feature *model.Feature, fp *m
 // generateOverrideModelGroupLevelTest creates a model-group-level override test
 func (g *Generator) generateOverrideModelGroupLevelTest(feature *model.Feature, fp *model.FeaturePath, profileName string, featurePath string, objectType string) model.TestCase {
 	modelGroupID := "enterprise-access-points"
-	objectID := "660e8400-e29b-41d4-a716-446655440001"
+	objectID := "{{OBJECT_ID}}"
 	overrideProps := g.generateOverrideProperties(feature)
 	propDesc := describeOverrideProperties(overrideProps)
 
@@ -1208,7 +1222,7 @@ func (g *Generator) generateOverrideModelGroupLevelTest(feature *model.Feature, 
 
 // generateGetAllOverridesTest creates a test to retrieve all overrides for a profile
 func (g *Generator) generateGetAllOverridesTest(feature *model.Feature, fp *model.FeaturePath, profileName string) model.TestCase {
-	objectID := "660e8400-e29b-41d4-a716-446655440001"
+	objectID := "{{OBJECT_ID}}"
 	deviceID := "550e8400-e29b-41d4-a716-446655440000"
 	overrideProps := g.generateOverrideProperties(feature)
 
@@ -1268,7 +1282,7 @@ func (g *Generator) generateGetAllOverridesTest(feature *model.Feature, fp *mode
 func (g *Generator) generateOverridePrecedenceTest(feature *model.Feature, fp *model.FeaturePath, profileName string, featurePath string, objectType string) model.TestCase {
 	deviceID := "550e8400-e29b-41d4-a716-446655440000"
 	modelID := "5520"
-	objectID := "660e8400-e29b-41d4-a716-446655440001"
+	objectID := "{{OBJECT_ID}}"
 
 	// Build model-level override props with one value
 	modelProps := []map[string]interface{}{}
@@ -1369,7 +1383,7 @@ func (g *Generator) generateOverridePrecedenceTest(feature *model.Feature, fp *m
 func (g *Generator) generateOverrideDeployVerifyTest(feature *model.Feature, fp *model.FeaturePath, profileName string, featurePath string, objectType string) model.TestCase {
 	deviceHostName := "test-device-001"
 	deviceID := "550e8400-e29b-41d4-a716-446655440000"
-	objectID := "660e8400-e29b-41d4-a716-446655440001"
+	objectID := "{{OBJECT_ID}}"
 	overrideProps := g.generateOverrideProperties(feature)
 	propDesc := describeOverrideProperties(overrideProps)
 
@@ -1492,7 +1506,7 @@ func (g *Generator) generateOverrideRemoveNonExistentTest(feature *model.Feature
 
 // generateOverrideInvalidTypeTest creates a negative test: attempt to create override with invalid overrideType
 func (g *Generator) generateOverrideInvalidTypeTest(feature *model.Feature, fp *model.FeaturePath, profileName string, featurePath string, objectType string) model.TestCase {
-	objectID := "660e8400-e29b-41d4-a716-446655440001"
+	objectID := "{{OBJECT_ID}}"
 	overrideProps := g.generateOverrideProperties(feature)
 
 	tc := model.TestCase{

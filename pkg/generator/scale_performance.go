@@ -137,10 +137,12 @@ func incrementFieldValue(baseValue interface{}, fieldName string, index int) int
 func (g *Generator) generateScaleTests(feature *model.Feature, paths []*model.FeaturePath) []model.TestCase {
 	var tests []model.TestCase
 
-	var createPath, listPath *model.FeaturePath
+	var createPath, listPath, updatePath *model.FeaturePath
 	for _, path := range paths {
 		if path.OperationType == model.OperationTypeCreate {
 			createPath = path
+		} else if path.OperationType == model.OperationTypeUpdate {
+			updatePath = path
 		} else if path.OperationType == model.OperationTypeList {
 			listPath = path
 		}
@@ -169,8 +171,8 @@ func (g *Generator) generateScaleTests(feature *model.Feature, paths []*model.Fe
 	}
 
 	// Rapid updates test
-	if createPath != nil {
-		tests = append(tests, g.generateRapidUpdatesTest(feature, createPath))
+	if createPath != nil && updatePath != nil {
+		tests = append(tests, g.generateRapidUpdatesTest(feature, createPath, updatePath))
 	}
 
 	// Maximum capacity test (test all priority slots, etc.)
@@ -336,7 +338,7 @@ func (g *Generator) generatePerformanceTests(feature *model.Feature, paths []*mo
 		}
 	}
 	if updatePath != nil && createPath != nil {
-		tests = append(tests, g.generateUpdatePerformanceTest(feature, createPath))
+		tests = append(tests, g.generateUpdatePerformanceTest(feature, createPath, updatePath))
 	}
 
 	// Delete performance test
@@ -348,7 +350,7 @@ func (g *Generator) generatePerformanceTests(feature *model.Feature, paths []*mo
 		}
 	}
 	if deletePath != nil && createPath != nil {
-		tests = append(tests, g.generateDeletePerformanceTest(feature, createPath))
+		tests = append(tests, g.generateDeletePerformanceTest(feature, createPath, deletePath))
 	}
 
 	// Deployment performance test
@@ -445,7 +447,8 @@ func (g *Generator) generateReadPerformanceTest(
 			Method:         readPath.HTTPMethod,
 			API:            model.APITypeREST,
 			Path:           readPath.Path,
-			PathParams:     map[string]string{"name": "TestResource"},
+			PathParams:     pathParamsFor(readPath.Path, "TestProfile"),
+			Body:           g.generateReadBody(feature, readPath),
 			ExpectedStatus: 200,
 			Validations: []model.Validation{
 				{
@@ -582,6 +585,7 @@ func (g *Generator) generateMultiDeviceDeploymentTest(
 func (g *Generator) generateRapidUpdatesTest(
 	feature *model.Feature,
 	createPath *model.FeaturePath,
+	updatePath *model.FeaturePath,
 ) model.TestCase {
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
@@ -608,27 +612,27 @@ func (g *Generator) generateRapidUpdatesTest(
 		Path:           createPath.Path,
 		Body:           body,
 		ExpectedStatus: 201,
-		Validations: []model.Validation{
+		Validations: withObjectIDCapture([]model.Validation{
 			{
 				Type:     model.ValidationTypeStatusCode,
 				Expected: 201,
 			},
-		},
+		}),
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
 	// Perform rapid updates
 	for i := 0; i < 10; i++ {
-		updateBody := g.generateRequestBody(feature, createPath)
+		updateBody := g.generateUpdateRequestBody(feature, updatePath)
 		updateBody["name"] = "RapidUpdateTest"
 		updateBody["description"] = fmt.Sprintf("Update iteration %d", i)
 
 		updateStep := model.TestStep{
 			Name:           fmt.Sprintf("rapidUpdate%d", i),
 			Description:    fmt.Sprintf("Rapid update %d", i),
-			Method:         "PUT",
+			Method:         updatePath.HTTPMethod,
 			API:            model.APITypeREST,
-			Path:           createPath.Path,
+			Path:           updatePath.Path,
 			Body:           updateBody,
 			ExpectedStatus: 200,
 			Validations: []model.Validation{
@@ -700,6 +704,7 @@ func (g *Generator) generateMaxCapacityTest(
 func (g *Generator) generateUpdatePerformanceTest(
 	feature *model.Feature,
 	createPath *model.FeaturePath,
+	updatePath *model.FeaturePath,
 ) model.TestCase {
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
@@ -726,27 +731,27 @@ func (g *Generator) generateUpdatePerformanceTest(
 		Path:           createPath.Path,
 		Body:           body,
 		ExpectedStatus: 201,
-		Validations: []model.Validation{
+		Validations: withObjectIDCapture([]model.Validation{
 			{
 				Type:     model.ValidationTypeStatusCode,
 				Expected: 201,
 			},
-		},
+		}),
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
 	// Perform update performance test
 	for i := 0; i < g.config.PerformanceIterations; i++ {
-		updateBody := g.generateRequestBody(feature, createPath)
+		updateBody := g.generateUpdateRequestBody(feature, updatePath)
 		updateBody["name"] = "UpdatePerfTest"
 		updateBody["description"] = fmt.Sprintf("Performance test iteration %d", i)
 
 		updateStep := model.TestStep{
 			Name:           fmt.Sprintf("update%d", i),
 			Description:    fmt.Sprintf("Update iteration %d", i),
-			Method:         "PUT",
+			Method:         updatePath.HTTPMethod,
 			API:            model.APITypeREST,
-			Path:           createPath.Path,
+			Path:           updatePath.Path,
 			Body:           updateBody,
 			ExpectedStatus: 200,
 			Validations: []model.Validation{
@@ -772,6 +777,7 @@ func (g *Generator) generateUpdatePerformanceTest(
 func (g *Generator) generateDeletePerformanceTest(
 	feature *model.Feature,
 	createPath *model.FeaturePath,
+	deletePath *model.FeaturePath,
 ) model.TestCase {
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
@@ -793,6 +799,7 @@ func (g *Generator) generateDeletePerformanceTest(
 		body["name"] = fmt.Sprintf("DeletePerfTest-%d", i)
 		g.incrementUniqueBodyValues(body, feature, i)
 
+		captureName := fmt.Sprintf("OBJECT_ID_DELETE_%d", i)
 		createStep := model.TestStep{
 			Name:           fmt.Sprintf("create%d", i),
 			Description:    fmt.Sprintf("Create resource %d for delete test", i),
@@ -801,22 +808,24 @@ func (g *Generator) generateDeletePerformanceTest(
 			Path:           createPath.Path,
 			Body:           body,
 			ExpectedStatus: 201,
-			Validations: []model.Validation{
+			Validations: withNamedObjectIDCapture([]model.Validation{
 				{
 					Type:     model.ValidationTypeStatusCode,
 					Expected: 201,
 				},
-			},
+			}, captureName),
 		}
 		tc.Steps = append(tc.Steps, createStep)
 
 		// Delete resource
+		deleteBody := g.generateDeleteBodyForObjectID(feature, deletePath, captureName)
 		deleteStep := model.TestStep{
 			Name:           fmt.Sprintf("delete%d", i),
 			Description:    fmt.Sprintf("Delete resource %d", i),
-			Method:         "DELETE",
+			Method:         deletePath.HTTPMethod,
 			API:            model.APITypeREST,
-			Path:           createPath.Path,
+			Path:           deletePath.Path,
+			Body:           deleteBody,
 			ExpectedStatus: 200,
 			Validations: []model.Validation{
 				{

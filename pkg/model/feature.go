@@ -33,6 +33,7 @@ type Parameter struct {
 	IsArray          bool
 	ArrayMinItems    int
 	ArrayMaxItems    int
+	Keys             []string    // YANG keys when this parameter represents a nested list
 	NestedProperties []Parameter // For container/list types that have nested parameters
 }
 

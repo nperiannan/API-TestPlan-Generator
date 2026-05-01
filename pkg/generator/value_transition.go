@@ -104,7 +104,7 @@ func (g *Generator) generateEnumTransitionTest(
 		Path:           createPath.Path,
 		Body:           deepCopyBody(body),
 		ExpectedStatus: 201,
-		Validations:    statusValidation(201),
+		Validations:    withObjectIDCapture(statusValidation(201)),
 	})
 
 	// Step 2: Verify A is set
@@ -116,6 +116,7 @@ func (g *Generator) generateEnumTransitionTest(
 			API:            model.APITypeREST,
 			Path:           readPath.Path,
 			PathParams:     map[string]string{"name": resourceName},
+			Body:           g.generateReadBody(feature, readPath),
 			ExpectedStatus: 200,
 			Validations:    statusValidation(200),
 		})
@@ -123,7 +124,7 @@ func (g *Generator) generateEnumTransitionTest(
 
 	// Step 3: Update to value B (only if updatePath exists)
 	if updatePath != nil {
-		updateBody := g.generateRequestBody(feature, updatePath)
+		updateBody := g.generateUpdateRequestBody(feature, updatePath)
 		updateBody["name"] = resourceName
 		g.setBodyParameterValue(updateBody, param.Name, valB)
 		tc.Steps = append(tc.Steps, model.TestStep{
@@ -147,13 +148,14 @@ func (g *Generator) generateEnumTransitionTest(
 				API:            model.APITypeREST,
 				Path:           readPath.Path,
 				PathParams:     map[string]string{"name": resourceName},
+				Body:           g.generateReadBody(feature, readPath),
 				ExpectedStatus: 200,
 				Validations:    statusValidation(200),
 			})
 		}
 
 		// Step 5: Round-trip back to A
-		roundTripBody := g.generateRequestBody(feature, updatePath)
+		roundTripBody := g.generateUpdateRequestBody(feature, updatePath)
 		roundTripBody["name"] = resourceName
 		g.setBodyParameterValue(roundTripBody, param.Name, valA)
 		tc.Steps = append(tc.Steps, model.TestStep{
@@ -177,6 +179,7 @@ func (g *Generator) generateEnumTransitionTest(
 				API:            model.APITypeREST,
 				Path:           readPath.Path,
 				PathParams:     map[string]string{"name": resourceName},
+				Body:           g.generateReadBody(feature, readPath),
 				ExpectedStatus: 200,
 				Validations:    statusValidation(200),
 			})
@@ -216,20 +219,20 @@ func (g *Generator) generateWellKnownValueTransitionTest(
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name: "createWithInitialValue", Description: fmt.Sprintf("Create with %s='%s'", param.Name, valA),
 		Method: createPath.HTTPMethod, API: model.APITypeREST, Path: createPath.Path,
-		Body: deepCopyBody(body), ExpectedStatus: 201, Validations: statusValidation(201),
+		Body: deepCopyBody(body), ExpectedStatus: 201, Validations: withObjectIDCapture(statusValidation(201)),
 	})
 
 	if readPath != nil {
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name: "verifyInitialValue", Description: fmt.Sprintf("Verify %s is '%s'", param.Name, valA),
 			Method: readPath.HTTPMethod, API: model.APITypeREST, Path: readPath.Path,
-			PathParams: map[string]string{"name": resourceName}, ExpectedStatus: 200, Validations: statusValidation(200),
+			PathParams: map[string]string{"name": resourceName}, Body: g.generateReadBody(feature, readPath), ExpectedStatus: 200, Validations: statusValidation(200),
 		})
 	}
 
 	if updatePath != nil {
 		// Update to valB
-		upBody := g.generateRequestBody(feature, updatePath)
+		upBody := g.generateUpdateRequestBody(feature, updatePath)
 		upBody["name"] = resourceName
 		g.setBodyParameterValue(upBody, param.Name, valB)
 		tc.Steps = append(tc.Steps, model.TestStep{
@@ -243,7 +246,7 @@ func (g *Generator) generateWellKnownValueTransitionTest(
 			tc.Steps = append(tc.Steps, model.TestStep{
 				Name: "verifyNewValue", Description: fmt.Sprintf("Verify %s updated to '%s'", param.Name, valB),
 				Method: readPath.HTTPMethod, API: model.APITypeREST, Path: readPath.Path,
-				PathParams: map[string]string{"name": resourceName}, ExpectedStatus: 200, Validations: statusValidation(200),
+				PathParams: map[string]string{"name": resourceName}, Body: g.generateReadBody(feature, readPath), ExpectedStatus: 200, Validations: statusValidation(200),
 			})
 		}
 	}
@@ -283,7 +286,7 @@ func (g *Generator) generateKeyFieldTransitionTest(
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name: "createWithKeyA", Description: fmt.Sprintf("Create with %s='%s'", param.Name, valA),
 		Method: createPath.HTTPMethod, API: model.APITypeREST, Path: createPath.Path,
-		Body: deepCopyBody(bodyA), ExpectedStatus: 201, Validations: statusValidation(201),
+		Body: deepCopyBody(bodyA), ExpectedStatus: 201, Validations: withNamedObjectIDCapture(statusValidation(201), "OBJECT_ID_A"),
 	})
 
 	// Step 2: Verify entry with key=valA exists
@@ -291,18 +294,18 @@ func (g *Generator) generateKeyFieldTransitionTest(
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name: "verifyKeyAExists", Description: fmt.Sprintf("Verify entry with %s='%s' exists", param.Name, valA),
 			Method: readPath.HTTPMethod, API: model.APITypeREST, Path: readPath.Path,
-			ExpectedStatus: 200, Validations: statusValidation(200),
+			Body: g.generateReadBody(feature, readPath), ExpectedStatus: 200, Validations: statusValidation(200),
 		})
 	}
 
 	// Step 3: Delete the entry with key=valA (YANG list keys are immutable — must delete)
 	if deletePath != nil {
-		deleteBody := g.generateRequestBody(feature, deletePath)
+		deleteBody := g.generateDeleteBodyForObjectID(feature, deletePath, "OBJECT_ID_A")
 		g.setBodyParameterValue(deleteBody, param.Name, valA)
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name: "deleteKeyA", Description: fmt.Sprintf("Delete entry with %s='%s' (key is immutable; must delete to change)", param.Name, valA),
 			Method: deletePath.HTTPMethod, API: model.APITypeREST, Path: deletePath.Path,
-			Body: deepCopyBody(deleteBody), ExpectedStatus: 204, Validations: statusValidation(204),
+			Body: deepCopyBody(deleteBody), ExpectedStatus: 200, Validations: statusValidation(200),
 		})
 	}
 
@@ -312,7 +315,7 @@ func (g *Generator) generateKeyFieldTransitionTest(
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name: "createWithKeyB", Description: fmt.Sprintf("Create new entry with %s='%s'", param.Name, valB),
 		Method: createPath.HTTPMethod, API: model.APITypeREST, Path: createPath.Path,
-		Body: deepCopyBody(bodyB), ExpectedStatus: 201, Validations: statusValidation(201),
+		Body: deepCopyBody(bodyB), ExpectedStatus: 201, Validations: withNamedObjectIDCapture(statusValidation(201), "OBJECT_ID_B"),
 	})
 
 	// Step 5: Verify entry with key=valB exists
@@ -320,7 +323,7 @@ func (g *Generator) generateKeyFieldTransitionTest(
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name: "verifyKeyBExists", Description: fmt.Sprintf("Verify entry with %s='%s' exists", param.Name, valB),
 			Method: readPath.HTTPMethod, API: model.APITypeREST, Path: readPath.Path,
-			ExpectedStatus: 200, Validations: statusValidation(200),
+			Body: g.generateReadBody(feature, readPath), ExpectedStatus: 200, Validations: statusValidation(200),
 		})
 	}
 
@@ -358,7 +361,7 @@ func (g *Generator) generateKeyFieldCoexistenceTest(
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name: "createEntryA", Description: fmt.Sprintf("Create first entry with %s='%s'", param.Name, valA),
 		Method: createPath.HTTPMethod, API: model.APITypeREST, Path: createPath.Path,
-		Body: deepCopyBody(bodyA), ExpectedStatus: 201, Validations: statusValidation(201),
+		Body: deepCopyBody(bodyA), ExpectedStatus: 201, Validations: withNamedObjectIDCapture(statusValidation(201), "OBJECT_ID_A"),
 	})
 
 	// Create entry B
@@ -368,7 +371,7 @@ func (g *Generator) generateKeyFieldCoexistenceTest(
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name: "createEntryB", Description: fmt.Sprintf("Create second entry with %s='%s'", param.Name, valB),
 		Method: createPath.HTTPMethod, API: model.APITypeREST, Path: createPath.Path,
-		Body: deepCopyBody(bodyB), ExpectedStatus: 201, Validations: statusValidation(201),
+		Body: deepCopyBody(bodyB), ExpectedStatus: 201, Validations: withNamedObjectIDCapture(statusValidation(201), "OBJECT_ID_B"),
 	})
 
 	// Verify both exist
@@ -376,20 +379,20 @@ func (g *Generator) generateKeyFieldCoexistenceTest(
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name: "verifyBothCoexist", Description: fmt.Sprintf("Verify both '%s' and '%s' entries exist simultaneously", valA, valB),
 			Method: readPath.HTTPMethod, API: model.APITypeREST, Path: readPath.Path,
-			ExpectedStatus: 200, Validations: statusValidation(200),
+			Body: g.generateReadBody(feature, readPath), ExpectedStatus: 200, Validations: statusValidation(200),
 		})
 	}
 
 	// Cleanup: delete both (use matching IPs from create steps)
 	if deletePath != nil {
 		for i, val := range []string{valA, valB} {
-			delBody := g.generateRequestBody(feature, deletePath)
+			captureName := fmt.Sprintf("OBJECT_ID_%c", 'A'+rune(i))
+			delBody := g.generateDeleteBodyForObjectID(feature, deletePath, captureName)
 			g.setBodyParameterValue(delBody, param.Name, val)
-			g.incrementUniqueBodyValues(delBody, feature, i)
 			tc.Steps = append(tc.Steps, model.TestStep{
 				Name: fmt.Sprintf("cleanup-%s", val), Description: fmt.Sprintf("Cleanup: delete entry with %s='%s'", param.Name, val),
 				Method: deletePath.HTTPMethod, API: model.APITypeREST, Path: deletePath.Path,
-				Body: deepCopyBody(delBody), ExpectedStatus: 204, Validations: statusValidation(204),
+				Body: deepCopyBody(delBody), ExpectedStatus: 200, Validations: statusValidation(200),
 			})
 		}
 	}
@@ -421,20 +424,20 @@ func (g *Generator) generatePriorityChangeTest(
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name: "createWithHighPriority", Description: fmt.Sprintf("Create %s with %s=1 (highest)", feature.Name, param.Name),
 		Method: createPath.HTTPMethod, API: model.APITypeREST, Path: createPath.Path,
-		Body: deepCopyBody(body), ExpectedStatus: 201, Validations: statusValidation(201),
+		Body: deepCopyBody(body), ExpectedStatus: 201, Validations: withObjectIDCapture(statusValidation(201)),
 	})
 
 	if readPath != nil {
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name: "verifyHighPriority", Description: fmt.Sprintf("Verify %s is 1 (high priority)", param.Name),
 			Method: readPath.HTTPMethod, API: model.APITypeREST, Path: readPath.Path,
-			ExpectedStatus: 200, Validations: statusValidation(200),
+			Body: g.generateReadBody(feature, readPath), ExpectedStatus: 200, Validations: statusValidation(200),
 		})
 	}
 
 	// Update priority to 10 (lower priority)
 	if updatePath != nil {
-		upBody := g.generateRequestBody(feature, updatePath)
+		upBody := g.generateUpdateRequestBody(feature, updatePath)
 		g.setBodyParameterValue(upBody, param.Name, 10)
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name: "updateToLowerPriority", Description: fmt.Sprintf("Update %s to 10 (lower priority)", param.Name),
@@ -446,12 +449,12 @@ func (g *Generator) generatePriorityChangeTest(
 			tc.Steps = append(tc.Steps, model.TestStep{
 				Name: "verifyLowerPriority", Description: fmt.Sprintf("Verify %s was changed to 10", param.Name),
 				Method: readPath.HTTPMethod, API: model.APITypeREST, Path: readPath.Path,
-				ExpectedStatus: 200, Validations: statusValidation(200),
+				Body: g.generateReadBody(feature, readPath), ExpectedStatus: 200, Validations: statusValidation(200),
 			})
 		}
 
 		// Restore back to 1
-		restoreBody := g.generateRequestBody(feature, updatePath)
+		restoreBody := g.generateUpdateRequestBody(feature, updatePath)
 		g.setBodyParameterValue(restoreBody, param.Name, 1)
 		tc.Steps = append(tc.Steps, model.TestStep{
 			Name: "restoreHighPriority", Description: fmt.Sprintf("Restore %s back to 1 (round-trip)", param.Name),

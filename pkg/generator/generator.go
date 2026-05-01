@@ -101,32 +101,9 @@ func (g *Generator) Generate() (*model.TestSuite, error) {
 		}
 	}
 
-	// PRIORITY 2: Generate tests for API endpoints that don't have YANG features
-	// but are still configuration APIs (not infrastructure)
-	featurePathGroups := g.groupFeaturePaths()
-	groupNames := make([]string, 0, len(featurePathGroups))
-	for name := range featurePathGroups {
-		groupNames = append(groupNames, name)
-	}
-	sort.Strings(groupNames)
-	for _, groupName := range groupNames {
-		paths := featurePathGroups[groupName]
-		// Skip if already handled by YANG feature
-		if g.features[groupName] != nil {
-			continue
-		}
-
-		// Create a basic feature for this API group
-		feature := &model.Feature{
-			Name: groupName,
-		}
-
-		testGroup := g.generateFeatureTestGroup(feature, paths)
-		if testGroup != nil && g.hasAnyTests(testGroup) {
-			suite.Features = append(suite.Features, *testGroup)
-		}
-	}
-
+	// Do not generate API-only fallback plans. OpenAPI is path/method authority only;
+	// payloads, keys, constraints, and feature paths must come from linked YANG features.
+	g.normalizeSuite(suite)
 	setAutomationDefaults(suite)
 	return suite, nil
 }
@@ -368,14 +345,15 @@ func splitPath(path string) []string {
 
 // shouldIncludeFeature checks if a feature should be included based on BlueprintCategory filter
 func (g *Generator) shouldIncludeFeature(fp *model.FeaturePath) bool {
-	// If no category is set for the feature path, include it (non-deep-scanned features)
-	if fp.BlueprintCategory == "" {
+	// If no category filter is configured, include all linked feature paths.
+	if len(g.config.FeatureCategories) == 0 {
 		return true
 	}
 
-	// If no feature categories configured, include all
-	if len(g.config.FeatureCategories) == 0 {
-		return true
+	// Category-filtered runs should not include unclassified REST endpoints. These
+	// paths do not carry YANG featurePath metadata and produce endpoint-like plan headers.
+	if fp.BlueprintCategory == "" {
+		return false
 	}
 
 	// Check if the feature's category is in the configured list

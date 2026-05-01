@@ -119,6 +119,16 @@ func (p *Parser) collectTypesAndGroupings(filePath string, lines []string) error
 			continue
 		}
 
+		if strings.HasPrefix(trimmed, "extension ") {
+			consumeCurrentBlock(scanner, trimmed)
+			continue
+		}
+
+		if isDescriptionStatement(trimmed) {
+			consumeDescriptionStatement(scanner, trimmed)
+			continue
+		}
+
 		braceDepth += strings.Count(line, "{")
 		braceDepth -= strings.Count(line, "}")
 
@@ -174,6 +184,11 @@ func (p *Parser) parseGroupingBlock(scanner lineScanner, groupingLine string, cu
 		trimmed := strings.TrimSpace(line)
 
 		if strings.HasPrefix(trimmed, "//") || strings.HasPrefix(trimmed, "#") || trimmed == "" {
+			continue
+		}
+
+		if isDescriptionStatement(trimmed) {
+			consumeDescriptionStatement(scanner, trimmed)
 			continue
 		}
 
@@ -244,6 +259,16 @@ func (p *Parser) parseFeaturesFromLines(filePath string, lines []string) error {
 			continue
 		}
 
+		if strings.HasPrefix(trimmed, "extension ") {
+			consumeCurrentBlock(scanner, trimmed)
+			continue
+		}
+
+		if isDescriptionStatement(trimmed) {
+			consumeDescriptionStatement(scanner, trimmed)
+			continue
+		}
+
 		// Track brace depth
 		braceDepth += strings.Count(line, "{")
 		braceDepth -= strings.Count(line, "}")
@@ -260,10 +285,6 @@ func (p *Parser) parseFeaturesFromLines(filePath string, lines []string) error {
 			p.parseTypedef(scanner, trimmed, currentModule) // consume the block
 			continue
 		}
-
-		// Do NOT skip `grouping` blocks in the second pass — let the parser naturally
-		// find any container/list defined inside them, just as in the original single-pass.
-		// The `grouping` keyword itself doesn't start or end a feature; braceDepth tracks it.
 
 		// Parse container or list (both represent features)
 		if (strings.HasPrefix(trimmed, "container ") || strings.HasPrefix(trimmed, "list ")) && !inFeature {
@@ -519,37 +540,15 @@ func (p *Parser) parseLeaf(scanner lineScanner, leafLine string) Parameter {
 		// Parse length constraint
 		if strings.HasPrefix(line, "length ") {
 			lengthStr := extractQuotedString(line)
-			min, max := parseRange(lengthStr)
-			if min > 0 {
-				param.Constraints = append(param.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMinLength,
-					Value: min,
-				})
-			}
-			if max > 0 {
-				param.Constraints = append(param.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMaxLength,
-					Value: max,
-				})
-			}
+			min, max, hasMin, hasMax := parseRangeWithPresence(lengthStr)
+			param.Constraints = appendBounds(param.Constraints, min, max, hasMin, hasMax, model.ConstraintTypeMinLength, model.ConstraintTypeMaxLength)
 		}
 
 		// Parse range constraint
 		if strings.HasPrefix(line, "range ") {
 			rangeStr := extractQuotedString(line)
-			min, max := parseRange(rangeStr)
-			if min > 0 {
-				param.Constraints = append(param.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMin,
-					Value: min,
-				})
-			}
-			if max > 0 {
-				param.Constraints = append(param.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMax,
-					Value: max,
-				})
-			}
+			min, max, hasMin, hasMax := parseRangeWithPresence(rangeStr)
+			param.Constraints = appendBounds(param.Constraints, min, max, hasMin, hasMax, model.ConstraintTypeMin, model.ConstraintTypeMax)
 		}
 
 		// Parse enum values
@@ -599,7 +598,74 @@ func (p *Parser) parseLeafList(scanner lineScanner, leafListLine string) Paramet
 
 		if strings.HasPrefix(line, "type ") {
 			param.YangType = extractType(line)
-			param.GoType = "[]" + yangTypeToGoType(param.YangType)
+			if typedef := p.resolveTypedef(param.YangType); typedef != nil {
+				param.GoType = "[]" + yangTypeToGoType(typedef.BaseType)
+				if len(typedef.EnumValues) > 0 {
+					param.Constraints = append(param.Constraints, model.Constraint{
+						Type:  model.ConstraintTypeEnum,
+						Value: typedef.EnumValues,
+					})
+				}
+				param.Constraints = append(param.Constraints, typedef.Constraints...)
+			} else {
+				param.GoType = "[]" + yangTypeToGoType(param.YangType)
+			}
+
+			if strings.Contains(line, "{") {
+				p.parseInlineTypeConstraints(scanner, &param)
+			}
+		}
+
+		if strings.HasPrefix(line, "description ") {
+			param.Description = extractQuotedString(line)
+		} else if line == "description" {
+			param.Description = parseMultiLineDescription(scanner)
+		}
+
+		if strings.HasPrefix(line, "default ") {
+			param.DefaultValue = parseDefaultValue(line, strings.TrimPrefix(param.GoType, "[]"))
+		}
+
+		if strings.HasPrefix(line, "pattern ") {
+			param.Constraints = append(param.Constraints, model.Constraint{
+				Type:  model.ConstraintTypePattern,
+				Value: extractQuotedString(line),
+			})
+		}
+
+		if strings.HasPrefix(line, "length ") {
+			lengthStr := extractQuotedString(line)
+			min, max, hasMin, hasMax := parseRangeWithPresence(lengthStr)
+			param.Constraints = appendBounds(param.Constraints, min, max, hasMin, hasMax, model.ConstraintTypeMinLength, model.ConstraintTypeMaxLength)
+		}
+
+		if strings.HasPrefix(line, "range ") {
+			rangeStr := extractQuotedString(line)
+			min, max, hasMin, hasMax := parseRangeWithPresence(rangeStr)
+			param.Constraints = appendBounds(param.Constraints, min, max, hasMin, hasMax, model.ConstraintTypeMin, model.ConstraintTypeMax)
+		}
+
+		if strings.HasPrefix(line, "enum ") {
+			enumValue := extractQuotedString(line)
+			if enumValue == "" {
+				re := regexp.MustCompile(`enum\s+(\S+)`)
+				matches := re.FindStringSubmatch(line)
+				if len(matches) > 1 {
+					enumValue = strings.TrimSuffix(matches[1], ";")
+				}
+			}
+			if enumValue != "" {
+				var enumValues []string
+				if len(param.Constraints) > 0 && param.Constraints[len(param.Constraints)-1].Type == model.ConstraintTypeEnum {
+					enumValues = param.Constraints[len(param.Constraints)-1].Value.([]string)
+					param.Constraints = param.Constraints[:len(param.Constraints)-1]
+				}
+				enumValues = append(enumValues, enumValue)
+				param.Constraints = append(param.Constraints, model.Constraint{
+					Type:  model.ConstraintTypeEnum,
+					Value: enumValues,
+				})
+			}
 		}
 
 		if strings.HasPrefix(line, "min-elements ") {
@@ -654,26 +720,42 @@ func (p *Parser) parseNestedContainer(scanner lineScanner, containerLine string)
 			param.Description = parseMultiLineDescription(scanner)
 		}
 
+		if strings.HasPrefix(trimmed, "key ") {
+			keyStr := extractQuotedString(trimmed)
+			if keyStr != "" {
+				param.Keys = strings.Fields(keyStr)
+			}
+			continue
+		}
+
 		// Parse nested leaf
 		if strings.HasPrefix(trimmed, "leaf ") {
+			nestedDepth -= strings.Count(trimmed, "{")
 			nestedParam := p.parseLeaf(scanner, trimmed)
+			if containsString(param.Keys, nestedParam.Name) {
+				nestedParam.Required = true
+				nestedParam.Constraints = append(nestedParam.Constraints, model.Constraint{Type: model.ConstraintTypeRequired, Value: true})
+			}
 			param.NestedProperties = append(param.NestedProperties, nestedParam)
 		}
 
 		// Parse nested leaf-list
 		if strings.HasPrefix(trimmed, "leaf-list ") {
+			nestedDepth -= strings.Count(trimmed, "{")
 			nestedParam := p.parseLeafList(scanner, trimmed)
 			param.NestedProperties = append(param.NestedProperties, nestedParam)
 		}
 
 		// Parse recursively nested container
 		if strings.HasPrefix(trimmed, "container ") {
+			nestedDepth -= strings.Count(trimmed, "{")
 			nestedParam := p.parseNestedContainer(scanner, trimmed)
 			param.NestedProperties = append(param.NestedProperties, nestedParam)
 		}
 
 		// Parse recursively nested list
 		if strings.HasPrefix(trimmed, "list ") {
+			nestedDepth -= strings.Count(trimmed, "{")
 			nestedParam := p.parseNestedList(scanner, trimmed)
 			param.NestedProperties = append(param.NestedProperties, nestedParam)
 		}
@@ -733,26 +815,42 @@ func (p *Parser) parseNestedList(scanner lineScanner, listLine string) Parameter
 			})
 		}
 
+		if strings.HasPrefix(trimmed, "key ") {
+			keyStr := extractQuotedString(trimmed)
+			if keyStr != "" {
+				param.Keys = strings.Fields(keyStr)
+			}
+			continue
+		}
+
 		// Parse nested leaf
 		if strings.HasPrefix(trimmed, "leaf ") {
+			nestedDepth -= strings.Count(trimmed, "{")
 			nestedParam := p.parseLeaf(scanner, trimmed)
+			if containsString(param.Keys, nestedParam.Name) {
+				nestedParam.Required = true
+				nestedParam.Constraints = append(nestedParam.Constraints, model.Constraint{Type: model.ConstraintTypeRequired, Value: true})
+			}
 			param.NestedProperties = append(param.NestedProperties, nestedParam)
 		}
 
 		// Parse nested leaf-list
 		if strings.HasPrefix(trimmed, "leaf-list ") {
+			nestedDepth -= strings.Count(trimmed, "{")
 			nestedParam := p.parseLeafList(scanner, trimmed)
 			param.NestedProperties = append(param.NestedProperties, nestedParam)
 		}
 
 		// Parse recursively nested container
 		if strings.HasPrefix(trimmed, "container ") {
+			nestedDepth -= strings.Count(trimmed, "{")
 			nestedParam := p.parseNestedContainer(scanner, trimmed)
 			param.NestedProperties = append(param.NestedProperties, nestedParam)
 		}
 
 		// Parse recursively nested list
 		if strings.HasPrefix(trimmed, "list ") {
+			nestedDepth -= strings.Count(trimmed, "{")
 			nestedParam := p.parseNestedList(scanner, trimmed)
 			param.NestedProperties = append(param.NestedProperties, nestedParam)
 		}
@@ -816,37 +914,15 @@ func (p *Parser) parseTypedef(scanner lineScanner, typedefLine string, currentMo
 		// Parse range constraint
 		if strings.HasPrefix(trimmed, "range ") {
 			rangeStr := extractQuotedString(trimmed)
-			min, max := parseRange(rangeStr)
-			if min > 0 {
-				typedef.Constraints = append(typedef.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMin,
-					Value: min,
-				})
-			}
-			if max > 0 {
-				typedef.Constraints = append(typedef.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMax,
-					Value: max,
-				})
-			}
+			min, max, hasMin, hasMax := parseRangeWithPresence(rangeStr)
+			typedef.Constraints = appendBounds(typedef.Constraints, min, max, hasMin, hasMax, model.ConstraintTypeMin, model.ConstraintTypeMax)
 		}
 
 		// Parse length constraint
 		if strings.HasPrefix(trimmed, "length ") {
 			lengthStr := extractQuotedString(trimmed)
-			min, max := parseRange(lengthStr)
-			if min > 0 {
-				typedef.Constraints = append(typedef.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMinLength,
-					Value: min,
-				})
-			}
-			if max > 0 {
-				typedef.Constraints = append(typedef.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMaxLength,
-					Value: max,
-				})
-			}
+			min, max, hasMin, hasMax := parseRangeWithPresence(lengthStr)
+			typedef.Constraints = appendBounds(typedef.Constraints, min, max, hasMin, hasMax, model.ConstraintTypeMinLength, model.ConstraintTypeMaxLength)
 		}
 
 		// Parse pattern constraint
@@ -914,37 +990,15 @@ func (p *Parser) parseInlineTypeConstraints(scanner lineScanner, param *Paramete
 		// Parse length
 		if strings.HasPrefix(line, "length ") {
 			lengthStr := extractQuotedString(line)
-			min, max := parseRange(lengthStr)
-			if min > 0 {
-				param.Constraints = append(param.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMinLength,
-					Value: min,
-				})
-			}
-			if max > 0 {
-				param.Constraints = append(param.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMaxLength,
-					Value: max,
-				})
-			}
+			min, max, hasMin, hasMax := parseRangeWithPresence(lengthStr)
+			param.Constraints = appendBounds(param.Constraints, min, max, hasMin, hasMax, model.ConstraintTypeMinLength, model.ConstraintTypeMaxLength)
 		}
 
 		// Parse range
 		if strings.HasPrefix(line, "range ") {
 			rangeStr := extractQuotedString(line)
-			min, max := parseRange(rangeStr)
-			if min > 0 {
-				param.Constraints = append(param.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMin,
-					Value: min,
-				})
-			}
-			if max > 0 {
-				param.Constraints = append(param.Constraints, model.Constraint{
-					Type:  model.ConstraintTypeMax,
-					Value: max,
-				})
-			}
+			min, max, hasMin, hasMax := parseRangeWithPresence(rangeStr)
+			param.Constraints = appendBounds(param.Constraints, min, max, hasMin, hasMax, model.ConstraintTypeMin, model.ConstraintTypeMax)
 		}
 
 		// Parse pattern
@@ -1133,10 +1187,75 @@ func extractNumber(line string) int {
 	return num
 }
 
+func consumeCurrentBlock(scanner lineScanner, firstLine string) {
+	blockDepth := strings.Count(firstLine, "{") - strings.Count(firstLine, "}")
+	for blockDepth > 0 && scanner.Scan() {
+		line := scanner.Text()
+		blockDepth += strings.Count(line, "{")
+		blockDepth -= strings.Count(line, "}")
+	}
+}
+
+func isDescriptionStatement(trimmed string) bool {
+	return trimmed == "description" || strings.HasPrefix(trimmed, "description ")
+}
+
+func consumeDescriptionStatement(scanner lineScanner, firstLine string) {
+	inQuote := false
+	if descriptionStatementComplete(firstLine, &inQuote) {
+		return
+	}
+	for scanner.Scan() {
+		if descriptionStatementComplete(strings.TrimSpace(scanner.Text()), &inQuote) {
+			return
+		}
+	}
+}
+
+func descriptionStatementComplete(line string, inQuote *bool) bool {
+	for i := 0; i < len(line); i++ {
+		switch line[i] {
+		case '"':
+			if i == 0 || line[i-1] != '\\' {
+				*inQuote = !*inQuote
+			}
+		case ';':
+			if !*inQuote {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func containsString(values []string, needle string) bool {
+	for _, value := range values {
+		if value == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func appendBounds(constraints []model.Constraint, min int, max int, hasMin bool, hasMax bool, minType model.ConstraintType, maxType model.ConstraintType) []model.Constraint {
+	if hasMin {
+		constraints = append(constraints, model.Constraint{Type: minType, Value: min})
+	}
+	if hasMax {
+		constraints = append(constraints, model.Constraint{Type: maxType, Value: max})
+	}
+	return constraints
+}
+
 // parseRange parses YANG range/length format like "1..255" or "0..max"
 func parseRange(rangeStr string) (min int, max int) {
+	min, max, _, _ = parseRangeWithPresence(rangeStr)
+	return min, max
+}
+
+func parseRangeWithPresence(rangeStr string) (min int, max int, hasMin bool, hasMax bool) {
 	if rangeStr == "" {
-		return 0, 0
+		return 0, 0, false, false
 	}
 
 	// Handle "min..max" format
@@ -1145,18 +1264,22 @@ func parseRange(rangeStr string) (min int, max int) {
 		if len(parts) == 2 {
 			if parts[0] != "min" {
 				fmt.Sscanf(parts[0], "%d", &min)
+				hasMin = true
 			}
 			if parts[1] != "max" {
 				fmt.Sscanf(parts[1], "%d", &max)
+				hasMax = true
 			}
 		}
 	} else {
 		// Single value
 		fmt.Sscanf(rangeStr, "%d", &max)
 		min = max
+		hasMin = true
+		hasMax = true
 	}
 
-	return min, max
+	return min, max, hasMin, hasMax
 }
 
 func yangTypeToGoType(yangType string) string {

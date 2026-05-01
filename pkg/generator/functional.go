@@ -440,11 +440,23 @@ func pathParamsFor(path string, profileName string) map[string]string {
 	if strings.Contains(path, "{profileName}") {
 		params["profileName"] = profileName
 	}
+	if strings.Contains(path, "{profile_name}") {
+		params["profile_name"] = profileName
+	}
 	if strings.Contains(path, "{siteName}") {
 		params["siteName"] = "test-site-001"
 	}
 	if strings.Contains(path, "{hostName}") {
 		params["hostName"] = "test-device-001"
+	}
+	for _, match := range pathPlaceholderRE.FindAllStringSubmatch(path, -1) {
+		if len(match) < 2 || match[1] == "" {
+			continue
+		}
+		name := match[1]
+		if _, exists := params[name]; !exists {
+			params[name] = defaultPathParamValue(name, path)
+		}
 	}
 	if len(params) == 0 {
 		return nil
@@ -678,6 +690,9 @@ func (g *Generator) getSampleValue(param model.Parameter) interface{} {
 
 // setBodyParameterValue sets a parameter value in the body, handling both simple and deep-scanned formats
 func (g *Generator) setBodyParameterValue(body map[string]interface{}, paramName string, value interface{}) {
+	if body == nil {
+		return
+	}
 	// Check if this is a deep-scanned body (has objects array)
 	if objects, ok := body["objects"].([]interface{}); ok && len(objects) > 0 {
 		if obj, ok := objects[0].(map[string]interface{}); ok {
@@ -703,6 +718,9 @@ func (g *Generator) setBodyParameterValue(body map[string]interface{}, paramName
 // target an optional parameter — the generated payload must include the
 // parameter under test for the test to be meaningful.
 func (g *Generator) setOrAddBodyParameter(body map[string]interface{}, param model.Parameter, value interface{}) {
+	if body == nil {
+		return
+	}
 	if objects, ok := body["objects"].([]interface{}); ok && len(objects) > 0 {
 		obj, ok := objects[0].(map[string]interface{})
 		if !ok {
@@ -1833,15 +1851,23 @@ func (g *Generator) generateKeyFilters(feature *model.Feature) []map[string]inte
 // generateDeleteBody builds the body for a delete request.
 // For global-profile features the delete endpoint requires featurePath.
 func (g *Generator) generateDeleteBody(feature *model.Feature, anyPath *model.FeaturePath) map[string]interface{} {
+	return g.generateDeleteBodyForObjectID(feature, anyPath, "OBJECT_ID")
+}
+
+func (g *Generator) generateDeleteBodyForObjectID(feature *model.Feature, anyPath *model.FeaturePath, objectIDVariable string) map[string]interface{} {
 	if anyPath == nil || anyPath.BlueprintCategory == "" {
 		return nil
 	}
 	if _, _, _, ok := deepScannedMetadata(feature, anyPath); ok {
 		return map[string]interface{}{
-			"objectIds": []string{"{{OBJECT_ID}}"},
+			"objectIds": []string{variableRef(objectIDVariable)},
 		}
 	}
 	return nil
+}
+
+func variableRef(name string) string {
+	return "{{" + name + "}}"
 }
 
 // generateUpdateRequestBody builds a proper update body.
@@ -2079,10 +2105,15 @@ func crudValidations(statusCode int, operation string, featureName string, keyDe
 }
 
 func withObjectIDCapture(validations []model.Validation) []model.Validation {
+	return withNamedObjectIDCapture(validations, "OBJECT_ID")
+}
+
+func withNamedObjectIDCapture(validations []model.Validation, variableName string) []model.Validation {
 	return append(validations, model.Validation{
 		Type:        model.ValidationTypeJSONPathExists,
 		Path:        "$[0].id",
-		Description: "Capture created object ID as OBJECT_ID for later update/delete steps",
+		CaptureAs:   variableName,
+		Description: fmt.Sprintf("Capture created object ID as %s for later update/delete steps", variableName),
 	})
 }
 

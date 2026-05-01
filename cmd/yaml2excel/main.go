@@ -35,14 +35,23 @@ type yamlTestCase struct {
 }
 
 type yamlStep struct {
-	Name           string      `yaml:"name"`
-	Description    string      `yaml:"description"`
-	Method         string      `yaml:"method"`
-	Path           string      `yaml:"path"`
-	Body           interface{} `yaml:"body"`
-	ExpectedStatus int         `yaml:"expectedStatus"`
-	Validations    []string    `yaml:"validations"`
-	Timeout        int         `yaml:"timeout"`
+	Name           string          `yaml:"name"`
+	Description    string          `yaml:"description"`
+	Method         string          `yaml:"method"`
+	Path           string          `yaml:"path"`
+	PathParams     interface{}     `yaml:"pathParams"`
+	Body           interface{}     `yaml:"body"`
+	ExpectedStatus int             `yaml:"expectedStatus"`
+	Validations    []string        `yaml:"validations"`
+	Assertions     []yamlAssertion `yaml:"assertions"`
+	Timeout        int             `yaml:"timeout"`
+}
+
+type yamlAssertion struct {
+	Type      string      `yaml:"type"`
+	Path      string      `yaml:"path"`
+	Expected  interface{} `yaml:"expected"`
+	CaptureAs string      `yaml:"captureAs"`
 }
 
 var categoryOrder = []string{"functional", "boundary", "negative", "performance", "scale"}
@@ -113,6 +122,9 @@ func formatStepDescription(steps []yamlStep) string {
 	for i, s := range steps {
 		lines = append(lines, fmt.Sprintf("%d) %s", i+1, s.Description))
 		lines = append(lines, fmt.Sprintf("   %s {base_url}%s", s.Method, s.Path))
+		if s.PathParams != nil {
+			lines = append(lines, fmt.Sprintf("   Path Params: %s", formatBodyAsPayload(s.PathParams)))
+		}
 		if s.Body != nil {
 			lines = append(lines, fmt.Sprintf("   Payload: %s", formatBodyAsPayload(s.Body)))
 		}
@@ -138,6 +150,11 @@ func formatExpectedResults(steps []yamlStep) string {
 		}
 		for _, v := range s.Validations {
 			results = append(results, fmt.Sprintf("- %s", v))
+		}
+		for _, a := range s.Assertions {
+			if a.CaptureAs != "" && a.Path != "" {
+				results = append(results, fmt.Sprintf("- Capture %s from response path %s", a.CaptureAs, a.Path))
+			}
 		}
 		if len(steps) > 1 {
 			results = append(results, "")

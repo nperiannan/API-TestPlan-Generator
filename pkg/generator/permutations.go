@@ -645,10 +645,7 @@ func (g *Generator) generateEnumCrossProductTests(feature *model.Feature, create
 					})
 
 					if readPath != nil {
-						readBody := map[string]interface{}{
-							"featurePath": readPath.Path,
-							"objectType":  feature.Name,
-						}
+						readBody := g.generateReadBody(feature, createPath)
 						tc.Steps = append(tc.Steps, model.TestStep{
 							Name:           "verifyBothFieldsPersisted",
 							Description:    fmt.Sprintf("GET and verify %s=%s and %s=%s are both persisted", ep1.name, v1, ep2.name, v2),

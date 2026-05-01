@@ -315,7 +315,7 @@ func (p *Parser) extractGlobalProfileFeatures() {
 	for _, gf := range globalFeatures {
 		// Create FeaturePath for retrieve operation
 		// NOTE: The actual endpoint is POST /global-profile/feature/object/retrieve (not GET)
-		retrieveKey := fmt.Sprintf("POST /global-profile/feature/object/retrieve")
+		retrieveKey := "POST /global-profile/feature/object/retrieve"
 		if _, exists := p.paths[retrieveKey]; exists {
 			// Create a specific feature path for this feature
 			fp := &model.FeaturePath{
@@ -339,7 +339,7 @@ func (p *Parser) extractGlobalProfileFeatures() {
 		}
 
 		// Create FeaturePath for modify (create/update) operation
-		modifyKey := fmt.Sprintf("POST /global-profile/feature/object/modify")
+		modifyKey := "POST /global-profile/feature/object/modify"
 		if _, exists := p.paths[modifyKey]; exists {
 			// Create path for CREATE operation
 			fpCreate := &model.FeaturePath{
@@ -383,7 +383,7 @@ func (p *Parser) extractGlobalProfileFeatures() {
 		}
 
 		// Create FeaturePath for delete operation (uses POST method)
-		deleteKey := fmt.Sprintf("POST /global-profile/feature/object/delete")
+		deleteKey := "POST /global-profile/feature/object/delete"
 		if _, exists := p.paths[deleteKey]; exists {
 			fp := &model.FeaturePath{
 				FeatureName:       gf.name,                       // Set the YANG feature name for linkage

@@ -572,40 +572,33 @@ func (g *Generator) generateDeleteNonExistentTest(
 // generateBodyOmittingRequiredField builds a request body that omits one specific required field.
 // Works for both simple bodies (map[string]interface{}) and deep-scanned bodies (objects-array format).
 func (g *Generator) generateBodyOmittingRequiredField(feature *model.Feature, fp *model.FeaturePath, excludeParam string) map[string]interface{} {
-	if fp.BlueprintCategory != "" {
-		var fpValue string
-		for _, p := range fp.PathParams {
-			if p.Name == "featurePath" && p.FixedValue != "" {
-				fpValue = p.FixedValue
-				break
+	if fpValue, objectType, origin, ok := deepScannedMetadata(feature, fp); ok {
+		properties := []map[string]interface{}{}
+		keySet := keySetForFeature(feature)
+		for _, param := range feature.Parameters {
+			if param.Name == excludeParam {
+				continue // omit this required field to trigger validation error
+			}
+			if param.Required || keySet[param.Name] {
+				properties = append(properties, map[string]interface{}{
+					"name":   param.Name,
+					"type":   g.mapYangTypeToJsonType(param.GoType),
+					"value":  g.getSampleValue(param),
+					"origin": origin,
+				})
 			}
 		}
-		if fpValue != "" {
-			properties := []map[string]interface{}{}
-			for _, param := range feature.Parameters {
-				if param.Name == excludeParam {
-					continue // omit this required field to trigger validation error
-				}
-				if param.Required {
-					properties = append(properties, map[string]interface{}{
-						"name":   param.Name,
-						"type":   g.mapYangTypeToJsonType(param.GoType),
-						"value":  g.getSampleValue(param),
-						"origin": "Global",
-					})
-				}
-			}
-			object := map[string]interface{}{
-				"type":       feature.Name,
-				"operation":  "add",
-				"properties": properties,
-			}
-			return map[string]interface{}{
-				"featurePath": fpValue,
-				"objectType":  feature.Name,
-				"operation":   "add",
-				"objects":     []interface{}{object},
-			}
+		properties = g.appendMissingKeyProperties(feature, properties, origin)
+		object := map[string]interface{}{
+			"type":       objectType,
+			"operation":  "add",
+			"properties": properties,
+		}
+		return map[string]interface{}{
+			"featurePath": fpValue,
+			"objectType":  objectType,
+			"operation":   "add",
+			"objects":     []interface{}{object},
 		}
 	}
 	// Simple format: include all required fields except the excluded one
@@ -1060,40 +1053,33 @@ func (g *Generator) generateOptionalFieldNullTest(
 // generateBodyOmittingOptionalField builds a request body that includes all required
 // fields but excludes the specified optional field.
 func (g *Generator) generateBodyOmittingOptionalField(feature *model.Feature, fp *model.FeaturePath, excludeParam string) map[string]interface{} {
-	if fp.BlueprintCategory != "" {
-		var fpValue string
-		for _, p := range fp.PathParams {
-			if p.Name == "featurePath" && p.FixedValue != "" {
-				fpValue = p.FixedValue
-				break
+	if fpValue, objectType, origin, ok := deepScannedMetadata(feature, fp); ok {
+		properties := []map[string]interface{}{}
+		keySet := keySetForFeature(feature)
+		for _, param := range feature.Parameters {
+			if param.Name == excludeParam {
+				continue // skip this optional field
+			}
+			if param.Required || keySet[param.Name] {
+				properties = append(properties, map[string]interface{}{
+					"name":   param.Name,
+					"type":   g.mapYangTypeToJsonType(param.GoType),
+					"value":  g.getSampleValue(param),
+					"origin": origin,
+				})
 			}
 		}
-		if fpValue != "" {
-			properties := []map[string]interface{}{}
-			for _, param := range feature.Parameters {
-				if param.Name == excludeParam {
-					continue // skip this optional field
-				}
-				if param.Required {
-					properties = append(properties, map[string]interface{}{
-						"name":   param.Name,
-						"type":   g.mapYangTypeToJsonType(param.GoType),
-						"value":  g.getSampleValue(param),
-						"origin": "Global",
-					})
-				}
-			}
-			object := map[string]interface{}{
-				"type":       feature.Name,
-				"operation":  "add",
-				"properties": properties,
-			}
-			return map[string]interface{}{
-				"featurePath": fpValue,
-				"objectType":  feature.Name,
-				"operation":   "add",
-				"objects":     []interface{}{object},
-			}
+		properties = g.appendMissingKeyProperties(feature, properties, origin)
+		object := map[string]interface{}{
+			"type":       objectType,
+			"operation":  "add",
+			"properties": properties,
+		}
+		return map[string]interface{}{
+			"featurePath": fpValue,
+			"objectType":  objectType,
+			"operation":   "add",
+			"objects":     []interface{}{object},
 		}
 	}
 	// Simple format: all required fields, no optional field under test

@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T10:39:11+05:30"
+generatedAt: "2026-05-01T11:38:07+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_2153
+            - testCaseID: TCXM_2042
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -65,7 +65,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2154
+            - testCaseID: TCXM_2043
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -119,7 +119,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2155
+            - testCaseID: TCXM_2044
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -173,7 +173,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2156
+            - testCaseID: TCXM_2045
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -227,7 +227,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2157
+            - testCaseID: TCXM_2046
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -281,7 +281,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2158
+            - testCaseID: TCXM_2047
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -335,7 +335,61 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2159
+            - testCaseID: TCXM_2048
+              featureName: dns-server
+              priority: P3
+              automation: Automatable
+              type: boundary
+              description: Test vr-name parameter with minLength constraint — Virtual Router (VR) instance on which this DNS server is configured.
+              isDeploymentTest: false
+              steps:
+                - name: testBoundary
+                  description: Test vr-name with minLength
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dns-server-feature
+                    objectType: dns-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: ""
+                          type: dns-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Verify response contains created object ID
+                    - Verify operation status is 'success'
+                    - Verify operation type is 'create'
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify HTTP status code is 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Verify response contains created object ID
+                    - type: jsonPathEquals
+                      path: $[0].status
+                      expected: success
+                      description: Verify operation status is 'success'
+                    - type: jsonPathEquals
+                      path: $[0].operation
+                      expected: create
+                      description: Verify operation type is 'create'
+            - testCaseID: TCXM_2049
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -390,7 +444,7 @@ features:
                       expected: create
                       description: Verify operation type is 'create'
         functional:
-            - testCaseID: TCXM_2040
+            - testCaseID: TCXM_1928
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -503,7 +557,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify 'vr-name' value is 'VR-Mgmt' as set during create
-            - testCaseID: TCXM_2041
+            - testCaseID: TCXM_1929
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -546,6 +600,7 @@ features:
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
                     - type: jsonPathExists
                       path: $[0].id
+                      captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: updateResource
                   description: Update dns-server — update entry where priority=1, server=8.8.8.8, vr-name=VR-Mgmt
@@ -600,7 +655,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-server retrieved — response contains update entry where priority=1, server=8.8.8.8, vr-name=VR-Mgmt
-            - testCaseID: TCXM_2042
+            - testCaseID: TCXM_1930
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -643,6 +698,7 @@ features:
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
                     - type: jsonPathExists
                       path: $[0].id
+                      captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: deleteResource
                   description: Delete dns-server with server=8.8.8.8, vr-name=VR-Mgmt
@@ -679,7 +735,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-server with server=8.8.8.8, vr-name=VR-Mgmt no longer exists in the response
-            - testCaseID: TCXM_2043
+            - testCaseID: TCXM_1931
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -722,6 +778,7 @@ features:
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
                     - type: jsonPathExists
                       path: $[0].id
+                      captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: verifyCreation
                   description: Verify dns-server with server=8.8.8.8, vr-name=VR-Mgmt was created
@@ -811,7 +868,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-server with server=8.8.8.8, vr-name=VR-Mgmt deleted successfully
-            - testCaseID: TCXM_2044
+            - testCaseID: TCXM_1932
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -854,6 +911,7 @@ features:
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
                     - type: jsonPathExists
                       path: $[0].id
+                      captureAs: OBJECT_ID
                       description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: partialUpdate
                   description: Partially update dns-server — update entry where priority=1, server=8.8.8.8, vr-name=VR-Mgmt
@@ -908,7 +966,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-server retrieved — response contains update entry where priority=1, server=8.8.8.8, vr-name=VR-Mgmt
-            - testCaseID: TCXM_2045
+            - testCaseID: TCXM_1933
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -980,7 +1038,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of dns-server with server=8.8.8.8, vr-name=VR-Mgmt is rejected (409 Conflict)
-            - testCaseID: TCXM_2046
+            - testCaseID: TCXM_1934
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1071,7 +1129,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify identity/required field 'vr-name' has value 'VR-Mgmt' as created
-            - testCaseID: TCXM_2047
+            - testCaseID: TCXM_1935
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1162,7 +1220,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify field 'vr-name' has value 'VR-Mgmt' as sent on create
-            - testCaseID: TCXM_2048
+            - testCaseID: TCXM_1936
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -1231,7 +1289,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify optional field 'vr-name' value is 'VR-Mgmt' as set on create
-            - testCaseID: TCXM_2049
+            - testCaseID: TCXM_1937
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1296,7 +1354,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 1
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_2050
+            - testCaseID: TCXM_1938
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1361,7 +1419,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 100
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_2051
+            - testCaseID: TCXM_1939
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1426,7 +1484,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_2052
+            - testCaseID: TCXM_1940
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -1491,7 +1549,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_2053
+            - testCaseID: TCXM_1941
               featureName: dns-server/dns-suffix
               priority: P1
               automation: Automatable
@@ -1538,7 +1596,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify dns-server/dns-suffix retrieved — response contains '
-            - testCaseID: TCXM_2054
+            - testCaseID: TCXM_1942
               featureName: dns-server/dns-suffix
               priority: P2
               automation: Automatable
@@ -1612,7 +1670,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify dns-server/dns-suffix retrieved — response contains '
-            - testCaseID: TCXM_2055
+            - testCaseID: TCXM_1943
               featureName: dns-server/dns-suffix
               priority: P2
               automation: Automatable
@@ -1660,7 +1718,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-server/dns-suffix with  deleted successfully
-            - testCaseID: TCXM_2056
+            - testCaseID: TCXM_1944
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -1757,7 +1815,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2057
+            - testCaseID: TCXM_1945
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -1836,7 +1894,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2058
+            - testCaseID: TCXM_1946
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -1933,7 +1991,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2059
+            - testCaseID: TCXM_1947
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2012,7 +2070,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2060
+            - testCaseID: TCXM_1948
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2109,7 +2167,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2061
+            - testCaseID: TCXM_1949
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2188,7 +2246,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2062
+            - testCaseID: TCXM_1950
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2285,7 +2343,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2063
+            - testCaseID: TCXM_1951
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2364,7 +2422,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2064
+            - testCaseID: TCXM_1952
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2461,7 +2519,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2065
+            - testCaseID: TCXM_1953
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2540,7 +2598,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2066
+            - testCaseID: TCXM_1954
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2637,7 +2695,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2067
+            - testCaseID: TCXM_1955
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2716,7 +2774,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2068
+            - testCaseID: TCXM_1956
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2813,7 +2871,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2069
+            - testCaseID: TCXM_1957
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2892,7 +2950,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2070
+            - testCaseID: TCXM_1958
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -2989,7 +3047,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2071
+            - testCaseID: TCXM_1959
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3068,7 +3126,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2072
+            - testCaseID: TCXM_1960
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3165,7 +3223,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2073
+            - testCaseID: TCXM_1961
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3244,7 +3302,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2074
+            - testCaseID: TCXM_1962
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3341,7 +3399,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2075
+            - testCaseID: TCXM_1963
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -3420,7 +3478,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2076
+            - testCaseID: TCXM_1964
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3517,7 +3575,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2077
+            - testCaseID: TCXM_1965
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3596,7 +3654,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2078
+            - testCaseID: TCXM_1966
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3693,7 +3751,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2079
+            - testCaseID: TCXM_1967
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3772,7 +3830,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2080
+            - testCaseID: TCXM_1968
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3869,7 +3927,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2081
+            - testCaseID: TCXM_1969
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -3948,7 +4006,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2082
+            - testCaseID: TCXM_1970
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4045,7 +4103,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2083
+            - testCaseID: TCXM_1971
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4124,7 +4182,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2084
+            - testCaseID: TCXM_1972
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4221,7 +4279,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2085
+            - testCaseID: TCXM_1973
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4300,7 +4358,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2086
+            - testCaseID: TCXM_1974
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4397,7 +4455,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2087
+            - testCaseID: TCXM_1975
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4476,7 +4534,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2088
+            - testCaseID: TCXM_1976
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4575,7 +4633,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2089
+            - testCaseID: TCXM_1977
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4674,7 +4732,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2090
+            - testCaseID: TCXM_1978
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4773,7 +4831,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2091
+            - testCaseID: TCXM_1979
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4872,7 +4930,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2092
+            - testCaseID: TCXM_1980
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -4971,7 +5029,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2093
+            - testCaseID: TCXM_1981
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5070,7 +5128,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2094
+            - testCaseID: TCXM_1982
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5169,7 +5227,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2095
+            - testCaseID: TCXM_1983
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5268,7 +5326,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2096
+            - testCaseID: TCXM_1984
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5367,7 +5425,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2097
+            - testCaseID: TCXM_1985
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5466,7 +5524,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2098
+            - testCaseID: TCXM_1986
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5563,7 +5621,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2099
+            - testCaseID: TCXM_1987
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5660,7 +5718,104 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2100
+            - testCaseID: TCXM_1988
+              featureName: dns-server
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: Deploy and verify dns-server with min boundary value for 'vr-name'
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createWithBoundaryValue
+                  description: Create with min value for vr-name
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dns-server-feature
+                    name: TestResource-vr-name-min
+                    objectType: dns-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: ""
+                          type: dns-server
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: deployTodevice
+                  description: Deploy configuration to device
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/TestResource-vr-name-min/devices/deploy
+                  pathParams:
+                    name: TestResource-vr-name-min
+                  body:
+                    deployNow: true
+                    devices:
+                        - test-device-001
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/TestResource-vr-name-min/device/test-device-001/deploy/status
+                  pathParams:
+                    name: TestResource-vr-name-min
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify configuration on NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/dns
+                  pathParams:
+                    deviceId: test-device-001
+                    siteId: test-device-001
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_1989
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5757,7 +5912,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2101
+            - testCaseID: TCXM_1990
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5856,7 +6011,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2102
+            - testCaseID: TCXM_1991
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -5955,7 +6110,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2103
+            - testCaseID: TCXM_1992
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6054,7 +6209,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2104
+            - testCaseID: TCXM_1993
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6153,7 +6308,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2105
+            - testCaseID: TCXM_1994
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6252,7 +6407,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2106
+            - testCaseID: TCXM_1995
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6351,7 +6506,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2107
+            - testCaseID: TCXM_1996
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6450,7 +6605,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2108
+            - testCaseID: TCXM_1997
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6549,7 +6704,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2109
+            - testCaseID: TCXM_1998
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6648,7 +6803,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2110
+            - testCaseID: TCXM_1999
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6745,7 +6900,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2111
+            - testCaseID: TCXM_2000
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6842,7 +6997,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2112
+            - testCaseID: TCXM_2001
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -6939,7 +7094,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2113
+            - testCaseID: TCXM_2002
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7036,7 +7191,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2114
+            - testCaseID: TCXM_2003
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7133,7 +7288,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2115
+            - testCaseID: TCXM_2004
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7230,7 +7385,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_2116
+            - testCaseID: TCXM_2005
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -7269,19 +7424,24 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T06:09:11Z
+                  description: Schedule deployment to device at 2026-05-01T07:08:07Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T06:09:11Z"
+                    deployAt: "2026-05-01T07:08:07Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -7291,7 +7451,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2117
+            - testCaseID: TCXM_2006
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -7330,19 +7490,24 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T06:09:11Z
+                  description: Schedule deployment to site at 2026-05-01T07:08:07Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T06:09:11Z"
+                    deployAt: "2026-05-01T07:08:07Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -7352,7 +7517,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2118
+            - testCaseID: TCXM_2007
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7388,10 +7553,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: scheduleInitialDeployment
                   description: Schedule initial deployment
                   method: POST
@@ -7400,7 +7570,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T06:09:11Z"
+                    deployAt: "2026-05-01T07:08:07Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -7411,14 +7581,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T07:09:11Z
+                  description: Edit deployment schedule to 2026-05-01T08:08:07Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T07:09:11Z"
+                    deployAt: "2026-05-01T08:08:07Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -7428,7 +7598,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2119
+            - testCaseID: TCXM_2008
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7464,10 +7634,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: scheduleDeployment
                   description: Schedule deployment
                   method: POST
@@ -7476,7 +7651,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T06:09:11Z"
+                    deployAt: "2026-05-01T07:08:07Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -7502,7 +7677,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2120
+            - testCaseID: TCXM_2009
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7538,10 +7713,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: cloneProfile
                   description: Clone the configuration profile
                   method: POST
@@ -7557,7 +7737,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2121
+            - testCaseID: TCXM_2010
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7593,10 +7773,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: cloneFeatureObject
                   description: Clone dns-server feature object
                   method: POST
@@ -7605,17 +7790,17 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    featurePath: /global-profile/feature/object/delete
+                    featurePath: /dns-server-feature
                     newId: cloned-object-1
                     objectType: dns-server
-                    sourceId: original-object-1
+                    sourceId: '{{OBJECT_ID}}'
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2122
+            - testCaseID: TCXM_2011
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -7651,10 +7836,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: initialDeploy
                   description: Deploy to device — establishes previousDeployedValue baseline
                   method: POST
@@ -7734,7 +7924,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_2123
+            - testCaseID: TCXM_2012
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -7770,10 +7960,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: initialDeploy
                   description: Deploy to establish previousDeployedValue baseline
                   method: POST
@@ -7913,7 +8108,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_2124
+            - testCaseID: TCXM_2013
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -7949,10 +8144,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: initialDeploy
                   description: Deploy to establish previousDeployedValue baseline
                   method: POST
@@ -8058,7 +8258,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for dns-server — device value accepted as new cloud baseline
-            - testCaseID: TCXM_2125
+            - testCaseID: TCXM_2014
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -8094,10 +8294,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: createDeviceOverride
                   description: Create device-level override for dns-server with priority=50 (+1 more)
                   method: POST
@@ -8106,7 +8311,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideProperties:
                         - name: priority
                           value: 50
@@ -8129,7 +8334,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideType: device
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                   expectedStatus: 200
@@ -8155,7 +8360,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideType: device
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                     updateProperties:
@@ -8178,7 +8383,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideType: device
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                   expectedStatus: 200
@@ -8196,7 +8401,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideType: device
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                   expectedStatus: 200
@@ -8206,7 +8411,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_2126
+            - testCaseID: TCXM_2015
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8242,10 +8447,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: createModelOverride
                   description: Create model-level override for dns-server on model 5520 with priority=50 (+1 more)
                   method: POST
@@ -8254,7 +8464,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideProperties:
                         - name: priority
                           value: 50
@@ -8277,7 +8487,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideType: model
                     targetId: "5520"
                   expectedStatus: 200
@@ -8299,7 +8509,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideType: model
                     targetId: "5520"
                   expectedStatus: 200
@@ -8309,7 +8519,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_2127
+            - testCaseID: TCXM_2016
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8345,10 +8555,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: createModelGroupOverride
                   description: Create model-group override for dns-server on group 'enterprise-access-points' with priority=50 (+1 more)
                   method: POST
@@ -8357,7 +8572,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideProperties:
                         - name: priority
                           value: 50
@@ -8380,7 +8595,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideType: model-group
                     targetId: enterprise-access-points
                   expectedStatus: 200
@@ -8402,7 +8617,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideType: model-group
                     targetId: enterprise-access-points
                   expectedStatus: 200
@@ -8412,7 +8627,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_2128
+            - testCaseID: TCXM_2017
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8448,10 +8663,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: createOverrideForListing
                   description: Create device override for dns-server to ensure GET all overrides returns results
                   method: POST
@@ -8460,7 +8680,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideProperties:
                         - name: priority
                           value: 50
@@ -8500,7 +8720,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_2129
+            - testCaseID: TCXM_2018
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -8536,10 +8756,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: createModelOverride
                   description: Create model-level override for dns-server on model 5520
                   method: POST
@@ -8548,7 +8773,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideProperties:
                         - name: priority
                           value: 1
@@ -8569,7 +8794,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideProperties:
                         - name: priority
                           value: 50
@@ -8590,7 +8815,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideType: device
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                   expectedStatus: 200
@@ -8604,7 +8829,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_2130
+            - testCaseID: TCXM_2019
               featureName: dns-server
               priority: P1
               automation: Automatable
@@ -8640,10 +8865,15 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-server created successfully with server=8.8.8.8, vr-name=VR-Mgmt
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: createDeviceOverride
                   description: Create device-level override for dns-server with priority=50 (+1 more)
                   method: POST
@@ -8652,7 +8882,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideProperties:
                         - name: priority
                           value: 50
@@ -8724,7 +8954,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: No conflict expected — override values were deployed
-            - testCaseID: TCXM_2131
+            - testCaseID: TCXM_2020
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -8750,7 +8980,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_2132
+            - testCaseID: TCXM_2021
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -8766,7 +8996,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional-Override
                   body:
-                    objectId: 660e8400-e29b-41d4-a716-446655440001
+                    objectId: '{{OBJECT_ID}}'
                     overrideProperties:
                         - name: priority
                           value: 50
@@ -8781,7 +9011,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_2133
+            - testCaseID: TCXM_2022
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8817,14 +9047,27 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_A for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_A
+                      description: Capture created object ID as OBJECT_ID_A for later update/delete steps
                 - name: verifyKeyAExists
                   description: Verify entry with vr-name='vr-default' exists
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -8837,31 +9080,15 @@ features:
                   api: REST
                   path: /global-profile/feature/object/delete
                   body:
-                    featurePath: /dns-server-feature
-                    objectType: dns-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                            - name: vr-name
-                              origin: Global
-                              type: string
-                              value: vr-default
-                          type: dns-server
-                    operation: add
-                  expectedStatus: 204
+                    objectIds:
+                        - '{{OBJECT_ID_A}}'
+                    vr-name: vr-default
+                  expectedStatus: 200
                   validations:
-                    - Verify HTTP status code is 204
+                    - Verify HTTP status code is 200
                   assertions:
                     - type: statusCode
-                      expected: 204
+                      expected: 200
                 - name: createWithKeyB
                   description: Create new entry with vr-name='vr-mgmt'
                   method: POST
@@ -8890,21 +9117,34 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_B for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_B
+                      description: Capture created object ID as OBJECT_ID_B for later update/delete steps
                 - name: verifyKeyBExists
                   description: Verify entry with vr-name='vr-mgmt' exists
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
                   assertions:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_2134
+            - testCaseID: TCXM_2023
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -8940,9 +9180,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_A for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_A
+                      description: Capture created object ID as OBJECT_ID_A for later update/delete steps
                 - name: createEntryB
                   description: Create second entry with vr-name='vr-mgmt'
                   method: POST
@@ -8971,14 +9216,27 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_B for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_B
+                      description: Capture created object ID as OBJECT_ID_B for later update/delete steps
                 - name: verifyBothCoexist
                   description: Verify both 'vr-default' and 'vr-mgmt' entries exist simultaneously
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -8991,63 +9249,31 @@ features:
                   api: REST
                   path: /global-profile/feature/object/delete
                   body:
-                    featurePath: /dns-server-feature
-                    objectType: dns-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                            - name: vr-name
-                              origin: Global
-                              type: string
-                              value: vr-default
-                          type: dns-server
-                    operation: add
-                  expectedStatus: 204
+                    objectIds:
+                        - '{{OBJECT_ID_A}}'
+                    vr-name: vr-default
+                  expectedStatus: 200
                   validations:
-                    - Verify HTTP status code is 204
+                    - Verify HTTP status code is 200
                   assertions:
                     - type: statusCode
-                      expected: 204
+                      expected: 200
                 - name: cleanup-vr-mgmt
                   description: 'Cleanup: delete entry with vr-name=''vr-mgmt'''
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/delete
                   body:
-                    featurePath: /dns-server-feature
-                    objectType: dns-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.9
-                            - name: vr-name
-                              origin: Global
-                              type: string
-                              value: vr-mgmt-1
-                          type: dns-server
-                    operation: add
-                  expectedStatus: 204
+                    objectIds:
+                        - '{{OBJECT_ID_B}}'
+                    vr-name: vr-mgmt
+                  expectedStatus: 200
                   validations:
-                    - Verify HTTP status code is 204
+                    - Verify HTTP status code is 200
                   assertions:
                     - type: statusCode
-                      expected: 204
-            - testCaseID: TCXM_2135
+                      expected: 200
+            - testCaseID: TCXM_2024
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9083,14 +9309,27 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: verifyHighPriority
                   description: Verify priority is 1 (high priority)
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -9106,7 +9345,8 @@ features:
                     featurePath: /dns-server-feature
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -9121,7 +9361,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -9133,6 +9373,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -9148,7 +9396,8 @@ features:
                     featurePath: /dns-server-feature
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -9163,14 +9412,14 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
                   assertions:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_2136
+            - testCaseID: TCXM_2025
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9210,7 +9459,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2137
+            - testCaseID: TCXM_2026
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9250,7 +9499,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2138
+            - testCaseID: TCXM_2027
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9290,7 +9539,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2139
+            - testCaseID: TCXM_2028
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9330,7 +9579,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2140
+            - testCaseID: TCXM_2029
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9370,7 +9619,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2141
+            - testCaseID: TCXM_2030
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9410,7 +9659,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2142
+            - testCaseID: TCXM_2031
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9450,7 +9699,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2143
+            - testCaseID: TCXM_2032
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9490,7 +9739,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2144
+            - testCaseID: TCXM_2033
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9530,7 +9779,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2145
+            - testCaseID: TCXM_2034
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9570,7 +9819,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2146
+            - testCaseID: TCXM_2035
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9610,7 +9859,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2147
+            - testCaseID: TCXM_2036
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9650,7 +9899,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2148
+            - testCaseID: TCXM_2037
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9690,7 +9939,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2149
+            - testCaseID: TCXM_2038
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9730,7 +9979,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2150
+            - testCaseID: TCXM_2039
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9770,7 +10019,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2151
+            - testCaseID: TCXM_2040
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9810,7 +10059,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_2152
+            - testCaseID: TCXM_2041
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -9851,7 +10100,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_2160
+            - testCaseID: TCXM_2050
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9874,6 +10123,10 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: VR-Mgmt
                           type: dns-server
                     operation: add
                   expectedStatus: 400
@@ -9887,7 +10140,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'priority'
-            - testCaseID: TCXM_2161
+            - testCaseID: TCXM_2051
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9910,6 +10163,14 @@ features:
                               origin: Global
                               type: number
                               value: 1
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: VR-Mgmt
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
                           type: dns-server
                     operation: add
                   expectedStatus: 400
@@ -9923,7 +10184,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'server'
-            - testCaseID: TCXM_2162
+            - testCaseID: TCXM_2052
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -9966,7 +10227,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2163
+            - testCaseID: TCXM_2053
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10005,7 +10266,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2164
+            - testCaseID: TCXM_2054
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10044,7 +10305,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2165
+            - testCaseID: TCXM_2055
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10083,7 +10344,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2166
+            - testCaseID: TCXM_2056
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10122,7 +10383,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2167
+            - testCaseID: TCXM_2057
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10161,7 +10422,46 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2168
+            - testCaseID: TCXM_2058
+              featureName: dns-server
+              priority: P2
+              automation: Automatable
+              type: negative
+              description: Test vr-name below min length
+              isDeploymentTest: false
+              steps:
+                - name: testBelowMinLength
+                  description: Attempt to create with vr-name below min length
+                  method: POST
+                  api: REST
+                  path: /global-profile/feature/object/modify
+                  body:
+                    featurePath: /dns-server-feature
+                    objectType: dns-server
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: Global
+                              type: number
+                              value: 1
+                            - name: server
+                              origin: Global
+                              type: string
+                              value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: ""
+                          type: dns-server
+                    operation: add
+                  expectedStatus: 400
+                  validations:
+                    - Verify HTTP status code is 400
+                  assertions:
+                    - type: statusCode
+                      expected: 400
+            - testCaseID: TCXM_2059
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10203,7 +10503,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2169
+            - testCaseID: TCXM_2060
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10245,7 +10545,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2170
+            - testCaseID: TCXM_2061
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10287,7 +10587,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2171
+            - testCaseID: TCXM_2062
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10329,7 +10629,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2172
+            - testCaseID: TCXM_2063
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -10356,6 +10656,10 @@ features:
                               origin: Global
                               type: string
                               value: 8.8.8.8
+                            - name: vr-name
+                              origin: Global
+                              type: string
+                              value: VR-Mgmt
                           type: dns-server
                     operation: add
                   expectedStatus: 201
@@ -10365,7 +10669,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vr-name' is omitted
-            - testCaseID: TCXM_2173
+            - testCaseID: TCXM_2064
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10406,7 +10710,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2174
+            - testCaseID: TCXM_2065
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10430,7 +10734,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_2175
+            - testCaseID: TCXM_2066
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10470,7 +10774,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2176
+            - testCaseID: TCXM_2067
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10510,7 +10814,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2177
+            - testCaseID: TCXM_2068
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10550,7 +10854,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2178
+            - testCaseID: TCXM_2069
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10590,7 +10894,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2179
+            - testCaseID: TCXM_2070
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10630,7 +10934,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2180
+            - testCaseID: TCXM_2071
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10670,7 +10974,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2181
+            - testCaseID: TCXM_2072
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10710,7 +11014,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2182
+            - testCaseID: TCXM_2073
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10750,7 +11054,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2183
+            - testCaseID: TCXM_2074
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10790,7 +11094,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2184
+            - testCaseID: TCXM_2075
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10830,7 +11134,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2185
+            - testCaseID: TCXM_2076
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10870,7 +11174,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2186
+            - testCaseID: TCXM_2077
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10910,7 +11214,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2187
+            - testCaseID: TCXM_2078
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10950,7 +11254,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2188
+            - testCaseID: TCXM_2079
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -10990,7 +11294,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2189
+            - testCaseID: TCXM_2080
               featureName: dns-server
               priority: P2
               automation: Automatable
@@ -11031,7 +11335,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_2194
+            - testCaseID: TCXM_2085
               featureName: dns-server
               priority: P4
               automation: Automatable
@@ -11413,7 +11717,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_2195
+            - testCaseID: TCXM_2086
               featureName: dns-server
               priority: P4
               automation: Automatable
@@ -11426,8 +11730,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11444,8 +11754,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11462,8 +11778,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11480,8 +11802,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11498,8 +11826,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11516,8 +11850,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11534,8 +11874,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11552,8 +11898,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11570,8 +11922,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11588,8 +11946,14 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
+                  body:
+                    featurePath: /dns-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
+                        - key: vr-name
+                          value: VR-Mgmt
+                    objectType: dns-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11605,7 +11969,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_2196
+            - testCaseID: TCXM_2087
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -11642,12 +12006,17 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: update0
                   description: Update iteration 0
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -11656,7 +12025,8 @@ features:
                     name: UpdatePerfTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -11671,7 +12041,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11685,7 +12055,7 @@ features:
                   timeout: 10
                 - name: update1
                   description: Update iteration 1
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -11694,7 +12064,8 @@ features:
                     name: UpdatePerfTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -11709,7 +12080,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11723,7 +12094,7 @@ features:
                   timeout: 10
                 - name: update2
                   description: Update iteration 2
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -11732,7 +12103,8 @@ features:
                     name: UpdatePerfTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -11747,7 +12119,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11761,7 +12133,7 @@ features:
                   timeout: 10
                 - name: update3
                   description: Update iteration 3
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -11770,7 +12142,8 @@ features:
                     name: UpdatePerfTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -11785,7 +12158,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11799,7 +12172,7 @@ features:
                   timeout: 10
                 - name: update4
                   description: Update iteration 4
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -11808,7 +12181,8 @@ features:
                     name: UpdatePerfTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -11823,7 +12197,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11837,7 +12211,7 @@ features:
                   timeout: 10
                 - name: update5
                   description: Update iteration 5
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -11846,7 +12220,8 @@ features:
                     name: UpdatePerfTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -11861,7 +12236,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11875,7 +12250,7 @@ features:
                   timeout: 10
                 - name: update6
                   description: Update iteration 6
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -11884,7 +12259,8 @@ features:
                     name: UpdatePerfTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -11899,7 +12275,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11913,7 +12289,7 @@ features:
                   timeout: 10
                 - name: update7
                   description: Update iteration 7
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -11922,7 +12298,8 @@ features:
                     name: UpdatePerfTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -11937,7 +12314,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11951,7 +12328,7 @@ features:
                   timeout: 10
                 - name: update8
                   description: Update iteration 8
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -11960,7 +12337,8 @@ features:
                     name: UpdatePerfTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -11975,7 +12353,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -11989,7 +12367,7 @@ features:
                   timeout: 10
                 - name: update9
                   description: Update iteration 9
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -11998,7 +12376,8 @@ features:
                     name: UpdatePerfTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -12013,7 +12392,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12028,7 +12407,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_2197
+            - testCaseID: TCXM_2088
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -12065,14 +12444,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_DELETE_0 for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_DELETE_0
+                      description: Capture created object ID as OBJECT_ID_DELETE_0 for later update/delete steps
                 - name: delete0
                   description: Delete resource 0
-                  method: DELETE
+                  method: POST
                   api: REST
-                  path: /global-profile/feature/object/modify
+                  path: /global-profile/feature/object/delete
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID_DELETE_0}}'
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12113,14 +12500,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_DELETE_1 for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_DELETE_1
+                      description: Capture created object ID as OBJECT_ID_DELETE_1 for later update/delete steps
                 - name: delete1
                   description: Delete resource 1
-                  method: DELETE
+                  method: POST
                   api: REST
-                  path: /global-profile/feature/object/modify
+                  path: /global-profile/feature/object/delete
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID_DELETE_1}}'
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12161,14 +12556,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_DELETE_2 for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_DELETE_2
+                      description: Capture created object ID as OBJECT_ID_DELETE_2 for later update/delete steps
                 - name: delete2
                   description: Delete resource 2
-                  method: DELETE
+                  method: POST
                   api: REST
-                  path: /global-profile/feature/object/modify
+                  path: /global-profile/feature/object/delete
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID_DELETE_2}}'
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12209,14 +12612,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_DELETE_3 for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_DELETE_3
+                      description: Capture created object ID as OBJECT_ID_DELETE_3 for later update/delete steps
                 - name: delete3
                   description: Delete resource 3
-                  method: DELETE
+                  method: POST
                   api: REST
-                  path: /global-profile/feature/object/modify
+                  path: /global-profile/feature/object/delete
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID_DELETE_3}}'
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12257,14 +12668,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_DELETE_4 for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_DELETE_4
+                      description: Capture created object ID as OBJECT_ID_DELETE_4 for later update/delete steps
                 - name: delete4
                   description: Delete resource 4
-                  method: DELETE
+                  method: POST
                   api: REST
-                  path: /global-profile/feature/object/modify
+                  path: /global-profile/feature/object/delete
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID_DELETE_4}}'
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12305,14 +12724,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_DELETE_5 for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_DELETE_5
+                      description: Capture created object ID as OBJECT_ID_DELETE_5 for later update/delete steps
                 - name: delete5
                   description: Delete resource 5
-                  method: DELETE
+                  method: POST
                   api: REST
-                  path: /global-profile/feature/object/modify
+                  path: /global-profile/feature/object/delete
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID_DELETE_5}}'
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12353,14 +12780,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_DELETE_6 for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_DELETE_6
+                      description: Capture created object ID as OBJECT_ID_DELETE_6 for later update/delete steps
                 - name: delete6
                   description: Delete resource 6
-                  method: DELETE
+                  method: POST
                   api: REST
-                  path: /global-profile/feature/object/modify
+                  path: /global-profile/feature/object/delete
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID_DELETE_6}}'
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12401,14 +12836,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_DELETE_7 for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_DELETE_7
+                      description: Capture created object ID as OBJECT_ID_DELETE_7 for later update/delete steps
                 - name: delete7
                   description: Delete resource 7
-                  method: DELETE
+                  method: POST
                   api: REST
-                  path: /global-profile/feature/object/modify
+                  path: /global-profile/feature/object/delete
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID_DELETE_7}}'
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12449,14 +12892,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_DELETE_8 for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_DELETE_8
+                      description: Capture created object ID as OBJECT_ID_DELETE_8 for later update/delete steps
                 - name: delete8
                   description: Delete resource 8
-                  method: DELETE
+                  method: POST
                   api: REST
-                  path: /global-profile/feature/object/modify
+                  path: /global-profile/feature/object/delete
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID_DELETE_8}}'
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12497,14 +12948,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID_DELETE_9 for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID_DELETE_9
+                      description: Capture created object ID as OBJECT_ID_DELETE_9 for later update/delete steps
                 - name: delete9
                   description: Delete resource 9
-                  method: DELETE
+                  method: POST
                   api: REST
-                  path: /global-profile/feature/object/modify
+                  path: /global-profile/feature/object/delete
+                  body:
+                    objectIds:
+                        - '{{OBJECT_ID_DELETE_9}}'
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -12520,7 +12979,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_2190
+            - testCaseID: TCXM_2081
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -15730,7 +16189,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_2191
+            - testCaseID: TCXM_2082
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -15771,7 +16230,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_2192
+            - testCaseID: TCXM_2083
               featureName: dns-server
               priority: P3
               automation: Automatable
@@ -15808,12 +16267,17 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify HTTP status code is 201
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: rapidUpdate0
                   description: Rapid update 0
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -15822,7 +16286,8 @@ features:
                     name: RapidUpdateTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -15837,7 +16302,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -15846,7 +16311,7 @@ features:
                       expected: 200
                 - name: rapidUpdate1
                   description: Rapid update 1
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -15855,7 +16320,8 @@ features:
                     name: RapidUpdateTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -15870,7 +16336,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -15879,7 +16345,7 @@ features:
                       expected: 200
                 - name: rapidUpdate2
                   description: Rapid update 2
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -15888,7 +16354,8 @@ features:
                     name: RapidUpdateTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -15903,7 +16370,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -15912,7 +16379,7 @@ features:
                       expected: 200
                 - name: rapidUpdate3
                   description: Rapid update 3
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -15921,7 +16388,8 @@ features:
                     name: RapidUpdateTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -15936,7 +16404,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -15945,7 +16413,7 @@ features:
                       expected: 200
                 - name: rapidUpdate4
                   description: Rapid update 4
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -15954,7 +16422,8 @@ features:
                     name: RapidUpdateTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -15969,7 +16438,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -15978,7 +16447,7 @@ features:
                       expected: 200
                 - name: rapidUpdate5
                   description: Rapid update 5
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -15987,7 +16456,8 @@ features:
                     name: RapidUpdateTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -16002,7 +16472,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -16011,7 +16481,7 @@ features:
                       expected: 200
                 - name: rapidUpdate6
                   description: Rapid update 6
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -16020,7 +16490,8 @@ features:
                     name: RapidUpdateTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -16035,7 +16506,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -16044,7 +16515,7 @@ features:
                       expected: 200
                 - name: rapidUpdate7
                   description: Rapid update 7
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -16053,7 +16524,8 @@ features:
                     name: RapidUpdateTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -16068,7 +16540,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -16077,7 +16549,7 @@ features:
                       expected: 200
                 - name: rapidUpdate8
                   description: Rapid update 8
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -16086,7 +16558,8 @@ features:
                     name: RapidUpdateTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -16101,7 +16574,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -16110,7 +16583,7 @@ features:
                       expected: 200
                 - name: rapidUpdate9
                   description: Rapid update 9
-                  method: PUT
+                  method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
@@ -16119,7 +16592,8 @@ features:
                     name: RapidUpdateTest
                     objectType: dns-server
                     objects:
-                        - operation: add
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -16134,7 +16608,7 @@ features:
                               type: string
                               value: VR-Mgmt
                           type: dns-server
-                    operation: add
+                    operation: update
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -16144,7 +16618,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_2193
+            - testCaseID: TCXM_2084
               featureName: dns-server
               priority: P3
               automation: Automatable
