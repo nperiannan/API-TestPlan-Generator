@@ -101,10 +101,13 @@ type GUIGenRequest struct {
 const guiTestPlanMinIOPrefix = "gui-testplans/"
 
 // handleGUIGenerate generates a GUI test plan by combining:
-//   - Figma import (screens + widgets)
-//   - Widget catalog (test actions per widget type)
-//   - API test plan (field names, values, constraints)
+//   - API test plan (functional scenarios: CRUD, validation, boundary)
+//   - Figma import (screens + widgets — used for step targets)
+//   - Widget catalog (widget type awareness)
 //   - Jira story (optional — acceptance criteria)
+//
+// The resulting tests are FUNCTIONAL tests exercised through the GUI,
+// not widget-level GUI tests.
 func (s *Server) handleGUIGenerate(c *gin.Context) {
 	var req GUIGenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -118,38 +121,51 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 
 	log.Printf("GUI test gen: starting for %s/%s (jira: %s)", req.Category, req.Feature, req.JiraIssueKey)
 
-	// 1. Load API test plan from disk
+	// 1. Load and parse API test plan
 	apiPlanPath := filepath.Join(s.config.TestPlansDir, req.Category, req.Feature+".yaml")
 	apiPlanData, err := os.ReadFile(apiPlanPath)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("API test plan not found: %s/%s.yaml", req.Category, req.Feature)})
 		return
 	}
-
-	// Parse API test plan to extract field metadata
 	var apiPlan map[string]interface{}
 	if err := yaml.Unmarshal(apiPlanData, &apiPlan); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse API test plan"})
 		return
 	}
 	fields := extractFieldsFromAPIPlan(apiPlan)
+	apiTestCases := extractAPITestCases(apiPlan)
+	featureLabel := humanize(req.Feature) // "radius-server" -> "Radius Server"
 
-	// 2. Load Figma import results
+	// 2. Load Figma import results (screens + widgets)
 	figmaImport, err := s.store.LoadFigmaImport()
 	if err != nil || figmaImport == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no Figma import found — import Figma components first"})
 		return
 	}
 
-	// 3. Load widget types
-	widgetTypes, err := s.store.ListWidgetTypes()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load widget types"})
-		return
+	// Build screen inventory from Figma
+	screenNames := []string{}
+	screenWidgets := map[string][]FigmaComponent{}
+	for _, sd := range figmaImport.Screens {
+		screenNames = append(screenNames, sd.Name)
 	}
+	for _, comp := range figmaImport.Components {
+		screenWidgets[comp.Screen] = append(screenWidgets[comp.Screen], comp)
+	}
+
+	// Classify screens by purpose (Add/Edit/Delete/Index/Detail)
+	screensByRole := classifyScreens(screenNames, featureLabel)
+
+	// 3. Load widget types for mapping awareness
+	widgetTypes, _ := s.store.ListWidgetTypes()
 	typeMap := make(map[string]WidgetType)
 	for _, wt := range widgetTypes {
 		typeMap[wt.ID] = wt
+	}
+	mappingByName := make(map[string]FigmaMappingRow)
+	for _, m := range figmaImport.MappingDetails {
+		mappingByName[m.ComponentName] = m
 	}
 
 	// 4. Optionally fetch Jira story
@@ -159,145 +175,145 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 		jiraSummary, jiraDescription, acceptanceCriteria = s.fetchJiraStoryDetails(req.JiraIssueKey)
 	}
 
-	// 5. Build the mapping: Figma widgets → widget types → test actions
-	// Use the auto-mapping from the import results
-	mappingByName := make(map[string]FigmaMappingRow)
-	for _, m := range figmaImport.MappingDetails {
-		mappingByName[m.ComponentName] = m
-	}
-
-	// 6. Group widgets by screen
-	screenWidgets := make(map[string][]FigmaComponent)
-	for _, comp := range figmaImport.Components {
-		screenWidgets[comp.Screen] = append(screenWidgets[comp.Screen], comp)
-	}
-
-	// 7. Generate test cases per screen
+	// 5. Generate functional GUI test cases from API scenarios
 	tcCounter := 1
-	var screens []GUIScreen
+	featureSlug := strings.ToUpper(toSlug(req.Feature))
+	var allTests []GUITestCase
 	catCounts := map[string]int{}
 	priCounts := map[string]int{}
-	screenCounts := map[string]int{}
-	totalWidgets := 0
 
-	for _, screenDef := range figmaImport.Screens {
-		screenName := screenDef.Name
-		widgets := screenWidgets[screenName]
-		if len(widgets) == 0 {
+	// --- A. CRUD Workflow Tests (derived from API functional tests) ---
+	for _, apiTC := range apiTestCases {
+		guiTC := translateAPIToGUI(apiTC, featureLabel, featureSlug, screensByRole,
+			fields, screenWidgets, mappingByName, &tcCounter)
+		if guiTC != nil {
+			allTests = append(allTests, *guiTC)
+			catCounts[guiTC.Type]++
+			priCounts[guiTC.Priority]++
+		}
+	}
+
+	// --- B. Form Validation Tests (from negative API tests → GUI form errors) ---
+	for _, apiTC := range apiTestCases {
+		if apiTC.Type != "negative" {
 			continue
 		}
+		guiTC := translateNegativeToGUI(apiTC, featureLabel, featureSlug, screensByRole,
+			fields, screenWidgets, mappingByName, &tcCounter)
+		if guiTC != nil {
+			allTests = append(allTests, *guiTC)
+			catCounts[guiTC.Type]++
+			priCounts[guiTC.Priority]++
+		}
+	}
 
+	// --- C. Field Boundary Tests via GUI (from boundary API tests) ---
+	for _, apiTC := range apiTestCases {
+		if apiTC.Type != "boundary" {
+			continue
+		}
+		guiTC := translateBoundaryToGUI(apiTC, featureLabel, featureSlug, screensByRole,
+			fields, screenWidgets, mappingByName, &tcCounter)
+		if guiTC != nil {
+			allTests = append(allTests, *guiTC)
+			catCounts[guiTC.Type]++
+			priCounts[guiTC.Priority]++
+		}
+	}
+
+	// --- D. Acceptance Criteria Tests from Jira ---
+	if len(acceptanceCriteria) > 0 {
+		listScreen := screensByRole["list"]
+		if listScreen == "" && len(screenNames) > 0 {
+			listScreen = screenNames[0]
+		}
+		for _, ac := range acceptanceCriteria {
+			tc := GUITestCase{
+				TestCaseID:  fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature,
+				Priority:    "P1",
+				Automation:  "Manual",
+				Type:        "functional",
+				Description: fmt.Sprintf("Verify acceptance criteria: %s", ac),
+				Screen:      listScreen,
+				Widget:      "",
+				WidgetType:  "acceptance-criteria",
+				Steps: []GUITestStep{
+					{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s screen is displayed", listScreen)},
+					{StepNumber: 2, Action: "verify", Target: "UI behavior", Expected: ac},
+				},
+			}
+			allTests = append(allTests, tc)
+			catCounts["functional"]++
+			priCounts["P1"]++
+			tcCounter++
+		}
+	}
+
+	// 6. Group tests by screen for output
+	testsByScreen := map[string][]GUITestCase{}
+	for _, tc := range allTests {
+		testsByScreen[tc.Screen] = append(testsByScreen[tc.Screen], tc)
+	}
+
+	var screens []GUIScreen
+	screenCounts := map[string]int{}
+	totalWidgets := 0
+	for _, sName := range screenNames {
+		tests := testsByScreen[sName]
+		if len(tests) == 0 {
+			continue
+		}
+		widgets := screenWidgets[sName]
 		var guiWidgets []GUIWidget
-		var tests []GUITestCase
-
-		// Track which widget names we've already processed on this screen
-		processed := make(map[string]bool)
-
+		seen := map[string]bool{}
 		for _, w := range widgets {
-			if processed[w.Name] {
+			if seen[w.Name] {
 				continue
 			}
-			processed[w.Name] = true
-
-			mapping, hasMapped := mappingByName[w.Name]
-			if !hasMapped || mapping.MappedType == "" {
-				// Unmapped widget — still include it with basic visibility test
-				guiWidgets = append(guiWidgets, GUIWidget{
-					Name:       w.Name,
-					WidgetType: "unknown",
-					TypeName:   "Unknown",
-					Selector:   fmt.Sprintf("[data-figma-id='%s']", w.ComponentID),
-				})
-				tc := GUITestCase{
-					TestCaseID:  fmt.Sprintf("GUI_%s_%04d", strings.ToUpper(toSlug(req.Feature)), tcCounter),
-					FeatureName: req.Feature,
-					Priority:    "P2",
-					Automation:  "Automatable",
-					Type:        "functional",
-					Description: fmt.Sprintf("Verify %q is visible on %s screen", w.Name, screenName),
-					Screen:      screenName,
-					Widget:      w.Name,
-					WidgetType:  "unknown",
-					Steps: []GUITestStep{
-						{StepNumber: 1, Action: "navigate", Target: screenName, Expected: fmt.Sprintf("%s screen is displayed", screenName)},
-						{StepNumber: 2, Action: "verify_visible", Target: w.Name, Expected: fmt.Sprintf("%q widget is visible", w.Name)},
-					},
+			seen[w.Name] = true
+			typeName := "Unknown"
+			typeID := "unknown"
+			if m, ok := mappingByName[w.Name]; ok && m.MappedType != "" {
+				if wt, ok2 := typeMap[m.MappedType]; ok2 {
+					typeName = wt.Name
+					typeID = wt.ID
 				}
-				tests = append(tests, tc)
-				catCounts["functional"]++
-				priCounts["P2"]++
-				tcCounter++
-				continue
 			}
-
-			wt, hasType := typeMap[mapping.MappedType]
-			if !hasType {
-				continue
-			}
-
 			guiWidgets = append(guiWidgets, GUIWidget{
 				Name:       w.Name,
-				WidgetType: wt.ID,
-				TypeName:   wt.Name,
-				Selector:   fmt.Sprintf("[data-figma-id='%s']", w.ComponentID),
+				WidgetType: typeID,
+				TypeName:   typeName,
 			})
-
-			// Generate test cases from widget type's test actions
-			for _, action := range wt.TestActions {
-				tc := buildGUITestCase(
-					req.Feature, screenName, w.Name, wt,
-					action, fields, tcCounter,
-				)
-				tests = append(tests, tc)
-				catCounts[action.Category]++
-				priCounts[action.Priority]++
-				tcCounter++
-			}
 		}
-
 		totalWidgets += len(guiWidgets)
-		screenCounts[screenName] = len(tests)
+		screenCounts[sName] = len(tests)
 		screens = append(screens, GUIScreen{
-			ScreenName: screenName,
+			ScreenName: sName,
 			Widgets:    guiWidgets,
 			Tests:      tests,
 		})
 	}
 
-	// 8. Add acceptance criteria tests from Jira if available
-	if len(acceptanceCriteria) > 0 && len(screens) > 0 {
-		for _, ac := range acceptanceCriteria {
-			tc := GUITestCase{
-				TestCaseID:  fmt.Sprintf("GUI_%s_%04d", strings.ToUpper(toSlug(req.Feature)), tcCounter),
-				FeatureName: req.Feature,
-				Priority:    "P1",
-				Automation:  "Automatable",
-				Type:        "functional",
-				Description: fmt.Sprintf("Acceptance criteria: %s", ac),
-				Screen:      screens[0].ScreenName,
-				Widget:      "",
-				WidgetType:  "acceptance-criteria",
-				Steps: []GUITestStep{
-					{StepNumber: 1, Action: "navigate", Target: screens[0].ScreenName, Expected: "Screen is displayed"},
-					{StepNumber: 2, Action: "verify", Target: "acceptance criteria", Value: ac, Expected: ac},
-				},
-			}
-			screens[0].Tests = append(screens[0].Tests, tc)
-			catCounts["functional"]++
-			priCounts["P1"]++
-			screenCounts[screens[0].ScreenName]++
-			tcCounter++
+	// Add tests for screens not in Figma screens list (fallback)
+	for sName, tests := range testsByScreen {
+		if screenCounts[sName] > 0 {
+			continue
 		}
+		screenCounts[sName] = len(tests)
+		screens = append(screens, GUIScreen{
+			ScreenName: sName,
+			Tests:      tests,
+		})
 	}
 
-	// Sort screens by name
 	sort.Slice(screens, func(i, j int) bool { return screens[i].ScreenName < screens[j].ScreenName })
 
-	totalTests := tcCounter - 1
+	totalTests := len(allTests)
 	plan := &GUITestPlan{
-		Version:     "1.0",
+		Version:     "2.0",
 		GeneratedAt: time.Now().Format(time.RFC3339),
-		TestType:    "gui",
+		TestType:    "gui-functional",
 		SourceInfo: GUISourceInfo{
 			FeatureName:      req.Feature,
 			Category:         req.Category,
@@ -319,7 +335,7 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 		},
 	}
 
-	// 9. Save to disk as YAML
+	// 7. Save to disk as YAML
 	outDir := filepath.Join(s.config.TestPlansDir, req.Category)
 	os.MkdirAll(outDir, 0755)
 	outPath := filepath.Join(outDir, req.Feature+"-gui.yaml")
@@ -334,15 +350,13 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 		log.Printf("GUI test plan written to %s", outPath)
 	}
 
-	// 10. Save to MinIO
+	// 8. Save to MinIO
 	minioKey := guiTestPlanMinIOPrefix + req.Category + "/" + req.Feature + "-gui.json"
-	jsonData, _ := json.Marshal(plan)
 	if err := s.store.saveJSON(minioKey, plan); err != nil {
 		log.Printf("Warning: failed to save GUI test plan to MinIO: %v", err)
 	}
 
-	_ = jiraDescription // used for context enrichment in future
-	_ = jsonData
+	_ = jiraDescription
 
 	log.Printf("GUI test gen complete: %s/%s-gui — %d screens, %d widgets, %d tests",
 		req.Category, req.Feature, len(screens), totalWidgets, totalTests)
@@ -381,143 +395,541 @@ func (s *Server) handleGUITestPlanList(c *gin.Context) {
 
 // ---------- Helper Functions ----------
 
-// buildGUITestCase creates a test case from a widget's test action, enriched with API field data.
-func buildGUITestCase(feature, screen, widgetName string, wt WidgetType, action TestAction, fields []apiField, counter int) GUITestCase {
-	tcID := fmt.Sprintf("GUI_%s_%04d", strings.ToUpper(toSlug(feature)), counter)
+// apiTestCaseInfo captures key metadata from an API test case.
+type apiTestCaseInfo struct {
+	TestCaseID  string
+	Type        string // functional, negative, boundary
+	Priority    string
+	Description string
+	Method      string // POST, PUT, PATCH, DELETE, GET
+	Fields      []apiField
+	Validations []string
+}
 
-	// Find matching field from API test plan
-	matchedField := findMatchingField(widgetName, fields)
+// extractAPITestCases pulls test case metadata from the parsed API test plan.
+func extractAPITestCases(plan map[string]interface{}) []apiTestCaseInfo {
+	var results []apiTestCaseInfo
 
-	steps := buildTestSteps(screen, widgetName, wt, action, matchedField)
+	features, ok := plan["features"]
+	if !ok {
+		return results
+	}
+	featureList, ok := features.([]interface{})
+	if !ok {
+		return results
+	}
 
-	return GUITestCase{
-		TestCaseID:  tcID,
-		FeatureName: feature,
-		Priority:    action.Priority,
+	for _, f := range featureList {
+		fMap, ok := f.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		tests, ok := fMap["tests"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		for category, testList := range tests {
+			tcList, ok := testList.([]interface{})
+			if !ok {
+				continue
+			}
+			for _, tc := range tcList {
+				tcMap, ok := tc.(map[string]interface{})
+				if !ok {
+					continue
+				}
+				info := apiTestCaseInfo{
+					TestCaseID:  fmt.Sprintf("%v", tcMap["testCaseID"]),
+					Type:        category,
+					Priority:    fmt.Sprintf("%v", tcMap["priority"]),
+					Description: fmt.Sprintf("%v", tcMap["description"]),
+				}
+				// Extract method and fields from steps
+				if steps, ok := tcMap["steps"].([]interface{}); ok {
+					for _, step := range steps {
+						stepMap, ok := step.(map[string]interface{})
+						if !ok {
+							continue
+						}
+						if m, ok := stepMap["method"].(string); ok && info.Method == "" {
+							info.Method = m
+						}
+						if vals, ok := stepMap["validations"].([]interface{}); ok {
+							for _, v := range vals {
+								info.Validations = append(info.Validations, fmt.Sprintf("%v", v))
+							}
+						}
+						if body, ok := stepMap["body"].(map[string]interface{}); ok {
+							if objects, ok := body["objects"].([]interface{}); ok {
+								for _, obj := range objects {
+									objMap, ok := obj.(map[string]interface{})
+									if !ok {
+										continue
+									}
+									if props, ok := objMap["properties"].([]interface{}); ok {
+										for _, prop := range props {
+											propMap, ok := prop.(map[string]interface{})
+											if !ok {
+												continue
+											}
+											af := apiField{
+												Name:   fmt.Sprintf("%v", propMap["name"]),
+												Type:   fmt.Sprintf("%v", propMap["type"]),
+												Origin: fmt.Sprintf("%v", propMap["origin"]),
+											}
+											if v, ok := propMap["value"]; ok {
+												af.SampleValue = fmt.Sprintf("%v", v)
+											}
+											info.Fields = append(info.Fields, af)
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				results = append(results, info)
+			}
+		}
+	}
+	return results
+}
+
+// classifyScreens maps screen names to roles: add, edit, delete, list, detail, index.
+func classifyScreens(screenNames []string, featureLabel string) map[string]string {
+	roles := map[string]string{}
+	for _, name := range screenNames {
+		lower := strings.ToLower(name)
+		switch {
+		case strings.Contains(lower, "add") || strings.Contains(lower, "create") || strings.Contains(lower, "new"):
+			roles["add"] = name
+		case strings.Contains(lower, "edit") || strings.Contains(lower, "modify") || strings.Contains(lower, "update"):
+			roles["edit"] = name
+		case strings.Contains(lower, "delete") || strings.Contains(lower, "remove"):
+			roles["delete"] = name
+		case strings.Contains(lower, "detail") || strings.Contains(lower, "default detail"):
+			roles["detail"] = name
+		case strings.Contains(lower, "bulk delete"):
+			roles["bulk_delete"] = name
+		case strings.Contains(lower, "index"):
+			roles["index"] = name
+		default:
+			// Main list screen is typically the base name
+			if roles["list"] == "" {
+				roles["list"] = name
+			}
+		}
+	}
+	return roles
+}
+
+// humanize converts "radius-server" to "Radius Server"
+func humanize(slug string) string {
+	parts := strings.Split(slug, "-")
+	for i, p := range parts {
+		if len(p) > 0 {
+			parts[i] = strings.ToUpper(p[:1]) + p[1:]
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
+// translateAPIToGUI converts a functional API test case into a GUI functional test.
+func translateAPIToGUI(apiTC apiTestCaseInfo, featureLabel, featureSlug string,
+	screensByRole map[string]string, fields []apiField,
+	screenWidgets map[string][]FigmaComponent, mappings map[string]FigmaMappingRow,
+	counter *int) *GUITestCase {
+
+	if apiTC.Type != "functional" {
+		return nil
+	}
+
+	desc := apiTC.Description
+	lowerDesc := strings.ToLower(desc)
+
+	var screen, guiDesc string
+	var steps []GUITestStep
+
+	switch {
+	case strings.Contains(lowerDesc, "create") && strings.Contains(lowerDesc, "delete") && strings.Contains(lowerDesc, "update"):
+		// Full CRUD lifecycle
+		screen = pickScreen(screensByRole, "add", "list")
+		guiDesc = fmt.Sprintf("Full CRUD lifecycle: Create %s via Add form, verify in list, edit fields, verify updates, delete and confirm removal", featureLabel)
+		steps = buildCRUDLifecycleSteps(featureLabel, screensByRole, apiTC.Fields)
+
+	case strings.Contains(lowerDesc, "create") && strings.Contains(lowerDesc, "update"):
+		screen = pickScreen(screensByRole, "add", "list")
+		guiDesc = fmt.Sprintf("Create %s via Add form with valid data, then update fields via Edit form and verify changes persist", featureLabel)
+		steps = buildCreateUpdateSteps(featureLabel, screensByRole, apiTC.Fields)
+
+	case strings.Contains(lowerDesc, "create") && strings.Contains(lowerDesc, "delete"):
+		screen = pickScreen(screensByRole, "add", "list")
+		guiDesc = fmt.Sprintf("Create %s via Add form, verify it appears in the list, then delete and confirm removal", featureLabel)
+		steps = buildCreateDeleteSteps(featureLabel, screensByRole, apiTC.Fields)
+
+	case strings.Contains(lowerDesc, "partial update"):
+		screen = pickScreen(screensByRole, "edit", "list")
+		guiDesc = fmt.Sprintf("Open existing %s in Edit form, modify only specific fields, save and verify only changed fields are updated", featureLabel)
+		steps = buildPartialUpdateSteps(featureLabel, screensByRole, apiTC.Fields)
+
+	case strings.Contains(lowerDesc, "idempotent"):
+		screen = pickScreen(screensByRole, "add", "list")
+		guiDesc = fmt.Sprintf("Create %s via Add form, then attempt to create a duplicate with same values and verify appropriate error/conflict message", featureLabel)
+		steps = buildIdempotentCreateSteps(featureLabel, screensByRole, apiTC.Fields)
+
+	case strings.Contains(lowerDesc, "deploy"):
+		screen = pickScreen(screensByRole, "list", "add")
+		guiDesc = fmt.Sprintf("Create %s, configure deployment scope, deploy to device and verify deployment status in UI", featureLabel)
+		steps = buildDeploySteps(featureLabel, screensByRole, apiTC.Fields, desc)
+
+	case strings.Contains(lowerDesc, "create") && strings.Contains(lowerDesc, "verify"):
+		screen = pickScreen(screensByRole, "add", "list")
+		guiDesc = fmt.Sprintf("Create a new %s by filling the Add form with valid values and verify it appears in the list with correct data", featureLabel)
+		steps = buildCreateVerifySteps(featureLabel, screensByRole, apiTC.Fields)
+
+	default:
+		// Generic functional test
+		screen = pickScreen(screensByRole, "list", "add")
+		guiDesc = fmt.Sprintf("Via GUI: %s", desc)
+		steps = []GUITestStep{
+			{StepNumber: 1, Action: "navigate", Target: screen, Expected: fmt.Sprintf("%s screen is displayed", screen)},
+			{StepNumber: 2, Action: "perform", Target: "feature action", Expected: desc},
+		}
+	}
+
+	tc := &GUITestCase{
+		TestCaseID:  fmt.Sprintf("GUI_%s_%04d", featureSlug, *counter),
+		FeatureName: featureLabel,
+		Priority:    apiTC.Priority,
 		Automation:  "Automatable",
-		Type:        action.Category,
-		Description: fmt.Sprintf("%s — %s on %s screen (%s)", action.Description, widgetName, screen, wt.Name),
+		Type:        "functional",
+		Description: guiDesc,
 		Screen:      screen,
-		Widget:      widgetName,
-		WidgetType:  wt.ID,
 		Steps:       steps,
+	}
+	*counter++
+	return tc
+}
+
+// translateNegativeToGUI converts a negative API test into a GUI form validation test.
+func translateNegativeToGUI(apiTC apiTestCaseInfo, featureLabel, featureSlug string,
+	screensByRole map[string]string, fields []apiField,
+	screenWidgets map[string][]FigmaComponent, mappings map[string]FigmaMappingRow,
+	counter *int) *GUITestCase {
+
+	screen := pickScreen(screensByRole, "add", "list")
+	desc := apiTC.Description
+	lowerDesc := strings.ToLower(desc)
+
+	var guiDesc string
+	var steps []GUITestStep
+
+	switch {
+	case strings.Contains(lowerDesc, "without required field"):
+		// Extract field name from description
+		fieldName := extractFieldNameFromDesc(desc, "without required field")
+		guiDesc = fmt.Sprintf("Submit Add %s form without filling required field '%s' and verify validation error is displayed", featureLabel, fieldName)
+		steps = []GUITestStep{
+			{StepNumber: 1, Action: "navigate", Target: screen, Expected: fmt.Sprintf("%s screen is displayed", screen)},
+			{StepNumber: 2, Action: "click", Target: "Add button", Expected: "Add form/dialog opens"},
+			{StepNumber: 3, Action: "fill_form", Target: "all fields except " + fieldName, Expected: "Form fields populated"},
+			{StepNumber: 4, Action: "leave_empty", Target: fieldName, Expected: fmt.Sprintf("'%s' field is left empty", fieldName)},
+			{StepNumber: 5, Action: "click", Target: "Save / Submit button", Expected: "Form submission attempted"},
+			{StepNumber: 6, Action: "verify_error", Target: fieldName, Expected: fmt.Sprintf("Validation error displayed for required field '%s'", fieldName)},
+			{StepNumber: 7, Action: "verify", Target: "list", Expected: fmt.Sprintf("No new %s is created", featureLabel)},
+		}
+
+	case strings.Contains(lowerDesc, "invalid enum"):
+		fieldName := extractFieldNameFromDesc(desc, "")
+		guiDesc = fmt.Sprintf("Attempt to set '%s' to an invalid option on the Add %s form and verify it is rejected", fieldName, featureLabel)
+		steps = []GUITestStep{
+			{StepNumber: 1, Action: "navigate", Target: screen, Expected: fmt.Sprintf("%s screen is displayed", screen)},
+			{StepNumber: 2, Action: "click", Target: "Add button", Expected: "Add form/dialog opens"},
+			{StepNumber: 3, Action: "select_invalid", Target: fieldName, Value: "invalid-value", Expected: "Invalid option is not selectable or error is shown"},
+			{StepNumber: 4, Action: "verify", Target: "dropdown/select", Expected: fmt.Sprintf("Only valid options are available for '%s'", fieldName)},
+		}
+
+	case strings.Contains(lowerDesc, "pattern violation"):
+		fieldName := extractFieldNameFromDesc(desc, "")
+		guiDesc = fmt.Sprintf("Enter value with invalid pattern/format in '%s' field on Add %s form and verify validation error", fieldName, featureLabel)
+		steps = []GUITestStep{
+			{StepNumber: 1, Action: "navigate", Target: screen, Expected: fmt.Sprintf("%s screen is displayed", screen)},
+			{StepNumber: 2, Action: "click", Target: "Add button", Expected: "Add form/dialog opens"},
+			{StepNumber: 3, Action: "type", Target: fieldName, Value: "invalid-format-value", Expected: "Value entered"},
+			{StepNumber: 4, Action: "click", Target: "Save / Submit button", Expected: "Form submission attempted"},
+			{StepNumber: 5, Action: "verify_error", Target: fieldName, Expected: fmt.Sprintf("Format/pattern validation error shown for '%s'", fieldName)},
+		}
+
+	default:
+		guiDesc = fmt.Sprintf("Via GUI: %s", desc)
+		steps = []GUITestStep{
+			{StepNumber: 1, Action: "navigate", Target: screen, Expected: fmt.Sprintf("%s screen is displayed", screen)},
+			{StepNumber: 2, Action: "perform_negative", Target: "form", Expected: desc},
+			{StepNumber: 3, Action: "verify_error", Target: "form", Expected: "Appropriate error message is displayed"},
+		}
+	}
+
+	tc := &GUITestCase{
+		TestCaseID:  fmt.Sprintf("GUI_%s_%04d", featureSlug, *counter),
+		FeatureName: featureLabel,
+		Priority:    apiTC.Priority,
+		Automation:  "Automatable",
+		Type:        "negative",
+		Description: guiDesc,
+		Screen:      screen,
+		Steps:       steps,
+	}
+	*counter++
+	return tc
+}
+
+// translateBoundaryToGUI converts a boundary API test into a GUI field boundary test.
+func translateBoundaryToGUI(apiTC apiTestCaseInfo, featureLabel, featureSlug string,
+	screensByRole map[string]string, fields []apiField,
+	screenWidgets map[string][]FigmaComponent, mappings map[string]FigmaMappingRow,
+	counter *int) *GUITestCase {
+
+	screen := pickScreen(screensByRole, "add", "list")
+	desc := apiTC.Description
+
+	// Extract the field being tested and value from the boundary description
+	fieldName := extractFieldNameFromDesc(desc, "")
+	boundaryValue := extractBoundaryValue(desc)
+
+	guiDesc := fmt.Sprintf("Enter boundary value '%s' in '%s' field via Add %s form and verify it is accepted/handled correctly",
+		boundaryValue, fieldName, featureLabel)
+	if strings.Contains(strings.ToLower(desc), "min") {
+		guiDesc = fmt.Sprintf("Enter minimum boundary value '%s' in '%s' field via Add %s form and verify it is accepted",
+			boundaryValue, fieldName, featureLabel)
+	} else if strings.Contains(strings.ToLower(desc), "max") {
+		guiDesc = fmt.Sprintf("Enter maximum boundary value '%s' in '%s' field via Add %s form and verify it is accepted or properly truncated",
+			boundaryValue, fieldName, featureLabel)
+	}
+
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: screen, Expected: fmt.Sprintf("%s screen is displayed", screen)},
+		{StepNumber: 2, Action: "click", Target: "Add button", Expected: "Add form/dialog opens"},
+		{StepNumber: 3, Action: "fill_required_fields", Target: "form", Expected: "Required fields populated with valid values"},
+		{StepNumber: 4, Action: "type", Target: fieldName, Value: boundaryValue, Expected: fmt.Sprintf("Value '%s' entered in '%s'", boundaryValue, fieldName)},
+		{StepNumber: 5, Action: "click", Target: "Save / Submit button", Expected: "Form is submitted"},
+		{StepNumber: 6, Action: "verify", Target: "result", Expected: fmt.Sprintf("%s is created/updated with boundary value in '%s'", featureLabel, fieldName)},
+	}
+
+	tc := &GUITestCase{
+		TestCaseID:  fmt.Sprintf("GUI_%s_%04d", featureSlug, *counter),
+		FeatureName: featureLabel,
+		Priority:    apiTC.Priority,
+		Automation:  "Automatable",
+		Type:        "boundary",
+		Description: guiDesc,
+		Screen:      screen,
+		Steps:       steps,
+	}
+	*counter++
+	return tc
+}
+
+// ---- Step Builders for Functional Scenarios ----
+
+func pickScreen(roles map[string]string, preferred ...string) string {
+	for _, role := range preferred {
+		if s, ok := roles[role]; ok {
+			return s
+		}
+	}
+	for _, s := range roles {
+		return s
+	}
+	return "Main screen"
+}
+
+func fieldFillSteps(fields []apiField, startStep int) []GUITestStep {
+	var steps []GUITestStep
+	for i, f := range fields {
+		if i >= 5 { // cap at 5 fields to keep steps manageable
+			break
+		}
+		val := f.SampleValue
+		if val == "" {
+			val = "test-value"
+		}
+		steps = append(steps, GUITestStep{
+			StepNumber: startStep + i,
+			Action:     "fill",
+			Target:     f.Name,
+			Value:      val,
+			Expected:   fmt.Sprintf("'%s' field set to '%s'", f.Name, val),
+		})
+	}
+	return steps
+}
+
+func buildCreateVerifySteps(feature string, roles map[string]string, fields []apiField) []GUITestStep {
+	addScreen := pickScreen(roles, "add", "list")
+	listScreen := pickScreen(roles, "list", "add")
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s list screen is displayed", feature)},
+		{StepNumber: 2, Action: "click", Target: "Add / Create button", Expected: fmt.Sprintf("%s form opens", addScreen)},
+	}
+	fills := fieldFillSteps(fields, 3)
+	steps = append(steps, fills...)
+	next := 3 + len(fills)
+	steps = append(steps,
+		GUITestStep{StepNumber: next, Action: "click", Target: "Save / Submit button", Expected: fmt.Sprintf("%s is created successfully", feature)},
+		GUITestStep{StepNumber: next + 1, Action: "verify_toast", Target: "success notification", Expected: "Success message is displayed"},
+		GUITestStep{StepNumber: next + 2, Action: "verify_row", Target: listScreen, Expected: fmt.Sprintf("New %s appears in the list with correct values", feature)},
+	)
+	return steps
+}
+
+func buildCreateDeleteSteps(feature string, roles map[string]string, fields []apiField) []GUITestStep {
+	addScreen := pickScreen(roles, "add", "list")
+	listScreen := pickScreen(roles, "list", "add")
+	deleteScreen := pickScreen(roles, "delete", "list")
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s list screen is displayed", feature)},
+		{StepNumber: 2, Action: "click", Target: "Add / Create button", Expected: fmt.Sprintf("%s form opens", addScreen)},
+	}
+	fills := fieldFillSteps(fields, 3)
+	steps = append(steps, fills...)
+	next := 3 + len(fills)
+	steps = append(steps,
+		GUITestStep{StepNumber: next, Action: "click", Target: "Save / Submit button", Expected: fmt.Sprintf("%s is created", feature)},
+		GUITestStep{StepNumber: next + 1, Action: "verify_row", Target: listScreen, Expected: fmt.Sprintf("New %s appears in list", feature)},
+		GUITestStep{StepNumber: next + 2, Action: "select_row", Target: fmt.Sprintf("created %s", feature), Expected: "Row is selected"},
+		GUITestStep{StepNumber: next + 3, Action: "click", Target: "Delete button", Expected: fmt.Sprintf("%s opens", deleteScreen)},
+		GUITestStep{StepNumber: next + 4, Action: "confirm", Target: "Delete confirmation dialog", Expected: "Deletion is confirmed"},
+		GUITestStep{StepNumber: next + 5, Action: "verify_removed", Target: listScreen, Expected: fmt.Sprintf("%s is removed from the list", feature)},
+	)
+	return steps
+}
+
+func buildCreateUpdateSteps(feature string, roles map[string]string, fields []apiField) []GUITestStep {
+	addScreen := pickScreen(roles, "add", "list")
+	listScreen := pickScreen(roles, "list", "add")
+	editScreen := pickScreen(roles, "edit", "list")
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s list screen is displayed", feature)},
+		{StepNumber: 2, Action: "click", Target: "Add / Create button", Expected: fmt.Sprintf("%s form opens", addScreen)},
+	}
+	fills := fieldFillSteps(fields, 3)
+	steps = append(steps, fills...)
+	next := 3 + len(fills)
+	steps = append(steps,
+		GUITestStep{StepNumber: next, Action: "click", Target: "Save / Submit button", Expected: fmt.Sprintf("%s is created", feature)},
+		GUITestStep{StepNumber: next + 1, Action: "select_row", Target: fmt.Sprintf("created %s", feature), Expected: "Row is selected"},
+		GUITestStep{StepNumber: next + 2, Action: "click", Target: "Edit button", Expected: fmt.Sprintf("%s opens with current values", editScreen)},
+		GUITestStep{StepNumber: next + 3, Action: "modify_fields", Target: "editable fields", Value: "updated values", Expected: "Fields are updated with new values"},
+		GUITestStep{StepNumber: next + 4, Action: "click", Target: "Save / Submit button", Expected: "Changes are saved"},
+		GUITestStep{StepNumber: next + 5, Action: "verify_row", Target: listScreen, Expected: fmt.Sprintf("%s shows updated values in list", feature)},
+	)
+	return steps
+}
+
+func buildCRUDLifecycleSteps(feature string, roles map[string]string, fields []apiField) []GUITestStep {
+	addScreen := pickScreen(roles, "add", "list")
+	listScreen := pickScreen(roles, "list", "add")
+	editScreen := pickScreen(roles, "edit", "list")
+	deleteScreen := pickScreen(roles, "delete", "list")
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s list screen is displayed", feature)},
+		{StepNumber: 2, Action: "click", Target: "Add / Create button", Expected: fmt.Sprintf("%s form opens", addScreen)},
+	}
+	fills := fieldFillSteps(fields, 3)
+	steps = append(steps, fills...)
+	next := 3 + len(fills)
+	steps = append(steps,
+		GUITestStep{StepNumber: next, Action: "click", Target: "Save / Submit button", Expected: fmt.Sprintf("%s is created successfully", feature)},
+		GUITestStep{StepNumber: next + 1, Action: "verify_row", Target: listScreen, Expected: fmt.Sprintf("New %s visible in list", feature)},
+		GUITestStep{StepNumber: next + 2, Action: "click_row", Target: fmt.Sprintf("created %s", feature), Expected: "Detail/edit view opens"},
+		GUITestStep{StepNumber: next + 3, Action: "verify_details", Target: "detail view", Expected: "All field values match what was entered"},
+		GUITestStep{StepNumber: next + 4, Action: "click", Target: "Edit button", Expected: fmt.Sprintf("%s opens", editScreen)},
+		GUITestStep{StepNumber: next + 5, Action: "modify_fields", Target: "editable fields", Value: "updated values", Expected: "Fields updated"},
+		GUITestStep{StepNumber: next + 6, Action: "click", Target: "Save / Submit button", Expected: "Changes saved"},
+		GUITestStep{StepNumber: next + 7, Action: "verify_row", Target: listScreen, Expected: "Updated values reflected in list"},
+		GUITestStep{StepNumber: next + 8, Action: "select_row", Target: fmt.Sprintf("updated %s", feature), Expected: "Row selected"},
+		GUITestStep{StepNumber: next + 9, Action: "click", Target: "Delete button", Expected: fmt.Sprintf("%s opens", deleteScreen)},
+		GUITestStep{StepNumber: next + 10, Action: "confirm", Target: "Delete confirmation", Expected: "Deletion confirmed"},
+		GUITestStep{StepNumber: next + 11, Action: "verify_removed", Target: listScreen, Expected: fmt.Sprintf("%s no longer in list", feature)},
+	)
+	return steps
+}
+
+func buildPartialUpdateSteps(feature string, roles map[string]string, fields []apiField) []GUITestStep {
+	listScreen := pickScreen(roles, "list", "add")
+	editScreen := pickScreen(roles, "edit", "list")
+	return []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s list screen is displayed", feature)},
+		{StepNumber: 2, Action: "select_row", Target: fmt.Sprintf("existing %s", feature), Expected: "Row is selected"},
+		{StepNumber: 3, Action: "click", Target: "Edit button", Expected: fmt.Sprintf("%s opens with current values", editScreen)},
+		{StepNumber: 4, Action: "verify_prefilled", Target: "all fields", Expected: "Form fields show current values"},
+		{StepNumber: 5, Action: "modify_fields", Target: "one or two fields only", Value: "new value", Expected: "Only selected fields changed, others untouched"},
+		{StepNumber: 6, Action: "click", Target: "Save / Submit button", Expected: "Changes saved"},
+		{StepNumber: 7, Action: "verify_row", Target: listScreen, Expected: "Only modified fields show new values; unchanged fields retain original values"},
 	}
 }
 
-// buildTestSteps generates test steps appropriate for the widget type and action.
-func buildTestSteps(screen, widgetName string, wt WidgetType, action TestAction, field *apiField) []GUITestStep {
+func buildIdempotentCreateSteps(feature string, roles map[string]string, fields []apiField) []GUITestStep {
+	addScreen := pickScreen(roles, "add", "list")
+	listScreen := pickScreen(roles, "list", "add")
 	steps := []GUITestStep{
-		{StepNumber: 1, Action: "navigate", Target: screen, Expected: fmt.Sprintf("%s screen is displayed", screen)},
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s list screen is displayed", feature)},
+		{StepNumber: 2, Action: "click", Target: "Add / Create button", Expected: fmt.Sprintf("%s form opens", addScreen)},
 	}
-
-	switch action.Name {
-	case "type_text":
-		value := "test-value"
-		if field != nil && field.SampleValue != "" {
-			value = field.SampleValue
-		}
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: "click", Target: widgetName, Expected: fmt.Sprintf("%s field is focused", widgetName)},
-			GUITestStep{StepNumber: 3, Action: "type", Target: widgetName, Value: value, Expected: fmt.Sprintf("Value %q is entered in %s", value, widgetName)},
-			GUITestStep{StepNumber: 4, Action: "verify_value", Target: widgetName, Value: value, Expected: fmt.Sprintf("Field displays %q", value)},
-		)
-
-	case "clear_text":
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: "click", Target: widgetName, Expected: fmt.Sprintf("%s field is focused", widgetName)},
-			GUITestStep{StepNumber: 3, Action: "clear", Target: widgetName, Expected: "Field is cleared"},
-			GUITestStep{StepNumber: 4, Action: "verify_value", Target: widgetName, Value: "", Expected: "Field is empty"},
-		)
-
-	case "test_max_length":
-		maxLen := "255"
-		if field != nil && field.MaxLength != "" {
-			maxLen = field.MaxLength
-		}
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: "click", Target: widgetName, Expected: fmt.Sprintf("%s field is focused", widgetName)},
-			GUITestStep{StepNumber: 3, Action: "type", Target: widgetName, Value: fmt.Sprintf("[string exceeding %s chars]", maxLen), Expected: "Text is truncated or error shown"},
-			GUITestStep{StepNumber: 4, Action: "verify", Target: widgetName, Expected: fmt.Sprintf("Field enforces max length of %s", maxLen)},
-		)
-
-	case "test_empty":
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: "clear", Target: widgetName, Expected: "Field is empty"},
-			GUITestStep{StepNumber: 3, Action: "click", Target: "Submit / Save button", Expected: "Form submission attempted"},
-			GUITestStep{StepNumber: 4, Action: "verify_error", Target: widgetName, Expected: "Validation error is shown for required field"},
-		)
-
-	case "test_special_chars":
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: "type", Target: widgetName, Value: `<script>alert('xss')</script>`, Expected: "Special characters handled safely"},
-			GUITestStep{StepNumber: 3, Action: "verify", Target: widgetName, Expected: "Input is sanitized or rejected"},
-		)
-
-	case "select_option", "select_multiple":
-		value := "Option 1"
-		if field != nil && field.SampleValue != "" {
-			value = field.SampleValue
-		}
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: "click", Target: widgetName, Expected: "Dropdown opens"},
-			GUITestStep{StepNumber: 3, Action: "select", Target: widgetName, Value: value, Expected: fmt.Sprintf("%q is selected", value)},
-			GUITestStep{StepNumber: 4, Action: "verify_selected", Target: widgetName, Value: value, Expected: fmt.Sprintf("Selected value is %q", value)},
-		)
-
-	case "check", "uncheck":
-		expected := "checked"
-		if action.Name == "uncheck" {
-			expected = "unchecked"
-		}
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: action.Name, Target: widgetName, Expected: fmt.Sprintf("Checkbox is %s", expected)},
-			GUITestStep{StepNumber: 3, Action: "verify_state", Target: widgetName, Value: expected, Expected: fmt.Sprintf("Checkbox state is %s", expected)},
-		)
-
-	case "click":
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: "click", Target: widgetName, Expected: "Button click action is triggered"},
-			GUITestStep{StepNumber: 3, Action: "verify", Target: "page state", Expected: "Expected action occurred (dialog/navigation/form submit)"},
-		)
-
-	case "verify_visible", "verify_value", "verify_selected", "verify_state",
-		"verify_options", "verify_disabled", "verify_placeholder":
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: action.Name, Target: widgetName, Expected: action.Description},
-		)
-
-	case "toggle_on", "toggle_off":
-		state := "ON"
-		if action.Name == "toggle_off" {
-			state = "OFF"
-		}
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: "click", Target: widgetName, Expected: fmt.Sprintf("Toggle is switched %s", state)},
-			GUITestStep{StepNumber: 3, Action: "verify_state", Target: widgetName, Value: state, Expected: fmt.Sprintf("Toggle shows %s state", state)},
-		)
-
-	case "search_option":
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: "click", Target: widgetName, Expected: "Dropdown/search opens"},
-			GUITestStep{StepNumber: 3, Action: "type", Target: widgetName + " search", Value: "search term", Expected: "Options are filtered"},
-			GUITestStep{StepNumber: 4, Action: "verify", Target: "filtered results", Expected: "Only matching options are shown"},
-		)
-
-	case "test_no_selection":
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: "verify", Target: widgetName, Expected: "No option is selected"},
-			GUITestStep{StepNumber: 3, Action: "click", Target: "Submit / Save button", Expected: "Form submission attempted"},
-			GUITestStep{StepNumber: 4, Action: "verify_error", Target: widgetName, Expected: "Required field validation error shown"},
-		)
-
-	default:
-		// Generic action
-		steps = append(steps,
-			GUITestStep{StepNumber: 2, Action: action.Name, Target: widgetName, Expected: action.Description},
-		)
-	}
-
+	fills := fieldFillSteps(fields, 3)
+	steps = append(steps, fills...)
+	next := 3 + len(fills)
+	steps = append(steps,
+		GUITestStep{StepNumber: next, Action: "click", Target: "Save / Submit button", Expected: fmt.Sprintf("%s is created", feature)},
+		GUITestStep{StepNumber: next + 1, Action: "click", Target: "Add / Create button", Expected: "Add form opens again"},
+		GUITestStep{StepNumber: next + 2, Action: "fill_same_values", Target: "form", Expected: "Same values entered as first creation"},
+		GUITestStep{StepNumber: next + 3, Action: "click", Target: "Save / Submit button", Expected: "Form submission attempted"},
+		GUITestStep{StepNumber: next + 4, Action: "verify_error", Target: "form", Expected: "Duplicate/conflict error message is displayed"},
+		GUITestStep{StepNumber: next + 5, Action: "verify_count", Target: listScreen, Expected: fmt.Sprintf("Only one %s exists, no duplicate created", feature)},
+	)
 	return steps
+}
+
+func buildDeploySteps(feature string, roles map[string]string, fields []apiField, desc string) []GUITestStep {
+	listScreen := pickScreen(roles, "list", "add")
+	return []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s list screen is displayed", feature)},
+		{StepNumber: 2, Action: "create_or_select", Target: feature, Expected: fmt.Sprintf("%s is available in list", feature)},
+		{StepNumber: 3, Action: "configure_deployment", Target: "deployment scope", Expected: "Device/group scope is configured"},
+		{StepNumber: 4, Action: "click", Target: "Deploy button", Expected: "Deployment is initiated"},
+		{StepNumber: 5, Action: "verify_status", Target: "deployment status", Expected: "Deployment completes successfully"},
+		{StepNumber: 6, Action: "verify", Target: "device config", Expected: "Deployed configuration matches expected values"},
+	}
+}
+
+// extractFieldNameFromDesc extracts a field name from test description text.
+func extractFieldNameFromDesc(desc, marker string) string {
+	// Try "field 'xxx'" or "field \"xxx\""
+	re := regexp.MustCompile(`(?:field|Test)\s+['"]?([a-zA-Z0-9_-]+)['"]?`)
+	if m := re.FindStringSubmatch(desc); len(m) > 1 {
+		return m[1]
+	}
+	// Try "without required field 'xxx'"
+	if marker != "" {
+		re2 := regexp.MustCompile(marker + `\s+['"]?([a-zA-Z0-9_-]+)['"]?`)
+		if m := re2.FindStringSubmatch(desc); len(m) > 1 {
+			return m[1]
+		}
+	}
+	return "field"
+}
+
+// extractBoundaryValue extracts the test value from a boundary description like "server='1.0.0.1'"
+func extractBoundaryValue(desc string) string {
+	re := regexp.MustCompile(`=\s*'([^']+)'`)
+	if m := re.FindStringSubmatch(desc); len(m) > 1 {
+		return m[1]
+	}
+	re2 := regexp.MustCompile(`value\s+'([^']+)'`)
+	if m := re2.FindStringSubmatch(desc); len(m) > 1 {
+		return m[1]
+	}
+	return "boundary-value"
 }
 
 // apiField captures field metadata extracted from the API test plan.
@@ -618,37 +1030,6 @@ func extractFieldsFromAPIPlan(plan map[string]interface{}) []apiField {
 		}
 	}
 	return fields
-}
-
-// findMatchingField tries to match a Figma widget name to an API field.
-func findMatchingField(widgetName string, fields []apiField) *apiField {
-	lowerWidget := strings.ToLower(widgetName)
-
-	// Direct name match
-	for i := range fields {
-		if strings.EqualFold(fields[i].Name, widgetName) {
-			return &fields[i]
-		}
-	}
-
-	// Partial match: widget name contains field name or vice versa
-	for i := range fields {
-		lowerField := strings.ToLower(fields[i].Name)
-		if strings.Contains(lowerWidget, lowerField) || strings.Contains(lowerField, lowerWidget) {
-			return &fields[i]
-		}
-	}
-
-	// Slug match
-	widgetSlug := toSlug(widgetName)
-	for i := range fields {
-		fieldSlug := toSlug(fields[i].Name)
-		if widgetSlug == fieldSlug || strings.Contains(widgetSlug, fieldSlug) || strings.Contains(fieldSlug, widgetSlug) {
-			return &fields[i]
-		}
-	}
-
-	return nil
 }
 
 // fetchJiraStoryDetails fetches summary, description text, and acceptance criteria from a Jira issue.
