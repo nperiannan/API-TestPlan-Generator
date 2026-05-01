@@ -167,3 +167,9 @@ Binaries are gitignored and not committed; the rule ensures local copies stay in
 ### Commit cadence
 
 > **Commit and push to `origin/main` as soon as a logical change is complete** — do not batch unrelated changes into a single commit.
+
+### Clean working branch
+
+> **The working branch must always be clean before starting new work and after completing a task.**
+> Run `git status` and ensure no modified or untracked source files remain outside of intentionally gitignored paths (`bin/`, `sources/PlatformCommonModels/`, `sources/PlatformServices/`, `.venv/`, `Testplans/`).
+> A clean branch means `git status` reports either "nothing to commit" or only those ignored paths.
