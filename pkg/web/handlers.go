@@ -1382,6 +1382,118 @@ func (s *Server) handleJiraProjects(c *gin.Context) {
 	c.JSON(resp.StatusCode, result)
 }
 
+// handleJiraFigmaLinks extracts Figma URLs from a Jira issue description and comments.
+func (s *Server) handleJiraFigmaLinks(c *gin.Context) {
+	jcfg, err := s.loadJiraConfig()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Jira not configured"})
+		return
+	}
+
+	key := strings.TrimSpace(c.Param("key"))
+	issueKeyRe := regexp.MustCompile(`^[A-Z]+-\d+$`)
+	if !issueKeyRe.MatchString(key) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid Jira issue key"})
+		return
+	}
+
+	result, _, err := s.fetchJiraIssue(jcfg, key)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+		return
+	}
+
+	data, _ := json.Marshal(result)
+	var issue struct {
+		Fields struct {
+			Summary     string      `json:"summary"`
+			Description interface{} `json:"description"`
+		} `json:"fields"`
+	}
+	json.Unmarshal(data, &issue)
+
+	// Extract all text from the issue (description in ADF format)
+	descText := ""
+	if issue.Fields.Description != nil {
+		descText = extractADFText(issue.Fields.Description)
+	}
+
+	// Also extract raw URLs from ADF marks (hyperlinks)
+	var allURLs []string
+	extractADFURLs(issue.Fields.Description, &allURLs)
+
+	// Search for Figma URLs in text + extracted URLs
+	figmaRe := regexp.MustCompile(`https?://(?:www\.)?figma\.com/(?:file|design|proto)/([a-zA-Z0-9]+)(?:/[^?\s]*)?(?:\?[^\s]*node-id=([0-9]+(?:[:-][0-9]+)?))?`)
+
+	allText := descText + "\n" + strings.Join(allURLs, "\n")
+	matches := figmaRe.FindAllStringSubmatch(allText, -1)
+
+	type figmaLink struct {
+		URL     string `json:"url"`
+		FileKey string `json:"fileKey"`
+		NodeID  string `json:"nodeId"`
+	}
+	seen := map[string]bool{}
+	var links []figmaLink
+	for _, m := range matches {
+		fileKey := m[1]
+		nodeID := ""
+		if len(m) > 2 {
+			nodeID = strings.ReplaceAll(m[2], ":", "-")
+		}
+		dedupKey := fileKey + "|" + nodeID
+		if seen[dedupKey] {
+			continue
+		}
+		seen[dedupKey] = true
+		links = append(links, figmaLink{URL: m[0], FileKey: fileKey, NodeID: nodeID})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"issueKey": key,
+		"summary":  issue.Fields.Summary,
+		"links":    links,
+	})
+}
+
+// extractADFURLs extracts hyperlink URLs from Atlassian Document Format nodes.
+func extractADFURLs(node interface{}, urls *[]string) {
+	switch v := node.(type) {
+	case map[string]interface{}:
+		// Check marks for links
+		if marks, ok := v["marks"].([]interface{}); ok {
+			for _, mark := range marks {
+				m, _ := mark.(map[string]interface{})
+				if m["type"] == "link" {
+					if attrs, ok := m["attrs"].(map[string]interface{}); ok {
+						if href, ok := attrs["href"].(string); ok {
+							*urls = append(*urls, href)
+						}
+					}
+				}
+			}
+		}
+		// Check for inlineCard with url
+		if v["type"] == "inlineCard" {
+			if attrs, ok := v["attrs"].(map[string]interface{}); ok {
+				if url, ok := attrs["url"].(string); ok {
+					*urls = append(*urls, url)
+				}
+			}
+		}
+		// Recurse into content
+		if content, ok := v["content"].([]interface{}); ok {
+			for _, child := range content {
+				extractADFURLs(child, urls)
+			}
+		}
+	case []interface{}:
+		for _, item := range v {
+			extractADFURLs(item, urls)
+		}
+	}
+}
+
 // ---------- GUI Test Plan Download ----------
 
 func (s *Server) handleDownloadGUITestPlan(c *gin.Context) {
@@ -1418,8 +1530,12 @@ func (s *Server) handleDownloadGUITestPlan(c *gin.Context) {
 		}
 		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s.xlsx", filename))
 		c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", xlsxData)
+	case "csv":
+		csvData := guiYamlToCSV(data)
+		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s.csv", filename))
+		c.Data(http.StatusOK, "text/csv", []byte(csvData))
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported format, use yaml/json/xlsx"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported format, use yaml/json/csv/xlsx"})
 	}
 }
 
@@ -1649,4 +1765,66 @@ func guiYamlToExcel(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("writing Excel: %w", err)
 	}
 	return buf.Bytes(), nil
+}
+
+// guiYamlToCSV converts a GUI test plan YAML to CSV format.
+func guiYamlToCSV(data []byte) string {
+	var plan struct {
+		Screens []struct {
+			ScreenName string `yaml:"screenName"`
+			Tests      []struct {
+				TestCaseID  string `yaml:"testCaseID"`
+				Priority    string `yaml:"priority"`
+				Type        string `yaml:"type"`
+				Description string `yaml:"description"`
+				Screen      string `yaml:"screen"`
+				Steps       []struct {
+					StepNumber int    `yaml:"stepNumber"`
+					Action     string `yaml:"action"`
+					Target     string `yaml:"target"`
+					Value      string `yaml:"value"`
+					Expected   string `yaml:"expected"`
+				} `yaml:"steps"`
+			} `yaml:"tests"`
+		} `yaml:"screens"`
+	}
+	if err := yaml.Unmarshal(data, &plan); err != nil {
+		return "Error parsing YAML"
+	}
+
+	var sb strings.Builder
+	sb.WriteString("Test Case ID,Screen,Type,Priority,Description,Precondition,Test Steps,Expected Results\n")
+
+	csvQuote := func(s string) string {
+		if strings.ContainsAny(s, ",\"\n") {
+			return "\"" + strings.ReplaceAll(s, "\"", "\"\"") + "\""
+		}
+		return s
+	}
+
+	for _, screen := range plan.Screens {
+		for _, tc := range screen.Tests {
+			var stepLines, expectedLines []string
+			for _, step := range tc.Steps {
+				stepLine := fmt.Sprintf("%d. %s → %s", step.StepNumber, step.Action, step.Target)
+				if step.Value != "" {
+					stepLine += fmt.Sprintf(" [value: %s]", step.Value)
+				}
+				stepLines = append(stepLines, stepLine)
+				expectedLines = append(expectedLines, fmt.Sprintf("%d. %s", step.StepNumber, step.Expected))
+			}
+			precond := fmt.Sprintf("Navigate to %s screen. Feature data available.", screen.ScreenName)
+			sb.WriteString(fmt.Sprintf("%s,%s,%s,%s,%s,%s,%s,%s\n",
+				csvQuote(tc.TestCaseID),
+				csvQuote(tc.Screen),
+				csvQuote(tc.Type),
+				csvQuote(tc.Priority),
+				csvQuote(tc.Description),
+				csvQuote(precond),
+				csvQuote(strings.Join(stepLines, "\n")),
+				csvQuote(strings.Join(expectedLines, "\n")),
+			))
+		}
+	}
+	return sb.String()
 }

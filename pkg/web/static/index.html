@@ -476,8 +476,10 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
         </div>
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
           <input type="text" id="guiGenJiraKey" placeholder="Jira issue key (optional, e.g. UX-2404)" style="min-width:220px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;">
+          <button class="btn btn-secondary" style="color:#333;" onclick="fetchFigmaFromJira()" id="btnFetchFigmaJira">&#128279; Fetch Figma from Jira</button>
           <button class="btn btn-success" onclick="generateGUITestPlan()" id="btnGuiGen">&#9654; Generate GUI Test Plan</button>
         </div>
+        <div id="guiJiraFigmaInfo" style="display:none;margin-bottom:16px;background:#f5f8ff;border:1px solid #d0ddf0;border-radius:8px;padding:12px;font-size:.9em;"></div>
         <div id="guiGenResults"></div>
       </div>
     </div>
@@ -2064,6 +2066,53 @@ function loadGuiGenFeatures() {
   }
 }
 
+async function fetchFigmaFromJira() {
+  const jiraKey = document.getElementById('guiGenJiraKey').value.trim();
+  if (!jiraKey) { showToast('Enter a Jira issue key first', 'error'); return; }
+  const btn = document.getElementById('btnFetchFigmaJira');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></div> Fetching...';
+  const infoDiv = document.getElementById('guiJiraFigmaInfo');
+  try {
+    const data = await apiJSON('/api/jira/issue/' + encodeURIComponent(jiraKey) + '/figma');
+    if (data.links && data.links.length > 0) {
+      // Auto-populate Figma fields with the first link found
+      var link = data.links[0];
+      var figmaKeyInput = document.getElementById('figmaFileKeyInput');
+      var figmaNodeInput = document.getElementById('figmaNodeIdInput');
+      if (figmaKeyInput && link.fileKey) figmaKeyInput.value = link.fileKey;
+      if (figmaNodeInput && link.nodeId) figmaNodeInput.value = link.nodeId;
+
+      var html = '<strong>&#10003; Found ' + data.links.length + ' Figma link(s) in ' + escapeHtml(jiraKey) + '</strong>';
+      html += ' — <em>' + escapeHtml(data.summary || '') + '</em>';
+      html += '<div style="margin-top:8px;">';
+      data.links.forEach(function(l, i) {
+        html += '<div style="margin-bottom:4px;">';
+        html += '<span style="font-family:monospace;font-size:.85em;">File: <strong>' + escapeHtml(l.fileKey) + '</strong>';
+        if (l.nodeId) html += ' | Node: <strong>' + escapeHtml(l.nodeId) + '</strong>';
+        html += '</span>';
+        if (i === 0) html += ' <span style="color:#43a047;font-weight:600;">(auto-filled &#8593;)</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+      infoDiv.innerHTML = html;
+      infoDiv.style.display = 'block';
+      showToast('Figma link(s) found and auto-filled from ' + jiraKey, 'success');
+    } else {
+      infoDiv.innerHTML = '<span style="color:#888;">No Figma links found in ' + escapeHtml(jiraKey) + ' description.</span>';
+      infoDiv.style.display = 'block';
+      showToast('No Figma links found in ' + jiraKey, 'error');
+    }
+  } catch (e) {
+    infoDiv.innerHTML = '<span style="color:#c62828;">Failed: ' + escapeHtml(e.message) + '</span>';
+    infoDiv.style.display = 'block';
+    showToast('Failed to fetch Figma from Jira: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '&#128279; Fetch Figma from Jira';
+  }
+}
+
 async function generateGUITestPlan() {
   const category = document.getElementById('guiGenCategory').value;
   const feature = document.getElementById('guiGenFeature').value;
@@ -2104,6 +2153,7 @@ async function generateGUITestPlan() {
       html += 'Sources: API <strong>' + escapeHtml(plan.sourceInfo.apiTestPlan) + '</strong>';
       if (plan.sourceInfo.figmaSection) html += ' + Figma <strong>' + escapeHtml(plan.sourceInfo.figmaSection) + '</strong>';
       if (plan.sourceInfo.jiraIssueKey) html += ' + Jira <strong>' + escapeHtml(plan.sourceInfo.jiraIssueKey) + '</strong>';
+      if (plan.sourceInfo.yangModel) html += ' + YANG <strong>' + escapeHtml(plan.sourceInfo.yangModel) + '</strong> (' + (plan.sourceInfo.yangFields||0) + ' params)';
       html += '</div>';
     }
     html += '</div>';
@@ -2117,17 +2167,32 @@ async function generateGUITestPlan() {
         html += '<span style="background:' + bg + ';padding:2px 8px;border-radius:4px;font-size:.78em;">' + escapeHtml(w.name) + ' <span style="color:#888;">(' + escapeHtml(w.typeName) + ')</span></span>';
       });
       html += '</div>';
-      html += '<table style="width:100%;font-size:.85em;"><thead><tr><th>ID</th><th>Widget</th><th>Type</th><th>Pri</th><th>Description</th><th>Steps</th></tr></thead><tbody>';
+      html += '<table style="width:100%;font-size:.85em;"><thead><tr><th>ID</th><th>Type</th><th>Pri</th><th>Description</th><th>Test Steps</th><th>Expected Results</th></tr></thead><tbody>';
       screen.tests.forEach(function(tc) {
         var priC = {P1:'#c62828',P2:'#f57c00',P3:'#1a73e8'};
         var rowBg = {functional:'#f5f8ff',boundary:'#fff8e1',negative:'#fff3f0'};
         html += '<tr style="background:' + (rowBg[tc.type]||'#fff') + ';">';
         html += '<td style="font-family:monospace;white-space:nowrap;">' + escapeHtml(tc.testCaseID) + '</td>';
-        html += '<td>' + escapeHtml(tc.widget || '') + '</td>';
         html += '<td><span style="background:#f5f0ff;padding:1px 6px;border-radius:3px;font-size:.85em;">' + escapeHtml(tc.type) + '</span></td>';
         html += '<td><span style="color:' + (priC[tc.priority]||'#888') + ';font-weight:600;">' + tc.priority + '</span></td>';
         html += '<td>' + escapeHtml(tc.description) + '</td>';
-        html += '<td>' + tc.steps.length + '</td>';
+        var steps = tc.steps || [];
+        if (steps.length > 0) {
+          html += '<td style="font-size:.82em;white-space:pre-line;">';
+          steps.forEach(function(st) {
+            var line = st.stepNumber + '. ' + escapeHtml(st.action) + ' → ' + escapeHtml(st.target);
+            if (st.value) line += ' [' + escapeHtml(st.value) + ']';
+            html += line + '\n';
+          });
+          html += '</td>';
+          html += '<td style="font-size:.82em;white-space:pre-line;">';
+          steps.forEach(function(st) {
+            html += st.stepNumber + '. ' + escapeHtml(st.expected || '') + '\n';
+          });
+          html += '</td>';
+        } else {
+          html += '<td style="color:#999;text-align:center;">—</td><td style="color:#999;text-align:center;">—</td>';
+        }
         html += '</tr>';
       });
       html += '</tbody></table></div>';
@@ -2161,6 +2226,7 @@ async function loadGuiPlans() {
         html += '<div class="download-options">';
         html += '<div class="download-option" onclick="downloadGUIPlan(\'' + escapeHtml(p.category) + '\',\'' + escapeHtml(p.feature) + '\',\'yaml\')">&#128196; YAML</div>';
         html += '<div class="download-option" onclick="downloadGUIPlan(\'' + escapeHtml(p.category) + '\',\'' + escapeHtml(p.feature) + '\',\'json\')">&#128203; JSON</div>';
+        html += '<div class="download-option" onclick="downloadGUIPlan(\'' + escapeHtml(p.category) + '\',\'' + escapeHtml(p.feature) + '\',\'csv\')">&#128200; CSV</div>';
         html += '<div class="download-option" style="font-weight:600;color:#1a73e8;" onclick="downloadGUIPlan(\'' + escapeHtml(p.category) + '\',\'' + escapeHtml(p.feature) + '\',\'xlsx\')">&#128209; Excel (.xlsx)</div>';
         html += '</div></div></td></tr>';
       });
@@ -2204,6 +2270,7 @@ async function viewGUIPlan(category, feature) {
     html += '<div><strong>Tests:</strong> ' + summary.totalTests + '</div>';
     if (plan.sourceInfo.figmaSection) html += '<div><strong>Figma:</strong> ' + escapeHtml(plan.sourceInfo.figmaSection) + '</div>';
     if (plan.sourceInfo.jiraIssueKey) html += '<div><strong>Jira:</strong> ' + escapeHtml(plan.sourceInfo.jiraIssueKey) + '</div>';
+    if (plan.sourceInfo.yangModel) html += '<div><strong>YANG:</strong> ' + escapeHtml(plan.sourceInfo.yangModel) + ' (' + (plan.sourceInfo.yangFields||0) + ' params' + (plan.sourceInfo.yangKeys ? ', keys: ' + escapeHtml(plan.sourceInfo.yangKeys) : '') + ')</div>';
     html += '</div>';
     if (summary.testsByCategory) {
       html += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">';
@@ -2215,8 +2282,17 @@ async function viewGUIPlan(category, feature) {
     }
     html += '</div>';
 
-    // Test case table
-    html += '<table><thead><tr><th onclick="sortViewerTable(0)">Test Case ID</th><th onclick="sortViewerTable(1)">Screen</th><th onclick="sortViewerTable(2)">Type</th><th onclick="sortViewerTable(3)">Priority</th><th onclick="sortViewerTable(4)">Description</th><th>Steps</th></tr></thead><tbody>';
+    // Download bar
+    html += '<div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">';
+    html += '<strong style="font-size:.9em;color:#555;">Download:</strong>';
+    html += '<button class="btn btn-sm btn-primary" onclick="downloadGUIPlan(\'' + escapeHtml(category) + '\',\'' + escapeHtml(feature) + '\',\'xlsx\')" style="font-weight:600;">&#128209; Excel (.xlsx)</button>';
+    html += '<button class="btn btn-sm btn-secondary" style="color:#333;" onclick="downloadGUIPlan(\'' + escapeHtml(category) + '\',\'' + escapeHtml(feature) + '\',\'csv\')">&#128200; CSV</button>';
+    html += '<button class="btn btn-sm btn-secondary" style="color:#333;" onclick="downloadGUIPlan(\'' + escapeHtml(category) + '\',\'' + escapeHtml(feature) + '\',\'yaml\')">&#128196; YAML</button>';
+    html += '<button class="btn btn-sm btn-secondary" style="color:#333;" onclick="downloadGUIPlan(\'' + escapeHtml(category) + '\',\'' + escapeHtml(feature) + '\',\'json\')">&#128203; JSON</button>';
+    html += '</div>';
+
+    // Test case table with steps
+    html += '<table><thead><tr><th onclick="sortViewerTable(0)">Test Case ID</th><th onclick="sortViewerTable(1)">Screen</th><th onclick="sortViewerTable(2)">Type</th><th onclick="sortViewerTable(3)">Priority</th><th onclick="sortViewerTable(4)">Description</th><th>Test Steps</th><th>Expected Results</th></tr></thead><tbody>';
     screens.forEach(function(s) {
       (s.tests || []).forEach(function(tc) {
         var priC = {P1:'#c62828',P2:'#f57c00',P3:'#1a73e8',P4:'#888'};
@@ -2227,7 +2303,25 @@ async function viewGUIPlan(category, feature) {
         html += '<td><span style="background:#e8eaf6;padding:1px 6px;border-radius:3px;font-size:.85em;">' + escapeHtml(tc.type) + '</span></td>';
         html += '<td><span style="color:' + (priC[tc.priority]||'#888') + ';font-weight:600;">' + tc.priority + '</span></td>';
         html += '<td>' + escapeHtml(tc.description) + '</td>';
-        html += '<td style="text-align:center;">' + (tc.steps||[]).length + '</td>';
+        // Steps column
+        var steps = tc.steps || [];
+        if (steps.length > 0) {
+          html += '<td style="font-size:.82em;white-space:pre-line;">';
+          steps.forEach(function(st) {
+            var line = st.stepNumber + '. ' + escapeHtml(st.action) + ' → ' + escapeHtml(st.target);
+            if (st.value) line += ' [' + escapeHtml(st.value) + ']';
+            html += line + '\n';
+          });
+          html += '</td>';
+          // Expected column
+          html += '<td style="font-size:.82em;white-space:pre-line;">';
+          steps.forEach(function(st) {
+            html += st.stepNumber + '. ' + escapeHtml(st.expected || '') + '\n';
+          });
+          html += '</td>';
+        } else {
+          html += '<td style="color:#999;text-align:center;">—</td><td style="color:#999;text-align:center;">—</td>';
+        }
         html += '</tr>';
       });
     });

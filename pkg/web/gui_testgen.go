@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/extremenetworks/testcase-generator/pkg/model"
+	"github.com/extremenetworks/testcase-generator/pkg/yang"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
 )
@@ -38,6 +40,9 @@ type GUISourceInfo struct {
 	FigmaSection     string `json:"figmaSection" yaml:"figmaSection"`
 	JiraIssueKey     string `json:"jiraIssueKey,omitempty" yaml:"jiraIssueKey,omitempty"`
 	JiraIssueSummary string `json:"jiraIssueSummary,omitempty" yaml:"jiraIssueSummary,omitempty"`
+	YangModel        string `json:"yangModel,omitempty" yaml:"yangModel,omitempty"`
+	YangFields       int    `json:"yangFields,omitempty" yaml:"yangFields,omitempty"`
+	YangKeys         string `json:"yangKeys,omitempty" yaml:"yangKeys,omitempty"`
 }
 
 // GUIScreen groups test cases by screen.
@@ -136,6 +141,18 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 	fields := extractFieldsFromAPIPlan(apiPlan)
 	apiTestCases := extractAPITestCases(apiPlan)
 	featureLabel := humanize(req.Feature) // "radius-server" -> "Radius Server"
+
+	// 1b. Load YANG model for this feature and enrich field metadata
+	yangFeature := s.loadYangFeature(req.Feature)
+	if yangFeature != nil {
+		fields = enrichFieldsWithYANG(fields, yangFeature)
+		log.Printf("GUI test gen: enriched %d fields with YANG data (keys=%v, params=%d)",
+			len(fields), yangFeature.Keys, len(yangFeature.Parameters))
+		// Also enrich fields inside each apiTestCaseInfo
+		for i := range apiTestCases {
+			apiTestCases[i].Fields = enrichFieldsWithYANG(apiTestCases[i].Fields, yangFeature)
+		}
+	}
 
 	// 2. Load Figma import results (screens + widgets)
 	figmaImport, err := s.store.LoadFigmaImport()
@@ -250,6 +267,127 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 		}
 	}
 
+	// --- E. YANG-driven GUI tests (default values, key field immutability, enum dropdowns) ---
+	if yangFeature != nil {
+		addScreen := screensByRole["add"]
+		if addScreen == "" {
+			addScreen = pickScreen(screensByRole, "add", "list")
+		}
+		editScreen := screensByRole["edit"]
+		if editScreen == "" {
+			editScreen = pickScreen(screensByRole, "edit", "list")
+		}
+
+		// Test: Verify default values are pre-filled in Add form
+		var defaultFields []string
+		for _, f := range fields {
+			if f.DefaultValue != "" {
+				defaultFields = append(defaultFields, f.Name)
+			}
+		}
+		if len(defaultFields) > 0 {
+			var defaultSteps []GUITestStep
+			defaultSteps = append(defaultSteps, GUITestStep{
+				StepNumber: 1, Action: "navigate", Target: addScreen,
+				Expected: fmt.Sprintf("%s screen is displayed", addScreen),
+			})
+			defaultSteps = append(defaultSteps, GUITestStep{
+				StepNumber: 2, Action: "click", Target: "Add / Create button",
+				Expected: "Add form opens with default values pre-filled",
+			})
+			stepN := 3
+			for _, f := range fields {
+				if f.DefaultValue != "" && stepN <= 7 {
+					defaultSteps = append(defaultSteps, GUITestStep{
+						StepNumber: stepN, Action: "verify_prefilled", Target: f.Name,
+						Value: f.DefaultValue,
+						Expected: fmt.Sprintf("'%s' field shows YANG default value '%s'", f.Name, f.DefaultValue),
+					})
+					stepN++
+				}
+			}
+			tc := GUITestCase{
+				TestCaseID:  fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature,
+				Priority:    "P2",
+				Automation:  "Automatable",
+				Type:        "functional",
+				Description: fmt.Sprintf("Open Add %s form and verify YANG default values are pre-filled for: %s", featureLabel, strings.Join(defaultFields, ", ")),
+				Screen:      addScreen,
+				Steps:       defaultSteps,
+			}
+			allTests = append(allTests, tc)
+			catCounts["functional"]++
+			priCounts["P2"]++
+			tcCounter++
+		}
+
+		// Test: Verify key fields are non-editable on Edit form
+		if len(yangFeature.Keys) > 0 && editScreen != "" {
+			var keySteps []GUITestStep
+			keySteps = append(keySteps,
+				GUITestStep{StepNumber: 1, Action: "navigate", Target: pickScreen(screensByRole, "list", "add"),
+					Expected: fmt.Sprintf("%s list screen is displayed", featureLabel)},
+				GUITestStep{StepNumber: 2, Action: "select_row", Target: fmt.Sprintf("existing %s", featureLabel),
+					Expected: "Row is selected"},
+				GUITestStep{StepNumber: 3, Action: "click", Target: "Edit button",
+					Expected: fmt.Sprintf("%s opens with current values", editScreen)},
+			)
+			stepN := 4
+			for _, key := range yangFeature.Keys {
+				if stepN <= 7 {
+					keySteps = append(keySteps, GUITestStep{
+						StepNumber: stepN, Action: "verify_readonly", Target: key,
+						Expected: fmt.Sprintf("Key field '%s' is read-only/disabled on edit form (YANG list key)", key),
+					})
+					stepN++
+				}
+			}
+			tc := GUITestCase{
+				TestCaseID:  fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature,
+				Priority:    "P1",
+				Automation:  "Automatable",
+				Type:        "functional",
+				Description: fmt.Sprintf("Edit existing %s and verify YANG key fields (%s) are non-editable", featureLabel, strings.Join(yangFeature.Keys, ", ")),
+				Screen:      editScreen,
+				Steps:       keySteps,
+			}
+			allTests = append(allTests, tc)
+			catCounts["functional"]++
+			priCounts["P1"]++
+			tcCounter++
+		}
+
+		// Test: Verify each enum dropdown shows all valid YANG options
+		for _, f := range fields {
+			if len(f.EnumValues) > 0 {
+				tc := GUITestCase{
+					TestCaseID:  fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+					FeatureName: req.Feature,
+					Priority:    "P2",
+					Automation:  "Automatable",
+					Type:        "functional",
+					Description: fmt.Sprintf("Open Add %s form and verify '%s' dropdown contains all valid YANG enum options: %s", featureLabel, f.Name, strings.Join(f.EnumValues, ", ")),
+					Screen:      addScreen,
+					Steps: []GUITestStep{
+						{StepNumber: 1, Action: "navigate", Target: addScreen, Expected: fmt.Sprintf("%s screen is displayed", addScreen)},
+						{StepNumber: 2, Action: "click", Target: "Add / Create button", Expected: "Add form opens"},
+						{StepNumber: 3, Action: "click", Target: f.Name + " dropdown", Expected: "Dropdown options are displayed"},
+						{StepNumber: 4, Action: "verify_options", Target: f.Name, Value: strings.Join(f.EnumValues, ", "), Expected: fmt.Sprintf("Dropdown shows exactly %d options: %s", len(f.EnumValues), strings.Join(f.EnumValues, ", "))},
+					},
+				}
+				allTests = append(allTests, tc)
+				catCounts["functional"]++
+				priCounts["P2"]++
+				tcCounter++
+			}
+		}
+
+		log.Printf("GUI test gen: added YANG-driven tests (defaults=%d, keys=%d, enums=%d)",
+			len(defaultFields), len(yangFeature.Keys), countEnumFields(fields))
+	}
+
 	// 6. Group tests by screen for output
 	testsByScreen := map[string][]GUITestCase{}
 	for _, tc := range allTests {
@@ -323,6 +461,9 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 			FigmaSection:     figmaImport.SectionName,
 			JiraIssueKey:     req.JiraIssueKey,
 			JiraIssueSummary: jiraSummary,
+			YangModel:        func() string { if yangFeature != nil { return yangFeature.Name } ; return "" }(),
+			YangFields:       func() int { if yangFeature != nil { return len(yangFeature.Parameters) } ; return 0 }(),
+			YangKeys:         func() string { if yangFeature != nil { return strings.Join(yangFeature.Keys, ", ") } ; return "" }(),
 		},
 		Screens: screens,
 		Summary: GUITestSummary{
@@ -641,23 +782,39 @@ func translateNegativeToGUI(apiTC apiTestCaseInfo, featureLabel, featureSlug str
 
 	case strings.Contains(lowerDesc, "invalid enum"):
 		fieldName := extractFieldNameFromDesc(desc, "")
+		// Find the field to get enum values from YANG
+		var enumHint string
+		for _, f := range fields {
+			if strings.EqualFold(f.Name, fieldName) && len(f.EnumValues) > 0 {
+				enumHint = fmt.Sprintf(" (valid options: %s)", strings.Join(f.EnumValues, ", "))
+				break
+			}
+		}
 		guiDesc = fmt.Sprintf("Attempt to set '%s' to an invalid option on the Add %s form and verify it is rejected", fieldName, featureLabel)
 		steps = []GUITestStep{
 			{StepNumber: 1, Action: "navigate", Target: screen, Expected: fmt.Sprintf("%s screen is displayed", screen)},
 			{StepNumber: 2, Action: "click", Target: "Add button", Expected: "Add form/dialog opens"},
-			{StepNumber: 3, Action: "select_invalid", Target: fieldName, Value: "invalid-value", Expected: "Invalid option is not selectable or error is shown"},
-			{StepNumber: 4, Action: "verify", Target: "dropdown/select", Expected: fmt.Sprintf("Only valid options are available for '%s'", fieldName)},
+			{StepNumber: 3, Action: "select_invalid", Target: fieldName, Value: "invalid-value", Expected: "Invalid option is not selectable or error is shown" + enumHint},
+			{StepNumber: 4, Action: "verify", Target: "dropdown/select", Expected: fmt.Sprintf("Only valid options are available for '%s'%s", fieldName, enumHint)},
 		}
 
 	case strings.Contains(lowerDesc, "pattern violation"):
 		fieldName := extractFieldNameFromDesc(desc, "")
+		// Find the field to get pattern from YANG
+		var patternHint string
+		for _, f := range fields {
+			if strings.EqualFold(f.Name, fieldName) && f.Pattern != "" {
+				patternHint = fmt.Sprintf(" (YANG pattern: %s)", f.Pattern)
+				break
+			}
+		}
 		guiDesc = fmt.Sprintf("Enter value with invalid pattern/format in '%s' field on Add %s form and verify validation error", fieldName, featureLabel)
 		steps = []GUITestStep{
 			{StepNumber: 1, Action: "navigate", Target: screen, Expected: fmt.Sprintf("%s screen is displayed", screen)},
 			{StepNumber: 2, Action: "click", Target: "Add button", Expected: "Add form/dialog opens"},
-			{StepNumber: 3, Action: "type", Target: fieldName, Value: "invalid-format-value", Expected: "Value entered"},
+			{StepNumber: 3, Action: "type", Target: fieldName, Value: "invalid-format-value", Expected: "Value entered" + patternHint},
 			{StepNumber: 4, Action: "click", Target: "Save / Submit button", Expected: "Form submission attempted"},
-			{StepNumber: 5, Action: "verify_error", Target: fieldName, Expected: fmt.Sprintf("Format/pattern validation error shown for '%s'", fieldName)},
+			{StepNumber: 5, Action: "verify_error", Target: fieldName, Expected: fmt.Sprintf("Format/pattern validation error shown for '%s'%s", fieldName, patternHint)},
 		}
 
 	default:
@@ -753,12 +910,41 @@ func fieldFillSteps(fields []apiField, startStep int) []GUITestStep {
 		if val == "" {
 			val = "test-value"
 		}
+
+		// Choose action based on YANG type
+		action := "fill"
+		expected := fmt.Sprintf("'%s' field set to '%s'", f.Name, val)
+
+		switch {
+		case f.YangType == "boolean":
+			action = "toggle"
+			if val == "" || val == "false" {
+				val = "true"
+			}
+			expected = fmt.Sprintf("'%s' toggle/switch set to %s", f.Name, val)
+		case f.YangType == "enumeration" || len(f.EnumValues) > 0:
+			action = "select"
+			if len(f.EnumValues) > 0 && val == "" {
+				val = f.EnumValues[0]
+			}
+			expected = fmt.Sprintf("'%s' dropdown set to '%s'", f.Name, val)
+		case strings.Contains(f.YangType, "int") || f.YangType == "uint32" || f.YangType == "uint16" || f.YangType == "uint8":
+			action = "fill"
+			expected = fmt.Sprintf("'%s' number field set to '%s'", f.Name, val)
+			if f.Min != "" && f.Max != "" {
+				expected += fmt.Sprintf(" (valid range: %s–%s)", f.Min, f.Max)
+			}
+		case f.IsKey:
+			action = "fill"
+			expected = fmt.Sprintf("'%s' key/identity field set to '%s' (non-editable after create)", f.Name, val)
+		}
+
 		steps = append(steps, GUITestStep{
 			StepNumber: startStep + i,
-			Action:     "fill",
+			Action:     action,
 			Target:     f.Name,
 			Value:      val,
-			Expected:   fmt.Sprintf("'%s' field set to '%s'", f.Name, val),
+			Expected:   expected,
 		})
 	}
 	return steps
@@ -892,14 +1078,29 @@ func buildIdempotentCreateSteps(feature string, roles map[string]string, fields 
 
 func buildDeploySteps(feature string, roles map[string]string, fields []apiField, desc string) []GUITestStep {
 	listScreen := pickScreen(roles, "list", "add")
+	// Per CONVENTIONS.md: scope→target-query→conflict-check→deploy→status→NOS-verify
 	return []GUITestStep{
 		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s list screen is displayed", feature)},
 		{StepNumber: 2, Action: "create_or_select", Target: feature, Expected: fmt.Sprintf("%s is available in list", feature)},
-		{StepNumber: 3, Action: "configure_deployment", Target: "deployment scope", Expected: "Device/group scope is configured"},
-		{StepNumber: 4, Action: "click", Target: "Deploy button", Expected: "Deployment is initiated"},
-		{StepNumber: 5, Action: "verify_status", Target: "deployment status", Expected: "Deployment completes successfully"},
-		{StepNumber: 6, Action: "verify", Target: "device config", Expected: "Deployed configuration matches expected values"},
+		{StepNumber: 3, Action: "navigate", Target: "Deployment / Scope settings", Expected: "Deployment scope configuration screen is displayed"},
+		{StepNumber: 4, Action: "select", Target: "Site Group / Site", Value: "authorized site", Expected: "Configuration profile scoped to site group/site"},
+		{StepNumber: 5, Action: "configure", Target: "Target query", Value: "target device/site", Expected: "Target device resolved via site/device query"},
+		{StepNumber: 6, Action: "click", Target: "Check Conflicts button", Expected: "Conflict check runs — no conflicts detected for target device"},
+		{StepNumber: 7, Action: "click", Target: "Deploy button", Expected: "Deployment is initiated to target device"},
+		{StepNumber: 8, Action: "verify_status", Target: "deployment status indicator", Expected: "Deployment status shows 'Success' or 'Completed'"},
+		{StepNumber: 9, Action: "verify", Target: "device configuration", Expected: "Deployed configuration on device matches cloud intent values"},
 	}
+}
+
+// countEnumFields counts fields that have enum values.
+func countEnumFields(fields []apiField) int {
+	n := 0
+	for _, f := range fields {
+		if len(f.EnumValues) > 0 {
+			n++
+		}
+	}
+	return n
 }
 
 // extractFieldNameFromDesc extracts a field name from test description text.
@@ -932,7 +1133,7 @@ func extractBoundaryValue(desc string) string {
 	return "boundary-value"
 }
 
-// apiField captures field metadata extracted from the API test plan.
+// apiField captures field metadata extracted from the API test plan, enriched with YANG data.
 type apiField struct {
 	Name        string
 	Type        string
@@ -941,6 +1142,15 @@ type apiField struct {
 	MinLength   string
 	Required    bool
 	Origin      string
+	// YANG enrichment
+	YangType     string   // e.g. "string", "uint32", "enumeration", "boolean", "union"
+	IsKey        bool     // YANG list key field (identity field, not editable after create)
+	EnumValues   []string // valid enum options from YANG
+	Pattern      string   // regex pattern constraint from YANG
+	DefaultValue string   // YANG default value
+	Description  string   // YANG description for the field
+	Min          string   // numeric min or minLength
+	Max          string   // numeric max or maxLength
 }
 
 // extractFieldsFromAPIPlan parses the API test plan YAML and extracts field metadata.
@@ -1140,4 +1350,167 @@ func extractAcceptanceCriteria(text string) []string {
 	}
 
 	return criteria
+}
+
+// ---------- YANG Enrichment ----------
+
+// loadYangFeature attempts to load YANG models and find the matching feature.
+func (s *Server) loadYangFeature(featureName string) *model.Feature {
+	cfg := s.resolveSourceConfig()
+	if cfg.YangDir == "" || !dirExists(cfg.YangDir) {
+		log.Printf("GUI test gen: YANG dir not found (%s), skipping YANG enrichment", cfg.YangDir)
+		return nil
+	}
+
+	parser := yang.NewParser(cfg.YangDir)
+	if err := parser.Parse(); err != nil {
+		log.Printf("GUI test gen: failed to parse YANG: %v", err)
+		return nil
+	}
+
+	features := parser.GetFeatures()
+	// Try exact match first
+	if f, ok := features[featureName]; ok {
+		log.Printf("GUI test gen: YANG feature '%s' found (%d params)", featureName, len(f.Parameters))
+		return f
+	}
+
+	// Try normalized name (e.g., "radius-server" matches "radius-server")
+	slug := strings.ToLower(strings.ReplaceAll(featureName, " ", "-"))
+	for name, f := range features {
+		if strings.ToLower(name) == slug {
+			log.Printf("GUI test gen: YANG feature '%s' matched as '%s' (%d params)", featureName, name, len(f.Parameters))
+			return f
+		}
+	}
+
+	// Try partial match
+	for name, f := range features {
+		if strings.Contains(strings.ToLower(name), slug) || strings.Contains(slug, strings.ToLower(name)) {
+			log.Printf("GUI test gen: YANG feature '%s' partially matched as '%s' (%d params)", featureName, name, len(f.Parameters))
+			return f
+		}
+	}
+
+	log.Printf("GUI test gen: no YANG feature match for '%s' among %d features", featureName, len(features))
+	return nil
+}
+
+// enrichFieldsWithYANG enriches API-extracted fields with YANG model data.
+func enrichFieldsWithYANG(fields []apiField, yangFeature *model.Feature) []apiField {
+	if yangFeature == nil {
+		return fields
+	}
+
+	// Build parameter lookup by name
+	paramByName := make(map[string]model.Parameter)
+	for _, p := range yangFeature.Parameters {
+		paramByName[strings.ToLower(p.Name)] = p
+		// Also index nested properties
+		for _, np := range p.NestedProperties {
+			paramByName[strings.ToLower(np.Name)] = np
+		}
+	}
+
+	keySet := make(map[string]bool)
+	for _, k := range yangFeature.Keys {
+		keySet[strings.ToLower(k)] = true
+	}
+
+	for i := range fields {
+		lowerName := strings.ToLower(fields[i].Name)
+		param, found := paramByName[lowerName]
+		if !found {
+			continue
+		}
+
+		// Enrich with YANG type
+		fields[i].YangType = param.YangType
+		fields[i].Description = param.Description
+		fields[i].IsKey = keySet[lowerName]
+		if param.Required {
+			fields[i].Required = true
+		}
+		if param.DefaultValue != nil {
+			fields[i].DefaultValue = fmt.Sprintf("%v", param.DefaultValue)
+		}
+
+		// Extract constraints
+		for _, c := range param.Constraints {
+			switch c.Type {
+			case model.ConstraintTypeEnum:
+				if vals, ok := c.Value.([]string); ok {
+					fields[i].EnumValues = vals
+				}
+			case model.ConstraintTypePattern:
+				fields[i].Pattern = fmt.Sprintf("%v", c.Value)
+			case model.ConstraintTypeMinLength:
+				fields[i].MinLength = fmt.Sprintf("%v", c.Value)
+				fields[i].Min = fmt.Sprintf("%v", c.Value)
+			case model.ConstraintTypeMaxLength:
+				fields[i].MaxLength = fmt.Sprintf("%v", c.Value)
+				fields[i].Max = fmt.Sprintf("%v", c.Value)
+			case model.ConstraintTypeMin:
+				fields[i].Min = fmt.Sprintf("%v", c.Value)
+			case model.ConstraintTypeMax:
+				fields[i].Max = fmt.Sprintf("%v", c.Value)
+			}
+		}
+
+		// If no sample value, use YANG default or first enum
+		if fields[i].SampleValue == "" {
+			if fields[i].DefaultValue != "" {
+				fields[i].SampleValue = fields[i].DefaultValue
+			} else if len(fields[i].EnumValues) > 0 {
+				fields[i].SampleValue = fields[i].EnumValues[0]
+			}
+		}
+	}
+
+	// Add any YANG fields not already in the API-extracted list
+	seen := make(map[string]bool)
+	for _, f := range fields {
+		seen[strings.ToLower(f.Name)] = true
+	}
+	for _, p := range yangFeature.Parameters {
+		if seen[strings.ToLower(p.Name)] {
+			continue
+		}
+		af := apiField{
+			Name:     p.Name,
+			YangType: p.YangType,
+			Required: p.Required,
+			IsKey:    keySet[strings.ToLower(p.Name)],
+			Origin:   "yang",
+		}
+		if p.DefaultValue != nil {
+			af.DefaultValue = fmt.Sprintf("%v", p.DefaultValue)
+			af.SampleValue = af.DefaultValue
+		}
+		af.Description = p.Description
+		for _, c := range p.Constraints {
+			switch c.Type {
+			case model.ConstraintTypeEnum:
+				if vals, ok := c.Value.([]string); ok {
+					af.EnumValues = vals
+					if af.SampleValue == "" && len(vals) > 0 {
+						af.SampleValue = vals[0]
+					}
+				}
+			case model.ConstraintTypePattern:
+				af.Pattern = fmt.Sprintf("%v", c.Value)
+			case model.ConstraintTypeMinLength:
+				af.MinLength = fmt.Sprintf("%v", c.Value)
+			case model.ConstraintTypeMaxLength:
+				af.MaxLength = fmt.Sprintf("%v", c.Value)
+			case model.ConstraintTypeMin:
+				af.Min = fmt.Sprintf("%v", c.Value)
+			case model.ConstraintTypeMax:
+				af.Max = fmt.Sprintf("%v", c.Value)
+			}
+		}
+		fields = append(fields, af)
+	}
+
+	return fields
 }
