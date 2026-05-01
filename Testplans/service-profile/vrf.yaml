@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T12:54:13+05:30"
+generatedAt: "2026-05-01T14:04:53+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -12,7 +12,7 @@ features:
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_7677
+            - testCaseID: TCXM_7707
               featureName: vrf
               priority: P1
               automation: Automatable
@@ -110,7 +110,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='description')].value
                       expected: Test resource created by automated test
                       description: Verify 'description' value is 'Test resource created by automated test' as set during create
-            - testCaseID: TCXM_7678
+            - testCaseID: TCXM_7708
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -201,7 +201,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify vrf retrieved — response contains modify enabled=false
-            - testCaseID: TCXM_7679
+            - testCaseID: TCXM_7709
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -282,7 +282,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify vrf with vrf no longer exists in the response
-            - testCaseID: TCXM_7680
+            - testCaseID: TCXM_7710
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -407,7 +407,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify vrf with vrf deleted successfully
-            - testCaseID: TCXM_7681
+            - testCaseID: TCXM_7711
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -498,7 +498,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify vrf retrieved — response contains modify enabled=false
-            - testCaseID: TCXM_7682
+            - testCaseID: TCXM_7712
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -574,7 +574,274 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of vrf with vrf is rejected (409 Conflict)
-            - testCaseID: TCXM_7683
+            - testCaseID: TCXM_7713
+              featureName: vrf
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Create vrf in a service profile, link it to a configuration profile, scope by device location, apply target-query, deploy, and verify
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for vrf deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createvrf
+                  description: Create vrf configuration with vrf
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /vrf-feature
+                    objectType: vrf
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: vrf-name
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: description
+                              origin: CC
+                              type: string
+                              value: Test resource created by automated test
+                          type: vrf
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vrf created successfully with vrf
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vrf created successfully with vrf
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify vrf is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /vrf-feature
+                    objectType: vrf
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for vrf service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-vrf
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify the deployed vrf configuration is present on the NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/vrf
+                  pathParams:
+                    deviceId: '{{DEVICE_ID}}'
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    siteGroupId: '{{SITE_GROUP_ID}}'
+                    siteId: '{{SITE_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+            - testCaseID: TCXM_7714
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -625,7 +892,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_7684
+            - testCaseID: TCXM_7715
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -715,7 +982,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='description')].value
                       expected: Test resource created by automated test
                       description: Verify field 'description' has value 'Test resource created by automated test' as sent on create
-            - testCaseID: TCXM_7685
+            - testCaseID: TCXM_7716
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -775,7 +1042,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: true
                       description: Verify optional field 'enabled' value is 'true' as set on create
-            - testCaseID: TCXM_7686
+            - testCaseID: TCXM_7717
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -835,7 +1102,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrf-name')].value
                       expected: VR-Mgmt
                       description: Verify optional field 'vrf-name' value is 'VR-Mgmt' as set on create
-            - testCaseID: TCXM_7687
+            - testCaseID: TCXM_7718
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -895,7 +1162,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='description')].value
                       expected: Test resource created by automated test
                       description: Verify optional field 'description' value is 'Test resource created by automated test' as set on create
-            - testCaseID: TCXM_7688
+            - testCaseID: TCXM_7719
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -959,7 +1226,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: true
                       description: Verify 'enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_7689
+            - testCaseID: TCXM_7720
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1023,7 +1290,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: false
                       description: Verify 'enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_7690
+            - testCaseID: TCXM_7721
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1087,7 +1354,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrf-name')].value
                       expected: test-value-1
                       description: Verify 'vrf-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_7691
+            - testCaseID: TCXM_7722
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1151,7 +1418,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrf-name')].value
                       expected: test-value-2
                       description: Verify 'vrf-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_7692
+            - testCaseID: TCXM_7723
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1203,7 +1470,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: true
                       description: Verify 'enabled' equals YANG-defined default value true
-            - testCaseID: TCXM_7693
+            - testCaseID: TCXM_7724
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1245,7 +1512,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7694
+            - testCaseID: TCXM_7725
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1287,7 +1554,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7695
+            - testCaseID: TCXM_7726
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1329,7 +1596,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7696
+            - testCaseID: TCXM_7727
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1371,7 +1638,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7697
+            - testCaseID: TCXM_7728
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1413,7 +1680,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7698
+            - testCaseID: TCXM_7729
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1455,7 +1722,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7699
+            - testCaseID: TCXM_7730
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1497,7 +1764,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7700
+            - testCaseID: TCXM_7731
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1539,7 +1806,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7701
+            - testCaseID: TCXM_7732
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1581,7 +1848,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7702
+            - testCaseID: TCXM_7733
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1623,7 +1890,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7703
+            - testCaseID: TCXM_7734
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1664,7 +1931,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7704
+            - testCaseID: TCXM_7735
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1705,7 +1972,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7705
+            - testCaseID: TCXM_7736
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1746,7 +2013,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7706
+            - testCaseID: TCXM_7737
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1787,7 +2054,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7707
+            - testCaseID: TCXM_7738
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1828,7 +2095,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7708
+            - testCaseID: TCXM_7739
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1869,7 +2136,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7709
+            - testCaseID: TCXM_7740
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1910,7 +2177,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7710
+            - testCaseID: TCXM_7741
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1951,7 +2218,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7711
+            - testCaseID: TCXM_7742
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -1992,7 +2259,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7712
+            - testCaseID: TCXM_7743
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2033,7 +2300,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7713
+            - testCaseID: TCXM_7744
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2074,7 +2341,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7714
+            - testCaseID: TCXM_7745
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2115,7 +2382,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7715
+            - testCaseID: TCXM_7746
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2156,7 +2423,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7716
+            - testCaseID: TCXM_7747
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2197,7 +2464,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7717
+            - testCaseID: TCXM_7748
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2238,8 +2505,1499 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
+            - testCaseID: TCXM_7749
+              featureName: vrf
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Detection] Create vrf in service profile, link to configuration profile, deploy baseline, simulate NOS change, verify conflict and blocked deployment'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for vrf deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createvrf
+                  description: Create vrf configuration with vrf
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /vrf-feature
+                    objectType: vrf
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: vrf-name
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: description
+                              origin: CC
+                              type: string
+                              value: Test resource created by automated test
+                          type: vrf
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vrf created successfully with vrf
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vrf created successfully with vrf
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify vrf is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /vrf-feature
+                    objectType: vrf
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for vrf service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-vrf-Additional-ConflictDetect
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify the deployed vrf configuration is present on the NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/vrf/{vr_name}/route
+                  pathParams:
+                    deviceId: '{{DEVICE_ID}}'
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    siteGroupId: '{{SITE_GROUP_ID}}'
+                    siteId: '{{SITE_ID}}'
+                    vr_name: vr-default
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting vrf value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/vrf/{vr_name}/route
+                  pathParams:
+                    vr_name: vr-default
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: vrf
+                    properties:
+                        enabled: false
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band vrf change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band vrf change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: detailed
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+            - testCaseID: TCXM_7750
+              featureName: vrf
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Resolution CC] Create vrf in service profile, deploy baseline, simulate NOS change, block deployment, resolve acceptCloud, deploy, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for vrf deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createvrf
+                  description: Create vrf configuration with vrf
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /vrf-feature
+                    objectType: vrf
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: vrf-name
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: description
+                              origin: CC
+                              type: string
+                              value: Test resource created by automated test
+                          type: vrf
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vrf created successfully with vrf
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vrf created successfully with vrf
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify vrf is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /vrf-feature
+                    objectType: vrf
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for vrf service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-vrf-Additional-ConflictCC
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify the deployed vrf configuration is present on the NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/vrf
+                  pathParams:
+                    deviceId: '{{DEVICE_ID}}'
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    siteGroupId: '{{SITE_GROUP_ID}}'
+                    siteId: '{{SITE_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting vrf value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/vrf/{vr_name}
+                  pathParams:
+                    vr_name: vr-default
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: vrf
+                    properties:
+                        enabled: false
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band vrf change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band vrf change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+                - name: resolveConflictCC
+                  description: Resolve device conflict with acceptCloud
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/device/conflict/resolve
+                  body:
+                    deviceResolutions:
+                        - deviceId: '{{DEVICE_ID}}'
+                          resolution: acceptCloud
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.results[0].status' equals success
+                    - Verify response contains '$.summary.numberOfConflictsResolved'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.results[0].status
+                      expected: success
+                    - type: jsonPathExists
+                      path: $.summary.numberOfConflictsResolved
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify the deployed vrf configuration is present on the NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/vrf
+                  pathParams:
+                    deviceId: '{{DEVICE_ID}}'
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    siteGroupId: '{{SITE_GROUP_ID}}'
+                    siteId: '{{SITE_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+                - name: verifyConflictCleared
+                  description: Verify conflict is cleared after resolution and deployment
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+            - testCaseID: TCXM_7751
+              featureName: vrf
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Resolution DD] Create vrf in service profile, deploy baseline, simulate NOS change, block deployment, resolve acceptDevice, deploy, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for vrf deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createvrf
+                  description: Create vrf configuration with vrf
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /vrf-feature
+                    objectType: vrf
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: vrf-name
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: description
+                              origin: CC
+                              type: string
+                              value: Test resource created by automated test
+                          type: vrf
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vrf created successfully with vrf
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vrf created successfully with vrf
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify vrf is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /vrf-feature
+                    objectType: vrf
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for vrf service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-vrf-Additional-ConflictDD
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify the deployed vrf configuration is present on the NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/vrf/{vr_name}/route
+                  pathParams:
+                    deviceId: '{{DEVICE_ID}}'
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    siteGroupId: '{{SITE_GROUP_ID}}'
+                    siteId: '{{SITE_ID}}'
+                    vr_name: vr-default
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting vrf value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/vrf
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: vrf
+                    properties:
+                        enabled: false
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band vrf change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band vrf change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+                - name: resolveConflictDD
+                  description: Resolve device conflict with acceptDevice
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/device/conflict/resolve
+                  body:
+                    deviceResolutions:
+                        - deviceId: '{{DEVICE_ID}}'
+                          resolution: acceptDevice
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.results[0].status' equals success
+                    - Verify response contains '$.summary.numberOfConflictsResolved'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.results[0].status
+                      expected: success
+                    - type: jsonPathExists
+                      path: $.summary.numberOfConflictsResolved
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify the deployed vrf configuration is present on the NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/vrf/{vr_name}/route
+                  pathParams:
+                    deviceId: '{{DEVICE_ID}}'
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    siteGroupId: '{{SITE_GROUP_ID}}'
+                    siteId: '{{SITE_ID}}'
+                    vr_name: vr-default
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
+                - name: verifyConflictCleared
+                  description: Verify conflict is cleared after resolution and deployment
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+            - testCaseID: TCXM_7752
+              featureName: vrf
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Override Deploy] Create vrf in service profile, create device override (enabled=false), deploy configuration profile, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for vrf deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createvrf
+                  description: Create vrf configuration with vrf
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /vrf-feature
+                    objectType: vrf
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: enabled
+                              origin: CC
+                              type: boolean
+                              value: true
+                            - name: vrf-name
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: description
+                              origin: CC
+                              type: string
+                              value: Test resource created by automated test
+                          type: vrf
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify vrf created successfully with vrf
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify vrf created successfully with vrf
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify vrf is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /vrf-feature
+                    objectType: vrf
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for vrf service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-vrf-Additional-Override
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: createDeviceOverride
+                  description: Create device-level override for vrf with enabled=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/override/create-modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectId: '{{OBJECT_ID}}'
+                    overrideProperties:
+                        - name: enabled
+                          value: false
+                    overrideType: device
+                    targetId: '{{DEVICE_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify device override created
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify device override created
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyNosConfigFordevice
+                  description: Verify the deployed vrf configuration is present on the NOS device
+                  method: GET
+                  api: NOSAPI
+                  path: /v0/configuration/vrf/{vr_name}/route
+                  pathParams:
+                    deviceId: '{{DEVICE_ID}}'
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    siteGroupId: '{{SITE_GROUP_ID}}'
+                    siteId: '{{SITE_ID}}'
+                    vr_name: vr-default
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify NOS device configuration matches expected state
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: nosConfigMatchesExpected
+                      description: Verify NOS device configuration matches expected state
+                  devicesScope: device
         negative:
-            - testCaseID: TCXM_7718
+            - testCaseID: TCXM_7753
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2284,7 +4042,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7719
+            - testCaseID: TCXM_7754
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -2314,7 +4072,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enabled' is omitted
-            - testCaseID: TCXM_7720
+            - testCaseID: TCXM_7755
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -2344,7 +4102,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vrf-name' is omitted
-            - testCaseID: TCXM_7721
+            - testCaseID: TCXM_7756
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -2374,7 +4132,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'description' is omitted
-            - testCaseID: TCXM_7722
+            - testCaseID: TCXM_7757
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2422,7 +4180,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7723
+            - testCaseID: TCXM_7758
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2470,7 +4228,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7724
+            - testCaseID: TCXM_7759
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2513,7 +4271,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7725
+            - testCaseID: TCXM_7760
               featureName: vrf
               priority: P2
               automation: Automatable
@@ -2538,7 +4296,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_7730
+            - testCaseID: TCXM_7765
               featureName: vrf
               priority: P4
               automation: Automatable
@@ -2930,7 +4688,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_7731
+            - testCaseID: TCXM_7766
               featureName: vrf
               priority: P4
               automation: Automatable
@@ -3152,7 +4910,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_7732
+            - testCaseID: TCXM_7767
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -3551,7 +5309,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_7733
+            - testCaseID: TCXM_7768
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -4153,7 +5911,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_7726
+            - testCaseID: TCXM_7761
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -7463,7 +9221,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_7727
+            - testCaseID: TCXM_7762
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -7506,7 +9264,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_7728
+            - testCaseID: TCXM_7763
               featureName: vrf
               priority: P3
               automation: Automatable
@@ -7855,7 +9613,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_7729
+            - testCaseID: TCXM_7764
               featureName: vrf
               priority: P3
               automation: Automatable

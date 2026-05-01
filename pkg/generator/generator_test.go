@@ -755,6 +755,143 @@ func TestFeatureWithoutDuplicatedChildParamsFiltersPortChildrenSamePath(t *testi
 	}
 }
 
+func TestAddDeploymentStepsUsesScopedTargetQueryWorkflow(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	testCase := model.TestCase{Steps: []model.TestStep{}}
+	feature := &model.Feature{Name: "port"}
+
+	gen.addDeploymentSteps(&testCase, feature, "TestProfile", model.ScopeTypeDevice, model.TargetTypeDevice)
+
+	assertStepPath(t, testCase.Steps, "retrieveDeviceLocation", locationLookupPath)
+	assertStepPath(t, testCase.Steps, "scopeProfileTodeviceLocation", profileScopePath)
+	assertStepPath(t, testCase.Steps, "applySiteTargetQuery", profileTargetQueryPath)
+	assertStepPath(t, testCase.Steps, "verifyNoConflictBeforeDeployment", deviceConflictCheckPath)
+	assertStepPath(t, testCase.Steps, "deployProfileTodevice", deviceDeployPath)
+	assertStepPath(t, testCase.Steps, "checkDeploymentStatus", deviceDeployStatusPath)
+
+	for _, step := range testCase.Steps {
+		if step.Name == "verifyNoConflictBeforeDeployment" && step.PathParams["hostName"] != locationDeviceName {
+			t.Fatalf("expected captured hostname placeholder, got %#v", step.PathParams)
+		}
+	}
+}
+
+func TestServiceProfileScopedDeploymentGeneratesConfigProfileWrapper(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	feature := &model.Feature{
+		Name: "static-route",
+		Parameters: []model.Parameter{
+			{Name: "vrd-name", GoType: "string", Required: true, Description: "Virtual Routing domain name where this static route will be configured."},
+			{Name: "route-name", GoType: "string", Required: true},
+		},
+	}
+	createPath := &model.FeaturePath{
+		HTTPMethod:        "POST",
+		Path:              "/service-profile/{name}/feature/object/modify",
+		BlueprintCategory: model.BlueprintCategoryService,
+		ProfileType:       model.ProfileTypeService,
+		PathParams:        []model.PathParameter{{Name: "featurePath", FixedValue: "/virtual-service-feature"}, {Name: "objectType", FixedValue: "static-route"}},
+	}
+	readPath := &model.FeaturePath{
+		HTTPMethod:        "POST",
+		Path:              "/service-profile/{name}/feature/object/retrieve",
+		BlueprintCategory: model.BlueprintCategoryService,
+		ProfileType:       model.ProfileTypeService,
+	}
+
+	testCase := gen.generateServiceProfileScopedDeploymentTest(feature, createPath, readPath, model.TargetTypeDevice)
+
+	if !testCase.IsDeploymentTest {
+		t.Fatal("expected service-profile wrapper test to be a deployment test")
+	}
+	assertStepPath(t, testCase.Steps, "createServiceProfile", serviceProfileCreatePath)
+	assertStepPath(t, testCase.Steps, "createConfigurationProfileWithServiceProfile", configurationProfilePath)
+	assertStepPath(t, testCase.Steps, "applySiteTargetQuery", profileTargetQueryPath)
+	assertStepPath(t, testCase.Steps, "deployProfileTodevice", deviceDeployPath)
+}
+
+func TestServiceProfileAdditionalCoverageIncludesConflictAndOverride(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	feature := &model.Feature{
+		Name:       "static-route",
+		Parameters: []model.Parameter{{Name: "route-name", GoType: "string", Required: true}},
+	}
+	createPath := &model.FeaturePath{
+		FeatureName:       "static-route",
+		HTTPMethod:        "POST",
+		Path:              "/service-profile/{name}/feature/object/modify",
+		BlueprintCategory: model.BlueprintCategoryService,
+		ProfileType:       model.ProfileTypeService,
+		OperationType:     model.OperationTypeCreate,
+		PathParams:        []model.PathParameter{{Name: "featurePath", FixedValue: "/virtual-service-feature"}, {Name: "objectType", FixedValue: "static-route"}},
+	}
+	readPath := &model.FeaturePath{
+		FeatureName:       "static-route",
+		HTTPMethod:        "POST",
+		Path:              "/service-profile/{name}/feature/object/retrieve",
+		BlueprintCategory: model.BlueprintCategoryService,
+		ProfileType:       model.ProfileTypeService,
+		OperationType:     model.OperationTypeRead,
+		PathParams:        []model.PathParameter{{Name: "featurePath", FixedValue: "/virtual-service-feature"}},
+	}
+
+	tests := gen.generateAdditionalCoverageTests(feature, []*model.FeaturePath{createPath, readPath})
+
+	if len(tests) != 4 {
+		t.Fatalf("expected service-profile conflict/override coverage tests, got %d", len(tests))
+	}
+	assertStepPath(t, tests[1].Steps, "verifyDeploymentBlockedByConflict", deviceDeployPath)
+	assertStepPath(t, tests[1].Steps, "resolveConflictCC", "/configuration-profile/device/conflict/resolve")
+	assertStepPath(t, tests[3].Steps, "createDeviceOverride", "/configuration-profile/{name}/feature/object/override/create-modify")
+}
+
+func TestConflictResolutionCCBlocksDeploymentBeforeResolve(t *testing.T) {
+	config := model.NewDefaultConfig()
+	gen := NewGenerator(config, nil, nil, nil, nil)
+	feature := &model.Feature{
+		Name:       "port",
+		Parameters: []model.Parameter{{Name: "admin-state", GoType: "bool", Required: true}},
+	}
+	fp := &model.FeaturePath{
+		HTTPMethod:        "POST",
+		Path:              "/configuration-profile/{name}/feature/object/modify",
+		BlueprintCategory: model.BlueprintCategoryWired,
+		ProfileType:       model.ProfileTypeConfiguration,
+		PathParams:        []model.PathParameter{{Name: "featurePath", FixedValue: "/network-feature/interface-feature/port-feature"}, {Name: "objectType", FixedValue: "port"}},
+	}
+
+	testCase := gen.generateConflictResolutionCCTest(feature, fp, "TestProfile")
+
+	assertStepPath(t, testCase.Steps, "applySiteTargetQuery", profileTargetQueryPath)
+	assertStepPath(t, testCase.Steps, "verifyDeploymentBlockedByConflict", deviceDeployPath)
+	assertStepPath(t, testCase.Steps, "resolveConflictCC", "/configuration-profile/device/conflict/resolve")
+	for _, step := range testCase.Steps {
+		if step.Name == "resolveConflictCC" {
+			body := step.Body.(map[string]interface{})
+			resolutions := body["deviceResolutions"].([]map[string]interface{})
+			if resolutions[0]["deviceId"] != locationDeviceID {
+				t.Fatalf("expected captured device id placeholder, got %#v", resolutions[0])
+			}
+		}
+	}
+}
+
+func assertStepPath(t *testing.T, steps []model.TestStep, name, path string) {
+	t.Helper()
+	for _, step := range steps {
+		if step.Name == name {
+			if step.Path != path {
+				t.Fatalf("step %s expected path %s, got %s", name, path, step.Path)
+			}
+			return
+		}
+	}
+	t.Fatalf("step %s not found in %#v", name, steps)
+}
+
 func wiredFeaturePath(featureName, featurePath string) *model.FeaturePath {
 	return &model.FeaturePath{
 		FeatureName:       featureName,

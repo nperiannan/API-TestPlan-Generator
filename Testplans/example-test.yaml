@@ -66,24 +66,118 @@ test:
           assertions:
             - type: statusCode
               expected: 200
-        - name: scopeProfileTodevice
-          description: Scope profile to device
-          method: PUT
+        - name: retrieveDeviceLocation
+          description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+          method: POST
+          api: REST
+          path: /authorized/sites-sitegroups/retrieve
+          body: {}
+          expectedStatus: 200
+          validations:
+            - Verify HTTP status code is 200
+            - Capture siteGroupId for the device location
+            - Capture siteGroupName for the device location
+            - Capture siteId where the device is onboarded
+            - Capture siteName where the device is onboarded
+          assertions:
+            - type: statusCode
+              expected: 200
+            - type: jsonPathExists
+              path: $.siteGroups[0].siteGroupId
+              captureAs: SITE_GROUP_ID
+              description: Capture siteGroupId for the device location
+            - type: jsonPathExists
+              path: $.siteGroups[0].siteGroupName
+              captureAs: SITE_GROUP_NAME
+              description: Capture siteGroupName for the device location
+            - type: jsonPathExists
+              path: $.siteGroups[0].sites[0].siteId
+              captureAs: SITE_ID
+              description: Capture siteId where the device is onboarded
+            - type: jsonPathExists
+              path: $.siteGroups[0].sites[0].siteName
+              captureAs: SITE_NAME
+              description: Capture siteName where the device is onboarded
+        - name: scopeProfileTodeviceLocation
+          description: Scope configuration profile to the selected device location using the captured site group and site
+          method: POST
           api: REST
           path: /configuration-profile/{name}/scope
           pathParams:
             name: TestProfile
           body:
-            scopeId: test-scope-001
-            scopeType: device
+            selectedSiteGroups:
+                - siteGroupId: '{{SITE_GROUP_ID}}'
+                  siteGroupName: '{{SITE_GROUP_NAME}}'
+                  sites:
+                    - siteId: '{{SITE_ID}}'
+                      siteName: '{{SITE_NAME}}'
+            selectedSites: []
+          expectedStatus: 201
+          validations:
+            - Verify HTTP status code is 201
+            - Capture created target-query scope id
+          assertions:
+            - type: statusCode
+              expected: 201
+            - type: jsonPathExists
+              path: $.scopeId
+              captureAs: SCOPE_ID
+              description: Capture created target-query scope id
+        - name: applySiteTargetQuery
+          description: Apply target-query to the configuration profile using the captured siteId
+          method: POST
+          api: REST
+          path: /configuration-profile/{name}/target-query/profile
+          pathParams:
+            name: TestProfile
+          body:
+            includeQuery:
+                criteria:
+                    - field: siteId
+                      operator: IN
+                      values:
+                        - '{{SITE_ID}}'
+                logicalOperator: AND
           expectedStatus: 200
           validations:
             - Verify HTTP status code is 200
+            - Capture resolved device id from the scoped target-query
+            - Capture resolved device hostname from the scoped target-query
           assertions:
             - type: statusCode
               expected: 200
+            - type: jsonPathExists
+              path: $.resolvedDevices[0].deviceId
+              captureAs: DEVICE_ID
+              description: Capture resolved device id from the scoped target-query
+            - type: jsonPathExists
+              path: $.resolvedDevices[0].deviceName
+              captureAs: DEVICE_HOSTNAME
+              description: Capture resolved device hostname from the scoped target-query
+        - name: verifyNoConflictBeforeDeployment
+          description: Validate that no device conflict is detected before deployment is initiated
+          method: GET
+          api: REST
+          path: /configuration-profile/{name}/device/{hostName}/conflicts
+          pathParams:
+            hostName: '{{DEVICE_HOSTNAME}}'
+            name: TestProfile
+          queryParams:
+            detailLevel: summary
+          expectedStatus: 200
+          validations:
+            - Verify HTTP status code is 200
+            - Deployment must start only when no conflict is detected
+          assertions:
+            - type: statusCode
+              expected: 200
+            - type: jsonPathEquals
+              path: $.hasConflicts
+              expected: false
+              description: Deployment must start only when no conflict is detected
         - name: deployProfileTodevice
-          description: Deploy profile to device
+          description: Initiate configuration-profile deployment to device using the deployment API
           method: POST
           api: REST
           path: /configuration-profile/{name}/devices/deploy
@@ -92,7 +186,7 @@ test:
           body:
             deployNow: true
             devices:
-                - test-device-001
+                - '{{DEVICE_HOSTNAME}}'
           expectedStatus: 202
           validations:
             - Verify HTTP status code is 202
@@ -100,12 +194,12 @@ test:
             - type: statusCode
               expected: 202
         - name: checkDeploymentStatus
-          description: Verify deployment status
+          description: Check deployment status and verify the deployment succeeded
           method: GET
           api: REST
           path: /configuration-profile/{name}/device/{hostName}/deploy/status
           pathParams:
-            hostName: test-device-001
+            hostName: '{{DEVICE_HOSTNAME}}'
             name: TestProfile
           expectedStatus: 200
           validations:

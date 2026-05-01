@@ -116,6 +116,10 @@ func (g *Generator) generateFunctionalTests(feature *model.Feature, paths []*mod
 		))
 	}
 
+	if createPath != nil && feature.Parameters != nil && len(feature.Parameters) > 0 && createPath.ProfileType == model.ProfileTypeService {
+		tests = append(tests, g.generateServiceProfileScopedDeploymentTest(feature, createPath, readPath, model.TargetTypeDevice))
+	}
+
 	// YANG model coverage: non-deployment tests for required-only, all-fields, datatypes, defaults
 	if createPath != nil {
 		// Create with required fields only (verify optional fields are truly optional)

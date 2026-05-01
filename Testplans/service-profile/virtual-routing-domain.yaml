@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T12:54:13+05:30"
+generatedAt: "2026-05-01T14:04:53+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_7600
+            - testCaseID: TCXM_7625
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -57,7 +57,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_7601
+            - testCaseID: TCXM_7626
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -103,7 +103,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_7602
+            - testCaseID: TCXM_7627
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -145,7 +145,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_7603
+            - testCaseID: TCXM_7628
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -188,7 +188,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_7519
+            - testCaseID: TCXM_7539
               featureName: virtual-routing-domain
               priority: P1
               automation: Automatable
@@ -293,7 +293,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='service-profile-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify 'service-profile-association' value is '123e4567-e89b-12d3-a456-426614174000' as set during create
-            - testCaseID: TCXM_7520
+            - testCaseID: TCXM_7540
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -403,7 +403,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify virtual-routing-domain retrieved — response contains modify enabled=false (entry: vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000)'
-            - testCaseID: TCXM_7521
+            - testCaseID: TCXM_7541
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -491,7 +491,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify virtual-routing-domain with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000 no longer exists in the response
-            - testCaseID: TCXM_7522
+            - testCaseID: TCXM_7542
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -642,7 +642,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify virtual-routing-domain with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000 deleted successfully
-            - testCaseID: TCXM_7523
+            - testCaseID: TCXM_7543
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -752,7 +752,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify virtual-routing-domain retrieved — response contains modify enabled=false (entry: vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000)'
-            - testCaseID: TCXM_7524
+            - testCaseID: TCXM_7544
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -828,7 +828,261 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of virtual-routing-domain with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000 is rejected (409 Conflict)
-            - testCaseID: TCXM_7525
+            - testCaseID: TCXM_7545
+              featureName: virtual-routing-domain
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Create virtual-routing-domain in a service profile, link it to a configuration profile, scope by device location, apply target-query, deploy, and verify
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for virtual-routing-domain deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createvirtual-routing-domain
+                  description: Create virtual-routing-domain configuration with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    objectType: virtual-routing-domain
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: vrf-name
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: l3-service-id-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: service-profile-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                          type: virtual-routing-domain
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify virtual-routing-domain created successfully with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify virtual-routing-domain created successfully with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify virtual-routing-domain is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    filters:
+                        - key: vrf-name
+                          value: VR-Mgmt
+                        - key: l3-service-id-value
+                          value: 100
+                        - key: service-profile-association
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                    objectType: virtual-routing-domain
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for virtual-routing-domain service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-virtual-routing-domain
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_7546
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -925,7 +1179,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='service-profile-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify identity/required field 'service-profile-association' has value '123e4567-e89b-12d3-a456-426614174000' as created
-            - testCaseID: TCXM_7526
+            - testCaseID: TCXM_7547
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -1165,7 +1419,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='service-profile-id')].value
                       expected: testValue
                       description: Verify field 'service-profile-id' has value 'testValue' as sent on create
-            - testCaseID: TCXM_7527
+            - testCaseID: TCXM_7548
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -1244,7 +1498,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: true
                       description: Verify optional field 'enabled' value is 'true' as set on create
-            - testCaseID: TCXM_7528
+            - testCaseID: TCXM_7549
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -1323,7 +1577,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrd-name')].value
                       expected: test-vrd
                       description: Verify optional field 'vrd-name' value is 'test-vrd' as set on create
-            - testCaseID: TCXM_7529
+            - testCaseID: TCXM_7550
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -1402,7 +1656,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='description')].value
                       expected: Test resource created by automated test
                       description: Verify optional field 'description' value is 'Test resource created by automated test' as set on create
-            - testCaseID: TCXM_7530
+            - testCaseID: TCXM_7551
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -1481,7 +1735,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='routing-type')].value
                       expected: GRT
                       description: Verify optional field 'routing-type' value is 'GRT' as set on create
-            - testCaseID: TCXM_7531
+            - testCaseID: TCXM_7552
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -1560,7 +1814,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ipv4-support')].value
                       expected: true
                       description: Verify optional field 'ipv4-support' value is 'true' as set on create
-            - testCaseID: TCXM_7532
+            - testCaseID: TCXM_7553
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -1639,7 +1893,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ipv6-support')].value
                       expected: false
                       description: Verify optional field 'ipv6-support' value is 'false' as set on create
-            - testCaseID: TCXM_7533
+            - testCaseID: TCXM_7554
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -1718,7 +1972,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='advanced-options')].value
                       expected: false
                       description: Verify optional field 'advanced-options' value is 'false' as set on create
-            - testCaseID: TCXM_7534
+            - testCaseID: TCXM_7555
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -1793,7 +2047,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrf-name')].value
                       expected: VR-Mgmt
                       description: Verify optional field 'vrf-name' value is 'VR-Mgmt' as set on create
-            - testCaseID: TCXM_7535
+            - testCaseID: TCXM_7556
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -1872,7 +2126,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrf-id-value')].value
                       expected: 100
                       description: Verify optional field 'vrf-id-value' value is '100' as set on create
-            - testCaseID: TCXM_7536
+            - testCaseID: TCXM_7557
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -1951,7 +2205,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-ecmp-support')].value
                       expected: false
                       description: Verify optional field 'ip-ecmp-support' value is 'false' as set on create
-            - testCaseID: TCXM_7537
+            - testCaseID: TCXM_7558
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -2030,7 +2284,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='auto-l3-service-id')].value
                       expected: false
                       description: Verify optional field 'auto-l3-service-id' value is 'false' as set on create
-            - testCaseID: TCXM_7538
+            - testCaseID: TCXM_7559
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -2105,7 +2359,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l3-service-id-value')].value
                       expected: 100
                       description: Verify optional field 'l3-service-id-value' value is '100' as set on create
-            - testCaseID: TCXM_7539
+            - testCaseID: TCXM_7560
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -2180,7 +2434,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='service-profile-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify optional field 'service-profile-association' value is '123e4567-e89b-12d3-a456-426614174000' as set on create
-            - testCaseID: TCXM_7540
+            - testCaseID: TCXM_7561
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -2259,7 +2513,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='service-profile-id')].value
                       expected: testValue
                       description: Verify optional field 'service-profile-id' value is 'testValue' as set on create
-            - testCaseID: TCXM_7541
+            - testCaseID: TCXM_7562
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -2334,7 +2588,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: true
                       description: Verify 'enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_7542
+            - testCaseID: TCXM_7563
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -2409,7 +2663,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: false
                       description: Verify 'enabled' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_7543
+            - testCaseID: TCXM_7564
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -2484,7 +2738,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrd-name')].value
                       expected: test-value-1
                       description: Verify 'vrd-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_7544
+            - testCaseID: TCXM_7565
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -2559,7 +2813,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrd-name')].value
                       expected: test-value-2
                       description: Verify 'vrd-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_7545
+            - testCaseID: TCXM_7566
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -2634,7 +2888,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='routing-type')].value
                       expected: VRF
                       description: Verify 'routing-type' YANG type 'enumeration' value is persisted
-            - testCaseID: TCXM_7546
+            - testCaseID: TCXM_7567
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -2709,7 +2963,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='routing-type')].value
                       expected: GRT
                       description: Verify 'routing-type' YANG type 'enumeration' value is persisted
-            - testCaseID: TCXM_7547
+            - testCaseID: TCXM_7568
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -2784,7 +3038,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrf-id-value')].value
                       expected: 0
                       description: Verify 'vrf-id-value' YANG type 'int32' value is persisted
-            - testCaseID: TCXM_7548
+            - testCaseID: TCXM_7569
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -2859,7 +3113,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrf-id-value')].value
                       expected: 512
                       description: Verify 'vrf-id-value' YANG type 'int32' value is persisted
-            - testCaseID: TCXM_7549
+            - testCaseID: TCXM_7570
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -2930,7 +3184,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='enabled')].value
                       expected: true
                       description: Verify 'enabled' equals YANG-defined default value true
-            - testCaseID: TCXM_7550
+            - testCaseID: TCXM_7571
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3001,7 +3255,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='routing-type')].value
                       expected: GRT
                       description: Verify 'routing-type' equals YANG-defined default value GRT
-            - testCaseID: TCXM_7551
+            - testCaseID: TCXM_7572
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3072,7 +3326,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ipv4-support')].value
                       expected: true
                       description: Verify 'ipv4-support' equals YANG-defined default value true
-            - testCaseID: TCXM_7552
+            - testCaseID: TCXM_7573
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3143,7 +3397,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ipv6-support')].value
                       expected: false
                       description: Verify 'ipv6-support' equals YANG-defined default value false
-            - testCaseID: TCXM_7553
+            - testCaseID: TCXM_7574
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3214,7 +3468,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='advanced-options')].value
                       expected: false
                       description: Verify 'advanced-options' equals YANG-defined default value false
-            - testCaseID: TCXM_7554
+            - testCaseID: TCXM_7575
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3285,7 +3539,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='ip-ecmp-support')].value
                       expected: false
                       description: Verify 'ip-ecmp-support' equals YANG-defined default value false
-            - testCaseID: TCXM_7555
+            - testCaseID: TCXM_7576
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3356,7 +3610,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='auto-l3-service-id')].value
                       expected: false
                       description: Verify 'auto-l3-service-id' equals YANG-defined default value false
-            - testCaseID: TCXM_7556
+            - testCaseID: TCXM_7577
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3398,7 +3652,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7557
+            - testCaseID: TCXM_7578
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3440,7 +3694,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7558
+            - testCaseID: TCXM_7579
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3482,7 +3736,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7559
+            - testCaseID: TCXM_7580
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3524,7 +3778,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7560
+            - testCaseID: TCXM_7581
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3566,7 +3820,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7561
+            - testCaseID: TCXM_7582
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3608,7 +3862,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7562
+            - testCaseID: TCXM_7583
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3650,7 +3904,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7563
+            - testCaseID: TCXM_7584
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3692,7 +3946,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7564
+            - testCaseID: TCXM_7585
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3734,7 +3988,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7565
+            - testCaseID: TCXM_7586
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3776,7 +4030,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7566
+            - testCaseID: TCXM_7587
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3821,7 +4075,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7567
+            - testCaseID: TCXM_7588
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3866,7 +4120,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7568
+            - testCaseID: TCXM_7589
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3907,7 +4161,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7569
+            - testCaseID: TCXM_7590
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3948,7 +4202,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7570
+            - testCaseID: TCXM_7591
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -3993,7 +4247,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7571
+            - testCaseID: TCXM_7592
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4038,7 +4292,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7572
+            - testCaseID: TCXM_7593
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4087,7 +4341,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7573
+            - testCaseID: TCXM_7594
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4136,7 +4390,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7574
+            - testCaseID: TCXM_7595
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4185,7 +4439,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7575
+            - testCaseID: TCXM_7596
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4234,7 +4488,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7576
+            - testCaseID: TCXM_7597
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4283,7 +4537,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7577
+            - testCaseID: TCXM_7598
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4332,7 +4586,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7578
+            - testCaseID: TCXM_7599
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4381,7 +4635,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7579
+            - testCaseID: TCXM_7600
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4430,7 +4684,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7580
+            - testCaseID: TCXM_7601
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4479,7 +4733,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7581
+            - testCaseID: TCXM_7602
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4528,7 +4782,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7582
+            - testCaseID: TCXM_7603
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4577,7 +4831,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7583
+            - testCaseID: TCXM_7604
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4626,7 +4880,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7584
+            - testCaseID: TCXM_7605
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4675,7 +4929,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7585
+            - testCaseID: TCXM_7606
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4724,7 +4978,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7586
+            - testCaseID: TCXM_7607
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4773,7 +5027,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7587
+            - testCaseID: TCXM_7608
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4822,7 +5076,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7588
+            - testCaseID: TCXM_7609
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4871,7 +5125,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7589
+            - testCaseID: TCXM_7610
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4920,7 +5174,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7590
+            - testCaseID: TCXM_7611
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -4965,7 +5219,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7591
+            - testCaseID: TCXM_7612
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5010,7 +5264,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7592
+            - testCaseID: TCXM_7613
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5055,7 +5309,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7593
+            - testCaseID: TCXM_7614
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5100,7 +5354,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7594
+            - testCaseID: TCXM_7615
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5145,7 +5399,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7595
+            - testCaseID: TCXM_7616
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5190,7 +5444,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7596
+            - testCaseID: TCXM_7617
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5235,7 +5489,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7597
+            - testCaseID: TCXM_7618
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5280,7 +5534,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7598
+            - testCaseID: TCXM_7619
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5325,7 +5579,1398 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7599
+            - testCaseID: TCXM_7620
+              featureName: virtual-routing-domain
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Detection] Create virtual-routing-domain in service profile, link to configuration profile, deploy baseline, simulate NOS change, verify conflict and blocked deployment'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for virtual-routing-domain deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createvirtual-routing-domain
+                  description: Create virtual-routing-domain configuration with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    objectType: virtual-routing-domain
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: vrf-name
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: l3-service-id-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: service-profile-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                          type: virtual-routing-domain
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify virtual-routing-domain created successfully with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify virtual-routing-domain created successfully with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify virtual-routing-domain is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    filters:
+                        - key: vrf-name
+                          value: VR-Mgmt
+                        - key: l3-service-id-value
+                          value: 100
+                        - key: service-profile-association
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                    objectType: virtual-routing-domain
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for virtual-routing-domain service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-virtual-routing-domain-Additional-ConflictDetect
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting virtual-routing-domain value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: POST
+                  api: NOSAPI
+                  path: /v0/configuration/device
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: virtual-routing-domain
+                    properties:
+                        enabled: false
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band virtual-routing-domain change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band virtual-routing-domain change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: detailed
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+            - testCaseID: TCXM_7621
+              featureName: virtual-routing-domain
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Resolution CC] Create virtual-routing-domain in service profile, deploy baseline, simulate NOS change, block deployment, resolve acceptCloud, deploy, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for virtual-routing-domain deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createvirtual-routing-domain
+                  description: Create virtual-routing-domain configuration with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    objectType: virtual-routing-domain
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: vrf-name
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: l3-service-id-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: service-profile-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                          type: virtual-routing-domain
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify virtual-routing-domain created successfully with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify virtual-routing-domain created successfully with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify virtual-routing-domain is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    filters:
+                        - key: vrf-name
+                          value: VR-Mgmt
+                        - key: l3-service-id-value
+                          value: 100
+                        - key: service-profile-association
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                    objectType: virtual-routing-domain
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for virtual-routing-domain service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-virtual-routing-domain-Additional-ConflictCC
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting virtual-routing-domain value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: POST
+                  api: NOSAPI
+                  path: /v0/configuration/device
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: virtual-routing-domain
+                    properties:
+                        enabled: false
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band virtual-routing-domain change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band virtual-routing-domain change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+                - name: resolveConflictCC
+                  description: Resolve device conflict with acceptCloud
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/device/conflict/resolve
+                  body:
+                    deviceResolutions:
+                        - deviceId: '{{DEVICE_ID}}'
+                          resolution: acceptCloud
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.results[0].status' equals success
+                    - Verify response contains '$.summary.numberOfConflictsResolved'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.results[0].status
+                      expected: success
+                    - type: jsonPathExists
+                      path: $.summary.numberOfConflictsResolved
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyConflictCleared
+                  description: Verify conflict is cleared after resolution and deployment
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+            - testCaseID: TCXM_7622
+              featureName: virtual-routing-domain
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Resolution DD] Create virtual-routing-domain in service profile, deploy baseline, simulate NOS change, block deployment, resolve acceptDevice, deploy, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for virtual-routing-domain deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createvirtual-routing-domain
+                  description: Create virtual-routing-domain configuration with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    objectType: virtual-routing-domain
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: vrf-name
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: l3-service-id-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: service-profile-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                          type: virtual-routing-domain
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify virtual-routing-domain created successfully with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify virtual-routing-domain created successfully with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify virtual-routing-domain is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    filters:
+                        - key: vrf-name
+                          value: VR-Mgmt
+                        - key: l3-service-id-value
+                          value: 100
+                        - key: service-profile-association
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                    objectType: virtual-routing-domain
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for virtual-routing-domain service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-virtual-routing-domain-Additional-ConflictDD
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting virtual-routing-domain value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: POST
+                  api: NOSAPI
+                  path: /v0/configuration/device
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: virtual-routing-domain
+                    properties:
+                        enabled: false
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band virtual-routing-domain change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band virtual-routing-domain change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+                - name: resolveConflictDD
+                  description: Resolve device conflict with acceptDevice
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/device/conflict/resolve
+                  body:
+                    deviceResolutions:
+                        - deviceId: '{{DEVICE_ID}}'
+                          resolution: acceptDevice
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.results[0].status' equals success
+                    - Verify response contains '$.summary.numberOfConflictsResolved'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.results[0].status
+                      expected: success
+                    - type: jsonPathExists
+                      path: $.summary.numberOfConflictsResolved
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyConflictCleared
+                  description: Verify conflict is cleared after resolution and deployment
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+            - testCaseID: TCXM_7623
+              featureName: virtual-routing-domain
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Override Deploy] Create virtual-routing-domain in service profile, create device override (enabled=false), deploy configuration profile, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for virtual-routing-domain deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createvirtual-routing-domain
+                  description: Create virtual-routing-domain configuration with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    objectType: virtual-routing-domain
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: vrf-name
+                              origin: CC
+                              type: string
+                              value: VR-Mgmt
+                            - name: l3-service-id-value
+                              origin: CC
+                              type: number
+                              value: 100
+                            - name: service-profile-association
+                              origin: CC
+                              type: string
+                              value: 123e4567-e89b-12d3-a456-426614174000
+                          type: virtual-routing-domain
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify virtual-routing-domain created successfully with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify virtual-routing-domain created successfully with vrf-name=VR-Mgmt, l3-service-id-value=100, service-profile-association=123e4567-e89b-12d3-a456-426614174000
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify virtual-routing-domain is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    filters:
+                        - key: vrf-name
+                          value: VR-Mgmt
+                        - key: l3-service-id-value
+                          value: 100
+                        - key: service-profile-association
+                          value: 123e4567-e89b-12d3-a456-426614174000
+                    objectType: virtual-routing-domain
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for virtual-routing-domain service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-virtual-routing-domain-Additional-Override
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: createDeviceOverride
+                  description: Create device-level override for virtual-routing-domain with enabled=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/override/create-modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectId: '{{OBJECT_ID}}'
+                    overrideProperties:
+                        - name: enabled
+                          value: false
+                    overrideType: device
+                    targetId: '{{DEVICE_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify device override created
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify device override created
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_7624
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5529,7 +7174,7 @@ features:
                     - type: statusCode
                       expected: 200
         negative:
-            - testCaseID: TCXM_7604
+            - testCaseID: TCXM_7629
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5574,7 +7219,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7605
+            - testCaseID: TCXM_7630
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5619,7 +7264,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7606
+            - testCaseID: TCXM_7631
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5667,7 +7312,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7607
+            - testCaseID: TCXM_7632
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5715,7 +7360,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7608
+            - testCaseID: TCXM_7633
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5759,7 +7404,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7609
+            - testCaseID: TCXM_7634
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -5803,7 +7448,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7610
+            - testCaseID: TCXM_7635
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -5845,7 +7490,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'enabled' is omitted
-            - testCaseID: TCXM_7611
+            - testCaseID: TCXM_7636
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -5887,7 +7532,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vrd-name' is omitted
-            - testCaseID: TCXM_7612
+            - testCaseID: TCXM_7637
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -5929,7 +7574,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'description' is omitted
-            - testCaseID: TCXM_7613
+            - testCaseID: TCXM_7638
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -5971,7 +7616,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'routing-type' is omitted
-            - testCaseID: TCXM_7614
+            - testCaseID: TCXM_7639
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -6013,7 +7658,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'ipv4-support' is omitted
-            - testCaseID: TCXM_7615
+            - testCaseID: TCXM_7640
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -6055,7 +7700,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'ipv6-support' is omitted
-            - testCaseID: TCXM_7616
+            - testCaseID: TCXM_7641
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -6097,7 +7742,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'advanced-options' is omitted
-            - testCaseID: TCXM_7617
+            - testCaseID: TCXM_7642
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -6139,7 +7784,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vrf-name' is omitted
-            - testCaseID: TCXM_7618
+            - testCaseID: TCXM_7643
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -6181,7 +7826,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vrf-id-value' is omitted
-            - testCaseID: TCXM_7619
+            - testCaseID: TCXM_7644
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -6223,7 +7868,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'ip-ecmp-support' is omitted
-            - testCaseID: TCXM_7620
+            - testCaseID: TCXM_7645
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -6265,7 +7910,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'auto-l3-service-id' is omitted
-            - testCaseID: TCXM_7621
+            - testCaseID: TCXM_7646
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -6307,7 +7952,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'l3-service-id-value' is omitted
-            - testCaseID: TCXM_7622
+            - testCaseID: TCXM_7647
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -6349,7 +7994,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'service-profile-association' is omitted
-            - testCaseID: TCXM_7623
+            - testCaseID: TCXM_7648
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -6391,7 +8036,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'service-profile-id' is omitted
-            - testCaseID: TCXM_7624
+            - testCaseID: TCXM_7649
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -6439,7 +8084,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7625
+            - testCaseID: TCXM_7650
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -6487,7 +8132,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7626
+            - testCaseID: TCXM_7651
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -6535,7 +8180,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7627
+            - testCaseID: TCXM_7652
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -6579,7 +8224,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7628
+            - testCaseID: TCXM_7653
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -6622,7 +8267,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7629
+            - testCaseID: TCXM_7654
               featureName: virtual-routing-domain
               priority: P2
               automation: Automatable
@@ -6647,7 +8292,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_7634
+            - testCaseID: TCXM_7659
               featureName: virtual-routing-domain
               priority: P4
               automation: Automatable
@@ -7039,7 +8684,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_7635
+            - testCaseID: TCXM_7660
               featureName: virtual-routing-domain
               priority: P4
               automation: Automatable
@@ -7331,7 +8976,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_7636
+            - testCaseID: TCXM_7661
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -7850,7 +9495,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_7637
+            - testCaseID: TCXM_7662
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -8452,7 +10097,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_7630
+            - testCaseID: TCXM_7655
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -11762,7 +13407,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_7631
+            - testCaseID: TCXM_7656
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -11805,7 +13450,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_7632
+            - testCaseID: TCXM_7657
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable
@@ -12274,7 +13919,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_7633
+            - testCaseID: TCXM_7658
               featureName: virtual-routing-domain
               priority: P3
               automation: Automatable

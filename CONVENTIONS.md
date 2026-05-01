@@ -140,6 +140,20 @@ Features are classified into blueprint categories:
 - NOSAPI verification endpoints are optional unless confidently mapped. Do not attach unrelated NOSAPI endpoints just because names partially match.
 - When generation logic changes, regenerate `Testplans/`, `reports/summary_report.html`, and Excel output, then spot-check representative global, service, wired, wireless, and nested sub-object plans.
 
+### Functional deployment workflow
+
+Functional deployment tests are not plain API CRUD cases. Any generated case that deploys configuration must model the real configuration-profile workflow:
+
+- Retrieve the onboarded device location from the authorized sites/site-groups endpoint and capture site group, site, and resolved device identifiers instead of hard-coding sample IDs.
+- Scope the configuration profile to the captured site group/site location.
+- Apply target-query to the configuration profile using the captured `siteId`, then deploy to the captured device or site through the deployment APIs.
+- Before deployment, validate that no conflict is detected for the target device.
+- After deployment, poll/check deployment status and require success.
+- When a NOS OpenAPI endpoint can be confidently mapped, verify that the deployed configuration is present on the NOS device.
+- Service-profile feature deployment must go through a configuration profile that links the service profile; do not treat service-profile CRUD as deployed until the configuration profile is scoped, target-queried, deployed, and verified.
+- Override cases must cover device, device model, and device group/model-group variations. Device-specific override cases should use the device resolved by target-query.
+- Conflict cases must deploy a baseline, verify it on NOS, induce an out-of-band NOS change, confirm conflict detection, verify deployment is blocked while unresolved, resolve by the intended CC/cloud-config or DC/device-config choice, deploy again, and verify the final NOS configuration.
+
 ## Scripts
 
 ### testgen.ps1 / testgen.sh

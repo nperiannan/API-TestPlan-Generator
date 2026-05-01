@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T12:54:13+05:30"
+generatedAt: "2026-05-01T14:04:53+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_7136
+            - testCaseID: TCXM_7156
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -61,7 +61,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_7137
+            - testCaseID: TCXM_7157
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -111,7 +111,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_7138
+            - testCaseID: TCXM_7158
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -165,7 +165,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_7139
+            - testCaseID: TCXM_7159
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -219,7 +219,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_7140
+            - testCaseID: TCXM_7160
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -273,7 +273,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_7141
+            - testCaseID: TCXM_7161
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -328,7 +328,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_7017
+            - testCaseID: TCXM_7032
               featureName: static-route
               priority: P1
               automation: Automatable
@@ -457,7 +457,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='next-hop-ip')].value
                       expected: 8.8.8.8
                       description: Verify 'next-hop-ip' value is '8.8.8.8' as set during create
-            - testCaseID: TCXM_7018
+            - testCaseID: TCXM_7033
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -581,7 +581,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify static-route retrieved — response contains modify metric=50 (entry: vrd-name=test-vrd, route-name=test-route, destination-subnet=192.168.1.0/24, mask=24, next-hop-ip=8.8.8.8)'
-            - testCaseID: TCXM_7019
+            - testCaseID: TCXM_7034
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -675,7 +675,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify static-route with vrd-name=test-vrd, route-name=test-route no longer exists in the response
-            - testCaseID: TCXM_7020
+            - testCaseID: TCXM_7035
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -838,7 +838,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify static-route with vrd-name=test-vrd, route-name=test-route deleted successfully
-            - testCaseID: TCXM_7021
+            - testCaseID: TCXM_7036
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -962,7 +962,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify static-route retrieved — response contains modify metric=50 (entry: vrd-name=test-vrd, route-name=test-route, destination-subnet=192.168.1.0/24, mask=24, next-hop-ip=8.8.8.8)'
-            - testCaseID: TCXM_7022
+            - testCaseID: TCXM_7037
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -1054,7 +1054,267 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of static-route with vrd-name=test-vrd, route-name=test-route is rejected (409 Conflict)
-            - testCaseID: TCXM_7023
+            - testCaseID: TCXM_7038
+              featureName: static-route
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Create static-route in a service profile, link it to a configuration profile, scope by device location, apply target-query, deploy, and verify
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for static-route deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createstatic-route
+                  description: Create static-route configuration with vrd-name=test-vrd, route-name=test-route
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    objectType: static-route
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: vrd-name
+                              origin: CC
+                              type: string
+                              value: test-vrd
+                            - name: route-name
+                              origin: CC
+                              type: string
+                              value: test-route
+                            - name: destination-subnet
+                              origin: CC
+                              type: string
+                              value: 192.168.1.0/24
+                            - name: mask
+                              origin: CC
+                              type: string
+                              value: "24"
+                            - name: next-hop-ip
+                              origin: CC
+                              type: string
+                              value: 8.8.8.8
+                          type: static-route
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify static-route created successfully with vrd-name=test-vrd, route-name=test-route
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify static-route created successfully with vrd-name=test-vrd, route-name=test-route
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify static-route is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    filters:
+                        - key: vrd-name
+                          value: test-vrd
+                        - key: route-name
+                          value: test-route
+                    objectType: static-route
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for static-route service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-static-route
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_7039
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -1175,7 +1435,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='next-hop-ip')].value
                       expected: 8.8.8.8
                       description: Verify identity/required field 'next-hop-ip' has value '8.8.8.8' as created
-            - testCaseID: TCXM_7024
+            - testCaseID: TCXM_7040
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -1361,7 +1621,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sr-vrd-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify field 'sr-vrd-association' has value '123e4567-e89b-12d3-a456-426614174000' as sent on create
-            - testCaseID: TCXM_7025
+            - testCaseID: TCXM_7041
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -1446,7 +1706,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='metric')].value
                       expected: 1
                       description: Verify optional field 'metric' value is '1' as set on create
-            - testCaseID: TCXM_7026
+            - testCaseID: TCXM_7042
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -1531,7 +1791,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='preference')].value
                       expected: 1
                       description: Verify optional field 'preference' value is '1' as set on create
-            - testCaseID: TCXM_7027
+            - testCaseID: TCXM_7043
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -1616,7 +1876,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='advanced')].value
                       expected: false
                       description: Verify optional field 'advanced' value is 'false' as set on create
-            - testCaseID: TCXM_7028
+            - testCaseID: TCXM_7044
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -1701,7 +1961,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='next-hop-ip-protection')].value
                       expected: false
                       description: Verify optional field 'next-hop-ip-protection' value is 'false' as set on create
-            - testCaseID: TCXM_7029
+            - testCaseID: TCXM_7045
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -1786,7 +2046,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sr-vrd-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify optional field 'sr-vrd-association' value is '123e4567-e89b-12d3-a456-426614174000' as set on create
-            - testCaseID: TCXM_7030
+            - testCaseID: TCXM_7046
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -1863,7 +2123,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrd-name')].value
                       expected: test-value-1
                       description: Verify 'vrd-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_7031
+            - testCaseID: TCXM_7047
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -1940,7 +2200,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vrd-name')].value
                       expected: test-value-2
                       description: Verify 'vrd-name' YANG type 'string' value is persisted
-            - testCaseID: TCXM_7032
+            - testCaseID: TCXM_7048
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2021,7 +2281,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='metric')].value
                       expected: 1
                       description: Verify 'metric' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_7033
+            - testCaseID: TCXM_7049
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2102,7 +2362,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='metric')].value
                       expected: 65535
                       description: Verify 'metric' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_7034
+            - testCaseID: TCXM_7050
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2183,7 +2443,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='advanced')].value
                       expected: true
                       description: Verify 'advanced' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_7035
+            - testCaseID: TCXM_7051
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2264,7 +2524,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='advanced')].value
                       expected: false
                       description: Verify 'advanced' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_7036
+            - testCaseID: TCXM_7052
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2345,7 +2605,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sr-vrd-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify 'sr-vrd-association' YANG type 'leafref' value is persisted
-            - testCaseID: TCXM_7037
+            - testCaseID: TCXM_7053
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2426,7 +2686,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='sr-vrd-association')].value
                       expected: 123e4567-e89b-12d3-a456-426614174000
                       description: Verify 'sr-vrd-association' YANG type 'leafref' value is persisted
-            - testCaseID: TCXM_7038
+            - testCaseID: TCXM_7054
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2503,7 +2763,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='metric')].value
                       expected: 1
                       description: Verify 'metric' equals YANG-defined default value 1
-            - testCaseID: TCXM_7039
+            - testCaseID: TCXM_7055
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2580,7 +2840,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='preference')].value
                       expected: 1
                       description: Verify 'preference' equals YANG-defined default value 1
-            - testCaseID: TCXM_7040
+            - testCaseID: TCXM_7056
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2657,7 +2917,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='advanced')].value
                       expected: false
                       description: Verify 'advanced' equals YANG-defined default value false
-            - testCaseID: TCXM_7041
+            - testCaseID: TCXM_7057
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2734,7 +2994,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='next-hop-ip-protection')].value
                       expected: false
                       description: Verify 'next-hop-ip-protection' equals YANG-defined default value false
-            - testCaseID: TCXM_7042
+            - testCaseID: TCXM_7058
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2784,7 +3044,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7043
+            - testCaseID: TCXM_7059
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2834,7 +3094,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7044
+            - testCaseID: TCXM_7060
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2884,7 +3144,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7045
+            - testCaseID: TCXM_7061
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2934,7 +3194,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7046
+            - testCaseID: TCXM_7062
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -2984,7 +3244,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7047
+            - testCaseID: TCXM_7063
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3034,7 +3294,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7048
+            - testCaseID: TCXM_7064
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3084,7 +3344,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7049
+            - testCaseID: TCXM_7065
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3134,7 +3394,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7050
+            - testCaseID: TCXM_7066
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3184,7 +3444,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7051
+            - testCaseID: TCXM_7067
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3234,7 +3494,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7052
+            - testCaseID: TCXM_7068
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3283,7 +3543,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7053
+            - testCaseID: TCXM_7069
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3332,7 +3592,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7054
+            - testCaseID: TCXM_7070
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3385,7 +3645,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7055
+            - testCaseID: TCXM_7071
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3438,7 +3698,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7056
+            - testCaseID: TCXM_7072
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3491,7 +3751,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7057
+            - testCaseID: TCXM_7073
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3544,7 +3804,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7058
+            - testCaseID: TCXM_7074
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3593,7 +3853,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7059
+            - testCaseID: TCXM_7075
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3642,7 +3902,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7060
+            - testCaseID: TCXM_7076
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3691,7 +3951,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7061
+            - testCaseID: TCXM_7077
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3740,7 +4000,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7062
+            - testCaseID: TCXM_7078
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3789,7 +4049,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7063
+            - testCaseID: TCXM_7079
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3838,7 +4098,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7064
+            - testCaseID: TCXM_7080
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3887,7 +4147,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7065
+            - testCaseID: TCXM_7081
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3936,7 +4196,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7066
+            - testCaseID: TCXM_7082
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -3985,7 +4245,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7067
+            - testCaseID: TCXM_7083
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4034,7 +4294,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7068
+            - testCaseID: TCXM_7084
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4083,7 +4343,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7069
+            - testCaseID: TCXM_7085
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4132,7 +4392,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7070
+            - testCaseID: TCXM_7086
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4181,7 +4441,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7071
+            - testCaseID: TCXM_7087
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4230,7 +4490,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7072
+            - testCaseID: TCXM_7088
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4279,7 +4539,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7073
+            - testCaseID: TCXM_7089
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4328,7 +4588,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7074
+            - testCaseID: TCXM_7090
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4377,7 +4637,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7075
+            - testCaseID: TCXM_7091
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4426,7 +4686,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7076
+            - testCaseID: TCXM_7092
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4479,7 +4739,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7077
+            - testCaseID: TCXM_7093
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4532,7 +4792,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7078
+            - testCaseID: TCXM_7094
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4585,7 +4845,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7079
+            - testCaseID: TCXM_7095
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4638,7 +4898,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7080
+            - testCaseID: TCXM_7096
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4691,7 +4951,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7081
+            - testCaseID: TCXM_7097
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4744,7 +5004,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7082
+            - testCaseID: TCXM_7098
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4793,7 +5053,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7083
+            - testCaseID: TCXM_7099
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4842,7 +5102,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7084
+            - testCaseID: TCXM_7100
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -4891,7 +5151,1442 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7085
+            - testCaseID: TCXM_7101
+              featureName: static-route
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Detection] Create static-route in service profile, link to configuration profile, deploy baseline, simulate NOS change, verify conflict and blocked deployment'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for static-route deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createstatic-route
+                  description: Create static-route configuration with vrd-name=test-vrd, route-name=test-route
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    objectType: static-route
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: vrd-name
+                              origin: CC
+                              type: string
+                              value: test-vrd
+                            - name: route-name
+                              origin: CC
+                              type: string
+                              value: test-route
+                            - name: destination-subnet
+                              origin: CC
+                              type: string
+                              value: 192.168.1.0/24
+                            - name: mask
+                              origin: CC
+                              type: string
+                              value: "24"
+                            - name: next-hop-ip
+                              origin: CC
+                              type: string
+                              value: 8.8.8.8
+                          type: static-route
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify static-route created successfully with vrd-name=test-vrd, route-name=test-route
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify static-route created successfully with vrd-name=test-vrd, route-name=test-route
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify static-route is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    filters:
+                        - key: vrd-name
+                          value: test-vrd
+                        - key: route-name
+                          value: test-route
+                    objectType: static-route
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for static-route service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-static-route-Additional-ConflictDetect
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting static-route value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: POST
+                  api: NOSAPI
+                  path: /v0/configuration/device
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: static-route
+                    properties:
+                        destination-subnet: 192.168.2.0/24
+                        mask: 255.255.254.0
+                        next-hop-ip: 8.8.4.4
+                        route-name: updated-route
+                        vrd-name: updated-vrd
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band static-route change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band static-route change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: detailed
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+            - testCaseID: TCXM_7102
+              featureName: static-route
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Resolution CC] Create static-route in service profile, deploy baseline, simulate NOS change, block deployment, resolve acceptCloud, deploy, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for static-route deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createstatic-route
+                  description: Create static-route configuration with vrd-name=test-vrd, route-name=test-route
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    objectType: static-route
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: vrd-name
+                              origin: CC
+                              type: string
+                              value: test-vrd
+                            - name: route-name
+                              origin: CC
+                              type: string
+                              value: test-route
+                            - name: destination-subnet
+                              origin: CC
+                              type: string
+                              value: 192.168.1.0/24
+                            - name: mask
+                              origin: CC
+                              type: string
+                              value: "24"
+                            - name: next-hop-ip
+                              origin: CC
+                              type: string
+                              value: 8.8.8.8
+                          type: static-route
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify static-route created successfully with vrd-name=test-vrd, route-name=test-route
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify static-route created successfully with vrd-name=test-vrd, route-name=test-route
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify static-route is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    filters:
+                        - key: vrd-name
+                          value: test-vrd
+                        - key: route-name
+                          value: test-route
+                    objectType: static-route
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for static-route service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-static-route-Additional-ConflictCC
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting static-route value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: POST
+                  api: NOSAPI
+                  path: /v0/configuration/device
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: static-route
+                    properties:
+                        destination-subnet: 192.168.2.0/24
+                        mask: 255.255.254.0
+                        next-hop-ip: 8.8.4.4
+                        route-name: updated-route
+                        vrd-name: updated-vrd
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band static-route change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band static-route change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+                - name: resolveConflictCC
+                  description: Resolve device conflict with acceptCloud
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/device/conflict/resolve
+                  body:
+                    deviceResolutions:
+                        - deviceId: '{{DEVICE_ID}}'
+                          resolution: acceptCloud
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.results[0].status' equals success
+                    - Verify response contains '$.summary.numberOfConflictsResolved'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.results[0].status
+                      expected: success
+                    - type: jsonPathExists
+                      path: $.summary.numberOfConflictsResolved
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyConflictCleared
+                  description: Verify conflict is cleared after resolution and deployment
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+            - testCaseID: TCXM_7103
+              featureName: static-route
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Resolution DD] Create static-route in service profile, deploy baseline, simulate NOS change, block deployment, resolve acceptDevice, deploy, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for static-route deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createstatic-route
+                  description: Create static-route configuration with vrd-name=test-vrd, route-name=test-route
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    objectType: static-route
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: vrd-name
+                              origin: CC
+                              type: string
+                              value: test-vrd
+                            - name: route-name
+                              origin: CC
+                              type: string
+                              value: test-route
+                            - name: destination-subnet
+                              origin: CC
+                              type: string
+                              value: 192.168.1.0/24
+                            - name: mask
+                              origin: CC
+                              type: string
+                              value: "24"
+                            - name: next-hop-ip
+                              origin: CC
+                              type: string
+                              value: 8.8.8.8
+                          type: static-route
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify static-route created successfully with vrd-name=test-vrd, route-name=test-route
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify static-route created successfully with vrd-name=test-vrd, route-name=test-route
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify static-route is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    filters:
+                        - key: vrd-name
+                          value: test-vrd
+                        - key: route-name
+                          value: test-route
+                    objectType: static-route
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for static-route service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-static-route-Additional-ConflictDD
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting static-route value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: POST
+                  api: NOSAPI
+                  path: /v0/configuration/device
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: static-route
+                    properties:
+                        destination-subnet: 192.168.2.0/24
+                        mask: 255.255.254.0
+                        next-hop-ip: 8.8.4.4
+                        route-name: updated-route
+                        vrd-name: updated-vrd
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band static-route change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band static-route change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+                - name: resolveConflictDD
+                  description: Resolve device conflict with acceptDevice
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/device/conflict/resolve
+                  body:
+                    deviceResolutions:
+                        - deviceId: '{{DEVICE_ID}}'
+                          resolution: acceptDevice
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.results[0].status' equals success
+                    - Verify response contains '$.summary.numberOfConflictsResolved'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.results[0].status
+                      expected: success
+                    - type: jsonPathExists
+                      path: $.summary.numberOfConflictsResolved
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyConflictCleared
+                  description: Verify conflict is cleared after resolution and deployment
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+            - testCaseID: TCXM_7104
+              featureName: static-route
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Override Deploy] Create static-route in service profile, create device override (vrd-name=updated-vrd (+4 more)), deploy configuration profile, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for static-route deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createstatic-route
+                  description: Create static-route configuration with vrd-name=test-vrd, route-name=test-route
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    objectType: static-route
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: vrd-name
+                              origin: CC
+                              type: string
+                              value: test-vrd
+                            - name: route-name
+                              origin: CC
+                              type: string
+                              value: test-route
+                            - name: destination-subnet
+                              origin: CC
+                              type: string
+                              value: 192.168.1.0/24
+                            - name: mask
+                              origin: CC
+                              type: string
+                              value: "24"
+                            - name: next-hop-ip
+                              origin: CC
+                              type: string
+                              value: 8.8.8.8
+                          type: static-route
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify static-route created successfully with vrd-name=test-vrd, route-name=test-route
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify static-route created successfully with vrd-name=test-vrd, route-name=test-route
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify static-route is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /virtual-service-feature
+                    filters:
+                        - key: vrd-name
+                          value: test-vrd
+                        - key: route-name
+                          value: test-route
+                    objectType: static-route
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for static-route service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-static-route-Additional-Override
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: createDeviceOverride
+                  description: Create device-level override for static-route with vrd-name=updated-vrd (+4 more)
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/override/create-modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectId: '{{OBJECT_ID}}'
+                    overrideProperties:
+                        - name: vrd-name
+                          value: updated-vrd
+                        - name: route-name
+                          value: updated-route
+                        - name: destination-subnet
+                          value: 192.168.2.0/24
+                        - name: mask
+                          value: 255.255.254.0
+                        - name: next-hop-ip
+                          value: 8.8.4.4
+                    overrideType: device
+                    targetId: '{{DEVICE_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify device override created
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify device override created
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_7105
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -4940,7 +6635,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7086
+            - testCaseID: TCXM_7106
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -4989,7 +6684,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7087
+            - testCaseID: TCXM_7107
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5038,7 +6733,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7088
+            - testCaseID: TCXM_7108
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5087,7 +6782,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7089
+            - testCaseID: TCXM_7109
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5136,7 +6831,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7090
+            - testCaseID: TCXM_7110
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5185,7 +6880,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7091
+            - testCaseID: TCXM_7111
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5234,7 +6929,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7092
+            - testCaseID: TCXM_7112
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5283,7 +6978,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7093
+            - testCaseID: TCXM_7113
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5332,7 +7027,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7094
+            - testCaseID: TCXM_7114
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5381,7 +7076,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7095
+            - testCaseID: TCXM_7115
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5430,7 +7125,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7096
+            - testCaseID: TCXM_7116
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5479,7 +7174,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7097
+            - testCaseID: TCXM_7117
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5528,7 +7223,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7098
+            - testCaseID: TCXM_7118
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5577,7 +7272,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7099
+            - testCaseID: TCXM_7119
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5626,7 +7321,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7100
+            - testCaseID: TCXM_7120
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5675,7 +7370,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7101
+            - testCaseID: TCXM_7121
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5724,7 +7419,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7102
+            - testCaseID: TCXM_7122
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5773,7 +7468,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7103
+            - testCaseID: TCXM_7123
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5822,7 +7517,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7104
+            - testCaseID: TCXM_7124
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5871,7 +7566,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7105
+            - testCaseID: TCXM_7125
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5920,7 +7615,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7106
+            - testCaseID: TCXM_7126
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -5969,7 +7664,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7107
+            - testCaseID: TCXM_7127
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6018,7 +7713,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7108
+            - testCaseID: TCXM_7128
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6067,7 +7762,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7109
+            - testCaseID: TCXM_7129
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6116,7 +7811,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7110
+            - testCaseID: TCXM_7130
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6165,7 +7860,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7111
+            - testCaseID: TCXM_7131
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6214,7 +7909,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7112
+            - testCaseID: TCXM_7132
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6263,7 +7958,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7113
+            - testCaseID: TCXM_7133
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6312,7 +8007,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7114
+            - testCaseID: TCXM_7134
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6361,7 +8056,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7115
+            - testCaseID: TCXM_7135
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6410,7 +8105,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7116
+            - testCaseID: TCXM_7136
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6459,7 +8154,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7117
+            - testCaseID: TCXM_7137
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6508,7 +8203,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7118
+            - testCaseID: TCXM_7138
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6557,7 +8252,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7119
+            - testCaseID: TCXM_7139
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6610,7 +8305,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7120
+            - testCaseID: TCXM_7140
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6663,7 +8358,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7121
+            - testCaseID: TCXM_7141
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6716,7 +8411,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7122
+            - testCaseID: TCXM_7142
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6769,7 +8464,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7123
+            - testCaseID: TCXM_7143
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6822,7 +8517,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7124
+            - testCaseID: TCXM_7144
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6875,7 +8570,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7125
+            - testCaseID: TCXM_7145
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6928,7 +8623,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7126
+            - testCaseID: TCXM_7146
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -6981,7 +8676,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7127
+            - testCaseID: TCXM_7147
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -7034,7 +8729,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7128
+            - testCaseID: TCXM_7148
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -7087,7 +8782,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7129
+            - testCaseID: TCXM_7149
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -7140,7 +8835,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7130
+            - testCaseID: TCXM_7150
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -7193,7 +8888,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7131
+            - testCaseID: TCXM_7151
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -7246,7 +8941,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7132
+            - testCaseID: TCXM_7152
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -7299,7 +8994,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7133
+            - testCaseID: TCXM_7153
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -7352,7 +9047,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7134
+            - testCaseID: TCXM_7154
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -7405,7 +9100,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_7135
+            - testCaseID: TCXM_7155
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -7459,7 +9154,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_7142
+            - testCaseID: TCXM_7162
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -7513,7 +9208,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'vrd-name'
-            - testCaseID: TCXM_7143
+            - testCaseID: TCXM_7163
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -7567,7 +9262,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'route-name'
-            - testCaseID: TCXM_7144
+            - testCaseID: TCXM_7164
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -7617,7 +9312,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'destination-subnet'
-            - testCaseID: TCXM_7145
+            - testCaseID: TCXM_7165
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -7667,7 +9362,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'mask'
-            - testCaseID: TCXM_7146
+            - testCaseID: TCXM_7166
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -7717,7 +9412,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'next-hop-ip'
-            - testCaseID: TCXM_7147
+            - testCaseID: TCXM_7167
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -7770,7 +9465,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7148
+            - testCaseID: TCXM_7168
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -7819,7 +9514,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7149
+            - testCaseID: TCXM_7169
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -7868,7 +9563,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7150
+            - testCaseID: TCXM_7170
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -7924,7 +9619,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7151
+            - testCaseID: TCXM_7171
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -7980,7 +9675,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7152
+            - testCaseID: TCXM_7172
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8036,7 +9731,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7153
+            - testCaseID: TCXM_7173
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8092,7 +9787,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7154
+            - testCaseID: TCXM_7174
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8144,7 +9839,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7155
+            - testCaseID: TCXM_7175
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8196,7 +9891,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7156
+            - testCaseID: TCXM_7176
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8248,7 +9943,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7157
+            - testCaseID: TCXM_7177
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8300,7 +9995,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7158
+            - testCaseID: TCXM_7178
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8352,7 +10047,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7159
+            - testCaseID: TCXM_7179
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8404,7 +10099,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7160
+            - testCaseID: TCXM_7180
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8456,7 +10151,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7161
+            - testCaseID: TCXM_7181
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8508,7 +10203,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7162
+            - testCaseID: TCXM_7182
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8560,7 +10255,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7163
+            - testCaseID: TCXM_7183
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8612,7 +10307,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7164
+            - testCaseID: TCXM_7184
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -8662,7 +10357,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'metric' is omitted
-            - testCaseID: TCXM_7165
+            - testCaseID: TCXM_7185
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -8712,7 +10407,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'preference' is omitted
-            - testCaseID: TCXM_7166
+            - testCaseID: TCXM_7186
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -8762,7 +10457,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'advanced' is omitted
-            - testCaseID: TCXM_7167
+            - testCaseID: TCXM_7187
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -8812,7 +10507,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'next-hop-ip-protection' is omitted
-            - testCaseID: TCXM_7168
+            - testCaseID: TCXM_7188
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -8862,7 +10557,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'sr-vrd-association' is omitted
-            - testCaseID: TCXM_7169
+            - testCaseID: TCXM_7189
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8918,7 +10613,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7170
+            - testCaseID: TCXM_7190
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -8974,7 +10669,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7171
+            - testCaseID: TCXM_7191
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9030,7 +10725,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7172
+            - testCaseID: TCXM_7192
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9086,7 +10781,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7173
+            - testCaseID: TCXM_7193
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9137,7 +10832,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_7174
+            - testCaseID: TCXM_7194
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9161,7 +10856,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_7175
+            - testCaseID: TCXM_7195
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9210,7 +10905,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7176
+            - testCaseID: TCXM_7196
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9259,7 +10954,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7177
+            - testCaseID: TCXM_7197
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9308,7 +11003,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7178
+            - testCaseID: TCXM_7198
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9357,7 +11052,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7179
+            - testCaseID: TCXM_7199
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9406,7 +11101,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7180
+            - testCaseID: TCXM_7200
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9455,7 +11150,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7181
+            - testCaseID: TCXM_7201
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9504,7 +11199,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7182
+            - testCaseID: TCXM_7202
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9553,7 +11248,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7183
+            - testCaseID: TCXM_7203
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9602,7 +11297,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7184
+            - testCaseID: TCXM_7204
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9651,7 +11346,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7185
+            - testCaseID: TCXM_7205
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9700,7 +11395,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7186
+            - testCaseID: TCXM_7206
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9749,7 +11444,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7187
+            - testCaseID: TCXM_7207
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9798,7 +11493,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7188
+            - testCaseID: TCXM_7208
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9847,7 +11542,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7189
+            - testCaseID: TCXM_7209
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9896,7 +11591,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7190
+            - testCaseID: TCXM_7210
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9945,7 +11640,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7191
+            - testCaseID: TCXM_7211
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -9994,7 +11689,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7192
+            - testCaseID: TCXM_7212
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10043,7 +11738,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7193
+            - testCaseID: TCXM_7213
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10092,7 +11787,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7194
+            - testCaseID: TCXM_7214
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10141,7 +11836,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7195
+            - testCaseID: TCXM_7215
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10190,7 +11885,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7196
+            - testCaseID: TCXM_7216
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10239,7 +11934,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7197
+            - testCaseID: TCXM_7217
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10288,7 +11983,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7198
+            - testCaseID: TCXM_7218
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10337,7 +12032,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7199
+            - testCaseID: TCXM_7219
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10386,7 +12081,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7200
+            - testCaseID: TCXM_7220
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10435,7 +12130,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7201
+            - testCaseID: TCXM_7221
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10484,7 +12179,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7202
+            - testCaseID: TCXM_7222
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10533,7 +12228,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7203
+            - testCaseID: TCXM_7223
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10582,7 +12277,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7204
+            - testCaseID: TCXM_7224
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10631,7 +12326,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7205
+            - testCaseID: TCXM_7225
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10684,7 +12379,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7206
+            - testCaseID: TCXM_7226
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10737,7 +12432,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7207
+            - testCaseID: TCXM_7227
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10790,7 +12485,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7208
+            - testCaseID: TCXM_7228
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10843,7 +12538,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7209
+            - testCaseID: TCXM_7229
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10896,7 +12591,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7210
+            - testCaseID: TCXM_7230
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -10949,7 +12644,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7211
+            - testCaseID: TCXM_7231
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -11002,7 +12697,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7212
+            - testCaseID: TCXM_7232
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -11055,7 +12750,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7213
+            - testCaseID: TCXM_7233
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -11108,7 +12803,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7214
+            - testCaseID: TCXM_7234
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -11161,7 +12856,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7215
+            - testCaseID: TCXM_7235
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -11214,7 +12909,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7216
+            - testCaseID: TCXM_7236
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -11267,7 +12962,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7217
+            - testCaseID: TCXM_7237
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -11320,7 +13015,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7218
+            - testCaseID: TCXM_7238
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -11373,7 +13068,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_7219
+            - testCaseID: TCXM_7239
               featureName: static-route
               priority: P2
               automation: Automatable
@@ -11427,7 +13122,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_7224
+            - testCaseID: TCXM_7244
               featureName: static-route
               priority: P4
               automation: Automatable
@@ -11899,7 +13594,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_7225
+            - testCaseID: TCXM_7245
               featureName: static-route
               priority: P4
               automation: Automatable
@@ -12171,7 +13866,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_7226
+            - testCaseID: TCXM_7246
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -12738,7 +14433,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_7227
+            - testCaseID: TCXM_7247
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -13420,7 +15115,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_7220
+            - testCaseID: TCXM_7240
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -17530,7 +19225,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_7221
+            - testCaseID: TCXM_7241
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -17581,7 +19276,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_7222
+            - testCaseID: TCXM_7242
               featureName: static-route
               priority: P3
               automation: Automatable
@@ -18098,7 +19793,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_7223
+            - testCaseID: TCXM_7243
               featureName: static-route
               priority: P3
               automation: Automatable

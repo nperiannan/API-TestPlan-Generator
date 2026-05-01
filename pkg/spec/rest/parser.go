@@ -626,11 +626,11 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 		}
 		p.paths[fmt.Sprintf("DELETE /configuration-profile/%s", cf.yangFeatureName)] = fpDelete
 
-		// SCOPE: PUT /configuration-profile/{name}/scope
+		// SCOPE: POST /configuration-profile/{name}/scope
 		fpScope := &model.FeaturePath{
 			FeatureName:       cf.yangFeatureName,
 			BlueprintCategory: model.BlueprintCategoryWired,
-			HTTPMethod:        "PUT",
+			HTTPMethod:        "POST",
 			Path:              "/configuration-profile/{name}/scope",
 			PathParams:        []model.PathParameter{profileNameParam},
 			ProfileType:       model.ProfileTypeConfiguration,
@@ -642,7 +642,7 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 				model.ScopeTypeSiteGroup,
 			},
 		}
-		p.paths[fmt.Sprintf("PUT /configuration-profile/%s/scope", cf.yangFeatureName)] = fpScope
+		p.paths[fmt.Sprintf("POST /configuration-profile/%s/scope", cf.yangFeatureName)] = fpScope
 
 		// DEPLOY: POST /configuration-profile/{name}/sites/deploy
 		fpSiteDeploy := &model.FeaturePath{
@@ -789,11 +789,11 @@ func (p *Parser) extractWirelessProfileFeatures() {
 		}
 		p.paths[fmt.Sprintf("DELETE /wireless-profile/%s", wf.yangFeatureName)] = fpDelete
 
-		// SCOPE: PUT /configuration-profile/{name}/scope
+		// SCOPE: POST /configuration-profile/{name}/scope
 		fpScope := &model.FeaturePath{
 			FeatureName:       wf.yangFeatureName,
 			BlueprintCategory: model.BlueprintCategoryWireless,
-			HTTPMethod:        "PUT",
+			HTTPMethod:        "POST",
 			Path:              "/configuration-profile/{name}/scope",
 			PathParams:        []model.PathParameter{profileNameParam},
 			ProfileType:       model.ProfileTypeConfiguration,
@@ -805,7 +805,7 @@ func (p *Parser) extractWirelessProfileFeatures() {
 				model.ScopeTypeSiteGroup,
 			},
 		}
-		p.paths[fmt.Sprintf("PUT /wireless-profile/%s/scope", wf.yangFeatureName)] = fpScope
+		p.paths[fmt.Sprintf("POST /wireless-profile/%s/scope", wf.yangFeatureName)] = fpScope
 
 		// DEPLOY: POST /configuration-profile/{name}/sites/deploy
 		fpSiteDeploy := &model.FeaturePath{

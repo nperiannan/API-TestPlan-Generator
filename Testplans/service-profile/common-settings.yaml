@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T12:54:13+05:30"
+generatedAt: "2026-05-01T14:04:53+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_1267
+            - testCaseID: TCXM_1272
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -61,7 +61,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1268
+            - testCaseID: TCXM_1273
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -111,7 +111,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1269
+            - testCaseID: TCXM_1274
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -161,7 +161,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1270
+            - testCaseID: TCXM_1275
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -211,7 +211,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1271
+            - testCaseID: TCXM_1276
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -261,7 +261,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1272
+            - testCaseID: TCXM_1277
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -311,7 +311,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1273
+            - testCaseID: TCXM_1278
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -361,7 +361,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1274
+            - testCaseID: TCXM_1279
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -411,7 +411,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1275
+            - testCaseID: TCXM_1280
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -465,7 +465,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1276
+            - testCaseID: TCXM_1281
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -519,7 +519,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1277
+            - testCaseID: TCXM_1282
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -573,7 +573,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1278
+            - testCaseID: TCXM_1283
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -627,7 +627,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1279
+            - testCaseID: TCXM_1284
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -681,7 +681,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify HTTP status code is 201
-            - testCaseID: TCXM_1280
+            - testCaseID: TCXM_1285
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -1374,6 +1374,261 @@ features:
                       description: Verify duplicate create of common-settings with common-settings is rejected (409 Conflict)
             - testCaseID: TCXM_1167
               featureName: common-settings
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Create common-settings in a service profile, link it to a configuration profile, scope by device location, apply target-query, deploy, and verify
+              scopeType: device
+              targetType: device
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for common-settings deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createcommon-settings
+                  description: Create common-settings configuration with common-settings
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /global-feature
+                    objectType: common-settings
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: advanced-settings
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: vlan-pool-min
+                              origin: CC
+                              type: number
+                              value: 1000
+                            - name: vlan-pool-max
+                              origin: CC
+                              type: number
+                              value: 3499
+                            - name: l2-service-id-pool-min
+                              origin: CC
+                              type: number
+                              value: 20000
+                            - name: l2-service-id-pool-max
+                              origin: CC
+                              type: number
+                              value: 29999
+                          type: common-settings
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify common-settings created successfully with common-settings
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify common-settings created successfully with common-settings
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify common-settings is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /global-feature
+                    objectType: common-settings
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for common-settings service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-common-settings
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_1168
+              featureName: common-settings
               priority: P2
               automation: Automatable
               type: functional
@@ -1423,7 +1678,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_1168
+            - testCaseID: TCXM_1169
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -1604,7 +1859,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='service-profile-id')].value
                       expected: testValue
                       description: Verify field 'service-profile-id' has value 'testValue' as sent on create
-            - testCaseID: TCXM_1169
+            - testCaseID: TCXM_1170
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -1664,7 +1919,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='advanced-settings')].value
                       expected: false
                       description: Verify optional field 'advanced-settings' value is 'false' as set on create
-            - testCaseID: TCXM_1170
+            - testCaseID: TCXM_1171
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -1724,7 +1979,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vlan-pool-min')].value
                       expected: 1000
                       description: Verify optional field 'vlan-pool-min' value is '1000' as set on create
-            - testCaseID: TCXM_1171
+            - testCaseID: TCXM_1172
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -1784,7 +2039,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vlan-pool-max')].value
                       expected: 3499
                       description: Verify optional field 'vlan-pool-max' value is '3499' as set on create
-            - testCaseID: TCXM_1172
+            - testCaseID: TCXM_1173
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -1844,7 +2099,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l2-service-id-pool-min')].value
                       expected: 20000
                       description: Verify optional field 'l2-service-id-pool-min' value is '20000' as set on create
-            - testCaseID: TCXM_1173
+            - testCaseID: TCXM_1174
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -1904,7 +2159,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l2-service-id-pool-max')].value
                       expected: 29999
                       description: Verify optional field 'l2-service-id-pool-max' value is '29999' as set on create
-            - testCaseID: TCXM_1174
+            - testCaseID: TCXM_1175
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -1964,7 +2219,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l3-service-id-pool-min')].value
                       expected: 30000
                       description: Verify optional field 'l3-service-id-pool-min' value is '30000' as set on create
-            - testCaseID: TCXM_1175
+            - testCaseID: TCXM_1176
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -2024,7 +2279,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l3-service-id-pool-max')].value
                       expected: 39999
                       description: Verify optional field 'l3-service-id-pool-max' value is '39999' as set on create
-            - testCaseID: TCXM_1176
+            - testCaseID: TCXM_1177
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -2084,7 +2339,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l2-service-id-offset')].value
                       expected: 20000
                       description: Verify optional field 'l2-service-id-offset' value is '20000' as set on create
-            - testCaseID: TCXM_1177
+            - testCaseID: TCXM_1178
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -2144,7 +2399,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='default-gateway-ip-use')].value
                       expected: first
                       description: Verify optional field 'default-gateway-ip-use' value is 'first' as set on create
-            - testCaseID: TCXM_1178
+            - testCaseID: TCXM_1179
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -2204,7 +2459,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='service-profile-id')].value
                       expected: testValue
                       description: Verify optional field 'service-profile-id' value is 'testValue' as set on create
-            - testCaseID: TCXM_1179
+            - testCaseID: TCXM_1180
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2276,7 +2531,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='advanced-settings')].value
                       expected: true
                       description: Verify 'advanced-settings' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_1180
+            - testCaseID: TCXM_1181
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2348,7 +2603,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='advanced-settings')].value
                       expected: false
                       description: Verify 'advanced-settings' YANG type 'boolean' value is persisted
-            - testCaseID: TCXM_1181
+            - testCaseID: TCXM_1182
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2420,7 +2675,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vlan-pool-min')].value
                       expected: 1
                       description: Verify 'vlan-pool-min' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_1182
+            - testCaseID: TCXM_1183
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2492,7 +2747,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vlan-pool-min')].value
                       expected: 4000
                       description: Verify 'vlan-pool-min' YANG type 'uint32' value is persisted
-            - testCaseID: TCXM_1183
+            - testCaseID: TCXM_1184
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2568,7 +2823,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='default-gateway-ip-use')].value
                       expected: first
                       description: Verify 'default-gateway-ip-use' YANG type 'ngc-types:default-gateway-ip-use-enum' value is persisted
-            - testCaseID: TCXM_1184
+            - testCaseID: TCXM_1185
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2644,7 +2899,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='default-gateway-ip-use')].value
                       expected: last
                       description: Verify 'default-gateway-ip-use' YANG type 'ngc-types:default-gateway-ip-use-enum' value is persisted
-            - testCaseID: TCXM_1185
+            - testCaseID: TCXM_1186
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2720,7 +2975,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='service-profile-id')].value
                       expected: test-value-1
                       description: Verify 'service-profile-id' YANG type 'string' value is persisted
-            - testCaseID: TCXM_1186
+            - testCaseID: TCXM_1187
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2796,7 +3051,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='service-profile-id')].value
                       expected: test-value-2
                       description: Verify 'service-profile-id' YANG type 'string' value is persisted
-            - testCaseID: TCXM_1187
+            - testCaseID: TCXM_1188
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2848,7 +3103,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='advanced-settings')].value
                       expected: false
                       description: Verify 'advanced-settings' equals YANG-defined default value false
-            - testCaseID: TCXM_1188
+            - testCaseID: TCXM_1189
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2900,7 +3155,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vlan-pool-min')].value
                       expected: 1000
                       description: Verify 'vlan-pool-min' equals YANG-defined default value 1000
-            - testCaseID: TCXM_1189
+            - testCaseID: TCXM_1190
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -2952,7 +3207,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vlan-pool-max')].value
                       expected: 3499
                       description: Verify 'vlan-pool-max' equals YANG-defined default value 3499
-            - testCaseID: TCXM_1190
+            - testCaseID: TCXM_1191
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3004,7 +3259,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l2-service-id-pool-min')].value
                       expected: 20000
                       description: Verify 'l2-service-id-pool-min' equals YANG-defined default value 20000
-            - testCaseID: TCXM_1191
+            - testCaseID: TCXM_1192
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3056,7 +3311,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l2-service-id-pool-max')].value
                       expected: 29999
                       description: Verify 'l2-service-id-pool-max' equals YANG-defined default value 29999
-            - testCaseID: TCXM_1192
+            - testCaseID: TCXM_1193
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3108,7 +3363,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l3-service-id-pool-min')].value
                       expected: 30000
                       description: Verify 'l3-service-id-pool-min' equals YANG-defined default value 30000
-            - testCaseID: TCXM_1193
+            - testCaseID: TCXM_1194
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3160,7 +3415,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l3-service-id-pool-max')].value
                       expected: 39999
                       description: Verify 'l3-service-id-pool-max' equals YANG-defined default value 39999
-            - testCaseID: TCXM_1194
+            - testCaseID: TCXM_1195
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3212,7 +3467,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='l2-service-id-offset')].value
                       expected: 20000
                       description: Verify 'l2-service-id-offset' equals YANG-defined default value 20000
-            - testCaseID: TCXM_1195
+            - testCaseID: TCXM_1196
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3264,7 +3519,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='default-gateway-ip-use')].value
                       expected: first
                       description: Verify 'default-gateway-ip-use' equals YANG-defined default value first
-            - testCaseID: TCXM_1196
+            - testCaseID: TCXM_1197
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3314,7 +3569,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1197
+            - testCaseID: TCXM_1198
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3364,7 +3619,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1198
+            - testCaseID: TCXM_1199
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3414,7 +3669,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1199
+            - testCaseID: TCXM_1200
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3464,7 +3719,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1200
+            - testCaseID: TCXM_1201
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3514,7 +3769,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1201
+            - testCaseID: TCXM_1202
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3564,7 +3819,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1202
+            - testCaseID: TCXM_1203
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3614,7 +3869,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1203
+            - testCaseID: TCXM_1204
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3664,7 +3919,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1204
+            - testCaseID: TCXM_1205
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3714,7 +3969,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1205
+            - testCaseID: TCXM_1206
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3764,7 +4019,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1206
+            - testCaseID: TCXM_1207
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3813,7 +4068,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1207
+            - testCaseID: TCXM_1208
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3862,7 +4117,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1208
+            - testCaseID: TCXM_1209
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3911,7 +4166,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1209
+            - testCaseID: TCXM_1210
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -3960,7 +4215,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1210
+            - testCaseID: TCXM_1211
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4009,7 +4264,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1211
+            - testCaseID: TCXM_1212
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4058,7 +4313,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1212
+            - testCaseID: TCXM_1213
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4107,7 +4362,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1213
+            - testCaseID: TCXM_1214
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4156,7 +4411,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1214
+            - testCaseID: TCXM_1215
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4209,7 +4464,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1215
+            - testCaseID: TCXM_1216
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4262,7 +4517,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1216
+            - testCaseID: TCXM_1217
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4315,7 +4570,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1217
+            - testCaseID: TCXM_1218
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4368,7 +4623,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1218
+            - testCaseID: TCXM_1219
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4421,7 +4676,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1219
+            - testCaseID: TCXM_1220
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4474,7 +4729,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1220
+            - testCaseID: TCXM_1221
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4527,7 +4782,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1221
+            - testCaseID: TCXM_1222
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4580,7 +4835,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1222
+            - testCaseID: TCXM_1223
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4629,7 +4884,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1223
+            - testCaseID: TCXM_1224
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4678,7 +4933,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1224
+            - testCaseID: TCXM_1225
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4727,7 +4982,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1225
+            - testCaseID: TCXM_1226
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4776,7 +5031,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1226
+            - testCaseID: TCXM_1227
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4825,7 +5080,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1227
+            - testCaseID: TCXM_1228
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4874,7 +5129,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1228
+            - testCaseID: TCXM_1229
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4923,7 +5178,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1229
+            - testCaseID: TCXM_1230
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -4972,7 +5227,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1230
+            - testCaseID: TCXM_1231
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5021,7 +5276,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1231
+            - testCaseID: TCXM_1232
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5070,7 +5325,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1232
+            - testCaseID: TCXM_1233
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5119,7 +5374,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1233
+            - testCaseID: TCXM_1234
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5168,7 +5423,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1234
+            - testCaseID: TCXM_1235
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5217,7 +5472,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1235
+            - testCaseID: TCXM_1236
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5266,7 +5521,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1236
+            - testCaseID: TCXM_1237
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5315,7 +5570,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1237
+            - testCaseID: TCXM_1238
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5364,7 +5619,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1238
+            - testCaseID: TCXM_1239
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5413,7 +5668,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1239
+            - testCaseID: TCXM_1240
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5462,7 +5717,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1240
+            - testCaseID: TCXM_1241
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5511,7 +5766,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1241
+            - testCaseID: TCXM_1242
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5560,7 +5815,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1242
+            - testCaseID: TCXM_1243
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5609,7 +5864,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1243
+            - testCaseID: TCXM_1244
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5658,7 +5913,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1244
+            - testCaseID: TCXM_1245
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5707,7 +5962,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1245
+            - testCaseID: TCXM_1246
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5756,7 +6011,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1246
+            - testCaseID: TCXM_1247
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5809,7 +6064,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1247
+            - testCaseID: TCXM_1248
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5862,7 +6117,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1248
+            - testCaseID: TCXM_1249
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -5915,7 +6170,1402 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1249
+            - testCaseID: TCXM_1250
+              featureName: common-settings
+              priority: P2
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Detection] Create common-settings in service profile, link to configuration profile, deploy baseline, simulate NOS change, verify conflict and blocked deployment'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for common-settings deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createcommon-settings
+                  description: Create common-settings configuration with common-settings
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /global-feature
+                    objectType: common-settings
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: advanced-settings
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: vlan-pool-min
+                              origin: CC
+                              type: number
+                              value: 1000
+                            - name: vlan-pool-max
+                              origin: CC
+                              type: number
+                              value: 3499
+                            - name: l2-service-id-pool-min
+                              origin: CC
+                              type: number
+                              value: 20000
+                            - name: l2-service-id-pool-max
+                              origin: CC
+                              type: number
+                              value: 29999
+                          type: common-settings
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify common-settings created successfully with common-settings
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify common-settings created successfully with common-settings
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify common-settings is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /global-feature
+                    objectType: common-settings
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for common-settings service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-common-settings-Additional-ConflictDetect
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting common-settings value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: POST
+                  api: NOSAPI
+                  path: /v0/configuration/device
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: common-settings
+                    properties:
+                        advanced-settings: false
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band common-settings change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band common-settings change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: detailed
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+            - testCaseID: TCXM_1251
+              featureName: common-settings
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Resolution CC] Create common-settings in service profile, deploy baseline, simulate NOS change, block deployment, resolve acceptCloud, deploy, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for common-settings deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createcommon-settings
+                  description: Create common-settings configuration with common-settings
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /global-feature
+                    objectType: common-settings
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: advanced-settings
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: vlan-pool-min
+                              origin: CC
+                              type: number
+                              value: 1000
+                            - name: vlan-pool-max
+                              origin: CC
+                              type: number
+                              value: 3499
+                            - name: l2-service-id-pool-min
+                              origin: CC
+                              type: number
+                              value: 20000
+                            - name: l2-service-id-pool-max
+                              origin: CC
+                              type: number
+                              value: 29999
+                          type: common-settings
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify common-settings created successfully with common-settings
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify common-settings created successfully with common-settings
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify common-settings is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /global-feature
+                    objectType: common-settings
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for common-settings service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-common-settings-Additional-ConflictCC
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting common-settings value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: POST
+                  api: NOSAPI
+                  path: /v0/configuration/device
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: common-settings
+                    properties:
+                        advanced-settings: false
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band common-settings change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band common-settings change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+                - name: resolveConflictCC
+                  description: Resolve device conflict with acceptCloud
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/device/conflict/resolve
+                  body:
+                    deviceResolutions:
+                        - deviceId: '{{DEVICE_ID}}'
+                          resolution: acceptCloud
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.results[0].status' equals success
+                    - Verify response contains '$.summary.numberOfConflictsResolved'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.results[0].status
+                      expected: success
+                    - type: jsonPathExists
+                      path: $.summary.numberOfConflictsResolved
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyConflictCleared
+                  description: Verify conflict is cleared after resolution and deployment
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+            - testCaseID: TCXM_1252
+              featureName: common-settings
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Conflict Resolution DD] Create common-settings in service profile, deploy baseline, simulate NOS change, block deployment, resolve acceptDevice, deploy, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for common-settings deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createcommon-settings
+                  description: Create common-settings configuration with common-settings
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /global-feature
+                    objectType: common-settings
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: advanced-settings
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: vlan-pool-min
+                              origin: CC
+                              type: number
+                              value: 1000
+                            - name: vlan-pool-max
+                              origin: CC
+                              type: number
+                              value: 3499
+                            - name: l2-service-id-pool-min
+                              origin: CC
+                              type: number
+                              value: 20000
+                            - name: l2-service-id-pool-max
+                              origin: CC
+                              type: number
+                              value: 29999
+                          type: common-settings
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify common-settings created successfully with common-settings
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify common-settings created successfully with common-settings
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify common-settings is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /global-feature
+                    objectType: common-settings
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for common-settings service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-common-settings-Additional-ConflictDD
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: simulateOutOfBandChange
+                  description: Apply conflicting common-settings value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue
+                  method: POST
+                  api: NOSAPI
+                  path: /v0/configuration/device
+                  body:
+                    action: modify
+                    deviceHostName: '{{DEVICE_HOSTNAME}}'
+                    feature: common-settings
+                    properties:
+                        advanced-settings: false
+                  expectedStatus: 200
+                  validations:
+                    - Verify NOSAPI accepted the out-of-band common-settings change on device {{DEVICE_HOSTNAME}}
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify NOSAPI accepted the out-of-band common-settings change on device {{DEVICE_HOSTNAME}}
+                - name: verifyConflictExists
+                  description: Confirm hasConflicts=true before conflict resolution
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals true
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: true
+                - name: verifyDeploymentBlockedByConflict
+                  description: Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 409
+                  validations:
+                    - Verify deployment is rejected while device conflict exists
+                  assertions:
+                    - type: statusCode
+                      expected: 409
+                      description: Verify deployment is rejected while device conflict exists
+                - name: resolveConflictDD
+                  description: Resolve device conflict with acceptDevice
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/device/conflict/resolve
+                  body:
+                    deviceResolutions:
+                        - deviceId: '{{DEVICE_ID}}'
+                          resolution: acceptDevice
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.results[0].status' equals success
+                    - Verify response contains '$.summary.numberOfConflictsResolved'
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.results[0].status
+                      expected: success
+                    - type: jsonPathExists
+                      path: $.summary.numberOfConflictsResolved
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+                - name: verifyConflictCleared
+                  description: Verify conflict is cleared after resolution and deployment
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.hasConflicts' equals false
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+            - testCaseID: TCXM_1253
+              featureName: common-settings
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: '[Service Override Deploy] Create common-settings in service profile, create device override (advanced-settings=false), deploy configuration profile, and verify'
+              isDeploymentTest: true
+              steps:
+                - name: createServiceProfile
+                  description: Create service profile container before adding service feature configuration
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    description: Service profile for common-settings deployment test
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: createcommon-settings
+                  description: Create common-settings configuration with common-settings
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /global-feature
+                    objectType: common-settings
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: advanced-settings
+                              origin: CC
+                              type: boolean
+                              value: false
+                            - name: vlan-pool-min
+                              origin: CC
+                              type: number
+                              value: 1000
+                            - name: vlan-pool-max
+                              origin: CC
+                              type: number
+                              value: 3499
+                            - name: l2-service-id-pool-min
+                              origin: CC
+                              type: number
+                              value: 20000
+                            - name: l2-service-id-pool-max
+                              origin: CC
+                              type: number
+                              value: 29999
+                          type: common-settings
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify common-settings created successfully with common-settings
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                      description: Verify common-settings created successfully with common-settings
+                    - type: jsonPathExists
+                      path: $[0].id
+                      captureAs: OBJECT_ID
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
+                - name: verifyServiceProfileFeature
+                  description: Verify common-settings is present in the service profile before linking it to configuration profile
+                  method: POST
+                  api: REST
+                  path: /service-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    featurePath: /global-feature
+                    objectType: common-settings
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: createConfigurationProfileWithServiceProfile
+                  description: Create configuration profile and link the service profile so its configuration can be deployed
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    blueprints:
+                        - wired-blueprint
+                    description: Configuration profile for common-settings service-profile deployment
+                    networkArchitecture: standard
+                    serviceProfiles:
+                        - TestServiceProfile-common-settings-Additional-Override
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: retrieveDeviceLocation
+                  description: Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located
+                  method: POST
+                  api: REST
+                  path: /authorized/sites-sitegroups/retrieve
+                  body: {}
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture siteGroupId for the device location
+                    - Capture siteGroupName for the device location
+                    - Capture siteId where the device is onboarded
+                    - Capture siteName where the device is onboarded
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupId
+                      captureAs: SITE_GROUP_ID
+                      description: Capture siteGroupId for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].siteGroupName
+                      captureAs: SITE_GROUP_NAME
+                      description: Capture siteGroupName for the device location
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteId
+                      captureAs: SITE_ID
+                      description: Capture siteId where the device is onboarded
+                    - type: jsonPathExists
+                      path: $.siteGroups[0].sites[0].siteName
+                      captureAs: SITE_NAME
+                      description: Capture siteName where the device is onboarded
+                - name: scopeProfileTodeviceLocation
+                  description: Scope configuration profile to the selected device location using the captured site group and site
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    selectedSiteGroups:
+                        - siteGroupId: '{{SITE_GROUP_ID}}'
+                          siteGroupName: '{{SITE_GROUP_NAME}}'
+                          sites:
+                            - siteId: '{{SITE_ID}}'
+                              siteName: '{{SITE_NAME}}'
+                    selectedSites: []
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                    - Capture created target-query scope id
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                    - type: jsonPathExists
+                      path: $.scopeId
+                      captureAs: SCOPE_ID
+                      description: Capture created target-query scope id
+                - name: applySiteTargetQuery
+                  description: Apply target-query to the configuration profile using the captured siteId
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/target-query/profile
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    includeQuery:
+                        criteria:
+                            - field: siteId
+                              operator: IN
+                              values:
+                                - '{{SITE_ID}}'
+                        logicalOperator: AND
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Capture resolved device id from the scoped target-query
+                    - Capture resolved device hostname from the scoped target-query
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceId
+                      captureAs: DEVICE_ID
+                      description: Capture resolved device id from the scoped target-query
+                    - type: jsonPathExists
+                      path: $.resolvedDevices[0].deviceName
+                      captureAs: DEVICE_HOSTNAME
+                      description: Capture resolved device hostname from the scoped target-query
+                - name: createDeviceOverride
+                  description: Create device-level override for common-settings with advanced-settings=false
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/override/create-modify
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    objectId: '{{OBJECT_ID}}'
+                    overrideProperties:
+                        - name: advanced-settings
+                          value: false
+                    overrideType: device
+                    targetId: '{{DEVICE_ID}}'
+                  expectedStatus: 200
+                  validations:
+                    - Verify device override created
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                      description: Verify device override created
+                - name: verifyNoConflictBeforeDeployment
+                  description: Validate that no device conflict is detected before deployment is initiated
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  queryParams:
+                    detailLevel: summary
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Deployment must start only when no conflict is detected
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.hasConflicts
+                      expected: false
+                      description: Deployment must start only when no conflict is detected
+                - name: deployProfileTodevice
+                  description: Initiate configuration-profile deployment to device using the deployment API
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/devices/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    devices:
+                        - '{{DEVICE_HOSTNAME}}'
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Check deployment status and verify the deployment succeeded
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: '{{DEVICE_HOSTNAME}}'
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_1254
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -6081,7 +7731,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_1250
+            - testCaseID: TCXM_1255
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6134,7 +7784,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1251
+            - testCaseID: TCXM_1256
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6187,7 +7837,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1252
+            - testCaseID: TCXM_1257
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6240,7 +7890,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1253
+            - testCaseID: TCXM_1258
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6293,7 +7943,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1254
+            - testCaseID: TCXM_1259
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6346,7 +7996,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1255
+            - testCaseID: TCXM_1260
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6399,7 +8049,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1256
+            - testCaseID: TCXM_1261
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6452,7 +8102,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1257
+            - testCaseID: TCXM_1262
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6505,7 +8155,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1258
+            - testCaseID: TCXM_1263
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6558,7 +8208,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1259
+            - testCaseID: TCXM_1264
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6611,7 +8261,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1260
+            - testCaseID: TCXM_1265
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6664,7 +8314,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1261
+            - testCaseID: TCXM_1266
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6717,7 +8367,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1262
+            - testCaseID: TCXM_1267
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6770,7 +8420,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1263
+            - testCaseID: TCXM_1268
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6823,7 +8473,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1264
+            - testCaseID: TCXM_1269
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6876,7 +8526,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1265
+            - testCaseID: TCXM_1270
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6929,7 +8579,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_1266
+            - testCaseID: TCXM_1271
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -6983,7 +8633,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_1281
+            - testCaseID: TCXM_1286
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7036,7 +8686,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1282
+            - testCaseID: TCXM_1287
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7089,7 +8739,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1283
+            - testCaseID: TCXM_1288
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7141,7 +8791,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1284
+            - testCaseID: TCXM_1289
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7193,7 +8843,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1285
+            - testCaseID: TCXM_1290
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7245,7 +8895,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1286
+            - testCaseID: TCXM_1291
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7297,7 +8947,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1287
+            - testCaseID: TCXM_1292
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7349,7 +8999,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1288
+            - testCaseID: TCXM_1293
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7401,7 +9051,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1289
+            - testCaseID: TCXM_1294
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7453,7 +9103,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1290
+            - testCaseID: TCXM_1295
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7505,7 +9155,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1291
+            - testCaseID: TCXM_1296
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7561,7 +9211,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1292
+            - testCaseID: TCXM_1297
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7617,7 +9267,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1293
+            - testCaseID: TCXM_1298
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7673,7 +9323,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1294
+            - testCaseID: TCXM_1299
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7729,7 +9379,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1295
+            - testCaseID: TCXM_1300
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7785,7 +9435,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1296
+            - testCaseID: TCXM_1301
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -7841,7 +9491,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1297
+            - testCaseID: TCXM_1302
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -7871,7 +9521,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'advanced-settings' is omitted
-            - testCaseID: TCXM_1298
+            - testCaseID: TCXM_1303
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -7901,7 +9551,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vlan-pool-min' is omitted
-            - testCaseID: TCXM_1299
+            - testCaseID: TCXM_1304
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -7931,7 +9581,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vlan-pool-max' is omitted
-            - testCaseID: TCXM_1300
+            - testCaseID: TCXM_1305
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -7961,7 +9611,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'l2-service-id-pool-min' is omitted
-            - testCaseID: TCXM_1301
+            - testCaseID: TCXM_1306
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -7991,7 +9641,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'l2-service-id-pool-max' is omitted
-            - testCaseID: TCXM_1302
+            - testCaseID: TCXM_1307
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -8021,7 +9671,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'l3-service-id-pool-min' is omitted
-            - testCaseID: TCXM_1303
+            - testCaseID: TCXM_1308
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -8051,7 +9701,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'l3-service-id-pool-max' is omitted
-            - testCaseID: TCXM_1304
+            - testCaseID: TCXM_1309
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -8081,7 +9731,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'l2-service-id-offset' is omitted
-            - testCaseID: TCXM_1305
+            - testCaseID: TCXM_1310
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -8111,7 +9761,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'default-gateway-ip-use' is omitted
-            - testCaseID: TCXM_1306
+            - testCaseID: TCXM_1311
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -8141,7 +9791,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'service-profile-id' is omitted
-            - testCaseID: TCXM_1307
+            - testCaseID: TCXM_1312
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8197,7 +9847,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1308
+            - testCaseID: TCXM_1313
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8253,7 +9903,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1309
+            - testCaseID: TCXM_1314
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8305,7 +9955,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1310
+            - testCaseID: TCXM_1315
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8357,7 +10007,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1311
+            - testCaseID: TCXM_1316
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8409,7 +10059,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1312
+            - testCaseID: TCXM_1317
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8461,7 +10111,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1313
+            - testCaseID: TCXM_1318
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8517,7 +10167,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1314
+            - testCaseID: TCXM_1319
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8573,7 +10223,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1315
+            - testCaseID: TCXM_1320
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8629,7 +10279,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1316
+            - testCaseID: TCXM_1321
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8680,7 +10330,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_1317
+            - testCaseID: TCXM_1322
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8704,7 +10354,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_1318
+            - testCaseID: TCXM_1323
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8757,7 +10407,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1319
+            - testCaseID: TCXM_1324
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8810,7 +10460,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1320
+            - testCaseID: TCXM_1325
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8863,7 +10513,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1321
+            - testCaseID: TCXM_1326
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8916,7 +10566,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1322
+            - testCaseID: TCXM_1327
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -8969,7 +10619,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1323
+            - testCaseID: TCXM_1328
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -9022,7 +10672,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1324
+            - testCaseID: TCXM_1329
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -9075,7 +10725,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1325
+            - testCaseID: TCXM_1330
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -9128,7 +10778,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1326
+            - testCaseID: TCXM_1331
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -9181,7 +10831,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1327
+            - testCaseID: TCXM_1332
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -9234,7 +10884,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1328
+            - testCaseID: TCXM_1333
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -9287,7 +10937,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1329
+            - testCaseID: TCXM_1334
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -9340,7 +10990,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1330
+            - testCaseID: TCXM_1335
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -9393,7 +11043,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1331
+            - testCaseID: TCXM_1336
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -9446,7 +11096,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_1332
+            - testCaseID: TCXM_1337
               featureName: common-settings
               priority: P2
               automation: Automatable
@@ -9500,7 +11150,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_1337
+            - testCaseID: TCXM_1342
               featureName: common-settings
               priority: P4
               automation: Automatable
@@ -9972,7 +11622,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_1338
+            - testCaseID: TCXM_1343
               featureName: common-settings
               priority: P4
               automation: Automatable
@@ -10194,7 +11844,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_1339
+            - testCaseID: TCXM_1344
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -10561,7 +12211,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_1340
+            - testCaseID: TCXM_1345
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -11243,7 +12893,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_1333
+            - testCaseID: TCXM_1338
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -15353,7 +17003,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_1334
+            - testCaseID: TCXM_1339
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -15404,7 +17054,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_1335
+            - testCaseID: TCXM_1340
               featureName: common-settings
               priority: P3
               automation: Automatable
@@ -15721,7 +17371,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_1336
+            - testCaseID: TCXM_1341
               featureName: common-settings
               priority: P3
               automation: Automatable

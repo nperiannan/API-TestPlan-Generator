@@ -21,6 +21,9 @@ func (g *Generator) generateAdditionalCoverageTests(feature *model.Feature, path
 	if primaryPath == nil {
 		return tests
 	}
+	if primaryPath.ProfileType == model.ProfileTypeService || primaryPath.BlueprintCategory == model.BlueprintCategoryService {
+		return g.generateServiceProfileAdditionalCoverageTests(feature, primaryPath, selectReadObjectPath(paths))
+	}
 	if !isConfigurationDeploymentPath(primaryPath) {
 		return tests
 	}
@@ -59,6 +62,185 @@ func (g *Generator) generateAdditionalCoverageTests(feature *model.Feature, path
 	tests = append(tests, g.generateOverrideTests(feature, primaryPath, profileName+"-Override")...)
 
 	return tests
+}
+
+func selectReadObjectPath(paths []*model.FeaturePath) *model.FeaturePath {
+	for _, fp := range paths {
+		if fp != nil && fp.OperationType == model.OperationTypeRead && isFeatureObjectPath(fp) {
+			return fp
+		}
+	}
+	return nil
+}
+
+func (g *Generator) generateServiceProfileAdditionalCoverageTests(feature *model.Feature, createPath, readPath *model.FeaturePath) []model.TestCase {
+	serviceProfileName := fmt.Sprintf("TestServiceProfile-%s-Additional", feature.Name)
+	configurationProfileName := fmt.Sprintf("TestConfigProfile-%s-Additional", feature.Name)
+
+	return []model.TestCase{
+		g.generateServiceProfileConflictDetectionTest(feature, createPath, readPath, serviceProfileName+"-ConflictDetect", configurationProfileName+"-ConflictDetect"),
+		g.generateServiceProfileConflictResolutionTest(feature, createPath, readPath, serviceProfileName+"-ConflictCC", configurationProfileName+"-ConflictCC", "acceptCloud", "CC"),
+		g.generateServiceProfileConflictResolutionTest(feature, createPath, readPath, serviceProfileName+"-ConflictDD", configurationProfileName+"-ConflictDD", "acceptDevice", "DD"),
+		g.generateServiceProfileOverrideDeployVerifyTest(feature, createPath, readPath, serviceProfileName+"-Override", configurationProfileName+"-Override"),
+	}
+}
+
+func (g *Generator) generateServiceProfileConflictDetectionTest(feature *model.Feature, createPath, readPath *model.FeaturePath, serviceProfileName, configurationProfileName string) model.TestCase {
+	deviceHostName := locationDeviceName
+	tc := model.TestCase{
+		TestCaseID:       g.nextTestID(),
+		FeatureName:      feature.Name,
+		Priority:         model.TestPriorityP2,
+		Type:             model.TestCategoryFunctional,
+		Description:      fmt.Sprintf("[Service Conflict Detection] Create %s in service profile, link to configuration profile, deploy baseline, simulate NOS change, verify conflict and blocked deployment", feature.Name),
+		IsDeploymentTest: true,
+		Steps:            []model.TestStep{},
+	}
+
+	g.appendServiceProfileConfigurationSetup(&tc, feature, createPath, readPath, serviceProfileName, configurationProfileName)
+	g.addDeploymentSteps(&tc, feature, configurationProfileName, model.ScopeTypeDevice, model.TargetTypeDevice)
+	tc.Steps = append(tc.Steps, g.outOfBandNOSChangeStep(feature, deviceHostName))
+	tc.Steps = append(tc.Steps, conflictExistsStep(configurationProfileName, deviceHostName, "detailed"))
+	tc.Steps = append(tc.Steps, conflictBlocksDeploymentStep(configurationProfileName))
+
+	return tc
+}
+
+func (g *Generator) generateServiceProfileConflictResolutionTest(feature *model.Feature, createPath, readPath *model.FeaturePath, serviceProfileName, configurationProfileName, resolution, label string) model.TestCase {
+	deviceHostName := locationDeviceName
+	tc := model.TestCase{
+		TestCaseID:       g.nextTestID(),
+		FeatureName:      feature.Name,
+		Priority:         model.TestPriorityP1,
+		Type:             model.TestCategoryFunctional,
+		Description:      fmt.Sprintf("[Service Conflict Resolution %s] Create %s in service profile, deploy baseline, simulate NOS change, block deployment, resolve %s, deploy, and verify", label, feature.Name, resolution),
+		IsDeploymentTest: true,
+		Steps:            []model.TestStep{},
+	}
+
+	g.appendServiceProfileConfigurationSetup(&tc, feature, createPath, readPath, serviceProfileName, configurationProfileName)
+	g.addDeploymentSteps(&tc, feature, configurationProfileName, model.ScopeTypeDevice, model.TargetTypeDevice)
+	tc.Steps = append(tc.Steps, g.outOfBandNOSChangeStep(feature, deviceHostName))
+	tc.Steps = append(tc.Steps, conflictExistsStep(configurationProfileName, deviceHostName, "summary"))
+	tc.Steps = append(tc.Steps, conflictBlocksDeploymentStep(configurationProfileName))
+	tc.Steps = append(tc.Steps, conflictResolveStep(resolution, label))
+	g.appendDeploymentExecutionSteps(&tc, feature, configurationProfileName, model.TargetTypeDevice, true)
+	tc.Steps = append(tc.Steps, conflictClearedStep(configurationProfileName, deviceHostName))
+
+	return tc
+}
+
+func (g *Generator) generateServiceProfileOverrideDeployVerifyTest(feature *model.Feature, createPath, readPath *model.FeaturePath, serviceProfileName, configurationProfileName string) model.TestCase {
+	objectID := "{{OBJECT_ID}}"
+	overrideProps := g.generateOverrideProperties(feature)
+	propDesc := describeOverrideProperties(overrideProps)
+	tc := model.TestCase{
+		TestCaseID:       g.nextTestID(),
+		FeatureName:      feature.Name,
+		Priority:         model.TestPriorityP1,
+		Type:             model.TestCategoryFunctional,
+		Description:      fmt.Sprintf("[Service Override Deploy] Create %s in service profile, create device override (%s), deploy configuration profile, and verify", feature.Name, propDesc),
+		IsDeploymentTest: true,
+		Steps:            []model.TestStep{},
+	}
+
+	g.appendServiceProfileConfigurationSetup(&tc, feature, createPath, readPath, serviceProfileName, configurationProfileName)
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(configurationProfileName, model.ScopeTypeDevice)...)
+	tc.Steps = append(tc.Steps, model.TestStep{
+		Name:        "createDeviceOverride",
+		Description: fmt.Sprintf("Create device-level override for %s with %s", feature.Name, propDesc),
+		Method:      "POST",
+		API:         model.APITypeREST,
+		Path:        "/configuration-profile/{name}/feature/object/override/create-modify",
+		PathParams:  map[string]string{"name": configurationProfileName},
+		Body: map[string]interface{}{
+			"objectId":           objectID,
+			"overrideType":       "device",
+			"targetId":           locationDeviceID,
+			"overrideProperties": overrideProps,
+		},
+		ExpectedStatus: 200,
+		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 200, Description: "Verify device override created"}},
+	})
+	g.appendDeploymentExecutionSteps(&tc, feature, configurationProfileName, model.TargetTypeDevice, true)
+
+	return tc
+}
+
+func (g *Generator) outOfBandNOSChangeStep(feature *model.Feature, deviceHostName string) model.TestStep {
+	nosBody := g.generateNOSAPIConflictBody(feature, deviceHostName)
+	nosStep := model.TestStep{
+		Name:           "simulateOutOfBandChange",
+		Description:    fmt.Sprintf("Apply conflicting %s value directly on device via NOSAPI so deviceValue diverges from previousDeployedValue", feature.Name),
+		Method:         "POST",
+		API:            model.APITypeNOSAPI,
+		Path:           "/v0/configuration/device",
+		Body:           nosBody,
+		ExpectedStatus: 200,
+		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 200, Description: fmt.Sprintf("Verify NOSAPI accepted the out-of-band %s change on device %s", feature.Name, deviceHostName)}},
+	}
+	if g.nosParser != nil {
+		if ep := g.nosParser.FindEndpointForFeature(feature.Name, model.ScopeType(model.TargetTypeDevice)); ep != nil {
+			nosStep.Path = ep.Path
+			nosStep.Method = ep.Method
+		}
+	}
+	return nosStep
+}
+
+func conflictExistsStep(profileName, deviceHostName, detailLevel string) model.TestStep {
+	return model.TestStep{
+		Name:           "verifyConflictExists",
+		Description:    "Confirm hasConflicts=true before conflict resolution",
+		Method:         "GET",
+		API:            model.APITypeREST,
+		Path:           deviceConflictCheckPath,
+		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
+		QueryParams:    map[string]string{"detailLevel": detailLevel},
+		ExpectedStatus: 200,
+		Validations: []model.Validation{
+			{Type: model.ValidationTypeStatusCode, Expected: 200},
+			{Type: model.ValidationTypeJSONPathEquals, Path: "$.hasConflicts", Expected: true},
+		},
+	}
+}
+
+func conflictResolveStep(resolution, label string) model.TestStep {
+	return model.TestStep{
+		Name:        fmt.Sprintf("resolveConflict%s", label),
+		Description: fmt.Sprintf("Resolve device conflict with %s", resolution),
+		Method:      "POST",
+		API:         model.APITypeREST,
+		Path:        "/configuration-profile/device/conflict/resolve",
+		Body: map[string]interface{}{
+			"deviceResolutions": []map[string]interface{}{
+				{"deviceId": locationDeviceID, "resolution": resolution},
+			},
+		},
+		ExpectedStatus: 200,
+		Validations: []model.Validation{
+			{Type: model.ValidationTypeStatusCode, Expected: 200},
+			{Type: model.ValidationTypeJSONPathEquals, Path: "$.results[0].status", Expected: "success"},
+			{Type: model.ValidationTypeJSONPathExists, Path: "$.summary.numberOfConflictsResolved"},
+		},
+	}
+}
+
+func conflictClearedStep(profileName, deviceHostName string) model.TestStep {
+	return model.TestStep{
+		Name:           "verifyConflictCleared",
+		Description:    "Verify conflict is cleared after resolution and deployment",
+		Method:         "GET",
+		API:            model.APITypeREST,
+		Path:           deviceConflictCheckPath,
+		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
+		QueryParams:    map[string]string{"detailLevel": "summary"},
+		ExpectedStatus: 200,
+		Validations: []model.Validation{
+			{Type: model.ValidationTypeStatusCode, Expected: 200},
+			{Type: model.ValidationTypeJSONPathEquals, Path: "$.hasConflicts", Expected: false},
+		},
+	}
 }
 
 func selectPrimaryObjectPath(paths []*model.FeaturePath) *model.FeaturePath {
@@ -123,6 +305,8 @@ func (g *Generator) generateScheduledDeploymentTest(feature *model.Feature, fp *
 	// Step 1: Create configuration
 	createStep := g.createBasicCreateStep(feature, fp, profileName)
 	tc.Steps = append(tc.Steps, createStep)
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, model.ScopeType(targetType))...)
+	tc.Steps = append(tc.Steps, noConflictBeforeDeploymentStep(profileName))
 
 	// Step 2: Schedule deployment
 	var deployPath string
@@ -130,16 +314,16 @@ func (g *Generator) generateScheduledDeploymentTest(feature *model.Feature, fp *
 
 	switch targetType {
 	case model.TargetTypeSite:
-		deployPath = "/configuration-profile/{name}/sites/deploy"
+		deployPath = siteDeployPath
 		deployBody = map[string]interface{}{
-			"sites":    []string{"test-site-001"},
+			"sites":    []string{locationSiteName},
 			"deployAt": deployTime,
 			"timezone": "UTC",
 		}
 	case model.TargetTypeDevice:
-		deployPath = "/configuration-profile/{name}/devices/deploy"
+		deployPath = deviceDeployPath
 		deployBody = map[string]interface{}{
-			"devices":  []string{"test-device-001"},
+			"devices":  []string{locationDeviceName},
 			"deployAt": deployTime,
 			"timezone": "UTC",
 		}
@@ -182,6 +366,8 @@ func (g *Generator) generateEditScheduleTest(feature *model.Feature, fp *model.F
 	// Step 1: Create configuration
 	createStep := g.createBasicCreateStep(feature, fp, profileName)
 	tc.Steps = append(tc.Steps, createStep)
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, model.ScopeType(targetType))...)
+	tc.Steps = append(tc.Steps, noConflictBeforeDeploymentStep(profileName))
 
 	// Step 2: Schedule initial deployment
 	initialDeployTime := time.Now().Add(1 * time.Hour).UTC().Format(time.RFC3339)
@@ -190,16 +376,16 @@ func (g *Generator) generateEditScheduleTest(feature *model.Feature, fp *model.F
 
 	switch targetType {
 	case model.TargetTypeSite:
-		scheduleDeployPath = "/configuration-profile/{name}/sites/deploy"
+		scheduleDeployPath = siteDeployPath
 		scheduleBody = map[string]interface{}{
-			"sites":    []string{"test-site-001"},
+			"sites":    []string{locationSiteName},
 			"deployAt": initialDeployTime,
 			"timezone": "UTC",
 		}
 	case model.TargetTypeDevice:
-		scheduleDeployPath = "/configuration-profile/{name}/devices/deploy"
+		scheduleDeployPath = deviceDeployPath
 		scheduleBody = map[string]interface{}{
-			"devices":  []string{"test-device-001"},
+			"devices":  []string{locationDeviceName},
 			"deployAt": initialDeployTime,
 			"timezone": "UTC",
 		}
@@ -230,14 +416,14 @@ func (g *Generator) generateEditScheduleTest(feature *model.Feature, fp *model.F
 	case model.TargetTypeSite:
 		editPath = "/configuration-profile/{name}/sites/deploy/edit-schedule"
 		editBody = map[string]interface{}{
-			"sites":    []string{"test-site-001"},
+			"sites":    []string{locationSiteName},
 			"deployAt": newDeployTime,
 			"timezone": "UTC",
 		}
 	case model.TargetTypeDevice:
 		editPath = "/configuration-profile/{name}/devices/deploy/edit-schedule"
 		editBody = map[string]interface{}{
-			"devices":  []string{"test-device-001"},
+			"devices":  []string{locationDeviceName},
 			"deployAt": newDeployTime,
 			"timezone": "UTC",
 		}
@@ -278,6 +464,8 @@ func (g *Generator) generateClearScheduleTest(feature *model.Feature, fp *model.
 	// Step 1: Create configuration
 	createStep := g.createBasicCreateStep(feature, fp, profileName)
 	tc.Steps = append(tc.Steps, createStep)
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, model.ScopeType(targetType))...)
+	tc.Steps = append(tc.Steps, noConflictBeforeDeploymentStep(profileName))
 
 	// Step 2: Schedule deployment
 	deployTime := time.Now().Add(1 * time.Hour).UTC().Format(time.RFC3339)
@@ -286,16 +474,16 @@ func (g *Generator) generateClearScheduleTest(feature *model.Feature, fp *model.
 
 	switch targetType {
 	case model.TargetTypeSite:
-		scheduleDeployPath = "/configuration-profile/{name}/sites/deploy"
+		scheduleDeployPath = siteDeployPath
 		scheduleBody = map[string]interface{}{
-			"sites":    []string{"test-site-001"},
+			"sites":    []string{locationSiteName},
 			"deployAt": deployTime,
 			"timezone": "UTC",
 		}
 	case model.TargetTypeDevice:
-		scheduleDeployPath = "/configuration-profile/{name}/devices/deploy"
+		scheduleDeployPath = deviceDeployPath
 		scheduleBody = map[string]interface{}{
-			"devices":  []string{"test-device-001"},
+			"devices":  []string{locationDeviceName},
 			"deployAt": deployTime,
 			"timezone": "UTC",
 		}
@@ -326,12 +514,12 @@ func (g *Generator) generateClearScheduleTest(feature *model.Feature, fp *model.
 	case model.TargetTypeSite:
 		clearPath = "/configuration-profile/{name}/sites/deploy/clear-schedule"
 		clearBody = map[string]interface{}{
-			"sites": []string{"test-site-001"},
+			"sites": []string{locationSiteName},
 		}
 	case model.TargetTypeDevice:
 		clearPath = "/configuration-profile/{name}/devices/deploy/clear-schedule"
 		clearBody = map[string]interface{}{
-			"devices": []string{"test-device-001"},
+			"devices": []string{locationDeviceName},
 		}
 	}
 
@@ -501,7 +689,7 @@ func (g *Generator) generateNOSAPIConflictBody(feature *model.Feature, deviceHos
 // out-of-band device change via NOSAPI, and verifies the conflict is detected via GET conflicts.
 // Conflict = deviceValue ≠ previousDeployedValue (device was changed outside cloud control).
 func (g *Generator) generateConflictDetectionTest(feature *model.Feature, fp *model.FeaturePath, profileName string) model.TestCase {
-	deviceHostName := "test-device-001"
+	deviceHostName := locationDeviceName
 
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
@@ -515,35 +703,7 @@ func (g *Generator) generateConflictDetectionTest(feature *model.Feature, fp *mo
 
 	// Step 1: Create configuration
 	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, fp, profileName))
-
-	// Step 2: Initial deploy to establish previousDeployedValue baseline on device
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:           "initialDeploy",
-		Description:    "Deploy to device — establishes previousDeployedValue baseline",
-		Method:         "POST",
-		API:            model.APITypeREST,
-		Path:           "/configuration-profile/{name}/devices/deploy",
-		PathParams:     map[string]string{"name": profileName},
-		Body:           map[string]interface{}{"devices": []string{deviceHostName}, "deployNow": true},
-		ExpectedStatus: 202,
-		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 202}},
-	})
-
-	// Step 3: Verify initial deployment success
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:           "checkInitialDeployStatus",
-		Description:    "Verify initial deployment completed successfully",
-		Method:         "GET",
-		API:            model.APITypeREST,
-		Path:           "/configuration-profile/{name}/device/{hostName}/deploy/status",
-		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
-		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{Type: model.ValidationTypeStatusCode, Expected: 200},
-			{Type: model.ValidationTypeJSONPathEquals, Path: "$.status", Expected: "SUCCESS"},
-		},
-		Timeout: 300,
-	})
+	g.addDeploymentSteps(&tc, feature, profileName, model.ScopeTypeDevice, model.TargetTypeDevice)
 
 	// Step 4: Simulate out-of-band device change via NOSAPI (makes deviceValue ≠ previousDeployedValue)
 	nosBody := g.generateNOSAPIConflictBody(feature, deviceHostName)
@@ -584,6 +744,7 @@ func (g *Generator) generateConflictDetectionTest(feature *model.Feature, fp *mo
 			{Type: model.ValidationTypeJSONPathExists, Path: "$.features[0].featurePath", Description: "Conflicting feature path is reported"},
 		},
 	})
+	tc.Steps = append(tc.Steps, conflictBlocksDeploymentStep(profileName))
 
 	return tc
 }
@@ -591,8 +752,8 @@ func (g *Generator) generateConflictDetectionTest(feature *model.Feature, fp *mo
 // generateConflictResolutionCCTest creates a functional test for CC (Cloud wins) conflict resolution.
 // Steps: deploy → simulate conflict → verify conflict → resolve acceptCloud → re-deploy → verify cleared.
 func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp *model.FeaturePath, profileName string) model.TestCase {
-	deviceHostName := "test-device-001"
-	deviceID := "550e8400-e29b-41d4-a716-446655440000"
+	deviceHostName := locationDeviceName
+	deviceID := locationDeviceID
 
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
@@ -606,17 +767,7 @@ func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp 
 
 	// Step 1: Create and initial deploy
 	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, fp, profileName))
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:           "initialDeploy",
-		Description:    "Deploy to establish previousDeployedValue baseline",
-		Method:         "POST",
-		API:            model.APITypeREST,
-		Path:           "/configuration-profile/{name}/devices/deploy",
-		PathParams:     map[string]string{"name": profileName},
-		Body:           map[string]interface{}{"devices": []string{deviceHostName}, "deployNow": true},
-		ExpectedStatus: 202,
-		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 202}},
-	})
+	g.addDeploymentSteps(&tc, feature, profileName, model.ScopeTypeDevice, model.TargetTypeDevice)
 
 	// Step 2: Simulate out-of-band change
 	nosBody := g.generateNOSAPIConflictBody(feature, deviceHostName)
@@ -658,6 +809,7 @@ func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp 
 				Description: fmt.Sprintf("Verify hasConflicts=true for %s after out-of-band change", feature.Name)},
 		},
 	})
+	tc.Steps = append(tc.Steps, conflictBlocksDeploymentStep(profileName))
 
 	// Step 4: Resolve via CC — acceptCloud (cloud value wins, device will be pushed cloud value on re-deploy)
 	tc.Steps = append(tc.Steps, model.TestStep{
@@ -682,34 +834,7 @@ func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp 
 		},
 	})
 
-	// Step 5: Re-deploy — pushes cloud value back to device
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:           "redeployAfterCCResolution",
-		Description:    "Re-deploy profile to push cloud value back to device",
-		Method:         "POST",
-		API:            model.APITypeREST,
-		Path:           "/configuration-profile/{name}/devices/deploy",
-		PathParams:     map[string]string{"name": profileName},
-		Body:           map[string]interface{}{"devices": []string{deviceHostName}, "deployNow": true},
-		ExpectedStatus: 202,
-		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 202}},
-	})
-
-	// Step 6: Check re-deploy status
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:           "checkRedeployStatus",
-		Description:    "Verify re-deployment completed successfully",
-		Method:         "GET",
-		API:            model.APITypeREST,
-		Path:           "/configuration-profile/{name}/device/{hostName}/deploy/status",
-		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
-		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{Type: model.ValidationTypeStatusCode, Expected: 200},
-			{Type: model.ValidationTypeJSONPathEquals, Path: "$.status", Expected: "SUCCESS"},
-		},
-		Timeout: 300,
-	})
+	g.appendDeploymentExecutionSteps(&tc, feature, profileName, model.TargetTypeDevice, true)
 
 	// Step 7: Verify conflict cleared
 	tc.Steps = append(tc.Steps, model.TestStep{
@@ -731,34 +856,24 @@ func (g *Generator) generateConflictResolutionCCTest(feature *model.Feature, fp 
 }
 
 // generateConflictResolutionDDTest creates a functional test for DD (Device wins) conflict resolution.
-// Steps: deploy → simulate conflict → verify conflict → resolve acceptDevice → verify cleared (no re-deploy needed).
+// Steps: deploy → simulate conflict → verify conflict → resolve acceptDevice → deploy → verify cleared.
 func (g *Generator) generateConflictResolutionDDTest(feature *model.Feature, fp *model.FeaturePath, profileName string) model.TestCase {
-	deviceHostName := "test-device-001"
-	deviceID := "550e8400-e29b-41d4-a716-446655440000"
+	deviceHostName := locationDeviceName
+	deviceID := locationDeviceID
 
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
 		Priority:         model.TestPriorityP1,
 		Type:             model.TestCategoryFunctional,
-		Description:      fmt.Sprintf("[Conflict Resolution DD] %s: detect conflict → resolve acceptDevice (device wins) → verify cloud baseline updated and conflict cleared (no re-deploy needed)", feature.Name),
+		Description:      fmt.Sprintf("[Conflict Resolution DD] %s: detect conflict → resolve acceptDevice (device wins) → deploy → verify cloud baseline updated and conflict cleared", feature.Name),
 		IsDeploymentTest: true,
 		Steps:            []model.TestStep{},
 	}
 
 	// Step 1: Create and initial deploy
 	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, fp, profileName))
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:           "initialDeploy",
-		Description:    "Deploy to establish previousDeployedValue baseline",
-		Method:         "POST",
-		API:            model.APITypeREST,
-		Path:           "/configuration-profile/{name}/devices/deploy",
-		PathParams:     map[string]string{"name": profileName},
-		Body:           map[string]interface{}{"devices": []string{deviceHostName}, "deployNow": true},
-		ExpectedStatus: 202,
-		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 202}},
-	})
+	g.addDeploymentSteps(&tc, feature, profileName, model.ScopeTypeDevice, model.TargetTypeDevice)
 
 	// Step 2: Simulate out-of-band change
 	nosBodyDD := g.generateNOSAPIConflictBody(feature, deviceHostName)
@@ -800,6 +915,7 @@ func (g *Generator) generateConflictResolutionDDTest(feature *model.Feature, fp 
 				Description: fmt.Sprintf("Verify hasConflicts=true for %s after out-of-band change", feature.Name)},
 		},
 	})
+	tc.Steps = append(tc.Steps, conflictBlocksDeploymentStep(profileName))
 
 	// Step 4: Resolve via DD — acceptDevice (device value becomes new cloud baseline, no re-deploy needed)
 	tc.Steps = append(tc.Steps, model.TestStep{
@@ -824,10 +940,12 @@ func (g *Generator) generateConflictResolutionDDTest(feature *model.Feature, fp 
 		},
 	})
 
-	// Step 5: Verify conflict cleared (no re-deploy needed — cloud accepted device value as new baseline)
+	g.appendDeploymentExecutionSteps(&tc, feature, profileName, model.TargetTypeDevice, true)
+
+	// Step 5: Verify conflict cleared after deploying the accepted device value baseline.
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name:           "verifyConflictCleared",
-		Description:    "GET conflicts after DD resolution — expect hasConflicts=false (device value is now accepted cloud baseline)",
+		Description:    "GET conflicts after DD resolution and deployment — expect hasConflicts=false (device value is now accepted cloud baseline)",
 		Method:         "GET",
 		API:            model.APITypeREST,
 		Path:           "/configuration-profile/{name}/device/{hostName}/conflicts",
@@ -936,7 +1054,7 @@ func describeOverrideProperties(props []map[string]interface{}) string {
 // generateOverrideCRUDLifecycleTest creates a device-level override CRUD lifecycle test:
 // create base → create override → retrieve override → modify override → remove override → verify removed
 func (g *Generator) generateOverrideCRUDLifecycleTest(feature *model.Feature, fp *model.FeaturePath, profileName string, overrideType string, featurePath string, objectType string) model.TestCase {
-	deviceID := "550e8400-e29b-41d4-a716-446655440000"
+	deviceID := locationDeviceID
 	objectID := "{{OBJECT_ID}}"
 	overrideProps := g.generateOverrideProperties(feature)
 	propDesc := describeOverrideProperties(overrideProps)
@@ -952,6 +1070,7 @@ func (g *Generator) generateOverrideCRUDLifecycleTest(feature *model.Feature, fp
 
 	// Step 1: Create base configuration
 	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, fp, profileName))
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, model.ScopeTypeDevice)...)
 
 	// Step 2: Create device-level override
 	tc.Steps = append(tc.Steps, model.TestStep{
@@ -1083,6 +1202,7 @@ func (g *Generator) generateOverrideModelLevelTest(feature *model.Feature, fp *m
 
 	// Step 1: Create base configuration
 	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, fp, profileName))
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, model.ScopeTypeDevice)...)
 
 	// Step 2: Create model-level override
 	tc.Steps = append(tc.Steps, model.TestStep{
@@ -1164,6 +1284,7 @@ func (g *Generator) generateOverrideModelGroupLevelTest(feature *model.Feature, 
 
 	// Step 1: Create base configuration
 	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, fp, profileName))
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, model.ScopeTypeDevice)...)
 
 	// Step 2: Create model-group override
 	tc.Steps = append(tc.Steps, model.TestStep{
@@ -1230,7 +1351,7 @@ func (g *Generator) generateOverrideModelGroupLevelTest(feature *model.Feature, 
 // generateGetAllOverridesTest creates a test to retrieve all overrides for a profile
 func (g *Generator) generateGetAllOverridesTest(feature *model.Feature, fp *model.FeaturePath, profileName string) model.TestCase {
 	objectID := "{{OBJECT_ID}}"
-	deviceID := "550e8400-e29b-41d4-a716-446655440000"
+	deviceID := locationDeviceID
 	overrideProps := g.generateOverrideProperties(feature)
 
 	tc := model.TestCase{
@@ -1244,6 +1365,7 @@ func (g *Generator) generateGetAllOverridesTest(feature *model.Feature, fp *mode
 
 	// Step 1: Create base configuration
 	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, fp, profileName))
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, model.ScopeTypeDevice)...)
 
 	// Step 2: Create a device override so there's at least one
 	tc.Steps = append(tc.Steps, model.TestStep{
@@ -1287,7 +1409,7 @@ func (g *Generator) generateGetAllOverridesTest(feature *model.Feature, fp *mode
 
 // generateOverridePrecedenceTest verifies that device override takes precedence over model override
 func (g *Generator) generateOverridePrecedenceTest(feature *model.Feature, fp *model.FeaturePath, profileName string, featurePath string, objectType string) model.TestCase {
-	deviceID := "550e8400-e29b-41d4-a716-446655440000"
+	deviceID := locationDeviceID
 	modelID := "5520"
 	objectID := "{{OBJECT_ID}}"
 
@@ -1322,6 +1444,7 @@ func (g *Generator) generateOverridePrecedenceTest(feature *model.Feature, fp *m
 
 	// Step 1: Create base configuration
 	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, fp, profileName))
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, model.ScopeTypeDevice)...)
 
 	// Step 2: Create model-level override
 	tc.Steps = append(tc.Steps, model.TestStep{
@@ -1388,8 +1511,7 @@ func (g *Generator) generateOverridePrecedenceTest(feature *model.Feature, fp *m
 
 // generateOverrideDeployVerifyTest creates a test that creates a device override, deploys, and verifies the overridden values are applied
 func (g *Generator) generateOverrideDeployVerifyTest(feature *model.Feature, fp *model.FeaturePath, profileName string, featurePath string, objectType string) model.TestCase {
-	deviceHostName := "test-device-001"
-	deviceID := "550e8400-e29b-41d4-a716-446655440000"
+	deviceID := locationDeviceID
 	objectID := "{{OBJECT_ID}}"
 	overrideProps := g.generateOverrideProperties(feature)
 	propDesc := describeOverrideProperties(overrideProps)
@@ -1406,8 +1528,9 @@ func (g *Generator) generateOverrideDeployVerifyTest(feature *model.Feature, fp 
 
 	// Step 1: Create base configuration
 	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, fp, profileName))
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, model.ScopeTypeDevice)...)
 
-	// Step 2: Create device override
+	// Step 2: Create device override using the device resolved by the scoped target-query.
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name:        "createDeviceOverride",
 		Description: fmt.Sprintf("Create device-level override for %s with %s", feature.Name, propDesc),
@@ -1427,51 +1550,7 @@ func (g *Generator) generateOverrideDeployVerifyTest(feature *model.Feature, fp 
 		},
 	})
 
-	// Step 3: Deploy to device
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:           "deployWithOverride",
-		Description:    "Deploy configuration with device override to device",
-		Method:         "POST",
-		API:            model.APITypeREST,
-		Path:           "/configuration-profile/{name}/devices/deploy",
-		PathParams:     map[string]string{"name": profileName},
-		Body:           map[string]interface{}{"devices": []string{deviceHostName}, "deployNow": true},
-		ExpectedStatus: 202,
-		Validations: []model.Validation{
-			{Type: model.ValidationTypeStatusCode, Expected: 202, Description: "Verify deployment accepted"},
-		},
-	})
-
-	// Step 4: Check deployment status
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:           "checkDeployStatus",
-		Description:    "Verify deployment with override completed successfully",
-		Method:         "GET",
-		API:            model.APITypeREST,
-		Path:           "/configuration-profile/{name}/device/{hostName}/deploy/status",
-		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
-		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{Type: model.ValidationTypeStatusCode, Expected: 200},
-			{Type: model.ValidationTypeJSONPathEquals, Path: "$.status", Expected: "SUCCESS", Description: "Verify deployment with override succeeded"},
-		},
-		Timeout: 300,
-	})
-
-	// Step 5: Verify NOS config has override values (no conflict expected — override was deployed)
-	tc.Steps = append(tc.Steps, model.TestStep{
-		Name:           "verifyNoConflictAfterOverrideDeploy",
-		Description:    "GET conflicts — expect hasConflicts=false since override values were deployed intentionally",
-		Method:         "GET",
-		API:            model.APITypeREST,
-		Path:           "/configuration-profile/{name}/device/{hostName}/conflicts",
-		PathParams:     map[string]string{"name": profileName, "hostName": deviceHostName},
-		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{Type: model.ValidationTypeStatusCode, Expected: 200},
-			{Type: model.ValidationTypeJSONPathEquals, Path: "$.hasConflicts", Expected: false, Description: "No conflict expected — override values were deployed"},
-		},
-	})
+	g.appendDeploymentExecutionSteps(&tc, feature, profileName, model.TargetTypeDevice, true)
 
 	return tc
 }
@@ -1479,7 +1558,7 @@ func (g *Generator) generateOverrideDeployVerifyTest(feature *model.Feature, fp 
 // generateOverrideRemoveNonExistentTest creates a negative test: attempt to remove a non-existent override
 func (g *Generator) generateOverrideRemoveNonExistentTest(feature *model.Feature, fp *model.FeaturePath, profileName string, objectType string) model.TestCase {
 	nonExistentObjectID := "00000000-0000-0000-0000-000000000000"
-	deviceID := "550e8400-e29b-41d4-a716-446655440000"
+	deviceID := locationDeviceID
 
 	tc := model.TestCase{
 		TestCaseID:  g.nextTestID(),
@@ -1489,6 +1568,8 @@ func (g *Generator) generateOverrideRemoveNonExistentTest(feature *model.Feature
 		Description: fmt.Sprintf("[Override Negative] %s: Attempt POST /feature/object/override/remove with non-existent objectId='%s' and overrideType=device — expect HTTP 404 Not Found", feature.Name, nonExistentObjectID),
 		Steps:       []model.TestStep{},
 	}
+
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, model.ScopeTypeDevice)...)
 
 	tc.Steps = append(tc.Steps, model.TestStep{
 		Name:        "removeNonExistentOverride",

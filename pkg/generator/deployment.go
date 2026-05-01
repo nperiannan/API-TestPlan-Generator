@@ -7,46 +7,148 @@ import (
 	"github.com/extremenetworks/testcase-generator/pkg/model"
 )
 
-// addDeploymentSteps adds deployment and verification steps to a test case
-// Based on actual REST API: /configuration-profile/{name}/sites/deploy or /configuration-profile/{name}/devices/deploy
+const (
+	locationLookupPath       = "/authorized/sites-sitegroups/retrieve"
+	profileScopePath         = "/configuration-profile/{name}/scope"
+	profileTargetQueryPath   = "/configuration-profile/{name}/target-query/profile"
+	deviceDeployPath         = "/configuration-profile/{name}/devices/deploy"
+	siteDeployPath           = "/configuration-profile/{name}/sites/deploy"
+	deviceDeployStatusPath   = "/configuration-profile/{name}/device/{hostName}/deploy/status"
+	siteDeployStatusPath     = "/configuration-profile/{name}/site/{siteName}/deploy/status"
+	deviceConflictCheckPath  = "/configuration-profile/{name}/device/{hostName}/conflicts"
+	serviceProfileCreatePath = "/service-profile/{name}"
+	configurationProfilePath = "/configuration-profile/{name}"
+
+	locationSiteGroupID   = "{{SITE_GROUP_ID}}"
+	locationSiteGroupName = "{{SITE_GROUP_NAME}}"
+	locationSiteID        = "{{SITE_ID}}"
+	locationSiteName      = "{{SITE_NAME}}"
+	locationDeviceID      = "{{DEVICE_ID}}"
+	locationDeviceName    = "{{DEVICE_HOSTNAME}}"
+)
+
+// addDeploymentSteps adds the profile scope, target-query, deployment, status,
+// and NOS verification workflow required before a configuration reaches devices.
 func (g *Generator) addDeploymentSteps(tc *model.TestCase, feature *model.Feature, profileName string, scopeType model.ScopeType, targetType model.TargetType) {
-	// Determine deploy endpoint and body based on target type
-	var deployPath string
-	var deployBody map[string]interface{}
-	var statusPath string
+	tc.Steps = append(tc.Steps, scopedTargetQuerySteps(profileName, scopeType)...)
+	g.appendDeploymentExecutionSteps(tc, feature, profileName, targetType, true)
+}
 
-	switch targetType {
-	case model.TargetTypeSite, model.TargetTypeSiteGroup:
-		// Deploy to sites
-		deployPath = "/configuration-profile/{name}/sites/deploy"
-		deployBody = map[string]interface{}{
-			"sites":     []string{"test-site-001"},
-			"deployNow": true,
-		}
-		statusPath = "/configuration-profile/{name}/site/{siteName}/deploy/status"
+func scopedTargetQuerySteps(profileName string, scopeType model.ScopeType) []model.TestStep {
+	return []model.TestStep{
+		{
+			Name:           "retrieveDeviceLocation",
+			Description:    "Retrieve authorized site groups and sites, then capture the site group and site where the onboarded device is located",
+			Method:         "POST",
+			API:            model.APITypeREST,
+			Path:           locationLookupPath,
+			Body:           map[string]interface{}{},
+			ExpectedStatus: 200,
+			Validations: []model.Validation{
+				{Type: model.ValidationTypeStatusCode, Expected: 200},
+				{Type: model.ValidationTypeJSONPathExists, Path: "$.siteGroups[0].siteGroupId", CaptureAs: "SITE_GROUP_ID", Description: "Capture siteGroupId for the device location"},
+				{Type: model.ValidationTypeJSONPathExists, Path: "$.siteGroups[0].siteGroupName", CaptureAs: "SITE_GROUP_NAME", Description: "Capture siteGroupName for the device location"},
+				{Type: model.ValidationTypeJSONPathExists, Path: "$.siteGroups[0].sites[0].siteId", CaptureAs: "SITE_ID", Description: "Capture siteId where the device is onboarded"},
+				{Type: model.ValidationTypeJSONPathExists, Path: "$.siteGroups[0].sites[0].siteName", CaptureAs: "SITE_NAME", Description: "Capture siteName where the device is onboarded"},
+			},
+		},
+		{
+			Name:        fmt.Sprintf("scopeProfileTo%sLocation", scopeType),
+			Description: fmt.Sprintf("Scope configuration profile to the selected %s location using the captured site group and site", scopeType),
+			Method:      "POST",
+			API:         model.APITypeREST,
+			Path:        profileScopePath,
+			PathParams:  map[string]string{"name": profileName},
+			Body: map[string]interface{}{
+				"selectedSiteGroups": []map[string]interface{}{
+					{
+						"siteGroupId":   locationSiteGroupID,
+						"siteGroupName": locationSiteGroupName,
+						"sites": []map[string]interface{}{
+							{
+								"siteId":   locationSiteID,
+								"siteName": locationSiteName,
+							},
+						},
+					},
+				},
+				"selectedSites": []map[string]interface{}{},
+			},
+			ExpectedStatus: 201,
+			Validations: []model.Validation{
+				{Type: model.ValidationTypeStatusCode, Expected: 201},
+				{Type: model.ValidationTypeJSONPathExists, Path: "$.scopeId", CaptureAs: "SCOPE_ID", Description: "Capture created target-query scope id"},
+			},
+		},
+		{
+			Name:        "applySiteTargetQuery",
+			Description: "Apply target-query to the configuration profile using the captured siteId",
+			Method:      "POST",
+			API:         model.APITypeREST,
+			Path:        profileTargetQueryPath,
+			PathParams:  map[string]string{"name": profileName},
+			Body: map[string]interface{}{
+				"includeQuery": map[string]interface{}{
+					"criteria": []map[string]interface{}{
+						{
+							"field":    "siteId",
+							"operator": "IN",
+							"values":   []string{locationSiteID},
+						},
+					},
+					"logicalOperator": "AND",
+				},
+			},
+			ExpectedStatus: 200,
+			Validations: []model.Validation{
+				{Type: model.ValidationTypeStatusCode, Expected: 200},
+				{Type: model.ValidationTypeJSONPathExists, Path: "$.resolvedDevices[0].deviceId", CaptureAs: "DEVICE_ID", Description: "Capture resolved device id from the scoped target-query"},
+				{Type: model.ValidationTypeJSONPathExists, Path: "$.resolvedDevices[0].deviceName", CaptureAs: "DEVICE_HOSTNAME", Description: "Capture resolved device hostname from the scoped target-query"},
+			},
+		},
+	}
+}
 
-	case model.TargetTypeDevice:
-		// Deploy to devices
-		deployPath = "/configuration-profile/{name}/devices/deploy"
-		deployBody = map[string]interface{}{
-			"devices":   []string{"test-device-001"},
-			"deployNow": true,
-		}
-		statusPath = "/configuration-profile/{name}/device/{hostName}/deploy/status"
+func (g *Generator) appendDeploymentExecutionSteps(tc *model.TestCase, feature *model.Feature, profileName string, targetType model.TargetType, verifyNoConflict bool) {
+	if verifyNoConflict {
+		tc.Steps = append(tc.Steps, noConflictBeforeDeploymentStep(profileName))
+	}
+	tc.Steps = append(tc.Steps, deploymentRequestStep(profileName, targetType))
+	tc.Steps = append(tc.Steps, deploymentStatusStep(profileName, targetType))
+	g.appendNOSVerificationStep(tc, feature, targetType)
+}
 
-	default:
-		// For any other target type, use overall profile deployment
-		deployPath = "/configuration-profile/{name}/deploy"
-		deployBody = map[string]interface{}{
-			"deployNow": true,
-		}
-		statusPath = "/configuration-profile/{name}/deploy/status"
+func noConflictBeforeDeploymentStep(profileName string) model.TestStep {
+	return model.TestStep{
+		Name:        "verifyNoConflictBeforeDeployment",
+		Description: "Validate that no device conflict is detected before deployment is initiated",
+		Method:      "GET",
+		API:         model.APITypeREST,
+		Path:        deviceConflictCheckPath,
+		PathParams: map[string]string{
+			"name":     profileName,
+			"hostName": locationDeviceName,
+		},
+		QueryParams:    map[string]string{"detailLevel": "summary"},
+		ExpectedStatus: 200,
+		Validations: []model.Validation{
+			{Type: model.ValidationTypeStatusCode, Expected: 200},
+			{Type: model.ValidationTypeJSONPathEquals, Path: "$.hasConflicts", Expected: false, Description: "Deployment must start only when no conflict is detected"},
+		},
+	}
+}
+
+func deploymentRequestStep(profileName string, targetType model.TargetType) model.TestStep {
+	deployPath := deviceDeployPath
+	deployBody := map[string]interface{}{"devices": []string{locationDeviceName}, "deployNow": true}
+	if targetType == model.TargetTypeSite || targetType == model.TargetTypeSiteGroup {
+		deployPath = siteDeployPath
+		deployBody = map[string]interface{}{"sites": []string{locationSiteName}, "deployNow": true}
 	}
 
-	// Deploy step
-	deployStep := model.TestStep{
-		Name:           fmt.Sprintf("deployTo%s", targetType),
-		Description:    fmt.Sprintf("Deploy configuration to %s", targetType),
+	return model.TestStep{
+		Name:           fmt.Sprintf("deployProfileTo%s", targetType),
+		Description:    fmt.Sprintf("Initiate configuration-profile deployment to %s using the deployment API", targetType),
 		Method:         "POST",
 		API:            model.APITypeREST,
 		Path:           deployPath,
@@ -54,59 +156,70 @@ func (g *Generator) addDeploymentSteps(tc *model.TestCase, feature *model.Featur
 		Body:           deployBody,
 		ExpectedStatus: 202,
 		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 202,
-			},
+			{Type: model.ValidationTypeStatusCode, Expected: 202},
 		},
 	}
-	tc.Steps = append(tc.Steps, deployStep)
+}
 
-	// Status check step
-	statusStep := model.TestStep{
+func deploymentStatusStep(profileName string, targetType model.TargetType) model.TestStep {
+	statusPath := deviceDeployStatusPath
+	pathParams := map[string]string{"name": profileName, "hostName": locationDeviceName}
+	if targetType == model.TargetTypeSite || targetType == model.TargetTypeSiteGroup {
+		statusPath = siteDeployStatusPath
+		pathParams = map[string]string{"name": profileName, "siteName": locationSiteName}
+	}
+
+	return model.TestStep{
 		Name:           "checkDeploymentStatus",
-		Description:    "Verify deployment status",
+		Description:    "Check deployment status and verify the deployment succeeded",
 		Method:         "GET",
 		API:            model.APITypeREST,
 		Path:           statusPath,
-		PathParams:     map[string]string{"name": profileName},
-		Body:           map[string]interface{}{},
+		PathParams:     pathParams,
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-			{
-				Type:     model.ValidationTypeJSONPathEquals,
-				Path:     "$.status",
-				Expected: "SUCCESS",
-			},
+			{Type: model.ValidationTypeStatusCode, Expected: 200},
+			{Type: model.ValidationTypeJSONPathEquals, Path: "$.status", Expected: "SUCCESS"},
 		},
 		Timeout: 300,
 	}
-	tc.Steps = append(tc.Steps, statusStep)
+}
 
-	// NOS verification step
-	// Convert targetType to scopeType for NOS endpoint lookup
+func conflictBlocksDeploymentStep(profileName string) model.TestStep {
+	return model.TestStep{
+		Name:        "verifyDeploymentBlockedByConflict",
+		Description: "Attempt deployment while conflict is unresolved; deployment must not succeed until conflict resolution is selected",
+		Method:      "POST",
+		API:         model.APITypeREST,
+		Path:        deviceDeployPath,
+		PathParams:  map[string]string{"name": profileName},
+		Body: map[string]interface{}{
+			"devices":   []string{locationDeviceName},
+			"deployNow": true,
+		},
+		ExpectedStatus: 409,
+		Validations: []model.Validation{
+			{Type: model.ValidationTypeStatusCode, Expected: 409, Description: "Verify deployment is rejected while device conflict exists"},
+		},
+	}
+}
+
+func (g *Generator) appendNOSVerificationStep(tc *model.TestCase, feature *model.Feature, targetType model.TargetType) {
 	if g.nosParser != nil {
 		nosScopeType := model.ScopeType(targetType)
 		nosEndpoint := g.nosParser.FindEndpointForFeature(feature.Name, nosScopeType)
 		if nosEndpoint != nil {
-			deviceID := "test-device-001"
-			if targetType == model.TargetTypeSite || targetType == model.TargetTypeSiteGroup {
-				deviceID = "test-site-001"
-			}
-
 			nosStep := model.TestStep{
 				Name:        fmt.Sprintf("verifyNosConfigFor%s", targetType),
-				Description: fmt.Sprintf("Verify configuration on NOS %s", targetType),
+				Description: fmt.Sprintf("Verify the deployed %s configuration is present on the NOS device", feature.Name),
 				Method:      nosEndpoint.Method,
 				API:         model.APITypeNOSAPI,
 				Path:        nosEndpoint.Path,
 				PathParams: map[string]string{
-					"siteId":   deviceID,
-					"deviceId": deviceID,
+					"siteGroupId": locationSiteGroupID,
+					"siteId":      locationSiteID,
+					"deviceId":    locationDeviceID,
+					"hostName":    locationDeviceName,
 				},
 				ExpectedStatus: 200,
 				DevicesScope:   nosEndpoint.DeviceScope,
@@ -149,8 +262,6 @@ func (g *Generator) generateDeploymentTest(
 	}
 
 	profileName := "TestProfile"
-	scopeID := "test-scope-001"
-
 	// Step 1: Create configuration using the feature's actual body structure
 	createBody := g.generateRequestBody(feature, createPath)
 	g.setBodyResourceName(feature, createBody, profileName)
@@ -192,139 +303,7 @@ func (g *Generator) generateDeploymentTest(
 		tc.Steps = append(tc.Steps, getStep)
 	}
 
-	// Step 3: Scope the profile
-	scopePath := findPathForScopeType(scopePaths, scopeType)
-	if scopePath != nil {
-		scopeStep := model.TestStep{
-			Name:        fmt.Sprintf("scopeProfileTo%s", scopeType),
-			Description: fmt.Sprintf("Scope profile to %s", scopeType),
-			Method:      scopePath.HTTPMethod,
-			API:         model.APITypeREST,
-			Path:        scopePath.Path,
-			PathParams:  pathParamsFor(scopePath.Path, profileName),
-			Body: map[string]interface{}{
-				"scopeId":   scopeID,
-				"scopeType": string(scopeType),
-			},
-			ExpectedStatus: 200,
-			Validations: []model.Validation{
-				{
-					Type:     model.ValidationTypeStatusCode,
-					Expected: 200,
-				},
-			},
-		}
-		tc.Steps = append(tc.Steps, scopeStep)
-	}
-
-	// Step 4: Target the profile
-	targetPath := findPathForTargetType(targetPaths, targetType)
-	if targetPath != nil {
-		targetStep := model.TestStep{
-			Name:        fmt.Sprintf("targetProfileTo%s", targetType),
-			Description: fmt.Sprintf("Target profile to %s", targetType),
-			Method:      targetPath.HTTPMethod,
-			API:         model.APITypeREST,
-			Path:        targetPath.Path,
-			PathParams:  pathParamsFor(targetPath.Path, profileName),
-			Body: map[string]interface{}{
-				"targetId":   scopeID,
-				"targetType": string(targetType),
-			},
-			ExpectedStatus: 200,
-			Validations: []model.Validation{
-				{
-					Type:     model.ValidationTypeStatusCode,
-					Expected: 200,
-				},
-			},
-		}
-		tc.Steps = append(tc.Steps, targetStep)
-	}
-
-	// Step 5: Deploy the profile
-	deployPath := findDeployPathForTargetType(deployPaths, targetType)
-	if deployPath != nil {
-		deployBody := map[string]interface{}{"devices": []string{"test-device-001"}, "deployNow": true}
-		if targetType == model.TargetTypeSite || targetType == model.TargetTypeSiteGroup {
-			deployBody = map[string]interface{}{"sites": []string{"test-site-001"}, "deployNow": true}
-		}
-		deployStep := model.TestStep{
-			Name:           fmt.Sprintf("deployProfileTo%s", scopeType),
-			Description:    fmt.Sprintf("Deploy profile to %s", scopeType),
-			Method:         deployPath.HTTPMethod,
-			API:            model.APITypeREST,
-			Path:           deployPath.Path,
-			PathParams:     pathParamsFor(deployPath.Path, profileName),
-			Body:           deployBody,
-			ExpectedStatus: 202,
-			Validations: []model.Validation{
-				{
-					Type:     model.ValidationTypeStatusCode,
-					Expected: 202,
-				},
-			},
-		}
-		tc.Steps = append(tc.Steps, deployStep)
-	}
-
-	// Step 6: Check deployment status
-	statusPath := findStatusPathForTargetType(deployPaths, targetType)
-	if statusPath != nil {
-		statusStep := model.TestStep{
-			Name:           "checkDeploymentStatus",
-			Description:    "Verify deployment status",
-			Method:         statusPath.HTTPMethod,
-			API:            model.APITypeREST,
-			Path:           statusPath.Path,
-			PathParams:     pathParamsFor(statusPath.Path, profileName),
-			ExpectedStatus: 200,
-			Validations: []model.Validation{
-				{
-					Type:     model.ValidationTypeStatusCode,
-					Expected: 200,
-				},
-				{
-					Type:     model.ValidationTypeJSONPathEquals,
-					Path:     "$.status",
-					Expected: "SUCCESS",
-				},
-			},
-			Timeout: 300, // 5 minutes for deployment
-		}
-		tc.Steps = append(tc.Steps, statusStep)
-	}
-
-	// Step 7: Verify configuration on NOS devices via NOSAPI
-	if g.nosParser != nil {
-		nosEndpoint := g.nosParser.FindEndpointForFeature(feature.Name, scopeType)
-		if nosEndpoint != nil {
-			nosStep := model.TestStep{
-				Name:        fmt.Sprintf("verifyNosConfigFor%s", scopeType),
-				Description: fmt.Sprintf("Verify configuration on NOS devices in %s", scopeType),
-				Method:      nosEndpoint.Method,
-				API:         model.APITypeNOSAPI,
-				Path:        nosEndpoint.Path,
-				PathParams: map[string]string{
-					"siteGroupId": scopeID,
-					"deviceId":    scopeID,
-				},
-				ExpectedStatus: 200,
-				DevicesScope:   nosEndpoint.DeviceScope,
-				Validations: []model.Validation{
-					{
-						Type:     model.ValidationTypeStatusCode,
-						Expected: 200,
-					},
-					{
-						Type:        model.ValidationTypeNosConfigMatchesExpected,
-						Description: "Verify NOS device configuration matches expected state",
-					},
-				},
-			}
-			tc.Steps = append(tc.Steps, nosStep)
-		}
-	}
+	g.addDeploymentSteps(&tc, feature, profileName, scopeType, targetType)
 
 	return tc
 }
@@ -432,7 +411,6 @@ func (g *Generator) generateFullDeploymentTest(
 	}
 
 	profileName := "TestProfile"
-	scopeID := "test-scope-001"
 
 	// Step 1: Create configuration
 	createBody := g.generateRequestBody(feature, createPath)
@@ -475,116 +453,83 @@ func (g *Generator) generateFullDeploymentTest(
 		tc.Steps = append(tc.Steps, getStep)
 	}
 
-	// Step 3: Scope the profile using the OpenAPI-backed configuration-profile scope path.
-	scopeStep := model.TestStep{
-		Name:        fmt.Sprintf("scopeProfileTo%s", scopeType),
-		Description: fmt.Sprintf("Scope profile to %s", scopeType),
-		Method:      "PUT",
-		API:         model.APITypeREST,
-		Path:        "/configuration-profile/{name}/scope",
-		PathParams:  map[string]string{"name": profileName},
-		Body: map[string]interface{}{
-			"scopeId":   scopeID,
-			"scopeType": string(scopeType),
-		},
-		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-		},
-	}
-	tc.Steps = append(tc.Steps, scopeStep)
-
-	// Step 4: Deploy the profile using the OpenAPI-backed device/site deploy path.
-	deployPath := "/configuration-profile/{name}/devices/deploy"
-	deployBody := map[string]interface{}{"devices": []string{"test-device-001"}, "deployNow": true}
-	if targetType == model.TargetTypeSite || targetType == model.TargetTypeSiteGroup {
-		deployPath = "/configuration-profile/{name}/sites/deploy"
-		deployBody = map[string]interface{}{"sites": []string{"test-site-001"}, "deployNow": true}
-	}
-	deployStep := model.TestStep{
-		Name:           fmt.Sprintf("deployProfileTo%s", scopeType),
-		Description:    fmt.Sprintf("Deploy profile to %s", scopeType),
-		Method:         "POST",
-		API:            model.APITypeREST,
-		Path:           deployPath,
-		PathParams:     map[string]string{"name": profileName},
-		Body:           deployBody,
-		ExpectedStatus: 202,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 202,
-			},
-		},
-	}
-	tc.Steps = append(tc.Steps, deployStep)
-
-	// Step 5: Check deployment status using the OpenAPI-backed status path.
-	statusPath := "/configuration-profile/{name}/device/{hostName}/deploy/status"
-	if targetType == model.TargetTypeSite || targetType == model.TargetTypeSiteGroup {
-		statusPath = "/configuration-profile/{name}/site/{siteName}/deploy/status"
-	}
-	statusStep := model.TestStep{
-		Name:           "checkDeploymentStatus",
-		Description:    "Verify deployment status",
-		Method:         "GET",
-		API:            model.APITypeREST,
-		Path:           statusPath,
-		PathParams:     pathParamsFor(statusPath, profileName),
-		ExpectedStatus: 200,
-		Validations: []model.Validation{
-			{
-				Type:     model.ValidationTypeStatusCode,
-				Expected: 200,
-			},
-			{
-				Type:     model.ValidationTypeJSONPathEquals,
-				Path:     "$.status",
-				Expected: "SUCCESS",
-			},
-		},
-		Timeout: 300,
-	}
-	tc.Steps = append(tc.Steps, statusStep)
-
-	// Step 7: Verify configuration on NOS devices via NOSAPI
-	if g.nosParser != nil {
-		nosEndpoint := g.nosParser.FindEndpointForFeature(feature.Name, scopeType)
-		if nosEndpoint != nil {
-			nosStep := model.TestStep{
-				Name:        fmt.Sprintf("verifyNosConfigFor%s", scopeType),
-				Description: fmt.Sprintf("Verify configuration on NOS devices in %s", scopeType),
-				Method:      nosEndpoint.Method,
-				API:         model.APITypeNOSAPI,
-				Path:        nosEndpoint.Path,
-				PathParams: map[string]string{
-					"siteGroupId": scopeID,
-					"deviceId":    scopeID,
-				},
-				ExpectedStatus: 200,
-				DevicesScope:   nosEndpoint.DeviceScope,
-				Validations: []model.Validation{
-					{
-						Type:     model.ValidationTypeStatusCode,
-						Expected: 200,
-					},
-					{
-						Type:        model.ValidationTypeNosConfigMatchesExpected,
-						Description: "Verify NOS device configuration matches expected state",
-					},
-				},
-			}
-			tc.Steps = append(tc.Steps, nosStep)
-		}
-	}
+	g.addDeploymentSteps(&tc, feature, profileName, scopeType, targetType)
 
 	return tc
 }
 
-// generateSimplifiedDeploymentTest generates a simplified deployment test (create and verify only)
+func (g *Generator) generateServiceProfileScopedDeploymentTest(feature *model.Feature, createPath, readPath *model.FeaturePath, targetType model.TargetType) model.TestCase {
+	serviceProfileName := fmt.Sprintf("TestServiceProfile-%s", feature.Name)
+	configurationProfileName := fmt.Sprintf("TestConfigProfile-%s", feature.Name)
+
+	tc := model.TestCase{
+		TestCaseID:       g.nextTestID(),
+		FeatureName:      feature.Name,
+		Priority:         model.TestPriorityP1,
+		Type:             model.TestCategoryFunctional,
+		Description:      fmt.Sprintf("Create %s in a service profile, link it to a configuration profile, scope by device location, apply target-query, deploy, and verify", feature.Name),
+		ScopeType:        model.ScopeTypeDevice,
+		TargetType:       targetType,
+		DeploymentMethod: model.DeploymentMethodImmediate,
+		IsDeploymentTest: true,
+		Steps:            []model.TestStep{},
+	}
+
+	g.appendServiceProfileConfigurationSetup(&tc, feature, createPath, readPath, serviceProfileName, configurationProfileName)
+	g.addDeploymentSteps(&tc, feature, configurationProfileName, model.ScopeTypeDevice, targetType)
+
+	return tc
+}
+
+func (g *Generator) appendServiceProfileConfigurationSetup(tc *model.TestCase, feature *model.Feature, createPath, readPath *model.FeaturePath, serviceProfileName, configurationProfileName string) {
+	tc.Steps = append(tc.Steps, model.TestStep{
+		Name:           "createServiceProfile",
+		Description:    "Create service profile container before adding service feature configuration",
+		Method:         "POST",
+		API:            model.APITypeREST,
+		Path:           serviceProfileCreatePath,
+		PathParams:     map[string]string{"name": serviceProfileName},
+		Body:           map[string]interface{}{"description": fmt.Sprintf("Service profile for %s deployment test", feature.Name)},
+		ExpectedStatus: 201,
+		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 201}},
+	})
+
+	tc.Steps = append(tc.Steps, g.createBasicCreateStep(feature, createPath, serviceProfileName))
+
+	if readPath != nil {
+		tc.Steps = append(tc.Steps, model.TestStep{
+			Name:           "verifyServiceProfileFeature",
+			Description:    fmt.Sprintf("Verify %s is present in the service profile before linking it to configuration profile", feature.Name),
+			Method:         readPath.HTTPMethod,
+			API:            model.APITypeREST,
+			Path:           readPath.Path,
+			PathParams:     pathParamsFor(readPath.Path, serviceProfileName),
+			Body:           g.generateReadBody(feature, createPath),
+			ExpectedStatus: 200,
+			Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 200}},
+		})
+	}
+
+	tc.Steps = append(tc.Steps, model.TestStep{
+		Name:        "createConfigurationProfileWithServiceProfile",
+		Description: "Create configuration profile and link the service profile so its configuration can be deployed",
+		Method:      "POST",
+		API:         model.APITypeREST,
+		Path:        configurationProfilePath,
+		PathParams:  map[string]string{"name": configurationProfileName},
+		Body: map[string]interface{}{
+			"blueprints":          []string{"wired-blueprint"},
+			"serviceProfiles":     []string{serviceProfileName},
+			"networkArchitecture": "standard",
+			"description":         fmt.Sprintf("Configuration profile for %s service-profile deployment", feature.Name),
+		},
+		ExpectedStatus: 201,
+		Validations:    []model.Validation{{Type: model.ValidationTypeStatusCode, Expected: 201}},
+	})
+
+}
+
+// generateSimplifiedDeploymentTest generates a compact scoped deployment test.
 func (g *Generator) generateSimplifiedDeploymentTest(
 	feature *model.Feature,
 	createPath *model.FeaturePath,
@@ -596,15 +541,15 @@ func (g *Generator) generateSimplifiedDeploymentTest(
 		FeatureName:      feature.Name,
 		Priority:         model.TestPriorityP2,
 		Type:             model.TestCategoryFunctional,
-		Description:      fmt.Sprintf("Create %s and verify configuration on NOS devices (without explicit scope/target/deploy)", feature.Name),
+		Description:      fmt.Sprintf("Create %s, scope configuration profile by device location, apply target-query, deploy, and verify on NOS devices", feature.Name),
 		ScopeType:        scopeType,
+		TargetType:       model.TargetTypeDevice,
 		DeploymentMethod: model.DeploymentMethodImmediate,
 		IsDeploymentTest: true,
 		Steps:            []model.TestStep{},
 	}
 
 	profileName := "TestProfile-Simple"
-	scopeID := "test-scope-001"
 
 	// Step 1: Create configuration
 	createBody := g.generateRequestBody(feature, createPath)
@@ -627,36 +572,7 @@ func (g *Generator) generateSimplifiedDeploymentTest(
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
-	// Step 2: Verify configuration on NOS devices via NOSAPI
-	if g.nosParser != nil {
-		nosEndpoint := g.nosParser.FindEndpointForFeature(feature.Name, scopeType)
-		if nosEndpoint != nil {
-			nosStep := model.TestStep{
-				Name:        fmt.Sprintf("verifyNosConfigFor%s", scopeType),
-				Description: fmt.Sprintf("Verify configuration on NOS devices in %s", scopeType),
-				Method:      nosEndpoint.Method,
-				API:         model.APITypeNOSAPI,
-				Path:        nosEndpoint.Path,
-				PathParams: map[string]string{
-					"siteGroupId": scopeID,
-					"deviceId":    scopeID,
-				},
-				ExpectedStatus: 200,
-				DevicesScope:   nosEndpoint.DeviceScope,
-				Validations: []model.Validation{
-					{
-						Type:     model.ValidationTypeStatusCode,
-						Expected: 200,
-					},
-					{
-						Type:        model.ValidationTypeNosConfigMatchesExpected,
-						Description: "Verify NOS device configuration matches expected state",
-					},
-				},
-			}
-			tc.Steps = append(tc.Steps, nosStep)
-		}
-	}
+	g.addDeploymentSteps(&tc, feature, profileName, scopeType, model.TargetTypeDevice)
 
 	return tc
 }
