@@ -24,7 +24,8 @@ generated-tests/   — Sample outputs committed for reference
 | `sources/PlatformServices/` | No | Cloned from enterprise GitHub |
 | `reports/` | No | Generated output |
 | `Testplans/` | No | Generated output |
-| `testgen.exe` | No | Build artifact |
+| `bin/windows/` | No | Build artifacts (Windows `.exe` files) |
+| `bin/linux/` | No | Build artifacts (Linux binaries) |
 
 ## Go Conventions
 
@@ -115,17 +116,45 @@ Features are classified into blueprint categories:
 
 ## Scripts
 
-### run.ps1
+### testgen.ps1 / testgen.sh
 
-- Quick-start wrapper for common generation scenarios
-- Accepts `-features` parameter: `wired`, `wireless`, `all`, or specific feature names
-- Auto-builds `testgen.exe` if not present
+- `testgen.ps1` — Windows PowerShell pipeline: generate → summary → Excel batch export
+- `testgen.sh`  — Linux bash equivalent; identical feature set
+- Accepts a features argument: `wired` (default), `wireless`, `all`, or specific feature names
+- Auto-builds the required binary if not present
+
+### Script Parity Rule
+
+> **Any change to `testgen.ps1` must be mirrored in `testgen.sh`, and vice versa.**
+> Both scripts must always have identical behaviour.
 
 ### PowerShell Style
 
 - Scripts use `param()` blocks for parameters
 - Helper functions for colored output: `Write-Step`, `Write-Ok`, `Write-Warn`, `Write-Err`
 - Exit codes: 0 = success, 1 = error
+
+## Build Rules
+
+### Dual-platform binaries
+
+> **Every code change to `cmd/testgen`, `cmd/yaml2excel`, or `cmd/yaml2csv` must produce fresh binaries for both platforms before committing.**
+
+```powershell
+# Windows binaries
+go build -o bin/windows/testgen.exe    ./cmd/testgen/
+go build -o bin/windows/yaml2excel.exe ./cmd/yaml2excel/
+go build -o bin/windows/yaml2csv.exe   ./cmd/yaml2csv/
+
+# Linux binaries (cross-compile)
+$env:GOOS="linux"; $env:GOARCH="amd64"
+go build -o bin/linux/testgen    ./cmd/testgen/
+go build -o bin/linux/yaml2excel ./cmd/yaml2excel/
+go build -o bin/linux/yaml2csv   ./cmd/yaml2csv/
+Remove-Item Env:GOOS, Env:GOARCH
+```
+
+Binaries are gitignored and not committed; the rule ensures local copies stay in sync with the source.
 
 ## Git Workflow
 
@@ -134,3 +163,7 @@ Features are classified into blueprint categories:
 - Enterprise repos: `github.extremenetworks.com/Engineering/*`
 - Commits use imperative mood: "Add feature", "Fix bug", "Update config"
 - Tag releases as `v{major}.{minor}.{patch}`
+
+### Commit cadence
+
+> **Commit and push to `origin/main` as soon as a logical change is complete** — do not batch unrelated changes into a single commit.

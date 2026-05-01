@@ -68,11 +68,18 @@ API-TestPlan-Generator/
 │   ├── PlatformCommonModels/       # YANG models (gitignored, cloned)
 │   └── PlatformServices/           # REST OpenAPI spec (gitignored, cloned)
 ├── reports/                        # Generated HTML reports
-├── tools/                          # Utility scripts
-│   ├── yaml_to_excel.py            # Convert YAML test plans to Excel
-│   └── yaml_to_csv.py             # Convert YAML test plans to CSV
+├── TestplansXlsx/                  # Excel exports (default output for yaml2excel)
+├── TestplansCsv/                   # CSV exports (default output for yaml2csv)
+├── bin/
+│   ├── windows/                    # Windows executables (.exe)
+│   └── linux/                      # Linux executables (amd64)
+├── cmd/
+│   ├── testgen/                    # CLI: test plan generator
+│   ├── yaml2excel/                 # CLI: YAML → Excel converter
+│   └── yaml2csv/                   # CLI: YAML → CSV converter
 ├── generated-tests/                # Sample generated outputs (committed)
-├── run.ps1                         # Quick-start generation script
+├── testgen.ps1                     # Windows: generate test plans + Excel export
+├── testgen.sh                      # Linux:   generate test plans + Excel export
 ├── go.mod
 └── README.md
 ```
@@ -87,9 +94,25 @@ API-TestPlan-Generator/
 
 ### 1. Build
 
+**Windows:**
 ```powershell
-go build -o testgen.exe ./cmd/testgen
+New-Item -ItemType Directory -Force -Path bin/windows
+go build -o bin/windows/testgen.exe    ./cmd/testgen
+go build -o bin/windows/yaml2excel.exe ./cmd/yaml2excel
+go build -o bin/windows/yaml2csv.exe   ./cmd/yaml2csv
 ```
+
+**Linux (cross-compile from Windows):**
+```powershell
+$env:GOOS="linux"; $env:GOARCH="amd64"
+New-Item -ItemType Directory -Force -Path bin/linux
+go build -o bin/linux/testgen    ./cmd/testgen
+go build -o bin/linux/yaml2excel ./cmd/yaml2excel
+go build -o bin/linux/yaml2csv   ./cmd/yaml2csv
+Remove-Item Env:GOOS, Env:GOARCH
+```
+
+Pre-built binaries are in `bin/windows/` and `bin/linux/`.
 
 ### 2. Checkout Sources
 
@@ -104,19 +127,34 @@ Source locations are defined in [config/config.yaml](config/config.yaml). The `n
 
 ### 3. Generate Test Plans
 
+The scripts run the full pipeline automatically:
+1. Generate YAML test plans via `testgen`
+2. Print a per-category summary and total test count in the console
+3. Batch-export all YAMLs to Excel (`TestplansXlsx/`) via `yaml2excel`
+4. Print the final output locations
+
+**Windows (PowerShell):**
 ```powershell
-# Using the wrapper script (recommended)
-.\run.ps1                              # Default: wired features
-.\run.ps1 -features wireless           # Wireless features only
-.\run.ps1 -features all                # All features
-.\run.ps1 -features radius-server      # Single feature
-.\run.ps1 -features "radius-server,ntp-server"  # Multiple features
+.\testgen.ps1                              # Default: wired features
+.\testgen.ps1 -features wireless           # Wireless features only
+.\testgen.ps1 -features all                # All features
+.\testgen.ps1 -features radius-server      # Single feature
+.\testgen.ps1 -features "radius-server,ntp-server"  # Multiple features
+```
+
+**Linux (bash):**
+```bash
+./testgen.sh                               # Default: wired features
+./testgen.sh wireless                      # Wireless features only
+./testgen.sh all                           # All features
+./testgen.sh radius-server                 # Single feature
+./testgen.sh "radius-server,ntp-server"    # Multiple features
 ```
 
 Or run the CLI directly:
 
 ```powershell
-.\testgen.exe `
+.\bin\windows\testgen.exe `
   --yang-dir "./sources/PlatformCommonModels/ConfigState/etc/yang" `
   --rest-spec "./sources/qaapi/qaopenapi.yaml" `
   --nosapi-spec "./sources/nosapi/nos-openapi.yaml" `
@@ -177,6 +215,62 @@ go test ./...                  # Run all tests
 go test -cover ./...           # With coverage
 go test ./pkg/generator        # Specific package
 ```
+
+## Tools
+
+### YAML to Excel (`yaml2excel`)
+
+Converts a generated YAML test plan into a styled Excel workbook (one sheet per test category). Output defaults to `TestplansXlsx/`.
+
+```powershell
+# No args — batch convert every YAML in Testplans/ to TestplansXlsx/
+.\bin\windows\yaml2excel.exe
+
+# By feature name — searches Testplans/ recursively
+.\bin\windows\yaml2excel.exe port
+
+# By full path
+.\bin\windows\yaml2excel.exe Testplans/wired-blueprint/port.yaml
+
+# Specify output path explicitly
+.\bin\windows\yaml2excel.exe port output/port-tests.xlsx
+```
+
+**Linux:**
+```bash
+./bin/linux/yaml2excel              # batch all
+./bin/linux/yaml2excel port         # single feature
+```
+
+### YAML to CSV (`yaml2csv`)
+
+Converts a generated YAML test plan into a flat CSV summary. Output defaults to `TestplansCsv/`.
+
+```powershell
+# No args — batch convert every YAML in Testplans/ to TestplansCsv/
+.\bin\windows\yaml2csv.exe
+
+# By feature name
+.\bin\windows\yaml2csv.exe port
+
+# By full path
+.\bin\windows\yaml2csv.exe Testplans/global-profile/radius-server.yaml
+
+# Specify output path explicitly
+.\bin\windows\yaml2csv.exe port output/port.csv
+```
+
+**Linux:**
+```bash
+./bin/linux/yaml2csv              # batch all
+./bin/linux/yaml2csv port         # single feature
+```
+
+CSV columns: `TestCaseID`, `Type`, `Priority`, `Automation`, `Description`, `IsDeploymentTest`.
+
+### Excel column config
+
+Column definitions, ordering, widths, and header styling are driven by [config/yaml2excel.yaml](config/yaml2excel.yaml). Edit that file to add/remove/reorder columns, change header colors, or set fixed values — no code changes needed.
 
 ## Extension Points
 

@@ -1,20 +1,21 @@
-# Quick start script for testgen with predefined paths
+# testgen.ps1 — Generate API test plans and export to Excel
 # Reads source paths from config/config.yaml
 # Usage:
-#   .\run.ps1                          # Generate wired features (default)
-#   .\run.ps1 -features wired          # Generate wired features only
-#   .\run.ps1 -features wireless       # Generate wireless features only
-#   .\run.ps1 -features all            # Generate all features (wired + wireless)
-#   .\run.ps1 -features radius-server  # Generate a specific feature only
-#   .\run.ps1 -features "radius-server,ntp-server"  # Multiple specific features
+#   .\testgen.ps1                          # Generate wired features (default)
+#   .\testgen.ps1 -features wired          # Generate wired features only
+#   .\testgen.ps1 -features wireless       # Generate wireless features only
+#   .\testgen.ps1 -features all            # Generate all features (wired + wireless)
+#   .\testgen.ps1 -features radius-server  # Generate a specific feature only
+#   .\testgen.ps1 -features "radius-server,ntp-server"  # Multiple specific features
 
 param(
     [string]$features = "wired"
 )
 
-Write-Host "=======================================" -ForegroundColor Cyan
-Write-Host "Running testgen with predefined paths" -ForegroundColor Cyan
-Write-Host "=======================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "=======================================================" -ForegroundColor Cyan
+Write-Host " API Test Plan Generator" -ForegroundColor Cyan
+Write-Host "=======================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # ── Parse config/config.yaml for source paths ───────────────────────
@@ -69,9 +70,10 @@ Write-Host "  NOSAPI spec: $nosapiSpec" -ForegroundColor Gray
 Write-Host ""
 
 # Check if executable exists
-if (-not (Test-Path "testgen.exe")) {
-    Write-Host "testgen.exe not found. Building..." -ForegroundColor Yellow
-    go build -o testgen.exe ./cmd/testgen/
+if (-not (Test-Path "bin\windows\testgen.exe")) {
+    Write-Host "bin\windows\testgen.exe not found. Building..." -ForegroundColor Yellow
+    New-Item -ItemType Directory -Force -Path bin\windows | Out-Null
+    go build -o bin\windows\testgen.exe ./cmd/testgen/
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Build failed" -ForegroundColor Red
         exit 1
@@ -147,7 +149,7 @@ if ($featureFilter -ne "") {
 }
 
 # Run the generator
-& .\testgen.exe @args
+& .\bin\windows\testgen.exe @args
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -155,7 +157,77 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# ── Post-generation summary ─────────────────────────────────────────
+
 Write-Host ""
-Write-Host "=======================================" -ForegroundColor Cyan
-Write-Host "All done! Check output in: $outDir" -ForegroundColor Green
-Write-Host "=======================================" -ForegroundColor Cyan
+Write-Host "=======================================================" -ForegroundColor Cyan
+Write-Host " Test Plans Generated" -ForegroundColor Cyan
+Write-Host "=======================================================" -ForegroundColor Cyan
+
+$categories   = @('functional','boundary','negative','performance','scale')
+$catTotals    = @{}
+foreach ($c in $categories) { $catTotals[$c] = 0 }
+$totalTests   = 0
+$featureCount = 0
+
+$yamlFiles = Get-ChildItem -Path $outDir -Filter '*.yaml' -Recurse |
+    Where-Object { $_.Name -ne 'example-test.yaml' }
+
+foreach ($f in $yamlFiles) {
+    $text  = Get-Content $f.FullName -Raw
+    $count = ([regex]::Matches($text, 'testCaseID:')).Count
+    if ($count -eq 0) { continue }
+    $featureCount++
+    $totalTests += $count
+    foreach ($c in $categories) {
+        $catTotals[$c] += ([regex]::Matches($text, "(?m)^\s+type:\s+$c\s*$")).Count
+    }
+}
+
+Write-Host (" {0,-10} {1,8}" -f 'Category', 'Tests') -ForegroundColor White
+Write-Host " ──────────────────" -ForegroundColor DarkGray
+foreach ($c in $categories) {
+    if ($catTotals[$c] -gt 0) {
+        Write-Host (" {0,-10} {1,8}" -f $c, $catTotals[$c]) -ForegroundColor Gray
+    }
+}
+Write-Host " ──────────────────" -ForegroundColor DarkGray
+Write-Host (" {0,-10} {1,8}" -f 'TOTAL', $totalTests) -ForegroundColor Green
+Write-Host ""
+Write-Host " Features : $featureCount" -ForegroundColor Green
+Write-Host " Output   : $((Resolve-Path $outDir).Path)" -ForegroundColor Green
+
+# ── Excel export (batch) ────────────────────────────────────────────
+
+Write-Host ""
+Write-Host "=======================================================" -ForegroundColor Cyan
+Write-Host " Exporting to Excel..." -ForegroundColor Cyan
+Write-Host "=======================================================" -ForegroundColor Cyan
+Write-Host ""
+
+if (-not (Test-Path 'bin\windows\yaml2excel.exe')) {
+    Write-Host "bin\windows\yaml2excel.exe not found. Building..." -ForegroundColor Yellow
+    New-Item -ItemType Directory -Force -Path bin\windows | Out-Null
+    go build -o bin\windows\yaml2excel.exe ./cmd/yaml2excel/
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "yaml2excel build failed — skipping Excel export" -ForegroundColor Red
+        exit 0
+    }
+}
+
+$xlsxDir = Join-Path $PSScriptRoot 'TestplansXlsx'
+& .\bin\windows\yaml2excel.exe
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Excel export failed" -ForegroundColor Red
+    exit 1
+}
+
+$xlsxCount = (Get-ChildItem -Path $xlsxDir -Filter '*.xlsx' -ErrorAction SilentlyContinue | Measure-Object).Count
+Write-Host ""
+Write-Host "=======================================================" -ForegroundColor Cyan
+Write-Host " All done!" -ForegroundColor Green
+Write-Host "=======================================================" -ForegroundColor Cyan
+Write-Host " Test plans  : $featureCount YAML files in $((Resolve-Path $outDir).Path)" -ForegroundColor Green
+Write-Host " Excel files : $xlsxCount .xlsx files in $xlsxDir" -ForegroundColor Green
+Write-Host "======================================================="  -ForegroundColor Cyan
