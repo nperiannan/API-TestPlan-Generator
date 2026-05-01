@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T08:00:49+05:30"
+generatedAt: "2026-05-01T10:39:11+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       tests:
         boundary: []
         functional:
-            - testCaseID: TCXM_6625
+            - testCaseID: TCXM_6602
               featureName: service
               priority: P1
               automation: Automatable
@@ -53,7 +53,7 @@ features:
                   api: REST
                   path: /service-profile/{name}
                   pathParams:
-                    name: TestResource
+                    name: TestProfile
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -74,7 +74,7 @@ features:
                     - type: jsonPathExists
                       path: $.objectType
                       description: Verify response contains object type
-            - testCaseID: TCXM_6626
+            - testCaseID: TCXM_6603
               featureName: service
               priority: P2
               automation: Automatable
@@ -92,10 +92,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify service created successfully with service
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify service created successfully with service
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: updateResource
                   description: Update service — service
                   method: PATCH
@@ -124,7 +128,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify service retrieved — response contains service
-            - testCaseID: TCXM_6627
+            - testCaseID: TCXM_6604
               featureName: service
               priority: P2
               automation: Automatable
@@ -142,10 +146,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify service created successfully with service
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify service created successfully with service
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: deleteResource
                   description: Delete service with service
                   method: DELETE
@@ -161,7 +169,7 @@ features:
                       description: Verify service with service deleted successfully
                 - name: verifyDeletion
                   description: Verify service with service was deleted
-                  method: POST
+                  method: GET
                   api: REST
                   path: /service-profile/{name}
                   body: {}
@@ -172,7 +180,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify service with service no longer exists in the response
-            - testCaseID: TCXM_6628
+            - testCaseID: TCXM_6605
               featureName: service
               priority: P3
               automation: Automatable
@@ -190,10 +198,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify service created successfully with service
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify service created successfully with service
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: verifyCreation
                   description: Verify service with service was created
                   method: GET
@@ -248,7 +260,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify service with service deleted successfully
-            - testCaseID: TCXM_6629
+            - testCaseID: TCXM_6606
               featureName: service
               priority: P3
               automation: Automatable
@@ -266,10 +278,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify service created successfully with service
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify service created successfully with service
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: partialUpdate
                   description: Partially update service — service
                   method: PATCH
@@ -298,7 +314,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify service retrieved — response contains service
-            - testCaseID: TCXM_6630
+            - testCaseID: TCXM_6607
               featureName: service
               priority: P3
               automation: Automatable
@@ -334,168 +350,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of service with service is rejected (409 Conflict)
-            - testCaseID: TCXM_6631
-              featureName: service
-              priority: P1
-              automation: Automatable
-              type: functional
-              description: Create service, scope to device, target to device, deploy, and verify on NOS devices
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createservice
-                  description: Create service configuration
-                  method: POST
-                  api: REST
-                  path: /service-profile/{name}
-                  body:
-                    name: TestProfile
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: getProfile
-                  description: Retrieve created profile
-                  method: GET
-                  api: REST
-                  path: /service-profile/{name}
-                  pathParams:
-                    profileName: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: scopeProfileTodevice
-                  description: Scope profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/scope
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    scopeId: test-scope-001
-                    scopeType: device
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: targetProfileTodevice
-                  description: Target profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/target
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    targetId: test-scope-001
-                    targetType: device
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: deployProfileTodevice
-                  description: Deploy profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/deploy
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    deploymentMethod: immediate
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: GET
-                  api: REST
-                  path: /global-profile/TestProfile/deployment/status
-                  pathParams:
-                    profileName: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS devices in device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/state/service-probe/instances
-                  pathParams:
-                    deviceId: test-scope-001
-                    siteGroupId: test-scope-001
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify NOS device configuration matches expected state
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_6632
-              featureName: service
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Create service and verify configuration on NOS devices (without explicit scope/target/deploy)
-              scopeType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createservice
-                  description: Create service configuration
-                  method: POST
-                  api: REST
-                  path: /service-profile/{name}
-                  body:
-                    name: TestProfile-Simple
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS devices in device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/state/service-probe/instances
-                  pathParams:
-                    deviceId: test-scope-001
-                    siteGroupId: test-scope-001
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify NOS device configuration matches expected state
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_6633
+            - testCaseID: TCXM_6608
               featureName: service
               priority: P2
               automation: Automatable
@@ -533,7 +388,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_6634
+            - testCaseID: TCXM_6609
               featureName: service
               priority: P2
               automation: Automatable
@@ -571,7 +426,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array
-            - testCaseID: TCXM_6635
+            - testCaseID: TCXM_6610
               featureName: service
               priority: P1
               automation: Automatable
@@ -597,14 +452,14 @@ features:
                       expected: 201
                       description: Verify service created successfully with service
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to device at 2026-05-01T06:09:12Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:12Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -614,7 +469,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_6636
+            - testCaseID: TCXM_6611
               featureName: service
               priority: P1
               automation: Automatable
@@ -640,14 +495,14 @@ features:
                       expected: 201
                       description: Verify service created successfully with service
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to site at 2026-05-01T06:09:12Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:12Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -657,7 +512,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_6637
+            - testCaseID: TCXM_6612
               featureName: service
               priority: P2
               automation: Automatable
@@ -687,7 +542,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:12Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -698,14 +553,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T04:30:49Z
+                  description: Edit deployment schedule to 2026-05-01T07:09:12Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T04:30:49Z"
+                    deployAt: "2026-05-01T07:09:12Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -715,7 +570,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_6638
+            - testCaseID: TCXM_6613
               featureName: service
               priority: P2
               automation: Automatable
@@ -745,7 +600,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:12Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -771,7 +626,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_6639
+            - testCaseID: TCXM_6614
               featureName: service
               priority: P2
               automation: Automatable
@@ -808,7 +663,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_6640
+            - testCaseID: TCXM_6615
               featureName: service
               priority: P2
               automation: Automatable
@@ -848,7 +703,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_6641
+            - testCaseID: TCXM_6616
               featureName: service
               priority: P2
               automation: Automatable
@@ -910,7 +765,7 @@ features:
                   description: Apply conflicting service value directly on device via NOSAPI — simulates out-of-band change so deviceValue diverges from previousDeployedValue
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/system-services
+                  path: /v0/configuration/system-services
                   body:
                     action: modify
                     deviceHostName: test-device-001
@@ -947,7 +802,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_6642
+            - testCaseID: TCXM_6617
               featureName: service
               priority: P1
               automation: Automatable
@@ -990,7 +845,7 @@ features:
                   description: Simulate out-of-band service change on device via NOSAPI (creates conflict)
                   method: GET
                   api: NOSAPI
-                  path: /v0/configuration/service-probe/instances
+                  path: /v0/configuration/system-services
                   body:
                     action: modify
                     deviceHostName: test-device-001
@@ -1106,7 +961,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_6643
+            - testCaseID: TCXM_6618
               featureName: service
               priority: P1
               automation: Automatable
@@ -1149,7 +1004,7 @@ features:
                   description: Simulate out-of-band service change on device via NOSAPI (creates conflict)
                   method: GET
                   api: NOSAPI
-                  path: /v0/state/system-services
+                  path: /v0/configuration/system-services
                   body:
                     action: modify
                     deviceHostName: test-device-001
@@ -1231,7 +1086,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for service — device value accepted as new cloud baseline
-            - testCaseID: TCXM_6644
+            - testCaseID: TCXM_6619
               featureName: service
               priority: P1
               automation: Automatable
@@ -1353,7 +1208,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_6645
+            - testCaseID: TCXM_6620
               featureName: service
               priority: P2
               automation: Automatable
@@ -1434,7 +1289,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_6646
+            - testCaseID: TCXM_6621
               featureName: service
               priority: P2
               automation: Automatable
@@ -1515,7 +1370,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_6647
+            - testCaseID: TCXM_6622
               featureName: service
               priority: P2
               automation: Automatable
@@ -1581,7 +1436,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_6648
+            - testCaseID: TCXM_6623
               featureName: service
               priority: P1
               automation: Automatable
@@ -1663,7 +1518,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_6649
+            - testCaseID: TCXM_6624
               featureName: service
               priority: P1
               automation: Automatable
@@ -1761,7 +1616,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: No conflict expected — override values were deployed
-            - testCaseID: TCXM_6650
+            - testCaseID: TCXM_6625
               featureName: service
               priority: P3
               automation: Automatable
@@ -1787,7 +1642,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_6651
+            - testCaseID: TCXM_6626
               featureName: service
               priority: P3
               automation: Automatable
@@ -1815,7 +1670,7 @@ features:
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
         negative:
-            - testCaseID: TCXM_6652
+            - testCaseID: TCXM_6627
               featureName: service
               priority: P2
               automation: Automatable
@@ -1837,7 +1692,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6653
+            - testCaseID: TCXM_6628
               featureName: service
               priority: P2
               automation: Automatable
@@ -1861,7 +1716,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6654
+            - testCaseID: TCXM_6629
               featureName: service
               priority: P2
               automation: Automatable
@@ -1886,7 +1741,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_6658
+            - testCaseID: TCXM_6633
               featureName: service
               priority: P4
               automation: Automatable
@@ -2078,7 +1933,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_6659
+            - testCaseID: TCXM_6634
               featureName: service
               priority: P4
               automation: Automatable
@@ -2270,7 +2125,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_6660
+            - testCaseID: TCXM_6635
               featureName: service
               priority: P3
               automation: Automatable
@@ -2484,7 +2339,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_6661
+            - testCaseID: TCXM_6636
               featureName: service
               priority: P3
               automation: Automatable
@@ -2786,7 +2641,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_6655
+            - testCaseID: TCXM_6630
               featureName: service
               priority: P3
               automation: Automatable
@@ -4096,7 +3951,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_6656
+            - testCaseID: TCXM_6631
               featureName: service
               priority: P3
               automation: Automatable
@@ -4260,7 +4115,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_6657
+            - testCaseID: TCXM_6632
               featureName: service
               priority: P3
               automation: Automatable

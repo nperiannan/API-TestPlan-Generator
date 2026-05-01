@@ -346,6 +346,18 @@ func collectYAMLs(dir string) []string {
 	return out
 }
 
+func cleanOutputFiles(dir string, ext string) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info == nil || info.IsDir() || filepath.Ext(info.Name()) != ext {
+			return err
+		}
+		return os.Remove(path)
+	})
+}
+
 func main() {
 	projectRoot := projectRootDir()
 	testplansDir := filepath.Join(projectRoot, "Testplans")
@@ -358,7 +370,10 @@ func main() {
 			fmt.Fprintf(os.Stderr, "No YAML files found under %s\n", testplansDir)
 			os.Exit(1)
 		}
-		_ = os.MkdirAll(xlsxDir, 0o755)
+		if err := cleanOutputFiles(xlsxDir, ".xlsx"); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to clean %s: %v\n", xlsxDir, err)
+			os.Exit(1)
+		}
 		fmt.Printf("Batch converting %d YAML files → %s\n\n", len(yamls), xlsxDir)
 		totalAll, ok := 0, 0
 		for _, y := range yamls {

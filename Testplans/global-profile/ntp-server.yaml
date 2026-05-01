@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T08:00:49+05:30"
+generatedAt: "2026-05-01T10:39:11+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_4275
+            - testCaseID: TCXM_4265
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -61,7 +61,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_4276
+            - testCaseID: TCXM_4266
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -111,7 +111,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_4277
+            - testCaseID: TCXM_4267
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -161,7 +161,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_4278
+            - testCaseID: TCXM_4268
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -211,7 +211,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_4279
+            - testCaseID: TCXM_4269
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -261,7 +261,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_4280
+            - testCaseID: TCXM_4270
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -311,7 +311,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_4281
+            - testCaseID: TCXM_4271
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -365,7 +365,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_4282
+            - testCaseID: TCXM_4272
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -420,7 +420,7 @@ features:
                       expected: create
                       description: Verify operation type is 'create'
         functional:
-            - testCaseID: TCXM_4146
+            - testCaseID: TCXM_4138
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -475,10 +475,11 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -486,12 +487,10 @@ features:
                     - Verify response contains objects array
                     - Verify response contains feature path
                     - Verify response contains object type
-                    - Verify required property 'priority' exists in response
+                    - Verify property 'priority' exists in response
                     - Verify 'priority' value is '1' as set during create
-                    - Verify required property 'server' exists in response
+                    - Verify property 'server' exists in response
                     - Verify 'server' value is '8.8.8.8' as set during create
-                    - Verify 'authentication' value is 'testValue' as set during create
-                    - Verify 'vr-name' value is 'VR-Mgmt' as set during create
                   assertions:
                     - type: statusCode
                       expected: 200
@@ -507,27 +506,19 @@ features:
                       description: Verify response contains object type
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='priority')]
-                      description: Verify required property 'priority' exists in response
+                      description: Verify property 'priority' exists in response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 1
                       description: Verify 'priority' value is '1' as set during create
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='server')]
-                      description: Verify required property 'server' exists in response
+                      description: Verify property 'server' exists in response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify 'server' value is '8.8.8.8' as set during create
-                    - type: jsonPathEquals
-                      path: $.objects[0].properties[?(@.name=='authentication')].value
-                      expected: testValue
-                      description: Verify 'authentication' value is 'testValue' as set during create
-                    - type: jsonPathEquals
-                      path: $.objects[0].properties[?(@.name=='vr-name')].value
-                      expected: VR-Mgmt
-                      description: Verify 'vr-name' value is 'VR-Mgmt' as set during create
-            - testCaseID: TCXM_4147
+            - testCaseID: TCXM_4139
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -559,10 +550,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify ntp-server created successfully with server=8.8.8.8
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify ntp-server created successfully with server=8.8.8.8
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: updateResource
                   description: 'Update ntp-server — modify authentication=updated-test-value (entry: priority=1, server=8.8.8.8)'
                   method: POST
@@ -572,7 +567,8 @@ features:
                     featurePath: /ntp-server-feature
                     objectType: ntp-server
                     objects:
-                        - operation: update
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -602,6 +598,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -610,7 +609,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify ntp-server retrieved — response contains modify authentication=updated-test-value (entry: priority=1, server=8.8.8.8)'
-            - testCaseID: TCXM_4148
+            - testCaseID: TCXM_4140
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -622,7 +621,7 @@ features:
                   description: Create ntp-server with server=8.8.8.8 before deleting
                   method: POST
                   api: REST
-                  path: /global-profile/feature/object/delete
+                  path: /global-profile/feature/object/modify
                   body:
                     featurePath: /ntp-server-feature
                     objectType: ntp-server
@@ -642,18 +641,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify ntp-server created successfully with server=8.8.8.8
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify ntp-server created successfully with server=8.8.8.8
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: deleteResource
                   description: Delete ntp-server with server=8.8.8.8
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/delete
                   body:
-                    featurePath: /ntp-server-feature
-                    objectType: ntp-server
+                    objectIds:
+                        - '{{OBJECT_ID}}'
                   expectedStatus: 200
                   validations:
                     - Verify ntp-server with server=8.8.8.8 deleted successfully
@@ -668,6 +671,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -676,7 +682,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify ntp-server with server=8.8.8.8 no longer exists in the response
-            - testCaseID: TCXM_4149
+            - testCaseID: TCXM_4141
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -708,10 +714,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify ntp-server created successfully with server=8.8.8.8
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify ntp-server created successfully with server=8.8.8.8
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: verifyCreation
                   description: Verify ntp-server with server=8.8.8.8 was created
                   method: POST
@@ -719,6 +729,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -736,7 +749,8 @@ features:
                     featurePath: /ntp-server-feature
                     objectType: ntp-server
                     objects:
-                        - operation: update
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -766,6 +780,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -780,8 +797,8 @@ features:
                   api: REST
                   path: /global-profile/feature/object/delete
                   body:
-                    featurePath: /ntp-server-feature
-                    objectType: ntp-server
+                    objectIds:
+                        - '{{OBJECT_ID}}'
                   expectedStatus: 200
                   validations:
                     - Verify ntp-server with server=8.8.8.8 deleted successfully
@@ -789,7 +806,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify ntp-server with server=8.8.8.8 deleted successfully
-            - testCaseID: TCXM_4150
+            - testCaseID: TCXM_4142
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -821,10 +838,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify ntp-server created successfully with server=8.8.8.8
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify ntp-server created successfully with server=8.8.8.8
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: partialUpdate
                   description: 'Partially update ntp-server — modify authentication=updated-test-value (entry: priority=1, server=8.8.8.8)'
                   method: POST
@@ -834,7 +855,8 @@ features:
                     featurePath: /ntp-server-feature
                     objectType: ntp-server
                     objects:
-                        - operation: update
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: Global
@@ -864,6 +886,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -872,7 +897,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: 'Verify ntp-server retrieved — response contains modify authentication=updated-test-value (entry: priority=1, server=8.8.8.8)'
-            - testCaseID: TCXM_4151
+            - testCaseID: TCXM_4143
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -936,198 +961,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of ntp-server with server=8.8.8.8 is rejected (409 Conflict)
-            - testCaseID: TCXM_4152
-              featureName: ntp-server
-              priority: P1
-              automation: Automatable
-              type: functional
-              description: Create ntp-server, scope to device, target to device, deploy, and verify on NOS devices
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createntp-server
-                  description: Create ntp-server configuration
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /ntp-server-feature
-                    name: TestProfile
-                    objectType: ntp-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: ntp-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: getProfile
-                  description: Retrieve created profile
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    profileName: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: scopeProfileTodevice
-                  description: Scope profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/scope
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    scopeId: test-scope-001
-                    scopeType: device
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: targetProfileTodevice
-                  description: Target profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/target
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    targetId: test-scope-001
-                    targetType: device
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: deployProfileTodevice
-                  description: Deploy profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/deploy
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    deploymentMethod: immediate
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: GET
-                  api: REST
-                  path: /global-profile/TestProfile/deployment/status
-                  pathParams:
-                    profileName: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS devices in device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/configuration/ntp
-                  pathParams:
-                    deviceId: test-scope-001
-                    siteGroupId: test-scope-001
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify NOS device configuration matches expected state
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_4153
-              featureName: ntp-server
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Create ntp-server and verify configuration on NOS devices (without explicit scope/target/deploy)
-              scopeType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createntp-server
-                  description: Create ntp-server configuration
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /ntp-server-feature
-                    name: TestProfile-Simple
-                    objectType: ntp-server
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: priority
-                              origin: Global
-                              type: number
-                              value: 1
-                            - name: server
-                              origin: Global
-                              type: string
-                              value: 8.8.8.8
-                          type: ntp-server
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: verifyNosConfigFordevice
-                  description: Verify configuration on NOS devices in device
-                  method: GET
-                  api: NOSAPI
-                  path: /v0/configuration/ntp
-                  pathParams:
-                    deviceId: test-scope-001
-                    siteGroupId: test-scope-001
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify NOS device configuration matches expected state
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: nosConfigMatchesExpected
-                      description: Verify NOS device configuration matches expected state
-                  devicesScope: device
-            - testCaseID: TCXM_4154
+            - testCaseID: TCXM_4144
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1170,15 +1004,18 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
                     - Verify HTTP 200 for resource read
                     - Verify response contains objects array
-                    - Verify required field 'priority' is present in GET response
-                    - Verify required field 'priority' has value '1' as created
-                    - Verify required field 'server' is present in GET response
-                    - Verify required field 'server' has value '8.8.8.8' as created
+                    - Verify identity/required field 'priority' is present in GET response
+                    - Verify identity/required field 'priority' has value '1' as created
+                    - Verify identity/required field 'server' is present in GET response
+                    - Verify identity/required field 'server' has value '8.8.8.8' as created
                   assertions:
                     - type: statusCode
                       expected: 200
@@ -1188,19 +1025,19 @@ features:
                       description: Verify response contains objects array
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='priority')]
-                      description: Verify required field 'priority' is present in GET response
+                      description: Verify identity/required field 'priority' is present in GET response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 1
-                      description: Verify required field 'priority' has value '1' as created
+                      description: Verify identity/required field 'priority' has value '1' as created
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='server')]
-                      description: Verify required field 'server' is present in GET response
+                      description: Verify identity/required field 'server' is present in GET response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
-                      description: Verify required field 'server' has value '8.8.8.8' as created
-            - testCaseID: TCXM_4155
+                      description: Verify identity/required field 'server' has value '8.8.8.8' as created
+            - testCaseID: TCXM_4145
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1251,6 +1088,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -1299,7 +1139,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify field 'vr-name' has value 'VR-Mgmt' as sent on create
-            - testCaseID: TCXM_4156
+            - testCaseID: TCXM_4146
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -1346,6 +1186,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -1363,7 +1206,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='authentication')].value
                       expected: testValue
                       description: Verify optional field 'authentication' value is 'testValue' as set on create
-            - testCaseID: TCXM_4157
+            - testCaseID: TCXM_4147
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -1410,6 +1253,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -1427,7 +1273,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='vr-name')].value
                       expected: VR-Mgmt
                       description: Verify optional field 'vr-name' value is 'VR-Mgmt' as set on create
-            - testCaseID: TCXM_4158
+            - testCaseID: TCXM_4148
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1470,6 +1316,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -1480,10 +1329,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.priority
+                      path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 1
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_4159
+            - testCaseID: TCXM_4149
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1526,6 +1375,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -1536,10 +1388,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.priority
+                      path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 100
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_4160
+            - testCaseID: TCXM_4150
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1582,6 +1434,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -1592,10 +1447,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.server
+                      path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_4161
+            - testCaseID: TCXM_4151
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -1638,6 +1493,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /ntp-server-feature
+                    filters:
+                        - key: server
+                          value: 8.8.8.8
                     objectType: ntp-server
                   expectedStatus: 200
                   validations:
@@ -1648,10 +1506,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.server
+                      path: $.objects[0].properties[?(@.name=='server')].value
                       expected: 8.8.8.8
                       description: Verify 'server' YANG type 'string' value is persisted
-            - testCaseID: TCXM_4162
+            - testCaseID: TCXM_4152
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -1709,7 +1567,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -1744,7 +1602,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4163
+            - testCaseID: TCXM_4153
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -1802,7 +1660,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -1819,7 +1677,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4164
+            - testCaseID: TCXM_4154
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -1877,7 +1735,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -1912,7 +1770,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4165
+            - testCaseID: TCXM_4155
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -1970,7 +1828,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -1987,7 +1845,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4166
+            - testCaseID: TCXM_4156
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2045,7 +1903,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -2080,7 +1938,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4167
+            - testCaseID: TCXM_4157
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2138,7 +1996,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -2155,7 +2013,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4168
+            - testCaseID: TCXM_4158
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2213,7 +2071,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var4/device/test-device-001/deploy/status
                   pathParams:
@@ -2248,7 +2106,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4169
+            - testCaseID: TCXM_4159
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2306,7 +2164,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var4/site/test-site-001/deploy/status
                   pathParams:
@@ -2323,7 +2181,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4170
+            - testCaseID: TCXM_4160
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2381,7 +2239,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var5/device/test-device-001/deploy/status
                   pathParams:
@@ -2416,7 +2274,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4171
+            - testCaseID: TCXM_4161
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2474,7 +2332,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var5/site/test-site-001/deploy/status
                   pathParams:
@@ -2491,7 +2349,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4172
+            - testCaseID: TCXM_4162
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2549,7 +2407,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -2584,7 +2442,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4173
+            - testCaseID: TCXM_4163
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2642,7 +2500,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -2659,7 +2517,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4174
+            - testCaseID: TCXM_4164
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2717,7 +2575,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -2752,7 +2610,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4175
+            - testCaseID: TCXM_4165
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2810,7 +2668,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -2827,7 +2685,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4176
+            - testCaseID: TCXM_4166
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2885,7 +2743,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -2920,7 +2778,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4177
+            - testCaseID: TCXM_4167
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -2978,7 +2836,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -2995,7 +2853,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4178
+            - testCaseID: TCXM_4168
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3053,7 +2911,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Var4/device/test-device-001/deploy/status
                   pathParams:
@@ -3088,7 +2946,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4179
+            - testCaseID: TCXM_4169
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3146,7 +3004,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Var4/site/test-site-001/deploy/status
                   pathParams:
@@ -3163,7 +3021,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4180
+            - testCaseID: TCXM_4170
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3221,7 +3079,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Var5/device/test-device-001/deploy/status
                   pathParams:
@@ -3256,7 +3114,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4181
+            - testCaseID: TCXM_4171
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -3314,7 +3172,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Var5/site/test-site-001/deploy/status
                   pathParams:
@@ -3331,7 +3189,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4182
+            - testCaseID: TCXM_4172
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3389,7 +3247,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -3424,7 +3282,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4183
+            - testCaseID: TCXM_4173
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3482,7 +3340,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -3499,7 +3357,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4184
+            - testCaseID: TCXM_4174
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3557,7 +3415,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -3592,7 +3450,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4185
+            - testCaseID: TCXM_4175
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3650,7 +3508,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -3667,7 +3525,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4186
+            - testCaseID: TCXM_4176
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3725,7 +3583,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -3760,7 +3618,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4187
+            - testCaseID: TCXM_4177
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3818,7 +3676,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -3835,7 +3693,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4188
+            - testCaseID: TCXM_4178
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3893,7 +3751,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -3928,7 +3786,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4189
+            - testCaseID: TCXM_4179
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -3986,7 +3844,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -4003,7 +3861,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4190
+            - testCaseID: TCXM_4180
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4061,7 +3919,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -4096,7 +3954,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4191
+            - testCaseID: TCXM_4181
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4154,7 +4012,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -4171,7 +4029,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4192
+            - testCaseID: TCXM_4182
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4229,7 +4087,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -4264,7 +4122,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4193
+            - testCaseID: TCXM_4183
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4322,7 +4180,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -4339,7 +4197,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4194
+            - testCaseID: TCXM_4184
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4397,7 +4255,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt2-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -4432,7 +4290,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4195
+            - testCaseID: TCXM_4185
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4490,7 +4348,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt2-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -4507,7 +4365,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4196
+            - testCaseID: TCXM_4186
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4565,7 +4423,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt2-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -4600,7 +4458,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4197
+            - testCaseID: TCXM_4187
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4658,7 +4516,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt2-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -4675,7 +4533,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4198
+            - testCaseID: TCXM_4188
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4733,7 +4591,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt2-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -4768,7 +4626,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4199
+            - testCaseID: TCXM_4189
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4826,7 +4684,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt2-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -4843,7 +4701,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_4200
+            - testCaseID: TCXM_4190
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4903,7 +4761,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-A/device/test-device-001/deploy/status
                   pathParams:
@@ -4938,7 +4796,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4201
+            - testCaseID: TCXM_4191
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -4998,7 +4856,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-B/device/test-device-001/deploy/status
                   pathParams:
@@ -5033,7 +4891,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4202
+            - testCaseID: TCXM_4192
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5093,7 +4951,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-C/device/test-device-001/deploy/status
                   pathParams:
@@ -5128,7 +4986,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4203
+            - testCaseID: TCXM_4193
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5188,7 +5046,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Alpha/device/test-device-001/deploy/status
                   pathParams:
@@ -5223,7 +5081,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4204
+            - testCaseID: TCXM_4194
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5283,7 +5141,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Beta/device/test-device-001/deploy/status
                   pathParams:
@@ -5318,7 +5176,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4205
+            - testCaseID: TCXM_4195
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5378,7 +5236,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Gamma/device/test-device-001/deploy/status
                   pathParams:
@@ -5413,7 +5271,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4206
+            - testCaseID: TCXM_4196
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5473,7 +5331,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Delta/device/test-device-001/deploy/status
                   pathParams:
@@ -5508,7 +5366,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4207
+            - testCaseID: TCXM_4197
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5568,7 +5426,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Epsilon/device/test-device-001/deploy/status
                   pathParams:
@@ -5603,7 +5461,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4208
+            - testCaseID: TCXM_4198
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5663,7 +5521,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Test1/device/test-device-001/deploy/status
                   pathParams:
@@ -5698,7 +5556,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4209
+            - testCaseID: TCXM_4199
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5758,7 +5616,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Test2/device/test-device-001/deploy/status
                   pathParams:
@@ -5793,7 +5651,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4210
+            - testCaseID: TCXM_4200
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5851,7 +5709,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-min/device/test-device-001/deploy/status
                   pathParams:
@@ -5886,7 +5744,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4211
+            - testCaseID: TCXM_4201
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -5944,7 +5802,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-max/device/test-device-001/deploy/status
                   pathParams:
@@ -5979,7 +5837,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4212
+            - testCaseID: TCXM_4202
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6037,7 +5895,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-authentication-max/device/test-device-001/deploy/status
                   pathParams:
@@ -6072,7 +5930,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4213
+            - testCaseID: TCXM_4203
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6130,7 +5988,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-vr-name-max/device/test-device-001/deploy/status
                   pathParams:
@@ -6165,7 +6023,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4214
+            - testCaseID: TCXM_4204
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6225,7 +6083,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-server-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -6260,7 +6118,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4215
+            - testCaseID: TCXM_4205
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6320,7 +6178,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-server-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -6355,7 +6213,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4216
+            - testCaseID: TCXM_4206
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6415,7 +6273,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-server-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -6450,7 +6308,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4217
+            - testCaseID: TCXM_4207
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6510,7 +6368,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-authentication-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -6545,7 +6403,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4218
+            - testCaseID: TCXM_4208
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6605,7 +6463,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-authentication-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -6640,7 +6498,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4219
+            - testCaseID: TCXM_4209
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6700,7 +6558,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-authentication-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -6735,7 +6593,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4220
+            - testCaseID: TCXM_4210
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6795,7 +6653,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-vr-name-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -6830,7 +6688,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4221
+            - testCaseID: TCXM_4211
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6890,7 +6748,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-vr-name-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -6925,7 +6783,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4222
+            - testCaseID: TCXM_4212
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -6985,7 +6843,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-vr-name-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -7020,7 +6878,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4223
+            - testCaseID: TCXM_4213
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7080,7 +6938,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-server-authentication-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -7115,7 +6973,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4224
+            - testCaseID: TCXM_4214
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7175,7 +7033,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-server-authentication-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -7210,7 +7068,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4225
+            - testCaseID: TCXM_4215
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7270,7 +7128,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-server-authentication-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -7305,7 +7163,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4226
+            - testCaseID: TCXM_4216
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7365,7 +7223,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-server-vr-name-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -7400,7 +7258,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4227
+            - testCaseID: TCXM_4217
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7460,7 +7318,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-server-vr-name-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -7495,7 +7353,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4228
+            - testCaseID: TCXM_4218
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7555,7 +7413,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-server-vr-name-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -7590,7 +7448,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4229
+            - testCaseID: TCXM_4219
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7650,7 +7508,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-authentication-vr-name-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -7685,7 +7543,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4230
+            - testCaseID: TCXM_4220
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7745,7 +7603,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-authentication-vr-name-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -7780,7 +7638,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4231
+            - testCaseID: TCXM_4221
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7840,7 +7698,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-authentication-vr-name-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -7875,7 +7733,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4232
+            - testCaseID: TCXM_4222
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -7933,7 +7791,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Typeuint8-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -7968,7 +7826,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4233
+            - testCaseID: TCXM_4223
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8026,7 +7884,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Typeuint8-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -8061,7 +7919,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4234
+            - testCaseID: TCXM_4224
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8119,7 +7977,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Typeuint8-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -8154,7 +8012,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4235
+            - testCaseID: TCXM_4225
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8212,7 +8070,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Typestring-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -8247,7 +8105,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4236
+            - testCaseID: TCXM_4226
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8305,7 +8163,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Typestring-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -8340,7 +8198,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4237
+            - testCaseID: TCXM_4227
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8398,7 +8256,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-server-Typestring-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -8433,7 +8291,7 @@ features:
                     - type: nosConfigMatchesExpected
                       description: Verify NOS device configuration matches expected state
                   devicesScope: device
-            - testCaseID: TCXM_4238
+            - testCaseID: TCXM_4228
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -8473,14 +8331,14 @@ features:
                       expected: 201
                       description: Verify ntp-server created successfully with server=8.8.8.8
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to device at 2026-05-01T06:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -8490,7 +8348,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_4239
+            - testCaseID: TCXM_4229
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -8530,14 +8388,14 @@ features:
                       expected: 201
                       description: Verify ntp-server created successfully with server=8.8.8.8
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to site at 2026-05-01T06:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -8547,7 +8405,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_4240
+            - testCaseID: TCXM_4230
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8591,7 +8449,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -8602,14 +8460,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T04:30:49Z
+                  description: Edit deployment schedule to 2026-05-01T07:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T04:30:49Z"
+                    deployAt: "2026-05-01T07:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -8619,7 +8477,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_4241
+            - testCaseID: TCXM_4231
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8663,7 +8521,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -8689,7 +8547,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_4242
+            - testCaseID: TCXM_4232
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8740,7 +8598,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_4243
+            - testCaseID: TCXM_4233
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8794,7 +8652,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_4244
+            - testCaseID: TCXM_4234
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -8877,7 +8735,7 @@ features:
                     feature: ntp-server
                     properties:
                         priority: 50
-                        server: updated-test-value
+                        server: 8.8.4.4
                   expectedStatus: 200
                   validations:
                     - Verify NOSAPI accepted the out-of-band ntp-server change on device test-device-001
@@ -8909,7 +8767,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_4245
+            - testCaseID: TCXM_4235
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -8973,7 +8831,7 @@ features:
                     feature: ntp-server
                     properties:
                         priority: 50
-                        server: updated-test-value
+                        server: 8.8.4.4
                   expectedStatus: 200
                   validations:
                     - Verify NOSAPI accepted the out-of-band ntp-server change on device test-device-001
@@ -9084,7 +8942,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_4246
+            - testCaseID: TCXM_4236
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -9148,7 +9006,7 @@ features:
                     feature: ntp-server
                     properties:
                         priority: 50
-                        server: updated-test-value
+                        server: 8.8.4.4
                   expectedStatus: 200
                   validations:
                     - Verify NOSAPI accepted the out-of-band ntp-server change on device test-device-001
@@ -9225,7 +9083,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for ntp-server — device value accepted as new cloud baseline
-            - testCaseID: TCXM_4247
+            - testCaseID: TCXM_4237
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -9274,7 +9132,7 @@ features:
                         - name: priority
                           value: 50
                         - name: server
-                          value: updated-test-value
+                          value: 8.8.4.4
                     overrideType: device
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                   expectedStatus: 200
@@ -9323,9 +9181,9 @@ features:
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                     updateProperties:
                         - name: priority
-                          value: testValue
+                          value: 123e4567-e89b-12d3-a456-426614174000
                         - name: server
-                          value: updated-test-value
+                          value: 8.8.4.4
                   expectedStatus: 200
                   validations:
                     - Verify override modified successfully
@@ -9369,7 +9227,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_4248
+            - testCaseID: TCXM_4238
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9418,7 +9276,7 @@ features:
                         - name: priority
                           value: 50
                         - name: server
-                          value: updated-test-value
+                          value: 8.8.4.4
                     overrideType: model
                     targetId: "5520"
                   expectedStatus: 200
@@ -9468,7 +9326,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_4249
+            - testCaseID: TCXM_4239
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9517,7 +9375,7 @@ features:
                         - name: priority
                           value: 50
                         - name: server
-                          value: updated-test-value
+                          value: 8.8.4.4
                     overrideType: model-group
                     targetId: enterprise-access-points
                   expectedStatus: 200
@@ -9567,7 +9425,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_4250
+            - testCaseID: TCXM_4240
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -9616,7 +9474,7 @@ features:
                         - name: priority
                           value: 50
                         - name: server
-                          value: updated-test-value
+                          value: 8.8.4.4
                     overrideType: device
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                   expectedStatus: 200
@@ -9651,7 +9509,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_4251
+            - testCaseID: TCXM_4241
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -9751,7 +9609,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_4252
+            - testCaseID: TCXM_4242
               featureName: ntp-server
               priority: P1
               automation: Automatable
@@ -9800,7 +9658,7 @@ features:
                         - name: priority
                           value: 50
                         - name: server
-                          value: updated-test-value
+                          value: 8.8.4.4
                     overrideType: device
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                   expectedStatus: 200
@@ -9867,7 +9725,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: No conflict expected — override values were deployed
-            - testCaseID: TCXM_4253
+            - testCaseID: TCXM_4243
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -9893,7 +9751,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_4254
+            - testCaseID: TCXM_4244
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -9914,7 +9772,7 @@ features:
                         - name: priority
                           value: 50
                         - name: server
-                          value: updated-test-value
+                          value: 8.8.4.4
                     overrideType: invalid-type
                     targetId: some-target
                   expectedStatus: 400
@@ -9924,7 +9782,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_4255
+            - testCaseID: TCXM_4245
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -10035,7 +9893,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_4256
+            - testCaseID: TCXM_4246
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -10162,7 +10020,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 204
-            - testCaseID: TCXM_4257
+            - testCaseID: TCXM_4247
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10273,7 +10131,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 200
-            - testCaseID: TCXM_4258
+            - testCaseID: TCXM_4248
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10309,7 +10167,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4259
+            - testCaseID: TCXM_4249
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10345,7 +10203,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4260
+            - testCaseID: TCXM_4250
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10381,7 +10239,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4261
+            - testCaseID: TCXM_4251
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10417,7 +10275,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4262
+            - testCaseID: TCXM_4252
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10453,7 +10311,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4263
+            - testCaseID: TCXM_4253
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10489,7 +10347,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4264
+            - testCaseID: TCXM_4254
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10525,7 +10383,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4265
+            - testCaseID: TCXM_4255
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10561,7 +10419,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4266
+            - testCaseID: TCXM_4256
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10597,7 +10455,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4267
+            - testCaseID: TCXM_4257
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10633,7 +10491,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4268
+            - testCaseID: TCXM_4258
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10669,7 +10527,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4269
+            - testCaseID: TCXM_4259
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10705,7 +10563,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4270
+            - testCaseID: TCXM_4260
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10741,7 +10599,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4271
+            - testCaseID: TCXM_4261
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10777,7 +10635,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4272
+            - testCaseID: TCXM_4262
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10813,7 +10671,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4273
+            - testCaseID: TCXM_4263
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10849,7 +10707,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_4274
+            - testCaseID: TCXM_4264
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -10886,7 +10744,7 @@ features:
                     - type: statusCode
                       expected: 201
         negative:
-            - testCaseID: TCXM_4283
+            - testCaseID: TCXM_4273
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -10922,7 +10780,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'priority'
-            - testCaseID: TCXM_4284
+            - testCaseID: TCXM_4274
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -10958,7 +10816,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'server'
-            - testCaseID: TCXM_4285
+            - testCaseID: TCXM_4275
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -10997,7 +10855,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4286
+            - testCaseID: TCXM_4276
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11032,7 +10890,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4287
+            - testCaseID: TCXM_4277
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11071,7 +10929,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4288
+            - testCaseID: TCXM_4278
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11110,7 +10968,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4289
+            - testCaseID: TCXM_4279
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11145,7 +11003,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4290
+            - testCaseID: TCXM_4280
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11184,7 +11042,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4291
+            - testCaseID: TCXM_4281
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11223,7 +11081,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4292
+            - testCaseID: TCXM_4282
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11258,7 +11116,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4293
+            - testCaseID: TCXM_4283
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11296,7 +11154,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_4294
+            - testCaseID: TCXM_4284
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11334,7 +11192,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_4295
+            - testCaseID: TCXM_4285
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11372,7 +11230,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_4296
+            - testCaseID: TCXM_4286
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11410,7 +11268,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_4297
+            - testCaseID: TCXM_4287
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11446,7 +11304,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'authentication' is omitted
-            - testCaseID: TCXM_4298
+            - testCaseID: TCXM_4288
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -11482,7 +11340,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'vr-name' is omitted
-            - testCaseID: TCXM_4299
+            - testCaseID: TCXM_4289
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11519,7 +11377,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_4300
+            - testCaseID: TCXM_4290
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11543,7 +11401,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 404
-            - testCaseID: TCXM_4301
+            - testCaseID: TCXM_4291
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11579,7 +11437,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4302
+            - testCaseID: TCXM_4292
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11615,7 +11473,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4303
+            - testCaseID: TCXM_4293
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11651,7 +11509,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4304
+            - testCaseID: TCXM_4294
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11687,7 +11545,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4305
+            - testCaseID: TCXM_4295
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11723,7 +11581,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4306
+            - testCaseID: TCXM_4296
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11759,7 +11617,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4307
+            - testCaseID: TCXM_4297
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11795,7 +11653,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4308
+            - testCaseID: TCXM_4298
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11831,7 +11689,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4309
+            - testCaseID: TCXM_4299
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11867,7 +11725,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4310
+            - testCaseID: TCXM_4300
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11903,7 +11761,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4311
+            - testCaseID: TCXM_4301
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11939,7 +11797,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4312
+            - testCaseID: TCXM_4302
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -11975,7 +11833,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4313
+            - testCaseID: TCXM_4303
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12011,7 +11869,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4314
+            - testCaseID: TCXM_4304
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12047,7 +11905,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_4315
+            - testCaseID: TCXM_4305
               featureName: ntp-server
               priority: P2
               automation: Automatable
@@ -12084,7 +11942,7 @@ features:
                     - type: statusCode
                       expected: 400
         performance:
-            - testCaseID: TCXM_4320
+            - testCaseID: TCXM_4310
               featureName: ntp-server
               priority: P4
               automation: Automatable
@@ -12426,7 +12284,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_4321
+            - testCaseID: TCXM_4311
               featureName: ntp-server
               priority: P4
               automation: Automatable
@@ -12618,7 +12476,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_4322
+            - testCaseID: TCXM_4312
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -12997,7 +12855,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_4323
+            - testCaseID: TCXM_4313
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -13449,7 +13307,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_4316
+            - testCaseID: TCXM_4306
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -16259,7 +16117,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_4317
+            - testCaseID: TCXM_4307
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -16296,7 +16154,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_4318
+            - testCaseID: TCXM_4308
               featureName: ntp-server
               priority: P3
               automation: Automatable
@@ -16625,7 +16483,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_4319
+            - testCaseID: TCXM_4309
               featureName: ntp-server
               priority: P3
               automation: Automatable

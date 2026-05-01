@@ -29,12 +29,30 @@ func (w *Writer) Write(suite *model.TestSuite) error {
 	if err := os.MkdirAll(w.outputDir, 0755); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
+	if err := w.cleanYAMLFiles(); err != nil {
+		return err
+	}
 
 	if w.oneFilePerFeature {
 		return w.writePerFeature(suite)
 	}
 
 	return w.writeAll(suite)
+}
+
+func (w *Writer) cleanYAMLFiles() error {
+	return filepath.WalkDir(w.outputDir, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".yaml" {
+			return nil
+		}
+		if err := os.Remove(path); err != nil {
+			return fmt.Errorf("failed to remove stale YAML file %s: %w", path, err)
+		}
+		return nil
+	})
 }
 
 // writeAll writes all tests to a single file

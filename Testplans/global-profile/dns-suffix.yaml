@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T08:00:49+05:30"
+generatedAt: "2026-05-01T10:39:11+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_2255
+            - testCaseID: TCXM_2250
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -57,7 +57,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_2256
+            - testCaseID: TCXM_2251
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -104,7 +104,7 @@ features:
                       expected: create
                       description: Verify operation type is 'create'
         functional:
-            - testCaseID: TCXM_2201
+            - testCaseID: TCXM_2198
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -155,10 +155,11 @@ features:
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    name: TestResource
                   body:
                     featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
                     objectType: dns-suffix
                   expectedStatus: 200
                   validations:
@@ -166,7 +167,7 @@ features:
                     - Verify response contains objects array
                     - Verify response contains feature path
                     - Verify response contains object type
-                    - Verify required property 'fqdn' exists in response
+                    - Verify property 'fqdn' exists in response
                     - Verify 'fqdn' value is 'testValue' as set during create
                   assertions:
                     - type: statusCode
@@ -183,12 +184,12 @@ features:
                       description: Verify response contains object type
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='fqdn')]
-                      description: Verify required property 'fqdn' exists in response
+                      description: Verify property 'fqdn' exists in response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='fqdn')].value
                       expected: testValue
                       description: Verify 'fqdn' value is 'testValue' as set during create
-            - testCaseID: TCXM_2202
+            - testCaseID: TCXM_2199
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -216,10 +217,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-suffix created successfully with fqdn=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-suffix created successfully with fqdn=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: updateResource
                   description: Update dns-suffix — update entry where fqdn=testValue
                   method: POST
@@ -229,7 +234,8 @@ features:
                     featurePath: /dns-server-feature
                     objectType: dns-suffix
                     objects:
-                        - operation: update
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: fqdn
                               origin: Global
@@ -251,6 +257,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
                     objectType: dns-suffix
                   expectedStatus: 200
                   validations:
@@ -259,7 +268,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-suffix retrieved — response contains update entry where fqdn=testValue
-            - testCaseID: TCXM_2203
+            - testCaseID: TCXM_2200
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -271,7 +280,7 @@ features:
                   description: Create dns-suffix with fqdn=testValue before deleting
                   method: POST
                   api: REST
-                  path: /global-profile/feature/object/delete
+                  path: /global-profile/feature/object/modify
                   body:
                     featurePath: /dns-server-feature
                     objectType: dns-suffix
@@ -287,18 +296,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-suffix created successfully with fqdn=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-suffix created successfully with fqdn=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: deleteResource
                   description: Delete dns-suffix with fqdn=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/delete
                   body:
-                    featurePath: /dns-server-feature
-                    objectType: dns-suffix
+                    objectIds:
+                        - '{{OBJECT_ID}}'
                   expectedStatus: 200
                   validations:
                     - Verify dns-suffix with fqdn=testValue deleted successfully
@@ -313,6 +326,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
                     objectType: dns-suffix
                   expectedStatus: 200
                   validations:
@@ -321,7 +337,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-suffix with fqdn=testValue no longer exists in the response
-            - testCaseID: TCXM_2204
+            - testCaseID: TCXM_2201
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -349,10 +365,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-suffix created successfully with fqdn=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-suffix created successfully with fqdn=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: verifyCreation
                   description: Verify dns-suffix with fqdn=testValue was created
                   method: POST
@@ -360,6 +380,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
                     objectType: dns-suffix
                   expectedStatus: 200
                   validations:
@@ -377,7 +400,8 @@ features:
                     featurePath: /dns-server-feature
                     objectType: dns-suffix
                     objects:
-                        - operation: update
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: fqdn
                               origin: Global
@@ -399,6 +423,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
                     objectType: dns-suffix
                   expectedStatus: 200
                   validations:
@@ -413,8 +440,8 @@ features:
                   api: REST
                   path: /global-profile/feature/object/delete
                   body:
-                    featurePath: /dns-server-feature
-                    objectType: dns-suffix
+                    objectIds:
+                        - '{{OBJECT_ID}}'
                   expectedStatus: 200
                   validations:
                     - Verify dns-suffix with fqdn=testValue deleted successfully
@@ -422,7 +449,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-suffix with fqdn=testValue deleted successfully
-            - testCaseID: TCXM_2205
+            - testCaseID: TCXM_2202
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -450,10 +477,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify dns-suffix created successfully with fqdn=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify dns-suffix created successfully with fqdn=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: partialUpdate
                   description: Partially update dns-suffix — update entry where fqdn=testValue
                   method: POST
@@ -463,7 +494,8 @@ features:
                     featurePath: /dns-server-feature
                     objectType: dns-suffix
                     objects:
-                        - operation: update
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: fqdn
                               origin: Global
@@ -485,6 +517,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
                     objectType: dns-suffix
                   expectedStatus: 200
                   validations:
@@ -493,7 +528,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify dns-suffix retrieved — response contains update entry where fqdn=testValue
-            - testCaseID: TCXM_2206
+            - testCaseID: TCXM_2203
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -549,154 +584,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of dns-suffix with fqdn=testValue is rejected (409 Conflict)
-            - testCaseID: TCXM_2207
-              featureName: dns-suffix
-              priority: P1
-              automation: Automatable
-              type: functional
-              description: Create dns-suffix, scope to device, target to device, deploy, and verify on NOS devices
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createdns-suffix
-                  description: Create dns-suffix configuration
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dns-server-feature
-                    name: TestProfile
-                    objectType: dns-suffix
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: fqdn
-                              origin: Global
-                              type: string
-                              value: testValue
-                          type: dns-suffix
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: getProfile
-                  description: Retrieve created profile
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/retrieve
-                  pathParams:
-                    profileName: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: scopeProfileTodevice
-                  description: Scope profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/scope
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    scopeId: test-scope-001
-                    scopeType: device
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: targetProfileTodevice
-                  description: Target profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/target
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    targetId: test-scope-001
-                    targetType: device
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: deployProfileTodevice
-                  description: Deploy profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/deploy
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    deploymentMethod: immediate
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: GET
-                  api: REST
-                  path: /global-profile/TestProfile/deployment/status
-                  pathParams:
-                    profileName: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_2208
-              featureName: dns-suffix
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Create dns-suffix and verify configuration on NOS devices (without explicit scope/target/deploy)
-              scopeType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: createdns-suffix
-                  description: Create dns-suffix configuration
-                  method: POST
-                  api: REST
-                  path: /global-profile/feature/object/modify
-                  body:
-                    featurePath: /dns-server-feature
-                    name: TestProfile-Simple
-                    objectType: dns-suffix
-                    objects:
-                        - operation: add
-                          properties:
-                            - name: fqdn
-                              origin: Global
-                              type: string
-                              value: testValue
-                          type: dns-suffix
-                    operation: add
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-            - testCaseID: TCXM_2209
+            - testCaseID: TCXM_2204
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -735,13 +623,16 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
                     objectType: dns-suffix
                   expectedStatus: 200
                   validations:
                     - Verify HTTP 200 for resource read
                     - Verify response contains objects array
-                    - Verify required field 'fqdn' is present in GET response
-                    - Verify required field 'fqdn' has value 'testValue' as created
+                    - Verify identity/required field 'fqdn' is present in GET response
+                    - Verify identity/required field 'fqdn' has value 'testValue' as created
                   assertions:
                     - type: statusCode
                       expected: 200
@@ -751,12 +642,12 @@ features:
                       description: Verify response contains objects array
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='fqdn')]
-                      description: Verify required field 'fqdn' is present in GET response
+                      description: Verify identity/required field 'fqdn' is present in GET response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='fqdn')].value
                       expected: testValue
-                      description: Verify required field 'fqdn' has value 'testValue' as created
-            - testCaseID: TCXM_2210
+                      description: Verify identity/required field 'fqdn' has value 'testValue' as created
+            - testCaseID: TCXM_2205
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -795,6 +686,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
                     objectType: dns-suffix
                   expectedStatus: 200
                   validations:
@@ -816,7 +710,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='fqdn')].value
                       expected: testValue
                       description: Verify field 'fqdn' has value 'testValue' as sent on create
-            - testCaseID: TCXM_2211
+            - testCaseID: TCXM_2206
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -855,6 +749,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
                     objectType: dns-suffix
                   expectedStatus: 200
                   validations:
@@ -865,10 +762,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.fqdn
+                      path: $.objects[0].properties[?(@.name=='fqdn')].value
                       expected: testValue
                       description: Verify 'fqdn' YANG type 'string' value is persisted
-            - testCaseID: TCXM_2212
+            - testCaseID: TCXM_2207
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -907,6 +804,9 @@ features:
                   path: /global-profile/feature/object/retrieve
                   body:
                     featurePath: /dns-server-feature
+                    filters:
+                        - key: fqdn
+                          value: testValue
                     objectType: dns-suffix
                   expectedStatus: 200
                   validations:
@@ -917,10 +817,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.fqdn
+                      path: $.objects[0].properties[?(@.name=='fqdn')].value
                       expected: testValue
                       description: Verify 'fqdn' YANG type 'string' value is persisted
-            - testCaseID: TCXM_2213
+            - testCaseID: TCXM_2208
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -974,7 +874,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -991,7 +891,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2214
+            - testCaseID: TCXM_2209
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -1045,7 +945,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -1062,7 +962,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2215
+            - testCaseID: TCXM_2210
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -1116,7 +1016,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -1133,7 +1033,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2216
+            - testCaseID: TCXM_2211
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -1187,7 +1087,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -1204,7 +1104,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2217
+            - testCaseID: TCXM_2212
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -1258,7 +1158,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -1275,7 +1175,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2218
+            - testCaseID: TCXM_2213
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -1329,7 +1229,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -1346,7 +1246,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2219
+            - testCaseID: TCXM_2214
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -1400,7 +1300,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Var4/device/test-device-001/deploy/status
                   pathParams:
@@ -1417,7 +1317,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2220
+            - testCaseID: TCXM_2215
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -1471,7 +1371,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Var4/site/test-site-001/deploy/status
                   pathParams:
@@ -1488,7 +1388,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2221
+            - testCaseID: TCXM_2216
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -1542,7 +1442,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Var5/device/test-device-001/deploy/status
                   pathParams:
@@ -1559,7 +1459,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2222
+            - testCaseID: TCXM_2217
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -1613,7 +1513,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Var5/site/test-site-001/deploy/status
                   pathParams:
@@ -1630,7 +1530,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2223
+            - testCaseID: TCXM_2218
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1686,7 +1586,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-A/device/test-device-001/deploy/status
                   pathParams:
@@ -1703,7 +1603,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2224
+            - testCaseID: TCXM_2219
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1759,7 +1659,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-B/device/test-device-001/deploy/status
                   pathParams:
@@ -1776,7 +1676,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2225
+            - testCaseID: TCXM_2220
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1832,7 +1732,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-C/device/test-device-001/deploy/status
                   pathParams:
@@ -1849,7 +1749,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2226
+            - testCaseID: TCXM_2221
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1905,7 +1805,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Alpha/device/test-device-001/deploy/status
                   pathParams:
@@ -1922,7 +1822,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2227
+            - testCaseID: TCXM_2222
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -1978,7 +1878,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Beta/device/test-device-001/deploy/status
                   pathParams:
@@ -1995,7 +1895,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2228
+            - testCaseID: TCXM_2223
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2051,7 +1951,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Gamma/device/test-device-001/deploy/status
                   pathParams:
@@ -2068,7 +1968,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2229
+            - testCaseID: TCXM_2224
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2124,7 +2024,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Delta/device/test-device-001/deploy/status
                   pathParams:
@@ -2141,7 +2041,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2230
+            - testCaseID: TCXM_2225
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2197,7 +2097,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Epsilon/device/test-device-001/deploy/status
                   pathParams:
@@ -2214,7 +2114,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2231
+            - testCaseID: TCXM_2226
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2270,7 +2170,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Test1/device/test-device-001/deploy/status
                   pathParams:
@@ -2287,7 +2187,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2232
+            - testCaseID: TCXM_2227
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2343,7 +2243,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Test2/device/test-device-001/deploy/status
                   pathParams:
@@ -2360,7 +2260,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2233
+            - testCaseID: TCXM_2228
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2414,7 +2314,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-min/device/test-device-001/deploy/status
                   pathParams:
@@ -2431,7 +2331,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2234
+            - testCaseID: TCXM_2229
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2485,7 +2385,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-max/device/test-device-001/deploy/status
                   pathParams:
@@ -2502,7 +2402,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2235
+            - testCaseID: TCXM_2230
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2556,7 +2456,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Typestring-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -2573,7 +2473,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2236
+            - testCaseID: TCXM_2231
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2627,7 +2527,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Typestring-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -2644,7 +2544,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2237
+            - testCaseID: TCXM_2232
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2698,7 +2598,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-fqdn-Typestring-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -2715,7 +2615,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_2238
+            - testCaseID: TCXM_2233
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -2751,14 +2651,14 @@ features:
                       expected: 201
                       description: Verify dns-suffix created successfully with fqdn=testValue
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to device at 2026-05-01T06:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -2768,7 +2668,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2239
+            - testCaseID: TCXM_2234
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -2804,14 +2704,14 @@ features:
                       expected: 201
                       description: Verify dns-suffix created successfully with fqdn=testValue
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to site at 2026-05-01T06:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -2821,7 +2721,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_2240
+            - testCaseID: TCXM_2235
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2861,7 +2761,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -2872,14 +2772,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T04:30:49Z
+                  description: Edit deployment schedule to 2026-05-01T07:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T04:30:49Z"
+                    deployAt: "2026-05-01T07:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -2889,7 +2789,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2241
+            - testCaseID: TCXM_2236
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -2929,7 +2829,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -2955,7 +2855,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_2242
+            - testCaseID: TCXM_2237
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -3002,7 +2902,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2243
+            - testCaseID: TCXM_2238
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -3052,7 +2952,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_2244
+            - testCaseID: TCXM_2239
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -3162,7 +3062,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_2245
+            - testCaseID: TCXM_2240
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -3332,7 +3232,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_2246
+            - testCaseID: TCXM_2241
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -3468,7 +3368,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for dns-suffix — device value accepted as new cloud baseline
-            - testCaseID: TCXM_2247
+            - testCaseID: TCXM_2242
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -3560,7 +3460,7 @@ features:
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                     updateProperties:
                         - name: fqdn
-                          value: testValue
+                          value: 123e4567-e89b-12d3-a456-426614174000
                   expectedStatus: 200
                   validations:
                     - Verify override modified successfully
@@ -3604,7 +3504,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_2248
+            - testCaseID: TCXM_2243
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -3697,7 +3597,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_2249
+            - testCaseID: TCXM_2244
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -3790,7 +3690,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_2250
+            - testCaseID: TCXM_2245
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -3868,7 +3768,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_2251
+            - testCaseID: TCXM_2246
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -3964,7 +3864,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_2252
+            - testCaseID: TCXM_2247
               featureName: dns-suffix
               priority: P1
               automation: Automatable
@@ -4074,7 +3974,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: No conflict expected — override values were deployed
-            - testCaseID: TCXM_2253
+            - testCaseID: TCXM_2248
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -4100,7 +4000,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_2254
+            - testCaseID: TCXM_2249
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -4130,7 +4030,7 @@ features:
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
         negative:
-            - testCaseID: TCXM_2257
+            - testCaseID: TCXM_2252
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -4162,7 +4062,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'fqdn'
-            - testCaseID: TCXM_2258
+            - testCaseID: TCXM_2253
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -4197,7 +4097,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2259
+            - testCaseID: TCXM_2254
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -4228,7 +4128,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2260
+            - testCaseID: TCXM_2255
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -4259,7 +4159,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2261
+            - testCaseID: TCXM_2256
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -4290,7 +4190,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_2262
+            - testCaseID: TCXM_2257
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -4324,7 +4224,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2263
+            - testCaseID: TCXM_2258
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -4358,7 +4258,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2264
+            - testCaseID: TCXM_2259
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -4391,7 +4291,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_2265
+            - testCaseID: TCXM_2260
               featureName: dns-suffix
               priority: P2
               automation: Automatable
@@ -4416,7 +4316,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_2270
+            - testCaseID: TCXM_2265
               featureName: dns-suffix
               priority: P4
               automation: Automatable
@@ -4718,7 +4618,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_2271
+            - testCaseID: TCXM_2266
               featureName: dns-suffix
               priority: P4
               automation: Automatable
@@ -4910,7 +4810,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_2272
+            - testCaseID: TCXM_2267
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -5245,7 +5145,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_2273
+            - testCaseID: TCXM_2268
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -5657,7 +5557,7 @@ features:
                 iterations: 10
                 operation: delete
         scale:
-            - testCaseID: TCXM_2266
+            - testCaseID: TCXM_2261
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -8067,7 +7967,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_2267
+            - testCaseID: TCXM_2262
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -8100,7 +8000,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_2268
+            - testCaseID: TCXM_2263
               featureName: dns-suffix
               priority: P3
               automation: Automatable
@@ -8385,7 +8285,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_2269
+            - testCaseID: TCXM_2264
               featureName: dns-suffix
               priority: P3
               automation: Automatable

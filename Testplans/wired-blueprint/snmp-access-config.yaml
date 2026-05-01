@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T08:00:49+05:30"
+generatedAt: "2026-05-01T10:39:11+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -11,7 +11,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_6753
+            - testCaseID: TCXM_6729
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -65,7 +65,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_6754
+            - testCaseID: TCXM_6730
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -120,7 +120,7 @@ features:
                       expected: create
                       description: Verify operation type is 'create'
         functional:
-            - testCaseID: TCXM_6662
+            - testCaseID: TCXM_6637
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -180,21 +180,24 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
                   pathParams:
-                    name: TestResource
+                    name: TestProfile
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
                     - Verify response contains objects array
                     - Verify response contains feature path
                     - Verify response contains object type
-                    - Verify required property 'priority' exists in response
+                    - Verify property 'priority' exists in response
                     - Verify 'priority' value is '1' as set during create
-                    - Verify required property 'community' exists in response
+                    - Verify property 'community' exists in response
                     - Verify 'community' value is 'testValue' as set during create
-                    - Verify required property 'access-level' exists in response
+                    - Verify property 'access-level' exists in response
                     - Verify 'access-level' value is 'testValue' as set during create
                   assertions:
                     - type: statusCode
@@ -211,26 +214,26 @@ features:
                       description: Verify response contains object type
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='priority')]
-                      description: Verify required property 'priority' exists in response
+                      description: Verify property 'priority' exists in response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 1
                       description: Verify 'priority' value is '1' as set during create
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='community')]
-                      description: Verify required property 'community' exists in response
+                      description: Verify property 'community' exists in response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='community')].value
                       expected: testValue
                       description: Verify 'community' value is 'testValue' as set during create
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='access-level')]
-                      description: Verify required property 'access-level' exists in response
+                      description: Verify property 'access-level' exists in response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='access-level')].value
                       expected: testValue
                       description: Verify 'access-level' value is 'testValue' as set during create
-            - testCaseID: TCXM_6663
+            - testCaseID: TCXM_6638
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -266,10 +269,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify snmp-access-config created successfully with community=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify snmp-access-config created successfully with community=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: updateResource
                   description: Update snmp-access-config — update entry where priority=1, community=testValue, access-level=testValue
                   method: POST
@@ -279,7 +286,8 @@ features:
                     featurePath: /infrastructure-feature/snmp-feature
                     objectType: snmp-trap
                     objects:
-                        - operation: update
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: CC
@@ -309,7 +317,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify snmp-access-config retrieved — response contains update entry where priority=1, community=testValue, access-level=testValue
@@ -317,7 +328,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify snmp-access-config retrieved — response contains update entry where priority=1, community=testValue, access-level=testValue
-            - testCaseID: TCXM_6664
+            - testCaseID: TCXM_6639
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -329,7 +340,7 @@ features:
                   description: Create snmp-access-config with community=testValue before deleting
                   method: POST
                   api: REST
-                  path: /configuration-profile/{name}/feature/object/delete
+                  path: /configuration-profile/{name}/feature/object/modify
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
                     objectType: snmp-trap
@@ -353,18 +364,22 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify snmp-access-config created successfully with community=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify snmp-access-config created successfully with community=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: deleteResource
                   description: Delete snmp-access-config with community=testValue
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/delete
                   body:
-                    featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    objectIds:
+                        - '{{OBJECT_ID}}'
                   expectedStatus: 200
                   validations:
                     - Verify snmp-access-config with community=testValue deleted successfully
@@ -379,7 +394,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify snmp-access-config with community=testValue no longer exists in the response
@@ -387,7 +405,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify snmp-access-config with community=testValue no longer exists in the response
-            - testCaseID: TCXM_6665
+            - testCaseID: TCXM_6640
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -423,10 +441,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify snmp-access-config created successfully with community=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify snmp-access-config created successfully with community=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: verifyCreation
                   description: Verify snmp-access-config with community=testValue was created
                   method: POST
@@ -434,7 +456,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify snmp-access-config retrieved — response contains community=testValue
@@ -451,7 +476,8 @@ features:
                     featurePath: /infrastructure-feature/snmp-feature
                     objectType: snmp-trap
                     objects:
-                        - operation: update
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: CC
@@ -481,7 +507,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify snmp-access-config retrieved — response contains update entry where priority=1, community=testValue, access-level=testValue
@@ -495,8 +524,8 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/delete
                   body:
-                    featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    objectIds:
+                        - '{{OBJECT_ID}}'
                   expectedStatus: 200
                   validations:
                     - Verify snmp-access-config with community=testValue deleted successfully
@@ -504,7 +533,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify snmp-access-config with community=testValue deleted successfully
-            - testCaseID: TCXM_6666
+            - testCaseID: TCXM_6641
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -540,10 +569,14 @@ features:
                   expectedStatus: 201
                   validations:
                     - Verify snmp-access-config created successfully with community=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
                       description: Verify snmp-access-config created successfully with community=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: partialUpdate
                   description: Partially update snmp-access-config — update entry where priority=1, community=testValue, access-level=testValue
                   method: POST
@@ -553,7 +586,8 @@ features:
                     featurePath: /infrastructure-feature/snmp-feature
                     objectType: snmp-trap
                     objects:
-                        - operation: update
+                        - id: '{{OBJECT_ID}}'
+                          operation: update
                           properties:
                             - name: priority
                               origin: CC
@@ -583,7 +617,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify snmp-access-config retrieved — response contains update entry where priority=1, community=testValue, access-level=testValue
@@ -591,7 +628,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify snmp-access-config retrieved — response contains update entry where priority=1, community=testValue, access-level=testValue
-            - testCaseID: TCXM_6667
+            - testCaseID: TCXM_6642
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -663,7 +700,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of snmp-access-config with community=testValue is rejected (409 Conflict)
-            - testCaseID: TCXM_6668
+            - testCaseID: TCXM_6643
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -712,7 +749,7 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/feature/object/retrieve
                   pathParams:
-                    profileName: TestProfile
+                    name: TestProfile
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -721,30 +758,14 @@ features:
                       expected: 200
                 - name: scopeProfileTodevice
                   description: Scope profile to device
-                  method: POST
+                  method: PUT
                   api: REST
-                  path: /global-profile/TestProfile/scope
+                  path: /configuration-profile/{name}/scope
                   pathParams:
-                    profileName: TestProfile
+                    name: TestProfile
                   body:
                     scopeId: test-scope-001
                     scopeType: device
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: targetProfileTodevice
-                  description: Target profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/target
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    targetId: test-scope-001
-                    targetType: device
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -755,11 +776,13 @@ features:
                   description: Deploy profile to device
                   method: POST
                   api: REST
-                  path: /global-profile/TestProfile/deploy
+                  path: /configuration-profile/{name}/devices/deploy
                   pathParams:
-                    profileName: TestProfile
+                    name: TestProfile
                   body:
-                    deploymentMethod: immediate
+                    deployNow: true
+                    devices:
+                        - test-device-001
                   expectedStatus: 202
                   validations:
                     - Verify HTTP status code is 202
@@ -770,9 +793,10 @@ features:
                   description: Verify deployment status
                   method: GET
                   api: REST
-                  path: /global-profile/TestProfile/deployment/status
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
                   pathParams:
-                    profileName: TestProfile
+                    hostName: test-device-001
+                    name: TestProfile
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -784,7 +808,115 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6669
+            - testCaseID: TCXM_6644
+              featureName: snmp-access-config
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Create snmp-access-config, scope to site-group, target to site-group, deploy, and verify on NOS devices
+              scopeType: site-group
+              targetType: site-group
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createsnmp-access-config
+                  description: Create snmp-access-config configuration
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/modify
+                  body:
+                    featurePath: /infrastructure-feature/snmp-feature
+                    name: TestProfile
+                    objectType: snmp-trap
+                    objects:
+                        - operation: add
+                          properties:
+                            - name: priority
+                              origin: CC
+                              type: number
+                              value: 1
+                            - name: community
+                              origin: CC
+                              type: string
+                              value: testValue
+                            - name: access-level
+                              origin: CC
+                              type: string
+                              value: testValue
+                          type: snmp-trap
+                    operation: add
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: getProfile
+                  description: Retrieve created profile
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/feature/object/retrieve
+                  pathParams:
+                    name: TestProfile
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: scopeProfileTosite-group
+                  description: Scope profile to site-group
+                  method: PUT
+                  api: REST
+                  path: /configuration-profile/{name}/scope
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    scopeId: test-scope-001
+                    scopeType: site-group
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                - name: deployProfileTosite-group
+                  description: Deploy profile to site-group
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/sites/deploy
+                  pathParams:
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
+                - name: checkDeploymentStatus
+                  description: Verify deployment status
+                  method: GET
+                  api: REST
+                  path: /configuration-profile/{name}/site/{siteName}/deploy/status
+                  pathParams:
+                    name: TestProfile
+                    siteName: test-site-001
+                  expectedStatus: 200
+                  validations:
+                    - Verify HTTP status code is 200
+                    - Verify '$.status' equals SUCCESS
+                  assertions:
+                    - type: statusCode
+                      expected: 200
+                    - type: jsonPathEquals
+                      path: $.status
+                      expected: SUCCESS
+                  timeout: 300
+            - testCaseID: TCXM_6645
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -826,7 +958,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 201
-            - testCaseID: TCXM_6670
+            - testCaseID: TCXM_6646
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -841,23 +973,23 @@ features:
                   path: /configuration-profile/{name}/feature/object/modify
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    objectType: snmp-trap
                     objects:
                         - operation: add
                           properties:
                             - name: priority
-                              origin: Global
+                              origin: CC
                               type: number
                               value: 1
                             - name: community
-                              origin: Global
+                              origin: CC
                               type: string
                               value: testValue
                             - name: access-level
-                              origin: Global
+                              origin: CC
                               type: string
                               value: testValue
-                          type: snmp-access-config
+                          type: snmp-trap
                     operation: add
                   expectedStatus: 201
                   validations:
@@ -873,17 +1005,20 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify HTTP 200 for resource read
                     - Verify response contains objects array
-                    - Verify required field 'priority' is present in GET response
-                    - Verify required field 'priority' has value '1' as created
-                    - Verify required field 'community' is present in GET response
-                    - Verify required field 'community' has value 'testValue' as created
-                    - Verify required field 'access-level' is present in GET response
-                    - Verify required field 'access-level' has value 'testValue' as created
+                    - Verify identity/required field 'priority' is present in GET response
+                    - Verify identity/required field 'priority' has value '1' as created
+                    - Verify identity/required field 'community' is present in GET response
+                    - Verify identity/required field 'community' has value 'testValue' as created
+                    - Verify identity/required field 'access-level' is present in GET response
+                    - Verify identity/required field 'access-level' has value 'testValue' as created
                   assertions:
                     - type: statusCode
                       expected: 200
@@ -893,26 +1028,26 @@ features:
                       description: Verify response contains objects array
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='priority')]
-                      description: Verify required field 'priority' is present in GET response
+                      description: Verify identity/required field 'priority' is present in GET response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 1
-                      description: Verify required field 'priority' has value '1' as created
+                      description: Verify identity/required field 'priority' has value '1' as created
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='community')]
-                      description: Verify required field 'community' is present in GET response
+                      description: Verify identity/required field 'community' is present in GET response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='community')].value
                       expected: testValue
-                      description: Verify required field 'community' has value 'testValue' as created
+                      description: Verify identity/required field 'community' has value 'testValue' as created
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='access-level')]
-                      description: Verify required field 'access-level' is present in GET response
+                      description: Verify identity/required field 'access-level' is present in GET response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='access-level')].value
                       expected: testValue
-                      description: Verify required field 'access-level' has value 'testValue' as created
-            - testCaseID: TCXM_6671
+                      description: Verify identity/required field 'access-level' has value 'testValue' as created
+            - testCaseID: TCXM_6647
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -927,23 +1062,23 @@ features:
                   path: /configuration-profile/{name}/feature/object/modify
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    objectType: snmp-trap
                     objects:
                         - operation: add
                           properties:
                             - name: priority
-                              origin: Global
+                              origin: CC
                               type: number
                               value: 1
                             - name: community
-                              origin: Global
+                              origin: CC
                               type: string
                               value: testValue
                             - name: access-level
-                              origin: Global
+                              origin: CC
                               type: string
                               value: testValue
-                          type: snmp-access-config
+                          type: snmp-trap
                     operation: add
                   expectedStatus: 201
                   validations:
@@ -959,7 +1094,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify HTTP 200 for resource read
@@ -998,7 +1136,7 @@ features:
                       path: $.objects[0].properties[?(@.name=='access-level')].value
                       expected: testValue
                       description: Verify field 'access-level' has value 'testValue' as sent on create
-            - testCaseID: TCXM_6672
+            - testCaseID: TCXM_6648
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -1045,7 +1183,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify HTTP 200
@@ -1055,10 +1196,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.priority
+                      path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 1
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_6673
+            - testCaseID: TCXM_6649
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -1105,7 +1246,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify HTTP 200
@@ -1115,10 +1259,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.priority
+                      path: $.objects[0].properties[?(@.name=='priority')].value
                       expected: 100
                       description: Verify 'priority' YANG type 'uint8' value is persisted
-            - testCaseID: TCXM_6674
+            - testCaseID: TCXM_6650
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -1165,7 +1309,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify HTTP 200
@@ -1175,10 +1322,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.community
+                      path: $.objects[0].properties[?(@.name=='community')].value
                       expected: test-value-1
                       description: Verify 'community' YANG type 'string' value is persisted
-            - testCaseID: TCXM_6675
+            - testCaseID: TCXM_6651
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -1225,7 +1372,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify HTTP 200
@@ -1235,10 +1385,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.community
+                      path: $.objects[0].properties[?(@.name=='community')].value
                       expected: test-value-2
                       description: Verify 'community' YANG type 'string' value is persisted
-            - testCaseID: TCXM_6676
+            - testCaseID: TCXM_6652
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -1285,7 +1435,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify HTTP 200
@@ -1295,10 +1448,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.access-level
+                      path: $.objects[0].properties[?(@.name=='access-level')].value
                       expected: 1
                       description: Verify 'access-level' YANG type 'intent-types:snmp-access-level-enum' value is persisted
-            - testCaseID: TCXM_6677
+            - testCaseID: TCXM_6653
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -1345,7 +1498,10 @@ features:
                   path: /configuration-profile/{name}/feature/object/retrieve
                   body:
                     featurePath: /infrastructure-feature/snmp-feature
-                    objectType: snmp-access-config
+                    filters:
+                        - key: community
+                          value: testValue
+                    objectType: snmp-trap
                   expectedStatus: 200
                   validations:
                     - Verify HTTP 200
@@ -1355,10 +1511,10 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.access-level
+                      path: $.objects[0].properties[?(@.name=='access-level')].value
                       expected: 100
                       description: Verify 'access-level' YANG type 'intent-types:snmp-access-level-enum' value is persisted
-            - testCaseID: TCXM_6678
+            - testCaseID: TCXM_6654
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -1420,7 +1576,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -1437,7 +1593,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6679
+            - testCaseID: TCXM_6655
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -1499,7 +1655,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -1516,7 +1672,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6680
+            - testCaseID: TCXM_6656
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -1578,7 +1734,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -1595,7 +1751,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6681
+            - testCaseID: TCXM_6657
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -1657,7 +1813,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -1674,7 +1830,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6682
+            - testCaseID: TCXM_6658
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -1736,7 +1892,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -1753,7 +1909,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6683
+            - testCaseID: TCXM_6659
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -1815,7 +1971,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -1832,7 +1988,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6684
+            - testCaseID: TCXM_6660
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -1894,7 +2050,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var4/device/test-device-001/deploy/status
                   pathParams:
@@ -1911,7 +2067,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6685
+            - testCaseID: TCXM_6661
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -1973,7 +2129,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var4/site/test-site-001/deploy/status
                   pathParams:
@@ -1990,7 +2146,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6686
+            - testCaseID: TCXM_6662
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2052,7 +2208,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var5/device/test-device-001/deploy/status
                   pathParams:
@@ -2069,7 +2225,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6687
+            - testCaseID: TCXM_6663
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2131,7 +2287,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Var5/site/test-site-001/deploy/status
                   pathParams:
@@ -2148,7 +2304,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6688
+            - testCaseID: TCXM_6664
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2210,7 +2366,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -2227,7 +2383,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6689
+            - testCaseID: TCXM_6665
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2289,7 +2445,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -2306,7 +2462,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6690
+            - testCaseID: TCXM_6666
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2368,7 +2524,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -2385,7 +2541,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6691
+            - testCaseID: TCXM_6667
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2447,7 +2603,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -2464,7 +2620,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6692
+            - testCaseID: TCXM_6668
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2526,7 +2682,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -2543,7 +2699,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6693
+            - testCaseID: TCXM_6669
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2605,7 +2761,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -2622,7 +2778,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6694
+            - testCaseID: TCXM_6670
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2684,7 +2840,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Var4/device/test-device-001/deploy/status
                   pathParams:
@@ -2701,7 +2857,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6695
+            - testCaseID: TCXM_6671
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2763,7 +2919,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Var4/site/test-site-001/deploy/status
                   pathParams:
@@ -2780,7 +2936,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6696
+            - testCaseID: TCXM_6672
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2842,7 +2998,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Var5/device/test-device-001/deploy/status
                   pathParams:
@@ -2859,7 +3015,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6697
+            - testCaseID: TCXM_6673
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -2921,7 +3077,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Var5/site/test-site-001/deploy/status
                   pathParams:
@@ -2938,7 +3094,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6698
+            - testCaseID: TCXM_6674
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -3000,7 +3156,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-access-level-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -3017,7 +3173,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6699
+            - testCaseID: TCXM_6675
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -3079,7 +3235,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-access-level-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -3096,7 +3252,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6700
+            - testCaseID: TCXM_6676
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -3158,7 +3314,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-access-level-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -3175,7 +3331,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6701
+            - testCaseID: TCXM_6677
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -3237,7 +3393,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-access-level-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -3254,7 +3410,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6702
+            - testCaseID: TCXM_6678
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -3316,7 +3472,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-access-level-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -3333,7 +3489,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6703
+            - testCaseID: TCXM_6679
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -3395,7 +3551,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-access-level-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -3412,7 +3568,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6704
+            - testCaseID: TCXM_6680
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -3474,7 +3630,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-access-level-Var4/device/test-device-001/deploy/status
                   pathParams:
@@ -3491,7 +3647,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6705
+            - testCaseID: TCXM_6681
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -3553,7 +3709,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-access-level-Var4/site/test-site-001/deploy/status
                   pathParams:
@@ -3570,7 +3726,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6706
+            - testCaseID: TCXM_6682
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -3632,7 +3788,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-access-level-Var5/device/test-device-001/deploy/status
                   pathParams:
@@ -3649,7 +3805,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6707
+            - testCaseID: TCXM_6683
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -3711,7 +3867,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-access-level-Var5/site/test-site-001/deploy/status
                   pathParams:
@@ -3728,7 +3884,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6708
+            - testCaseID: TCXM_6684
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -3794,7 +3950,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-A/device/test-device-001/deploy/status
                   pathParams:
@@ -3811,7 +3967,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6709
+            - testCaseID: TCXM_6685
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -3877,7 +4033,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-B/device/test-device-001/deploy/status
                   pathParams:
@@ -3894,7 +4050,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6710
+            - testCaseID: TCXM_6686
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -3960,7 +4116,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-C/device/test-device-001/deploy/status
                   pathParams:
@@ -3977,7 +4133,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6711
+            - testCaseID: TCXM_6687
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4043,7 +4199,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Alpha/device/test-device-001/deploy/status
                   pathParams:
@@ -4060,7 +4216,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6712
+            - testCaseID: TCXM_6688
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4126,7 +4282,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Beta/device/test-device-001/deploy/status
                   pathParams:
@@ -4143,7 +4299,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6713
+            - testCaseID: TCXM_6689
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4209,7 +4365,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Gamma/device/test-device-001/deploy/status
                   pathParams:
@@ -4226,7 +4382,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6714
+            - testCaseID: TCXM_6690
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4292,7 +4448,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Delta/device/test-device-001/deploy/status
                   pathParams:
@@ -4309,7 +4465,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6715
+            - testCaseID: TCXM_6691
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4375,7 +4531,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Epsilon/device/test-device-001/deploy/status
                   pathParams:
@@ -4392,7 +4548,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6716
+            - testCaseID: TCXM_6692
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4458,7 +4614,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Test1/device/test-device-001/deploy/status
                   pathParams:
@@ -4475,7 +4631,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6717
+            - testCaseID: TCXM_6693
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4541,7 +4697,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Test2/device/test-device-001/deploy/status
                   pathParams:
@@ -4558,7 +4714,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6718
+            - testCaseID: TCXM_6694
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4620,7 +4776,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-min/device/test-device-001/deploy/status
                   pathParams:
@@ -4637,7 +4793,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6719
+            - testCaseID: TCXM_6695
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4699,7 +4855,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-max/device/test-device-001/deploy/status
                   pathParams:
@@ -4716,7 +4872,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6720
+            - testCaseID: TCXM_6696
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4780,7 +4936,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-community-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -4797,7 +4953,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6721
+            - testCaseID: TCXM_6697
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4861,7 +5017,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-community-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -4878,7 +5034,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6722
+            - testCaseID: TCXM_6698
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -4942,7 +5098,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-community-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -4959,7 +5115,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6723
+            - testCaseID: TCXM_6699
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5023,7 +5179,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-access-level-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -5040,7 +5196,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6724
+            - testCaseID: TCXM_6700
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5104,7 +5260,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-access-level-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -5121,7 +5277,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6725
+            - testCaseID: TCXM_6701
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5185,7 +5341,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-priority-access-level-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -5202,7 +5358,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6726
+            - testCaseID: TCXM_6702
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5266,7 +5422,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-community-access-level-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -5283,7 +5439,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6727
+            - testCaseID: TCXM_6703
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5347,7 +5503,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-community-access-level-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -5364,7 +5520,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6728
+            - testCaseID: TCXM_6704
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5428,7 +5584,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-community-access-level-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -5445,7 +5601,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6729
+            - testCaseID: TCXM_6705
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5507,7 +5663,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Typeuint8-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -5524,7 +5680,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6730
+            - testCaseID: TCXM_6706
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5586,7 +5742,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Typeuint8-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -5603,7 +5759,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6731
+            - testCaseID: TCXM_6707
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5665,7 +5821,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-priority-Typeuint8-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -5682,7 +5838,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6732
+            - testCaseID: TCXM_6708
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5744,7 +5900,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Typestring-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -5761,7 +5917,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6733
+            - testCaseID: TCXM_6709
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5823,7 +5979,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Typestring-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -5840,7 +5996,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6734
+            - testCaseID: TCXM_6710
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -5902,7 +6058,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-community-Typestring-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -5919,7 +6075,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_6735
+            - testCaseID: TCXM_6711
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -5963,14 +6119,14 @@ features:
                       expected: 201
                       description: Verify snmp-access-config created successfully with community=testValue
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to device at 2026-05-01T06:09:12Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:12Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -5980,7 +6136,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_6736
+            - testCaseID: TCXM_6712
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -6024,14 +6180,14 @@ features:
                       expected: 201
                       description: Verify snmp-access-config created successfully with community=testValue
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to site at 2026-05-01T06:09:12Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:12Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -6041,7 +6197,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_6737
+            - testCaseID: TCXM_6713
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -6089,7 +6245,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:12Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -6100,14 +6256,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T04:30:49Z
+                  description: Edit deployment schedule to 2026-05-01T07:09:12Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T04:30:49Z"
+                    deployAt: "2026-05-01T07:09:12Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -6117,7 +6273,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_6738
+            - testCaseID: TCXM_6714
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -6165,7 +6321,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:12Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -6191,7 +6347,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_6739
+            - testCaseID: TCXM_6715
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -6246,7 +6402,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_6740
+            - testCaseID: TCXM_6716
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -6304,7 +6460,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_6741
+            - testCaseID: TCXM_6717
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -6424,7 +6580,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_6742
+            - testCaseID: TCXM_6718
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -6604,7 +6760,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_6743
+            - testCaseID: TCXM_6719
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -6750,7 +6906,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for snmp-access-config — device value accepted as new cloud baseline
-            - testCaseID: TCXM_6744
+            - testCaseID: TCXM_6720
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -6854,7 +7010,7 @@ features:
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                     updateProperties:
                         - name: priority
-                          value: testValue
+                          value: 123e4567-e89b-12d3-a456-426614174000
                         - name: community
                           value: updated-test-value
                         - name: access-level
@@ -6902,7 +7058,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_6745
+            - testCaseID: TCXM_6721
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7007,7 +7163,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_6746
+            - testCaseID: TCXM_6722
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7112,7 +7268,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_6747
+            - testCaseID: TCXM_6723
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7202,7 +7358,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_6748
+            - testCaseID: TCXM_6724
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -7306,7 +7462,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_6749
+            - testCaseID: TCXM_6725
               featureName: snmp-access-config
               priority: P1
               automation: Automatable
@@ -7428,7 +7584,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: No conflict expected — override values were deployed
-            - testCaseID: TCXM_6750
+            - testCaseID: TCXM_6726
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -7454,7 +7610,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_6751
+            - testCaseID: TCXM_6727
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -7487,7 +7643,7 @@ features:
                     - type: statusCode
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
-            - testCaseID: TCXM_6752
+            - testCaseID: TCXM_6728
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -7611,7 +7767,7 @@ features:
                     - type: statusCode
                       expected: 200
         negative:
-            - testCaseID: TCXM_6755
+            - testCaseID: TCXM_6731
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7651,7 +7807,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'priority'
-            - testCaseID: TCXM_6756
+            - testCaseID: TCXM_6732
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7691,7 +7847,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'community'
-            - testCaseID: TCXM_6757
+            - testCaseID: TCXM_6733
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7731,7 +7887,7 @@ features:
                     - type: jsonPathExists
                       path: $.error
                       description: Verify error response body contains error details for missing 'access-level'
-            - testCaseID: TCXM_6758
+            - testCaseID: TCXM_6734
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7774,7 +7930,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6759
+            - testCaseID: TCXM_6735
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7813,7 +7969,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6760
+            - testCaseID: TCXM_6736
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7852,7 +8008,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: 400
-            - testCaseID: TCXM_6761
+            - testCaseID: TCXM_6737
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7894,7 +8050,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6762
+            - testCaseID: TCXM_6738
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7936,7 +8092,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6763
+            - testCaseID: TCXM_6739
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -7978,7 +8134,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6764
+            - testCaseID: TCXM_6740
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -8020,7 +8176,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6765
+            - testCaseID: TCXM_6741
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -8062,7 +8218,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6766
+            - testCaseID: TCXM_6742
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -8104,7 +8260,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6767
+            - testCaseID: TCXM_6743
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -8145,7 +8301,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_6768
+            - testCaseID: TCXM_6744
               featureName: snmp-access-config
               priority: P2
               automation: Automatable
@@ -8170,7 +8326,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_6774
+            - testCaseID: TCXM_6750
               featureName: snmp-access-config
               priority: P4
               automation: Automatable
@@ -8552,7 +8708,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: create
-            - testCaseID: TCXM_6775
+            - testCaseID: TCXM_6751
               featureName: snmp-access-config
               priority: P4
               automation: Automatable
@@ -8744,7 +8900,7 @@ features:
                 concurrency: 5
                 iterations: 10
                 operation: read
-            - testCaseID: TCXM_6776
+            - testCaseID: TCXM_6752
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -9167,7 +9323,7 @@ features:
               metadata:
                 iterations: 10
                 operation: update
-            - testCaseID: TCXM_6777
+            - testCaseID: TCXM_6753
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -9658,7 +9814,7 @@ features:
               metadata:
                 iterations: 10
                 operation: delete
-            - testCaseID: TCXM_6778
+            - testCaseID: TCXM_6754
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -9892,7 +10048,7 @@ features:
                 iterations: 10
                 operation: deployment
         scale:
-            - testCaseID: TCXM_6769
+            - testCaseID: TCXM_6745
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -13102,7 +13258,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_6770
+            - testCaseID: TCXM_6746
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -13143,7 +13299,7 @@ features:
                       expected: 201
               metadata:
                 listSize: 100
-            - testCaseID: TCXM_6771
+            - testCaseID: TCXM_6747
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -14586,7 +14742,7 @@ features:
               metadata:
                 deviceCount: 100
                 testType: multi-device-deployment
-            - testCaseID: TCXM_6772
+            - testCaseID: TCXM_6748
               featureName: snmp-access-config
               priority: P3
               automation: Automatable
@@ -14959,7 +15115,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_6773
+            - testCaseID: TCXM_6749
               featureName: snmp-access-config
               priority: P3
               automation: Automatable

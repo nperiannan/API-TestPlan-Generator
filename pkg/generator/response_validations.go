@@ -35,6 +35,15 @@ func (g *Generator) generateResponseValidations(
 	path *model.FeaturePath,
 	statusCode int,
 ) []model.Validation {
+	return g.generateResponseValidationsWithExpectedValues(feature, path, statusCode, nil)
+}
+
+func (g *Generator) generateResponseValidationsWithExpectedValues(
+	feature *model.Feature,
+	path *model.FeaturePath,
+	statusCode int,
+	expectedValues map[string]interface{},
+) []model.Validation {
 	var validations []model.Validation
 
 	// Always validate status code first
@@ -67,7 +76,7 @@ func (g *Generator) generateResponseValidations(
 		validations = append(validations, g.generateCreateResponseValidations(feature, responseSchema)...)
 	case 200: // OK
 		if path.OperationType == model.OperationTypeRead {
-			validations = append(validations, g.generateReadResponseValidations(feature, responseSchema)...)
+			validations = append(validations, g.generateReadResponseValidationsWithValues(feature, responseSchema, expectedValues)...)
 		} else if path.OperationType == model.OperationTypeUpdate {
 			validations = append(validations, g.generateUpdateResponseValidations(feature, responseSchema)...)
 		} else if path.OperationType == model.OperationTypeList {
@@ -125,9 +134,9 @@ func (g *Generator) generateReadResponseValidations(
 	return g.generateReadResponseValidationsWithValues(feature, responseSchema, nil)
 }
 
-// generateReadResponseValidationsWithValues generates validations for READ (200) responses
-// and verifies that specific field values match the provided expectedValues map.
-// If expectedValues is nil, it validates existence (required fields) and expected sample values.
+// generateReadResponseValidationsWithValues generates validations for READ (200) responses.
+// When expectedValues is provided, only those sent/proven values are asserted.
+// Without expectedValues, it validates structure plus required/key field presence only.
 func (g *Generator) generateReadResponseValidationsWithValues(
 	feature *model.Feature,
 	responseSchema *restparser.ResponseSchema,
@@ -154,7 +163,9 @@ func (g *Generator) generateReadResponseValidationsWithValues(
 		Description: "Verify response contains object type",
 	})
 
-	// For each YANG parameter: check existence for all, validate actual value for required ones
+	keySet := keySetForFeature(feature)
+
+	// For each YANG parameter: validate only fields that are required/key or explicitly expected.
 	// Skip system-managed fields (id, created-at, updated-at, deleted-at, customer-id, owner-id)
 	if feature.Parameters != nil {
 		for _, param := range feature.Parameters {
@@ -163,33 +174,27 @@ func (g *Generator) generateReadResponseValidationsWithValues(
 				continue
 			}
 
-			// Always verify the property exists in the response
+			_, hasExpectedValue := expectedValues[param.Name]
+			shouldExist := param.Required || keySet[param.Name] || hasExpectedValue
+			if !shouldExist {
+				continue
+			}
+
 			existsPath := fmt.Sprintf("$.objects[0].properties[?(@.name=='%s')]", param.Name)
-			if param.Required {
-				validations = append(validations, model.Validation{
-					Type:        model.ValidationTypeJSONPathExists,
-					Path:        existsPath,
-					Description: fmt.Sprintf("Verify required property '%s' exists in response", param.Name),
-				})
-			}
+			validations = append(validations, model.Validation{
+				Type:        model.ValidationTypeJSONPathExists,
+				Path:        existsPath,
+				Description: fmt.Sprintf("Verify property '%s' exists in response", param.Name),
+			})
 
-			// Determine the expected value to validate
-			var expectedVal interface{}
-			if expectedValues != nil {
-				expectedVal = expectedValues[param.Name]
-			} else {
-				// Fall back to the sample value that would have been sent on create
-				expectedVal = g.getSampleValue(param)
-			}
-
-			if expectedVal != nil {
+			if expectedValues != nil && hasExpectedValue {
 				// Validate the actual value stored in the property
 				valuePath := fmt.Sprintf("$.objects[0].properties[?(@.name=='%s')].value", param.Name)
 				validations = append(validations, model.Validation{
 					Type:        model.ValidationTypeJSONPathEquals,
 					Path:        valuePath,
-					Expected:    expectedVal,
-					Description: fmt.Sprintf("Verify '%s' value is '%v' as set during create", param.Name, expectedVal),
+					Expected:    expectedValues[param.Name],
+					Description: fmt.Sprintf("Verify '%s' value is '%v' as set during create", param.Name, expectedValues[param.Name]),
 				})
 			}
 		}

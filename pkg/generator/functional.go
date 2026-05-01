@@ -44,6 +44,8 @@ func (g *Generator) generateFunctionalTests(feature *model.Feature, paths []*mod
 			targetPaths = append(targetPaths, path)
 		case model.OperationTypeDeploy:
 			deployPaths = append(deployPaths, path)
+		case model.OperationTypeStatus:
+			deployPaths = append(deployPaths, path)
 		}
 	}
 
@@ -56,8 +58,8 @@ func (g *Generator) generateFunctionalTests(feature *model.Feature, paths []*mod
 		tests = append(tests, g.generateBasicUpdateTest(feature, updatePath, readPath))
 	}
 
-	if deletePath != nil {
-		tests = append(tests, g.generateBasicDeleteTest(feature, deletePath))
+	if createPath != nil && deletePath != nil {
+		tests = append(tests, g.generateBasicDeleteTest(feature, createPath, deletePath, readPath))
 	}
 
 	// Additional non-deployment functional CRUD tests for better coverage
@@ -90,17 +92,19 @@ func (g *Generator) generateFunctionalTests(feature *model.Feature, paths []*mod
 	}
 
 	// Generate deployment tests for configuration profiles
-	if createPath != nil && feature.Parameters != nil && len(feature.Parameters) > 0 {
+	if createPath != nil && feature.Parameters != nil && len(feature.Parameters) > 0 && createPath.ProfileType == model.ProfileTypeConfiguration && len(deployPaths) > 0 {
 		// Generate full deployment test with all steps (scope, target, deploy, verify)
-		tests = append(tests, g.generateFullDeploymentTest(
-			feature, createPath, readPath,
+		tests = append(tests, g.generateDeploymentTest(
+			feature, createPath, readPath, deletePath,
+			scopePaths, targetPaths, deployPaths,
 			model.ScopeTypeDevice, model.TargetTypeDevice,
 		))
 
 		// Generate site-group deployment if supported
-		if hasScopeType(scopePaths, model.ScopeTypeSiteGroup) {
-			tests = append(tests, g.generateFullDeploymentTest(
-				feature, createPath, readPath,
+		if hasScopeType(scopePaths, model.ScopeTypeSiteGroup) || hasDeployTargetType(deployPaths, model.TargetTypeSiteGroup) {
+			tests = append(tests, g.generateDeploymentTest(
+				feature, createPath, readPath, deletePath,
+				scopePaths, targetPaths, deployPaths,
 				model.ScopeTypeSiteGroup, model.TargetTypeSiteGroup,
 			))
 		}
@@ -145,8 +149,8 @@ func (g *Generator) generateFunctionalTests(feature *model.Feature, paths []*mod
 				tests = append(tests, g.generateSubObjectUpdateTest(feature, subObjType, subObjName, updatePath, readPath))
 			}
 			// Delete test for sub-object type
-			if deletePath != nil {
-				tests = append(tests, g.generateSubObjectDeleteTest(feature, subObjType, subObjName, deletePath))
+			if createPath != nil && deletePath != nil {
+				tests = append(tests, g.generateSubObjectDeleteTest(feature, subObjType, subObjName, createPath, deletePath))
 			}
 		}
 	}
@@ -187,10 +191,10 @@ func (g *Generator) generateBasicCreateTest(feature *model.Feature, createPath, 
 			Method:         readPath.HTTPMethod,
 			API:            model.APITypeREST,
 			Path:           readPath.Path,
-			PathParams:     map[string]string{"name": "TestResource"},
+			PathParams:     pathParamsFor(readPath.Path, "TestProfile"),
 			Body:           g.generateReadBody(feature, createPath),
 			ExpectedStatus: 200,
-			Validations:    g.generateResponseValidations(feature, readPath, 200),
+			Validations:    g.generateResponseValidationsWithExpectedValues(feature, readPath, 200, expectedValuesFromBody(feature, createStep.Body)),
 		}
 		tc.Steps = append(tc.Steps, readStep)
 	}
@@ -222,7 +226,7 @@ func (g *Generator) generateBasicUpdateTest(feature *model.Feature, updatePath, 
 		Path:           updatePath.Path, // Use same path, POST will create
 		Body:           createBody,
 		ExpectedStatus: 201,
-		Validations:    crudValidations(201, "create", feature.Name, keyDesc),
+		Validations:    withObjectIDCapture(crudValidations(201, "create", feature.Name, keyDesc)),
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
@@ -261,7 +265,7 @@ func (g *Generator) generateBasicUpdateTest(feature *model.Feature, updatePath, 
 
 // generateBasicDeleteTest generates a basic delete test
 // This test is INDEPENDENT - it creates the resource first, then deletes it
-func (g *Generator) generateBasicDeleteTest(feature *model.Feature, deletePath *model.FeaturePath) model.TestCase {
+func (g *Generator) generateBasicDeleteTest(feature *model.Feature, createPath, deletePath, readPath *model.FeaturePath) model.TestCase {
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      feature.Name,
@@ -273,17 +277,17 @@ func (g *Generator) generateBasicDeleteTest(feature *model.Feature, deletePath *
 	}
 
 	// Step 1: Create the resource first (making this test independent)
-	createBody := g.generateRequestBody(feature, deletePath)
+	createBody := g.generateRequestBody(feature, createPath)
 	keyDesc := describeKeyValues(createBody, feature)
 	createStep := model.TestStep{
 		Name:           "createResourceForDeletion",
 		Description:    fmt.Sprintf("Create %s with %s before deleting", feature.Name, keyDesc),
-		Method:         "POST",
+		Method:         createPath.HTTPMethod,
 		API:            model.APITypeREST,
-		Path:           deletePath.Path, // Use same path, POST will create
+		Path:           createPath.Path,
 		Body:           createBody,
 		ExpectedStatus: 201,
-		Validations:    crudValidations(201, "create", feature.Name, keyDesc),
+		Validations:    withObjectIDCapture(crudValidations(201, "create", feature.Name, keyDesc)),
 	}
 	tc.Steps = append(tc.Steps, createStep)
 
@@ -302,13 +306,19 @@ func (g *Generator) generateBasicDeleteTest(feature *model.Feature, deletePath *
 	tc.Steps = append(tc.Steps, deleteStep)
 
 	// Step 3: Verify deletion (retrieve should return empty or 404)
+	verifyMethod := "POST"
+	verifyPath := strings.Replace(deletePath.Path, "/delete", "/retrieve", 1)
+	if readPath != nil {
+		verifyMethod = readPath.HTTPMethod
+		verifyPath = readPath.Path
+	}
 	verifyStep := model.TestStep{
 		Name:           "verifyDeletion",
 		Description:    fmt.Sprintf("Verify %s with %s was deleted", feature.Name, keyDesc),
-		Method:         "POST",
+		Method:         verifyMethod,
 		API:            model.APITypeREST,
-		Path:           strings.Replace(deletePath.Path, "/delete", "/retrieve", 1),
-		Body:           g.generateReadBody(feature, deletePath),
+		Path:           verifyPath,
+		Body:           g.generateReadBody(feature, createPath),
 		ExpectedStatus: 200,
 		Validations: []model.Validation{
 			{
@@ -326,13 +336,19 @@ func (g *Generator) generateBasicDeleteTest(feature *model.Feature, deletePath *
 // generateSampleBody generates a sample request body
 func (g *Generator) generateSampleBody(feature *model.Feature, schema interface{}) map[string]interface{} {
 	body := make(map[string]interface{})
+	keySet := keySetForFeature(feature)
 
 	// Use feature parameters if available
 	if len(feature.Parameters) > 0 {
 		body["name"] = "TestResource"
 		for _, param := range feature.Parameters {
-			if param.Required {
+			if param.Required || keySet[param.Name] {
 				body[param.Name] = g.getSampleValue(param)
+			}
+		}
+		for _, key := range feature.Keys {
+			if _, exists := body[key]; !exists {
+				body[key] = g.getSampleValue(syntheticKeyParameter(key))
 			}
 		}
 	} else {
@@ -342,6 +358,149 @@ func (g *Generator) generateSampleBody(feature *model.Feature, schema interface{
 	}
 
 	return body
+}
+
+func keySetForFeature(feature *model.Feature) map[string]bool {
+	keys := make(map[string]bool)
+	if feature == nil {
+		return keys
+	}
+	for _, key := range feature.Keys {
+		keys[key] = true
+	}
+	return keys
+}
+
+func isFeatureKey(feature *model.Feature, paramName string) bool {
+	return keySetForFeature(feature)[paramName]
+}
+
+func syntheticKeyParameter(key string) model.Parameter {
+	return model.Parameter{
+		Name:        key,
+		YangType:    "string",
+		GoType:      "string",
+		Description: "YANG list key field",
+		Required:    true,
+	}
+}
+
+func (g *Generator) appendMissingKeyProperties(feature *model.Feature, properties []map[string]interface{}, origin string) []map[string]interface{} {
+	present := make(map[string]bool, len(properties))
+	for _, prop := range properties {
+		name, _ := prop["name"].(string)
+		if name != "" {
+			present[name] = true
+		}
+	}
+	for _, key := range feature.Keys {
+		if present[key] {
+			continue
+		}
+		keyParam := syntheticKeyParameter(key)
+		properties = append(properties, map[string]interface{}{
+			"name":   key,
+			"type":   g.mapYangTypeToJsonType(keyParam.GoType),
+			"value":  g.getSampleValue(keyParam),
+			"origin": origin,
+		})
+	}
+	return properties
+}
+
+func deepScannedMetadata(feature *model.Feature, fp *model.FeaturePath) (string, string, string, bool) {
+	if fp == nil || fp.BlueprintCategory == "" {
+		return "", "", "", false
+	}
+	featurePath := ""
+	objectType := feature.Name
+	for _, param := range fp.PathParams {
+		if param.Name == "featurePath" && param.FixedValue != "" {
+			featurePath = param.FixedValue
+		}
+		if param.Name == "objectType" && param.FixedValue != "" {
+			objectType = param.FixedValue
+		}
+	}
+	if featurePath == "" {
+		return "", "", "", false
+	}
+	origin := "CC"
+	if fp.BlueprintCategory == model.BlueprintCategoryGlobal {
+		origin = "Global"
+	}
+	return featurePath, objectType, origin, true
+}
+
+func pathParamsFor(path string, profileName string) map[string]string {
+	params := make(map[string]string)
+	if strings.Contains(path, "{name}") {
+		params["name"] = profileName
+	}
+	if strings.Contains(path, "{profileName}") {
+		params["profileName"] = profileName
+	}
+	if strings.Contains(path, "{siteName}") {
+		params["siteName"] = "test-site-001"
+	}
+	if strings.Contains(path, "{hostName}") {
+		params["hostName"] = "test-device-001"
+	}
+	if len(params) == 0 {
+		return nil
+	}
+	return params
+}
+
+func expectedValuesFromBody(feature *model.Feature, body interface{}) map[string]interface{} {
+	expected := make(map[string]interface{})
+	featureParams := make(map[string]bool)
+	for _, param := range feature.Parameters {
+		featureParams[param.Name] = true
+	}
+	for _, key := range feature.Keys {
+		featureParams[key] = true
+	}
+
+	collectProperty := func(prop map[string]interface{}) {
+		name, _ := prop["name"].(string)
+		if name == "" || !featureParams[name] || isSystemManagedField(name) {
+			return
+		}
+		expected[name] = prop["value"]
+	}
+
+	bodyMap, ok := body.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	if objects, ok := bodyMap["objects"].([]interface{}); ok && len(objects) > 0 {
+		if obj, ok := objects[0].(map[string]interface{}); ok {
+			if props, ok := obj["properties"].([]map[string]interface{}); ok {
+				for _, prop := range props {
+					collectProperty(prop)
+				}
+			}
+		}
+	} else if objects, ok := bodyMap["objects"].([]map[string]interface{}); ok && len(objects) > 0 {
+		if props, ok := objects[0]["properties"].([]map[string]interface{}); ok {
+			for _, prop := range props {
+				collectProperty(prop)
+			}
+		}
+	} else {
+		for _, param := range feature.Parameters {
+			if value, ok := bodyMap[param.Name]; ok && !isSystemManagedField(param.Name) {
+				expected[param.Name] = value
+			}
+		}
+	}
+
+	if len(expected) == 0 {
+		return nil
+	}
+	return expected
 }
 
 // generateDeepScannedBody generates the proper body format for deep-scanned features.
@@ -375,6 +534,7 @@ func (g *Generator) generateDeepScannedBodyWithOrigin(feature *model.Feature, fe
 			})
 		}
 	}
+	properties = g.appendMissingKeyProperties(feature, properties, origin)
 
 	// If no required or key fields produced properties, include a representative
 	// set of non-system optional fields so the body is never empty.
@@ -429,28 +589,8 @@ func (g *Generator) mapYangTypeToJsonType(yangType string) string {
 // For deep-scanned features (global-profile, wired-blueprint, service-profile), use the special format.
 // For regular features, use the simple format.
 func (g *Generator) generateRequestBody(feature *model.Feature, featurePath *model.FeaturePath) map[string]interface{} {
-	if featurePath.BlueprintCategory != "" {
-		var fpValue string
-		// objectType defaults to feature name but is overridable via an "objectType" PathParam FixedValue
-		objectType := feature.Name
-
-		for _, param := range featurePath.PathParams {
-			if param.Name == "featurePath" && param.FixedValue != "" {
-				fpValue = param.FixedValue
-			}
-			if param.Name == "objectType" && param.FixedValue != "" {
-				objectType = param.FixedValue
-			}
-		}
-
-		if fpValue != "" {
-			// Choose correct origin: "Global" for global-profile, "CC" for wired/service profile
-			origin := "CC"
-			if featurePath.BlueprintCategory == model.BlueprintCategoryGlobal {
-				origin = "Global"
-			}
-			return g.generateDeepScannedBodyWithOrigin(feature, fpValue, objectType, origin)
-		}
+	if fpValue, objectType, origin, ok := deepScannedMetadata(feature, featurePath); ok {
+		return g.generateDeepScannedBodyWithOrigin(feature, fpValue, objectType, origin)
 	}
 
 	return g.generateSampleBody(feature, featurePath.RequestSchema)
@@ -461,18 +601,49 @@ func (g *Generator) getSampleValue(param model.Parameter) interface{} {
 	if param.DefaultValue != nil {
 		return param.DefaultValue
 	}
+	if vals := getEnumValues(param); len(vals) > 0 {
+		return vals[0]
+	}
 
 	// Generate context-aware sample values based on parameter name and YANG description
 	paramNameLower := strings.ToLower(param.Name)
 	descLower := strings.ToLower(param.Description)
+	yangTypeLower := strings.ToLower(param.YangType)
+
+	if strings.Contains(paramNameLower, "vr-name") || strings.Contains(paramNameLower, "vrf") {
+		return "VR-Mgmt"
+	}
+	if strings.Contains(paramNameLower, "vrd") || strings.Contains(paramNameLower, "association") || strings.Contains(descLower, "uuid") {
+		return "123e4567-e89b-12d3-a456-426614174000"
+	}
+	if strings.Contains(paramNameLower, "name") && param.GoType == "string" {
+		name := strings.TrimSuffix(paramNameLower, "-name")
+		if name == "" || name == paramNameLower {
+			name = "resource"
+		}
+		return "test-" + strings.ReplaceAll(name, "_", "-")
+	}
+	if strings.Contains(paramNameLower, "description") {
+		return "Test resource created by automated test"
+	}
+
+	if strings.Contains(paramNameLower, "gateway") && strings.Contains(paramNameLower, "address") {
+		return "192.168.1.1"
+	}
 
 	// Prefix-length / mask fields (e.g. "mask" with YANG description mentioning "prefix length")
 	if strings.Contains(descLower, "prefix length") || strings.Contains(descLower, "prefix-length") {
 		return "24"
 	}
+	if strings.Contains(paramNameLower, "mask") {
+		return "255.255.255.0"
+	}
 
 	// IP subnet / CIDR address fields (e.g. "destination-subnet")
-	if strings.Contains(paramNameLower, "subnet") ||
+	if strings.Contains(descLower, "cidr notation") {
+		return "192.168.1.0/24"
+	}
+	if strings.Contains(paramNameLower, "subnet") || strings.Contains(yangTypeLower, "prefix") ||
 		strings.Contains(descLower, "cidr notation") || strings.Contains(descLower, "ip subnet") {
 		return "192.168.1.0"
 	}
@@ -482,20 +653,11 @@ func (g *Generator) getSampleValue(param model.Parameter) interface{} {
 		strings.Contains(paramNameLower, "host") || strings.Contains(paramNameLower, "ip") {
 		return "8.8.8.8"
 	}
-	if strings.Contains(paramNameLower, "vr-name") || strings.Contains(paramNameLower, "vrf") {
-		return "VR-Mgmt"
-	}
 	if strings.Contains(paramNameLower, "priority") {
 		return 1
 	}
 	if strings.Contains(paramNameLower, "port") && (param.GoType == "int" || param.GoType == "int32" || param.GoType == "uint16") {
 		return 53
-	}
-	if strings.Contains(paramNameLower, "name") && param.GoType == "string" {
-		return "test-resource"
-	}
-	if strings.Contains(paramNameLower, "description") {
-		return "Test resource created by automated test"
 	}
 
 	// Fallback to type-based values
@@ -586,8 +748,28 @@ func (g *Generator) setOrAddBodyParameter(body map[string]interface{}, param mod
 // Helper function
 func hasScopeType(paths []*model.FeaturePath, scopeType model.ScopeType) bool {
 	for _, path := range paths {
+		if path.OperationType == model.OperationTypeScope && len(path.SupportedScopeTypes) == 0 {
+			return true
+		}
 		for _, st := range path.SupportedScopeTypes {
 			if st == scopeType {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func hasDeployTargetType(paths []*model.FeaturePath, targetType model.TargetType) bool {
+	for _, path := range paths {
+		if path.OperationType != model.OperationTypeDeploy {
+			continue
+		}
+		if len(path.SupportedTargetTypes) == 0 {
+			return true
+		}
+		for _, supported := range path.SupportedTargetTypes {
+			if supported == targetType || (targetType == model.TargetTypeSiteGroup && supported == model.TargetTypeSite) {
 				return true
 			}
 		}
@@ -625,7 +807,7 @@ func (g *Generator) generateFullCRUDLifecycleTest(
 		Path:           createPath.Path,
 		Body:           createBody,
 		ExpectedStatus: 201,
-		Validations:    crudValidations(201, "create", feature.Name, keyDesc),
+		Validations:    withObjectIDCapture(crudValidations(201, "create", feature.Name, keyDesc)),
 	}
 
 	// Step 2: Read (verify creation)
@@ -771,7 +953,7 @@ func (g *Generator) generatePartialUpdateTest(
 		Path:           createPath.Path,
 		Body:           createBody,
 		ExpectedStatus: 201,
-		Validations:    crudValidations(201, "create", feature.Name, keyDesc),
+		Validations:    withObjectIDCapture(crudValidations(201, "create", feature.Name, keyDesc)),
 	}
 
 	// Step 2: Partial update (only modify one optional field)
@@ -970,7 +1152,7 @@ func (g *Generator) generateSubObjectUpdateTest(feature *model.Feature, subObjTy
 }
 
 // generateSubObjectDeleteTest generates a delete test for a sub-object type
-func (g *Generator) generateSubObjectDeleteTest(feature *model.Feature, subObjType *model.SubObjectType, subObjName string, deletePath *model.FeaturePath) model.TestCase {
+func (g *Generator) generateSubObjectDeleteTest(feature *model.Feature, subObjType *model.SubObjectType, subObjName string, createPath, deletePath *model.FeaturePath) model.TestCase {
 	tc := model.TestCase{
 		TestCaseID:       g.nextTestID(),
 		FeatureName:      fmt.Sprintf("%s/%s", feature.Name, subObjName),
@@ -986,9 +1168,9 @@ func (g *Generator) generateSubObjectDeleteTest(feature *model.Feature, subObjTy
 	createStep := model.TestStep{
 		Name:           fmt.Sprintf("create_%s_for_delete", subObjName),
 		Description:    fmt.Sprintf("Create %s sub-object under %s before deleting", subObjName, feature.Name),
-		Method:         "POST",
+		Method:         createPath.HTTPMethod,
 		API:            model.APITypeREST,
-		Path:           deletePath.Path,
+		Path:           createPath.Path,
 		Body:           createBody,
 		ExpectedStatus: 201,
 		Validations:    crudValidations(201, "create", fmt.Sprintf("%s/%s", feature.Name, subObjName), ""),
@@ -1116,15 +1298,9 @@ func (g *Generator) generateCreateWithRequiredFieldsOnlyTest(
 		Steps:            []model.TestStep{},
 	}
 
-	// Build body with ONLY required parameters and record the sent values
+	// Build body with required parameters plus YANG list keys and record the sent values
 	body := g.generateRequiredOnlyBody(feature, createPath)
-	// Collect expected values for each required field
-	requiredExpectedValues := map[string]interface{}{}
-	for _, param := range feature.Parameters {
-		if param.Required {
-			requiredExpectedValues[param.Name] = g.getSampleValue(param)
-		}
-	}
+	requiredExpectedValues := expectedValuesFromBody(feature, body)
 
 	createStep := model.TestStep{
 		Name:           "createWithRequiredFieldsOnly",
@@ -1158,18 +1334,17 @@ func (g *Generator) generateCreateWithRequiredFieldsOnlyTest(
 			Description: "Verify response contains objects array",
 		})
 		for _, param := range feature.Parameters {
-			if param.Required {
-				expectedVal := g.getSampleValue(param)
+			if expectedVal, ok := requiredExpectedValues[param.Name]; ok {
 				readValidations = append(readValidations, model.Validation{
 					Type:        model.ValidationTypeJSONPathExists,
 					Path:        fmt.Sprintf("$.objects[0].properties[?(@.name=='%s')]", param.Name),
-					Description: fmt.Sprintf("Verify required field '%s' is present in GET response", param.Name),
+					Description: fmt.Sprintf("Verify identity/required field '%s' is present in GET response", param.Name),
 				})
 				readValidations = append(readValidations, model.Validation{
 					Type:        model.ValidationTypeJSONPathEquals,
 					Path:        fmt.Sprintf("$.objects[0].properties[?(@.name=='%s')].value", param.Name),
 					Expected:    expectedVal,
-					Description: fmt.Sprintf("Verify required field '%s' has value '%v' as created", param.Name, expectedVal),
+					Description: fmt.Sprintf("Verify identity/required field '%s' has value '%v' as created", param.Name, expectedVal),
 				})
 			}
 		}
@@ -1286,7 +1461,7 @@ func (g *Generator) generateDefaultValueTests(
 	var tests []model.TestCase
 
 	for _, param := range feature.Parameters {
-		if param.DefaultValue == nil || param.Required {
+		if param.DefaultValue == nil || param.Required || isFeatureKey(feature, param.Name) {
 			// Only test optional fields that have explicit defaults
 			continue
 		}
@@ -1347,7 +1522,7 @@ func (g *Generator) generateDefaultValueTests(
 				},
 				{
 					Type:        model.ValidationTypeJSONPathEquals,
-					Path:        fmt.Sprintf("$.%s", param.Name),
+					Path:        fmt.Sprintf("$.objects[0].properties[?(@.name=='%s')].value", param.Name),
 					Expected:    param.DefaultValue,
 					Description: fmt.Sprintf("Verify '%s' equals YANG-defined default value %v", param.Name, param.DefaultValue),
 				},
@@ -1459,7 +1634,7 @@ func (g *Generator) generateYANGDatatypeNonDeploymentTests(
 						},
 						{
 							Type:        model.ValidationTypeJSONPathEquals,
-							Path:        fmt.Sprintf("$.%s", param.Name),
+							Path:        fmt.Sprintf("$.objects[0].properties[?(@.name=='%s')].value", param.Name),
 							Expected:    value,
 							Description: fmt.Sprintf("Verify '%s' YANG type '%s' value is persisted", param.Name, yangType),
 						},
@@ -1479,44 +1654,42 @@ func (g *Generator) generateYANGDatatypeNonDeploymentTests(
 
 // generateRequiredOnlyBody builds a request body with ONLY the required YANG parameters.
 func (g *Generator) generateRequiredOnlyBody(feature *model.Feature, fp *model.FeaturePath) map[string]interface{} {
-	if fp.BlueprintCategory != "" {
-		var fpValue string
-		for _, p := range fp.PathParams {
-			if p.Name == "featurePath" && p.FixedValue != "" {
-				fpValue = p.FixedValue
-				break
+	keySet := keySetForFeature(feature)
+	if fpValue, objectType, origin, ok := deepScannedMetadata(feature, fp); ok {
+		properties := []map[string]interface{}{}
+		for _, param := range feature.Parameters {
+			if param.Required || keySet[param.Name] {
+				properties = append(properties, map[string]interface{}{
+					"name":   param.Name,
+					"type":   g.mapYangTypeToJsonType(param.GoType),
+					"value":  g.getSampleValue(param),
+					"origin": origin,
+				})
 			}
 		}
-		if fpValue != "" {
-			properties := []map[string]interface{}{}
-			for _, param := range feature.Parameters {
-				if param.Required {
-					properties = append(properties, map[string]interface{}{
-						"name":   param.Name,
-						"type":   g.mapYangTypeToJsonType(param.GoType),
-						"value":  g.getSampleValue(param),
-						"origin": "Global",
-					})
-				}
-			}
-			object := map[string]interface{}{
-				"type":       feature.Name,
-				"operation":  "add",
-				"properties": properties,
-			}
-			return map[string]interface{}{
-				"featurePath": fpValue,
-				"objectType":  feature.Name,
-				"operation":   "add",
-				"objects":     []interface{}{object},
-			}
+		properties = g.appendMissingKeyProperties(feature, properties, origin)
+		object := map[string]interface{}{
+			"type":       objectType,
+			"operation":  "add",
+			"properties": properties,
+		}
+		return map[string]interface{}{
+			"featurePath": fpValue,
+			"objectType":  objectType,
+			"operation":   "add",
+			"objects":     []interface{}{object},
 		}
 	}
 	// Simple format: include only required fields
 	body := make(map[string]interface{})
 	for _, param := range feature.Parameters {
-		if param.Required {
+		if param.Required || keySet[param.Name] {
 			body[param.Name] = g.getSampleValue(param)
+		}
+	}
+	for _, key := range feature.Keys {
+		if _, exists := body[key]; !exists {
+			body[key] = g.getSampleValue(syntheticKeyParameter(key))
 		}
 	}
 	return body
@@ -1524,38 +1697,30 @@ func (g *Generator) generateRequiredOnlyBody(feature *model.Feature, fp *model.F
 
 // generateAllFieldsBody builds a request body including ALL YANG parameters (required + optional).
 func (g *Generator) generateAllFieldsBody(feature *model.Feature, fp *model.FeaturePath) map[string]interface{} {
-	if fp.BlueprintCategory != "" {
-		var fpValue string
-		for _, p := range fp.PathParams {
-			if p.Name == "featurePath" && p.FixedValue != "" {
-				fpValue = p.FixedValue
-				break
+	if fpValue, objectType, origin, ok := deepScannedMetadata(feature, fp); ok {
+		properties := []map[string]interface{}{}
+		for _, param := range feature.Parameters {
+			if isSystemManagedField(param.Name) {
+				continue
 			}
+			properties = append(properties, map[string]interface{}{
+				"name":   param.Name,
+				"type":   g.mapYangTypeToJsonType(param.GoType),
+				"value":  g.getSampleValue(param),
+				"origin": origin,
+			})
 		}
-		if fpValue != "" {
-			properties := []map[string]interface{}{}
-			for _, param := range feature.Parameters {
-				if isSystemManagedField(param.Name) {
-					continue
-				}
-				properties = append(properties, map[string]interface{}{
-					"name":   param.Name,
-					"type":   g.mapYangTypeToJsonType(param.GoType),
-					"value":  g.getSampleValue(param),
-					"origin": "Global",
-				})
-			}
-			object := map[string]interface{}{
-				"type":       feature.Name,
-				"operation":  "add",
-				"properties": properties,
-			}
-			return map[string]interface{}{
-				"featurePath": fpValue,
-				"objectType":  feature.Name,
-				"operation":   "add",
-				"objects":     []interface{}{object},
-			}
+		properties = g.appendMissingKeyProperties(feature, properties, origin)
+		object := map[string]interface{}{
+			"type":       objectType,
+			"operation":  "add",
+			"properties": properties,
+		}
+		return map[string]interface{}{
+			"featurePath": fpValue,
+			"objectType":  objectType,
+			"operation":   "add",
+			"objects":     []interface{}{object},
 		}
 	}
 	// Simple format: include all fields
@@ -1571,40 +1736,33 @@ func (g *Generator) generateAllFieldsBody(feature *model.Feature, fp *model.Feat
 
 // generateBodyWithoutParam builds a request body omitting a specific parameter (to test defaults).
 func (g *Generator) generateBodyWithoutParam(feature *model.Feature, fp *model.FeaturePath, excludeParam string) map[string]interface{} {
-	if fp.BlueprintCategory != "" {
-		var fpValue string
-		for _, p := range fp.PathParams {
-			if p.Name == "featurePath" && p.FixedValue != "" {
-				fpValue = p.FixedValue
-				break
+	keySet := keySetForFeature(feature)
+	if fpValue, objectType, origin, ok := deepScannedMetadata(feature, fp); ok {
+		properties := []map[string]interface{}{}
+		for _, param := range feature.Parameters {
+			if param.Name == excludeParam {
+				continue // omit the defaulted field
+			}
+			if param.Required || keySet[param.Name] {
+				properties = append(properties, map[string]interface{}{
+					"name":   param.Name,
+					"type":   g.mapYangTypeToJsonType(param.GoType),
+					"value":  g.getSampleValue(param),
+					"origin": origin,
+				})
 			}
 		}
-		if fpValue != "" {
-			properties := []map[string]interface{}{}
-			for _, param := range feature.Parameters {
-				if param.Name == excludeParam {
-					continue // omit the defaulted field
-				}
-				if param.Required {
-					properties = append(properties, map[string]interface{}{
-						"name":   param.Name,
-						"type":   g.mapYangTypeToJsonType(param.GoType),
-						"value":  g.getSampleValue(param),
-						"origin": "Global",
-					})
-				}
-			}
-			object := map[string]interface{}{
-				"type":       feature.Name,
-				"operation":  "add",
-				"properties": properties,
-			}
-			return map[string]interface{}{
-				"featurePath": fpValue,
-				"objectType":  feature.Name,
-				"operation":   "add",
-				"objects":     []interface{}{object},
-			}
+		properties = g.appendMissingKeyProperties(feature, properties, origin)
+		object := map[string]interface{}{
+			"type":       objectType,
+			"operation":  "add",
+			"properties": properties,
+		}
+		return map[string]interface{}{
+			"featurePath": fpValue,
+			"objectType":  objectType,
+			"operation":   "add",
+			"objects":     []interface{}{object},
 		}
 	}
 	// Simple format
@@ -1613,8 +1771,16 @@ func (g *Generator) generateBodyWithoutParam(feature *model.Feature, fp *model.F
 		if param.Name == excludeParam {
 			continue
 		}
-		if param.Required {
+		if param.Required || keySet[param.Name] {
 			body[param.Name] = g.getSampleValue(param)
+		}
+	}
+	for _, key := range feature.Keys {
+		if key == excludeParam {
+			continue
+		}
+		if _, exists := body[key]; !exists {
+			body[key] = g.getSampleValue(syntheticKeyParameter(key))
 		}
 	}
 	return body
@@ -1626,20 +1792,42 @@ func (g *Generator) generateReadBody(feature *model.Feature, createPath *model.F
 	if createPath == nil || createPath.BlueprintCategory == "" {
 		return nil
 	}
-	var fpValue string
-	for _, p := range createPath.PathParams {
-		if p.Name == "featurePath" && p.FixedValue != "" {
-			fpValue = p.FixedValue
-			break
-		}
-	}
-	if fpValue != "" {
-		return map[string]interface{}{
+	if fpValue, objectType, _, ok := deepScannedMetadata(feature, createPath); ok {
+		body := map[string]interface{}{
 			"featurePath": fpValue,
-			"objectType":  feature.Name,
+			"objectType":  objectType,
 		}
+		if filters := g.generateKeyFilters(feature); len(filters) > 0 {
+			body["filters"] = filters
+		}
+		return body
 	}
 	return nil
+}
+
+func (g *Generator) generateKeyFilters(feature *model.Feature) []map[string]interface{} {
+	var filters []map[string]interface{}
+	if feature == nil || len(feature.Keys) == 0 {
+		return filters
+	}
+	paramsByName := make(map[string]model.Parameter)
+	for _, param := range feature.Parameters {
+		paramsByName[param.Name] = param
+	}
+	for _, key := range feature.Keys {
+		param, ok := paramsByName[key]
+		if !ok {
+			param = syntheticKeyParameter(key)
+		}
+		if isSystemManagedField(param.Name) {
+			continue
+		}
+		filters = append(filters, map[string]interface{}{
+			"key":   key,
+			"value": g.getSampleValue(param),
+		})
+	}
+	return filters
 }
 
 // generateDeleteBody builds the body for a delete request.
@@ -1648,17 +1836,9 @@ func (g *Generator) generateDeleteBody(feature *model.Feature, anyPath *model.Fe
 	if anyPath == nil || anyPath.BlueprintCategory == "" {
 		return nil
 	}
-	var fpValue string
-	for _, p := range anyPath.PathParams {
-		if p.Name == "featurePath" && p.FixedValue != "" {
-			fpValue = p.FixedValue
-			break
-		}
-	}
-	if fpValue != "" {
+	if _, _, _, ok := deepScannedMetadata(feature, anyPath); ok {
 		return map[string]interface{}{
-			"featurePath": fpValue,
-			"objectType":  feature.Name,
+			"objectIds": []string{"{{OBJECT_ID}}"},
 		}
 	}
 	return nil
@@ -1667,65 +1847,52 @@ func (g *Generator) generateDeleteBody(feature *model.Feature, anyPath *model.Fe
 // generateUpdateRequestBody builds a proper update body.
 // For deep-scanned features, it uses operation="update" and modifies one optional field.
 func (g *Generator) generateUpdateRequestBody(feature *model.Feature, updatePath *model.FeaturePath) map[string]interface{} {
-	if updatePath.BlueprintCategory != "" {
-		var fpValue string
-		objectType := feature.Name
-		for _, param := range updatePath.PathParams {
-			if param.Name == "featurePath" && param.FixedValue != "" {
-				fpValue = param.FixedValue
-			}
-			if param.Name == "objectType" && param.FixedValue != "" {
-				objectType = param.FixedValue
-			}
-		}
-		if fpValue != "" {
-			origin := "CC"
-			if updatePath.BlueprintCategory == model.BlueprintCategoryGlobal {
-				origin = "Global"
-			}
-			properties := []map[string]interface{}{}
+	if fpValue, objectType, origin, ok := deepScannedMetadata(feature, updatePath); ok {
+		properties := []map[string]interface{}{}
+		keySet := keySetForFeature(feature)
 
-			// Include required/key fields so the system knows which object to update
-			for _, param := range feature.Parameters {
-				if isSystemManagedField(param.Name) {
-					continue
-				}
-				if param.Required {
-					properties = append(properties, map[string]interface{}{
-						"name":   param.Name,
-						"type":   g.mapYangTypeToJsonType(param.GoType),
-						"value":  g.getSampleValue(param),
-						"origin": origin,
-					})
-				}
+		// Include required/key fields so the system knows which object to update
+		for _, param := range feature.Parameters {
+			if isSystemManagedField(param.Name) {
+				continue
 			}
-
-			// Add/modify one optional field to differentiate from the create body
-			for _, param := range feature.Parameters {
-				if isSystemManagedField(param.Name) || param.Required {
-					continue
-				}
-				updatedVal := g.getUpdatedValue(param)
+			if param.Required || keySet[param.Name] {
 				properties = append(properties, map[string]interface{}{
 					"name":   param.Name,
 					"type":   g.mapYangTypeToJsonType(param.GoType),
-					"value":  updatedVal,
+					"value":  g.getSampleValue(param),
 					"origin": origin,
 				})
-				break // one optional field is enough to show the update
 			}
+		}
+		properties = g.appendMissingKeyProperties(feature, properties, origin)
 
-			object := map[string]interface{}{
-				"type":       objectType,
-				"operation":  "update",
-				"properties": properties,
+		// Add/modify one optional field to differentiate from the create body
+		for _, param := range feature.Parameters {
+			if isSystemManagedField(param.Name) || param.Required || keySet[param.Name] {
+				continue
 			}
-			return map[string]interface{}{
-				"featurePath": fpValue,
-				"objectType":  objectType,
-				"operation":   "update",
-				"objects":     []interface{}{object},
-			}
+			updatedVal := g.getUpdatedValue(param)
+			properties = append(properties, map[string]interface{}{
+				"name":   param.Name,
+				"type":   g.mapYangTypeToJsonType(param.GoType),
+				"value":  updatedVal,
+				"origin": origin,
+			})
+			break // one optional field is enough to show the update
+		}
+
+		object := map[string]interface{}{
+			"id":         "{{OBJECT_ID}}",
+			"type":       objectType,
+			"operation":  "update",
+			"properties": properties,
+		}
+		return map[string]interface{}{
+			"featurePath": fpValue,
+			"objectType":  objectType,
+			"operation":   "update",
+			"objects":     []interface{}{object},
 		}
 	}
 	// Fallback to simple body with one modified field
@@ -1737,6 +1904,7 @@ func (g *Generator) generateUpdateRequestBody(feature *model.Feature, updatePath
 // getUpdatedValue returns a different value than getSampleValue, suitable for update tests.
 func (g *Generator) getUpdatedValue(param model.Parameter) interface{} {
 	paramNameLower := strings.ToLower(param.Name)
+	descLower := strings.ToLower(param.Description)
 
 	// Booleans: flip the default
 	if param.GoType == "bool" || param.GoType == "boolean" {
@@ -1755,6 +1923,21 @@ func (g *Generator) getUpdatedValue(param model.Parameter) interface{} {
 	// Ports/numbers: use a different value
 	if strings.Contains(paramNameLower, "port") {
 		return 8080
+	}
+	if strings.Contains(paramNameLower, "description") {
+		return "Updated by automated test"
+	}
+	if strings.Contains(paramNameLower, "gateway") && strings.Contains(paramNameLower, "address") {
+		return "192.168.1.2"
+	}
+	if strings.Contains(descLower, "cidr notation") {
+		return "192.168.2.0/24"
+	}
+	if strings.Contains(paramNameLower, "mask") {
+		return "255.255.254.0"
+	}
+	if strings.Contains(paramNameLower, "address") || strings.Contains(paramNameLower, "server") || strings.Contains(paramNameLower, "host") || strings.Contains(paramNameLower, "ip") {
+		return "8.8.4.4"
 	}
 	if param.GoType == "int" || param.GoType == "int32" || param.GoType == "uint16" || param.GoType == "uint8" || param.GoType == "uint32" {
 		return 50
@@ -1893,6 +2076,14 @@ func crudValidations(statusCode int, operation string, featureName string, keyDe
 			Description: desc,
 		},
 	}
+}
+
+func withObjectIDCapture(validations []model.Validation) []model.Validation {
+	return append(validations, model.Validation{
+		Type:        model.ValidationTypeJSONPathExists,
+		Path:        "$[0].id",
+		Description: "Capture created object ID as OBJECT_ID for later update/delete steps",
+	})
 }
 
 // getYANGTypeValue returns a representative valid value for a given YANG type and variation index.
@@ -2083,14 +2274,8 @@ func (g *Generator) generateOptionalFieldInclusionTests(
 // generateBodyWithOptionalField builds a deep-scanned body that includes all required fields
 // plus one specific optional field with the given value.
 func (g *Generator) generateBodyWithOptionalField(feature *model.Feature, fp *model.FeaturePath, optParamName string, optParamValue interface{}) map[string]interface{} {
-	var fpValue string
-	for _, p := range fp.PathParams {
-		if p.Name == "featurePath" && p.FixedValue != "" {
-			fpValue = p.FixedValue
-			break
-		}
-	}
-	if fpValue == "" {
+	fpValue, objectType, origin, ok := deepScannedMetadata(feature, fp)
+	if !ok {
 		// Fallback to simple format
 		body := g.generateRequiredOnlyBody(feature, fp)
 		body[optParamName] = optParamValue
@@ -2098,11 +2283,12 @@ func (g *Generator) generateBodyWithOptionalField(feature *model.Feature, fp *mo
 	}
 
 	properties := []map[string]interface{}{}
+	keySet := keySetForFeature(feature)
 	for _, param := range feature.Parameters {
 		var value interface{}
 		if param.Name == optParamName {
 			value = optParamValue
-		} else if param.Required {
+		} else if param.Required || keySet[param.Name] {
 			value = g.getSampleValue(param)
 		} else {
 			continue // skip other optional fields
@@ -2111,17 +2297,18 @@ func (g *Generator) generateBodyWithOptionalField(feature *model.Feature, fp *mo
 			"name":   param.Name,
 			"type":   g.mapYangTypeToJsonType(param.GoType),
 			"value":  value,
-			"origin": "Global",
+			"origin": origin,
 		})
 	}
+	properties = g.appendMissingKeyProperties(feature, properties, origin)
 	object := map[string]interface{}{
-		"type":       feature.Name,
+		"type":       objectType,
 		"operation":  "add",
 		"properties": properties,
 	}
 	return map[string]interface{}{
 		"featurePath": fpValue,
-		"objectType":  feature.Name,
+		"objectType":  objectType,
 		"operation":   "add",
 		"objects":     []interface{}{object},
 	}

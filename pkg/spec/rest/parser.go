@@ -635,32 +635,75 @@ func (p *Parser) extractConfigurationProfileFeatures() {
 			PathParams:        []model.PathParameter{profileNameParam},
 			ProfileType:       model.ProfileTypeConfiguration,
 			OperationType:     model.OperationTypeScope,
+			SupportsScope:     true,
+			SupportedScopeTypes: []model.ScopeType{
+				model.ScopeTypeDevice,
+				model.ScopeTypeSite,
+				model.ScopeTypeSiteGroup,
+			},
 		}
 		p.paths[fmt.Sprintf("PUT /configuration-profile/%s/scope", cf.yangFeatureName)] = fpScope
 
-		// TARGET: PUT /configuration-profile/{name}/target
-		fpTarget := &model.FeaturePath{
-			FeatureName:       cf.yangFeatureName,
-			BlueprintCategory: model.BlueprintCategoryWired,
-			HTTPMethod:        "PUT",
-			Path:              "/configuration-profile/{name}/target",
-			PathParams:        []model.PathParameter{profileNameParam},
-			ProfileType:       model.ProfileTypeConfiguration,
-			OperationType:     model.OperationTypeTarget,
-		}
-		p.paths[fmt.Sprintf("PUT /configuration-profile/%s/target", cf.yangFeatureName)] = fpTarget
-
 		// DEPLOY: POST /configuration-profile/{name}/sites/deploy
-		fpDeploy := &model.FeaturePath{
+		fpSiteDeploy := &model.FeaturePath{
+			FeatureName:        cf.yangFeatureName,
+			BlueprintCategory:  model.BlueprintCategoryWired,
+			HTTPMethod:         "POST",
+			Path:               "/configuration-profile/{name}/sites/deploy",
+			PathParams:         []model.PathParameter{profileNameParam},
+			ProfileType:        model.ProfileTypeConfiguration,
+			OperationType:      model.OperationTypeDeploy,
+			SupportsDeployment: true,
+			SupportedTargetTypes: []model.TargetType{
+				model.TargetTypeSite,
+				model.TargetTypeSiteGroup,
+			},
+		}
+		p.paths[fmt.Sprintf("POST /configuration-profile/%s/sites/deploy", cf.yangFeatureName)] = fpSiteDeploy
+
+		fpDeviceDeploy := &model.FeaturePath{
+			FeatureName:          cf.yangFeatureName,
+			BlueprintCategory:    model.BlueprintCategoryWired,
+			HTTPMethod:           "POST",
+			Path:                 "/configuration-profile/{name}/devices/deploy",
+			PathParams:           []model.PathParameter{profileNameParam},
+			ProfileType:          model.ProfileTypeConfiguration,
+			OperationType:        model.OperationTypeDeploy,
+			SupportsDeployment:   true,
+			SupportedTargetTypes: []model.TargetType{model.TargetTypeDevice},
+		}
+		p.paths[fmt.Sprintf("POST /configuration-profile/%s/devices/deploy", cf.yangFeatureName)] = fpDeviceDeploy
+
+		siteNameParam := model.PathParameter{
+			Name:        "siteName",
+			Type:        "string",
+			Description: "Site name",
+			Required:    true,
+		}
+		hostNameParam := model.PathParameter{
+			Name:        "hostName",
+			Type:        "string",
+			Description: "Device host name",
+			Required:    true,
+		}
+		p.paths[fmt.Sprintf("GET /configuration-profile/%s/site/status", cf.yangFeatureName)] = &model.FeaturePath{
 			FeatureName:       cf.yangFeatureName,
 			BlueprintCategory: model.BlueprintCategoryWired,
-			HTTPMethod:        "POST",
-			Path:              "/configuration-profile/{name}/sites/deploy",
-			PathParams:        []model.PathParameter{profileNameParam},
+			HTTPMethod:        "GET",
+			Path:              "/configuration-profile/{name}/site/{siteName}/deploy/status",
+			PathParams:        []model.PathParameter{profileNameParam, siteNameParam},
 			ProfileType:       model.ProfileTypeConfiguration,
-			OperationType:     model.OperationTypeDeploy,
+			OperationType:     model.OperationTypeStatus,
 		}
-		p.paths[fmt.Sprintf("POST /configuration-profile/%s/deploy", cf.yangFeatureName)] = fpDeploy
+		p.paths[fmt.Sprintf("GET /configuration-profile/%s/device/status", cf.yangFeatureName)] = &model.FeaturePath{
+			FeatureName:       cf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWired,
+			HTTPMethod:        "GET",
+			Path:              "/configuration-profile/{name}/device/{hostName}/deploy/status",
+			PathParams:        []model.PathParameter{profileNameParam, hostNameParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeStatus,
+		}
 	}
 }
 
@@ -755,32 +798,75 @@ func (p *Parser) extractWirelessProfileFeatures() {
 			PathParams:        []model.PathParameter{profileNameParam},
 			ProfileType:       model.ProfileTypeConfiguration,
 			OperationType:     model.OperationTypeScope,
+			SupportsScope:     true,
+			SupportedScopeTypes: []model.ScopeType{
+				model.ScopeTypeDevice,
+				model.ScopeTypeSite,
+				model.ScopeTypeSiteGroup,
+			},
 		}
 		p.paths[fmt.Sprintf("PUT /wireless-profile/%s/scope", wf.yangFeatureName)] = fpScope
 
-		// TARGET: PUT /configuration-profile/{name}/target
-		fpTarget := &model.FeaturePath{
-			FeatureName:       wf.yangFeatureName,
-			BlueprintCategory: model.BlueprintCategoryWireless,
-			HTTPMethod:        "PUT",
-			Path:              "/configuration-profile/{name}/target",
-			PathParams:        []model.PathParameter{profileNameParam},
-			ProfileType:       model.ProfileTypeConfiguration,
-			OperationType:     model.OperationTypeTarget,
-		}
-		p.paths[fmt.Sprintf("PUT /wireless-profile/%s/target", wf.yangFeatureName)] = fpTarget
-
 		// DEPLOY: POST /configuration-profile/{name}/sites/deploy
-		fpDeploy := &model.FeaturePath{
+		fpSiteDeploy := &model.FeaturePath{
+			FeatureName:        wf.yangFeatureName,
+			BlueprintCategory:  model.BlueprintCategoryWireless,
+			HTTPMethod:         "POST",
+			Path:               "/configuration-profile/{name}/sites/deploy",
+			PathParams:         []model.PathParameter{profileNameParam},
+			ProfileType:        model.ProfileTypeConfiguration,
+			OperationType:      model.OperationTypeDeploy,
+			SupportsDeployment: true,
+			SupportedTargetTypes: []model.TargetType{
+				model.TargetTypeSite,
+				model.TargetTypeSiteGroup,
+			},
+		}
+		p.paths[fmt.Sprintf("POST /wireless-profile/%s/sites/deploy", wf.yangFeatureName)] = fpSiteDeploy
+
+		fpDeviceDeploy := &model.FeaturePath{
+			FeatureName:          wf.yangFeatureName,
+			BlueprintCategory:    model.BlueprintCategoryWireless,
+			HTTPMethod:           "POST",
+			Path:                 "/configuration-profile/{name}/devices/deploy",
+			PathParams:           []model.PathParameter{profileNameParam},
+			ProfileType:          model.ProfileTypeConfiguration,
+			OperationType:        model.OperationTypeDeploy,
+			SupportsDeployment:   true,
+			SupportedTargetTypes: []model.TargetType{model.TargetTypeDevice},
+		}
+		p.paths[fmt.Sprintf("POST /wireless-profile/%s/devices/deploy", wf.yangFeatureName)] = fpDeviceDeploy
+
+		siteNameParam := model.PathParameter{
+			Name:        "siteName",
+			Type:        "string",
+			Description: "Site name",
+			Required:    true,
+		}
+		hostNameParam := model.PathParameter{
+			Name:        "hostName",
+			Type:        "string",
+			Description: "Device host name",
+			Required:    true,
+		}
+		p.paths[fmt.Sprintf("GET /wireless-profile/%s/site/status", wf.yangFeatureName)] = &model.FeaturePath{
 			FeatureName:       wf.yangFeatureName,
 			BlueprintCategory: model.BlueprintCategoryWireless,
-			HTTPMethod:        "POST",
-			Path:              "/configuration-profile/{name}/sites/deploy",
-			PathParams:        []model.PathParameter{profileNameParam},
+			HTTPMethod:        "GET",
+			Path:              "/configuration-profile/{name}/site/{siteName}/deploy/status",
+			PathParams:        []model.PathParameter{profileNameParam, siteNameParam},
 			ProfileType:       model.ProfileTypeConfiguration,
-			OperationType:     model.OperationTypeDeploy,
+			OperationType:     model.OperationTypeStatus,
 		}
-		p.paths[fmt.Sprintf("POST /wireless-profile/%s/deploy", wf.yangFeatureName)] = fpDeploy
+		p.paths[fmt.Sprintf("GET /wireless-profile/%s/device/status", wf.yangFeatureName)] = &model.FeaturePath{
+			FeatureName:       wf.yangFeatureName,
+			BlueprintCategory: model.BlueprintCategoryWireless,
+			HTTPMethod:        "GET",
+			Path:              "/configuration-profile/{name}/device/{hostName}/deploy/status",
+			PathParams:        []model.PathParameter{profileNameParam, hostNameParam},
+			ProfileType:       model.ProfileTypeConfiguration,
+			OperationType:     model.OperationTypeStatus,
+		}
 	}
 }
 

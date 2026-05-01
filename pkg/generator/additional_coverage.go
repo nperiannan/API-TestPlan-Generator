@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/extremenetworks/testcase-generator/pkg/model"
@@ -16,7 +17,10 @@ func (g *Generator) generateAdditionalCoverageTests(feature *model.Feature, path
 		return tests
 	}
 
-	primaryPath := paths[0]
+	primaryPath := selectPrimaryObjectPath(paths)
+	if primaryPath == nil {
+		return tests
+	}
 	profileName := "TestProfile-Additional"
 
 	// 1. Scheduled deployment to devices (1 test)
@@ -50,6 +54,40 @@ func (g *Generator) generateAdditionalCoverageTests(feature *model.Feature, path
 	tests = append(tests, g.generateOverrideTests(feature, primaryPath, profileName+"-Override")...)
 
 	return tests
+}
+
+func selectPrimaryObjectPath(paths []*model.FeaturePath) *model.FeaturePath {
+	for _, fp := range paths {
+		if isFeatureObjectPath(fp) {
+			return fp
+		}
+	}
+	for _, fp := range paths {
+		if fp != nil && !isControlEndpointPath(fp.Path) {
+			return fp
+		}
+	}
+	return nil
+}
+
+func isFeatureObjectPath(fp *model.FeaturePath) bool {
+	if fp == nil || !strings.Contains(fp.Path, "/feature/object/") || isControlEndpointPath(fp.Path) {
+		return false
+	}
+	for _, param := range fp.PathParams {
+		if param.Name == "featurePath" && param.FixedValue != "" {
+			return true
+		}
+	}
+	return false
+}
+
+func isControlEndpointPath(path string) bool {
+	lower := strings.ToLower(path)
+	return strings.Contains(lower, "/deploy") ||
+		strings.Contains(lower, "/scope") ||
+		strings.Contains(lower, "/target") ||
+		strings.Contains(lower, "/schedule")
 }
 
 // generateScheduledDeploymentTest creates a test for scheduled deployment (deployAt instead of deployNow)

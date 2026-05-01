@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/extremenetworks/testcase-generator/pkg/model"
@@ -504,7 +505,7 @@ func (p *Parser) parseLeaf(scanner lineScanner, leafLine string) Parameter {
 
 		// Parse default
 		if strings.HasPrefix(line, "default ") {
-			param.DefaultValue = extractQuotedString(line)
+			param.DefaultValue = parseDefaultValue(line, param.GoType)
 		}
 
 		// Parse pattern constraint
@@ -1099,6 +1100,29 @@ func extractQuotedString(line string) string {
 		return matches[1]
 	}
 	return ""
+}
+
+func parseDefaultValue(line string, goType string) interface{} {
+	raw := extractQuotedString(line)
+	if raw == "" && !strings.Contains(line, `""`) {
+		raw = strings.TrimSpace(strings.TrimPrefix(line, "default"))
+		raw = strings.TrimSuffix(raw, ";")
+		raw = strings.TrimSpace(raw)
+		raw = strings.Trim(raw, `"'`)
+	}
+
+	switch strings.ToLower(goType) {
+	case "bool", "boolean":
+		if value, err := strconv.ParseBool(raw); err == nil {
+			return value
+		}
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
+		if value, err := strconv.Atoi(raw); err == nil {
+			return value
+		}
+	}
+
+	return raw
 }
 
 func extractNumber(line string) int {

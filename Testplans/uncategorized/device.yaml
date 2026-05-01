@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T08:00:49+05:30"
+generatedAt: "2026-05-01T10:39:11+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -26,6 +26,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg
                   expectedStatus: 201
                   validations:
@@ -35,7 +36,7 @@ features:
                       expected: 201
                       description: Verify HTTP status code is 201
         functional:
-            - testCaseID: TCXM_1395
+            - testCaseID: TCXM_1394
               featureName: device
               priority: P1
               automation: Automatable
@@ -51,6 +52,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -65,7 +67,8 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/device/{hostName}/conflicts
                   pathParams:
-                    name: TestResource
+                    hostName: test-device-001
+                    name: TestProfile
                   body: {}
                   expectedStatus: 200
                   validations:
@@ -73,11 +76,10 @@ features:
                     - Verify response contains objects array
                     - Verify response contains feature path
                     - Verify response contains object type
-                    - Verify required property 'serial-number' exists in response
+                    - Verify property 'serial-number' exists in response
                     - Verify 'serial-number' value is 'testValue' as set during create
-                    - Verify required property 'intent-device-type' exists in response
+                    - Verify property 'intent-device-type' exists in response
                     - Verify 'intent-device-type' value is 'testValue' as set during create
-                    - Verify 'asset-device-id' value is 'testValue' as set during create
                   assertions:
                     - type: statusCode
                       expected: 200
@@ -93,23 +95,19 @@ features:
                       description: Verify response contains object type
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='serial-number')]
-                      description: Verify required property 'serial-number' exists in response
+                      description: Verify property 'serial-number' exists in response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='serial-number')].value
                       expected: testValue
                       description: Verify 'serial-number' value is 'testValue' as set during create
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='intent-device-type')]
-                      description: Verify required property 'intent-device-type' exists in response
+                      description: Verify property 'intent-device-type' exists in response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='intent-device-type')].value
                       expected: testValue
                       description: Verify 'intent-device-type' value is 'testValue' as set during create
-                    - type: jsonPathEquals
-                      path: $.objects[0].properties[?(@.name=='asset-device-id')].value
-                      expected: testValue
-                      description: Verify 'asset-device-id' value is 'testValue' as set during create
-            - testCaseID: TCXM_1396
+            - testCaseID: TCXM_1395
               featureName: device
               priority: P2
               automation: Automatable
@@ -118,48 +116,53 @@ features:
               isDeploymentTest: false
               steps:
                 - name: createResourceForDeletion
-                  description: Create device with serial-number=testValue, intent-device-type=testValue before deleting
+                  description: Create device with owner-id=100, serial-number=testValue, intent-device-type=testValue before deleting
                   method: POST
                   api: REST
-                  path: /inventory/device-model-group
+                  path: /configuration-profile/device/conflict/resolve
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
+                    - Capture created object ID as OBJECT_ID for later update/delete steps
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
+                    - type: jsonPathExists
+                      path: $[0].id
+                      description: Capture created object ID as OBJECT_ID for later update/delete steps
                 - name: deleteResource
-                  description: Delete device with serial-number=testValue, intent-device-type=testValue
+                  description: Delete device with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: DELETE
                   api: REST
                   path: /inventory/device-model-group
                   body: {}
                   expectedStatus: 200
                   validations:
-                    - Verify device with serial-number=testValue, intent-device-type=testValue deleted successfully
+                    - Verify device with owner-id=100, serial-number=testValue, intent-device-type=testValue deleted successfully
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify device with serial-number=testValue, intent-device-type=testValue deleted successfully
+                      description: Verify device with owner-id=100, serial-number=testValue, intent-device-type=testValue deleted successfully
                 - name: verifyDeletion
-                  description: Verify device with serial-number=testValue, intent-device-type=testValue was deleted
-                  method: POST
+                  description: Verify device with owner-id=100, serial-number=testValue, intent-device-type=testValue was deleted
+                  method: GET
                   api: REST
-                  path: /inventory/device-model-group
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
                   body: {}
                   expectedStatus: 200
                   validations:
-                    - Verify device with serial-number=testValue, intent-device-type=testValue no longer exists in the response
+                    - Verify device with owner-id=100, serial-number=testValue, intent-device-type=testValue no longer exists in the response
                   assertions:
                     - type: statusCode
                       expected: 200
-                      description: Verify device with serial-number=testValue, intent-device-type=testValue no longer exists in the response
-            - testCaseID: TCXM_1397
+                      description: Verify device with owner-id=100, serial-number=testValue, intent-device-type=testValue no longer exists in the response
+            - testCaseID: TCXM_1396
               featureName: device
               priority: P3
               automation: Automatable
@@ -168,21 +171,22 @@ features:
               isDeploymentTest: false
               steps:
                 - name: createResourceForList
-                  description: Create device with serial-number=testValue, intent-device-type=testValue for list test
+                  description: Create device with owner-id=100, serial-number=testValue, intent-device-type=testValue for list test
                   method: POST
                   api: REST
                   path: /configuration-profile/device/conflict/resolve
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: listAllResources
                   description: Retrieve all device resources and verify the list is non-empty
                   method: GET
@@ -200,7 +204,7 @@ features:
                     - type: jsonPathExists
                       path: $.objects
                       description: Verify response contains objects array with at least one device entry
-            - testCaseID: TCXM_1398
+            - testCaseID: TCXM_1397
               featureName: device
               priority: P3
               automation: Automatable
@@ -209,38 +213,40 @@ features:
               isDeploymentTest: false
               steps:
                 - name: createResourceFirstTime
-                  description: Create device with serial-number=testValue, intent-device-type=testValue (first attempt — should succeed)
+                  description: Create device with owner-id=100, serial-number=testValue, intent-device-type=testValue (first attempt — should succeed)
                   method: POST
                   api: REST
                   path: /configuration-profile/device/conflict/resolve
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: createResourceAgain
-                  description: Create same device with serial-number=testValue, intent-device-type=testValue again (should fail with 409 Conflict — duplicate key)
+                  description: Create same device with owner-id=100, serial-number=testValue, intent-device-type=testValue again (should fail with 409 Conflict — duplicate key)
                   method: POST
                   api: REST
                   path: /configuration-profile/device/conflict/resolve
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 409
                   validations:
-                    - Verify duplicate create of device with serial-number=testValue, intent-device-type=testValue is rejected (409 Conflict)
+                    - Verify duplicate create of device with owner-id=100, serial-number=testValue, intent-device-type=testValue is rejected (409 Conflict)
                   assertions:
                     - type: statusCode
                       expected: 409
-                      description: Verify duplicate create of device with serial-number=testValue, intent-device-type=testValue is rejected (409 Conflict)
-            - testCaseID: TCXM_1399
+                      description: Verify duplicate create of device with owner-id=100, serial-number=testValue, intent-device-type=testValue is rejected (409 Conflict)
+            - testCaseID: TCXM_1398
               featureName: device
               priority: P1
               automation: Automatable
@@ -259,6 +265,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestProfile
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -272,7 +279,8 @@ features:
                   api: REST
                   path: /configuration-profile/{name}/device/{hostName}/conflicts
                   pathParams:
-                    profileName: TestProfile
+                    hostName: test-device-001
+                    name: TestProfile
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
@@ -283,9 +291,9 @@ features:
                   description: Scope profile to device
                   method: POST
                   api: REST
-                  path: /global-profile/TestProfile/scope
+                  path: /configuration-profile/{name}/scoped/devices/retrieve
                   pathParams:
-                    profileName: TestProfile
+                    name: TestProfile
                   body:
                     scopeId: test-scope-001
                     scopeType: device
@@ -299,9 +307,9 @@ features:
                   description: Target profile to device
                   method: POST
                   api: REST
-                  path: /global-profile/TestProfile/target
+                  path: /configuration-profile/{name}/target-query/object/{objectId}/resolved-devices
                   pathParams:
-                    profileName: TestProfile
+                    name: TestProfile
                   body:
                     targetId: test-scope-001
                     targetType: device
@@ -315,35 +323,78 @@ features:
                   description: Deploy profile to device
                   method: POST
                   api: REST
-                  path: /global-profile/TestProfile/deploy
+                  path: /configuration-profile/{name}/devices/deploy
                   pathParams:
-                    profileName: TestProfile
+                    name: TestProfile
                   body:
-                    deploymentMethod: immediate
+                    deployNow: true
+                    devices:
+                        - test-device-001
                   expectedStatus: 202
                   validations:
                     - Verify HTTP status code is 202
                   assertions:
                     - type: statusCode
                       expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
+            - testCaseID: TCXM_1399
+              featureName: device
+              priority: P1
+              automation: Automatable
+              type: functional
+              description: Create device, scope to site-group, target to site-group, deploy, and verify on NOS devices
+              scopeType: site-group
+              targetType: site-group
+              deploymentMethod: immediate
+              isDeploymentTest: true
+              steps:
+                - name: createdevice
+                  description: Create device configuration
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/device/conflict/resolve
+                  body:
+                    intent-device-type: testValue
+                    name: TestProfile
+                    owner-id: 100
+                    serial-number: testValue
+                  expectedStatus: 201
+                  validations:
+                    - Verify HTTP status code is 201
+                  assertions:
+                    - type: statusCode
+                      expected: 201
+                - name: getProfile
+                  description: Retrieve created profile
                   method: GET
                   api: REST
-                  path: /global-profile/TestProfile/deployment/status
+                  path: /configuration-profile/{name}/device/{hostName}/conflicts
                   pathParams:
-                    profileName: TestProfile
+                    hostName: test-device-001
+                    name: TestProfile
                   expectedStatus: 200
                   validations:
                     - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
                   assertions:
                     - type: statusCode
                       expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
+                - name: deployProfileTosite-group
+                  description: Deploy profile to site-group
+                  method: POST
+                  api: REST
+                  path: /configuration-profile/{name}/device/{hostName}/deploy/status
+                  pathParams:
+                    hostName: test-device-001
+                    name: TestProfile
+                  body:
+                    deployNow: true
+                    sites:
+                        - test-site-001
+                  expectedStatus: 202
+                  validations:
+                    - Verify HTTP status code is 202
+                  assertions:
+                    - type: statusCode
+                      expected: 202
             - testCaseID: TCXM_1400
               featureName: device
               priority: P2
@@ -362,6 +413,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestProfile-Simple
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -384,6 +436,7 @@ features:
                   path: /configuration-profile/device/conflict/resolve
                   body:
                     intent-device-type: testValue
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -402,10 +455,10 @@ features:
                   validations:
                     - Verify HTTP 200 for resource read
                     - Verify response contains objects array
-                    - Verify required field 'serial-number' is present in GET response
-                    - Verify required field 'serial-number' has value 'testValue' as created
-                    - Verify required field 'intent-device-type' is present in GET response
-                    - Verify required field 'intent-device-type' has value 'testValue' as created
+                    - Verify identity/required field 'serial-number' is present in GET response
+                    - Verify identity/required field 'serial-number' has value 'testValue' as created
+                    - Verify identity/required field 'intent-device-type' is present in GET response
+                    - Verify identity/required field 'intent-device-type' has value 'testValue' as created
                   assertions:
                     - type: statusCode
                       expected: 200
@@ -415,18 +468,18 @@ features:
                       description: Verify response contains objects array
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='serial-number')]
-                      description: Verify required field 'serial-number' is present in GET response
+                      description: Verify identity/required field 'serial-number' is present in GET response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='serial-number')].value
                       expected: testValue
-                      description: Verify required field 'serial-number' has value 'testValue' as created
+                      description: Verify identity/required field 'serial-number' has value 'testValue' as created
                     - type: jsonPathExists
                       path: $.objects[0].properties[?(@.name=='intent-device-type')]
-                      description: Verify required field 'intent-device-type' is present in GET response
+                      description: Verify identity/required field 'intent-device-type' is present in GET response
                     - type: jsonPathEquals
                       path: $.objects[0].properties[?(@.name=='intent-device-type')].value
                       expected: testValue
-                      description: Verify required field 'intent-device-type' has value 'testValue' as created
+                      description: Verify identity/required field 'intent-device-type' has value 'testValue' as created
             - testCaseID: TCXM_1402
               featureName: device
               priority: P2
@@ -511,6 +564,7 @@ features:
                   body:
                     asset-device-id: testValue
                     intent-device-type: testValue
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -557,6 +611,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: test-value-1
                   expectedStatus: 201
                   validations:
@@ -580,7 +635,7 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.serial-number
+                      path: $.objects[0].properties[?(@.name=='serial-number')].value
                       expected: test-value-1
                       description: Verify 'serial-number' YANG type 'string' value is persisted
             - testCaseID: TCXM_1405
@@ -599,6 +654,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: test-value-2
                   expectedStatus: 201
                   validations:
@@ -622,7 +678,7 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.serial-number
+                      path: $.objects[0].properties[?(@.name=='serial-number')].value
                       expected: test-value-2
                       description: Verify 'serial-number' YANG type 'string' value is persisted
             - testCaseID: TCXM_1406
@@ -641,6 +697,7 @@ features:
                   body:
                     intent-device-type: 1
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -664,7 +721,7 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.intent-device-type
+                      path: $.objects[0].properties[?(@.name=='intent-device-type')].value
                       expected: 1
                       description: Verify 'intent-device-type' YANG type 'intent-types:intent-device-type-enum' value is persisted
             - testCaseID: TCXM_1407
@@ -683,6 +740,7 @@ features:
                   body:
                     intent-device-type: 100
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -706,7 +764,7 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.intent-device-type
+                      path: $.objects[0].properties[?(@.name=='intent-device-type')].value
                       expected: 100
                       description: Verify 'intent-device-type' YANG type 'intent-types:intent-device-type-enum' value is persisted
             - testCaseID: TCXM_1408
@@ -726,6 +784,7 @@ features:
                     asset-device-id: testValue
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -749,7 +808,7 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.asset-device-id
+                      path: $.objects[0].properties[?(@.name=='asset-device-id')].value
                       expected: testValue
                       description: Verify 'asset-device-id' YANG type 'leafref' value is persisted
             - testCaseID: TCXM_1409
@@ -769,6 +828,7 @@ features:
                     asset-device-id: testValue
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -792,7 +852,7 @@ features:
                       expected: 200
                       description: Verify HTTP 200
                     - type: jsonPathEquals
-                      path: $.asset-device-id
+                      path: $.objects[0].properties[?(@.name=='asset-device-id')].value
                       expected: testValue
                       description: Verify 'asset-device-id' YANG type 'leafref' value is persisted
             - testCaseID: TCXM_1410
@@ -814,6 +874,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Var1
+                    owner-id: 100
                     serial-number: testValue-1
                   expectedStatus: 201
                   validations:
@@ -840,7 +901,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -876,6 +937,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Var1
+                    owner-id: 100
                     serial-number: testValue-1
                   expectedStatus: 201
                   validations:
@@ -902,7 +964,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -938,6 +1000,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Var2
+                    owner-id: 100
                     serial-number: testValue-2
                   expectedStatus: 201
                   validations:
@@ -964,7 +1027,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -1000,6 +1063,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Var2
+                    owner-id: 100
                     serial-number: testValue-2
                   expectedStatus: 201
                   validations:
@@ -1026,7 +1090,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -1062,6 +1126,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Var3
+                    owner-id: 100
                     serial-number: testValue-3
                   expectedStatus: 201
                   validations:
@@ -1088,7 +1153,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -1124,6 +1189,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Var3
+                    owner-id: 100
                     serial-number: testValue-3
                   expectedStatus: 201
                   validations:
@@ -1150,7 +1216,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -1186,6 +1252,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Var4
+                    owner-id: 100
                     serial-number: testValue-4
                   expectedStatus: 201
                   validations:
@@ -1212,7 +1279,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Var4/device/test-device-001/deploy/status
                   pathParams:
@@ -1248,6 +1315,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Var4
+                    owner-id: 100
                     serial-number: testValue-4
                   expectedStatus: 201
                   validations:
@@ -1274,7 +1342,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Var4/site/test-site-001/deploy/status
                   pathParams:
@@ -1310,6 +1378,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Var5
+                    owner-id: 100
                     serial-number: testValue-5
                   expectedStatus: 201
                   validations:
@@ -1336,7 +1405,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Var5/device/test-device-001/deploy/status
                   pathParams:
@@ -1372,6 +1441,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Var5
+                    owner-id: 100
                     serial-number: testValue-5
                   expectedStatus: 201
                   validations:
@@ -1398,7 +1468,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Var5/site/test-site-001/deploy/status
                   pathParams:
@@ -1434,6 +1504,7 @@ features:
                   body:
                     intent-device-type: testValue-1
                     name: TestResource-intent-device-type-Var1
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -1460,7 +1531,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-intent-device-type-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -1496,6 +1567,7 @@ features:
                   body:
                     intent-device-type: testValue-1
                     name: TestResource-intent-device-type-Var1
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -1522,7 +1594,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-intent-device-type-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -1558,6 +1630,7 @@ features:
                   body:
                     intent-device-type: testValue-2
                     name: TestResource-intent-device-type-Var2
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -1584,7 +1657,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-intent-device-type-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -1620,6 +1693,7 @@ features:
                   body:
                     intent-device-type: testValue-2
                     name: TestResource-intent-device-type-Var2
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -1646,7 +1720,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-intent-device-type-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -1682,6 +1756,7 @@ features:
                   body:
                     intent-device-type: testValue-3
                     name: TestResource-intent-device-type-Var3
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -1708,7 +1783,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-intent-device-type-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -1744,6 +1819,7 @@ features:
                   body:
                     intent-device-type: testValue-3
                     name: TestResource-intent-device-type-Var3
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -1770,7 +1846,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-intent-device-type-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -1806,6 +1882,7 @@ features:
                   body:
                     intent-device-type: testValue-4
                     name: TestResource-intent-device-type-Var4
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -1832,7 +1909,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-intent-device-type-Var4/device/test-device-001/deploy/status
                   pathParams:
@@ -1868,6 +1945,7 @@ features:
                   body:
                     intent-device-type: testValue-4
                     name: TestResource-intent-device-type-Var4
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -1894,7 +1972,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-intent-device-type-Var4/site/test-site-001/deploy/status
                   pathParams:
@@ -1930,6 +2008,7 @@ features:
                   body:
                     intent-device-type: testValue-5
                     name: TestResource-intent-device-type-Var5
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -1956,7 +2035,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-intent-device-type-Var5/device/test-device-001/deploy/status
                   pathParams:
@@ -1992,6 +2071,7 @@ features:
                   body:
                     intent-device-type: testValue-5
                     name: TestResource-intent-device-type-Var5
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2018,7 +2098,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-intent-device-type-Var5/site/test-site-001/deploy/status
                   pathParams:
@@ -2054,6 +2134,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-Opt0-Var1
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2080,7 +2161,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -2116,6 +2197,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-Opt0-Var1
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2142,7 +2224,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -2178,6 +2260,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-Opt0-Var2
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2204,7 +2287,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -2240,6 +2323,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-Opt0-Var2
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2266,7 +2350,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -2302,6 +2386,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-Opt0-Var3
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2328,7 +2413,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -2364,6 +2449,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-Opt0-Var3
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2390,7 +2476,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -2427,6 +2513,7 @@ features:
                     asset-device-id: testValue-1
                     intent-device-type: testValue
                     name: TestResource-Opt1-Var1
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2453,7 +2540,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -2490,6 +2577,7 @@ features:
                     asset-device-id: testValue-1
                     intent-device-type: testValue
                     name: TestResource-Opt1-Var1
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2516,7 +2604,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -2553,6 +2641,7 @@ features:
                     asset-device-id: testValue-2
                     intent-device-type: testValue
                     name: TestResource-Opt1-Var2
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2579,7 +2668,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -2616,6 +2705,7 @@ features:
                     asset-device-id: testValue-2
                     intent-device-type: testValue
                     name: TestResource-Opt1-Var2
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2642,7 +2732,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -2679,6 +2769,7 @@ features:
                     asset-device-id: testValue-3
                     intent-device-type: testValue
                     name: TestResource-Opt1-Var3
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2705,7 +2796,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -2742,6 +2833,7 @@ features:
                     asset-device-id: testValue-3
                     intent-device-type: testValue
                     name: TestResource-Opt1-Var3
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -2768,7 +2860,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -2804,6 +2896,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-max
+                    owner-id: 100
                     serial-number: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
                   expectedStatus: 201
                   validations:
@@ -2830,7 +2923,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-max/device/test-device-001/deploy/status
                   pathParams:
@@ -2866,6 +2959,7 @@ features:
                   body:
                     intent-device-type: testValue-2
                     name: TestResource-Combo-serial-number-intent-device-type-V1
+                    owner-id: 100
                     serial-number: testValue-1
                   expectedStatus: 201
                   validations:
@@ -2892,7 +2986,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-serial-number-intent-device-type-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -2928,6 +3022,7 @@ features:
                   body:
                     intent-device-type: testValue-3
                     name: TestResource-Combo-serial-number-intent-device-type-V2
+                    owner-id: 100
                     serial-number: testValue-2
                   expectedStatus: 201
                   validations:
@@ -2954,7 +3049,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-serial-number-intent-device-type-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -2990,6 +3085,7 @@ features:
                   body:
                     intent-device-type: testValue-4
                     name: TestResource-Combo-serial-number-intent-device-type-V3
+                    owner-id: 100
                     serial-number: testValue-3
                   expectedStatus: 201
                   validations:
@@ -3016,7 +3112,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-serial-number-intent-device-type-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -3053,6 +3149,7 @@ features:
                     asset-device-id: testValue-2
                     intent-device-type: testValue
                     name: TestResource-Combo-serial-number-asset-device-id-V1
+                    owner-id: 100
                     serial-number: testValue-1
                   expectedStatus: 201
                   validations:
@@ -3079,7 +3176,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-serial-number-asset-device-id-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -3116,6 +3213,7 @@ features:
                     asset-device-id: testValue-3
                     intent-device-type: testValue
                     name: TestResource-Combo-serial-number-asset-device-id-V2
+                    owner-id: 100
                     serial-number: testValue-2
                   expectedStatus: 201
                   validations:
@@ -3142,7 +3240,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-serial-number-asset-device-id-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -3179,6 +3277,7 @@ features:
                     asset-device-id: testValue-4
                     intent-device-type: testValue
                     name: TestResource-Combo-serial-number-asset-device-id-V3
+                    owner-id: 100
                     serial-number: testValue-3
                   expectedStatus: 201
                   validations:
@@ -3205,7 +3304,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-serial-number-asset-device-id-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -3242,6 +3341,7 @@ features:
                     asset-device-id: testValue-2
                     intent-device-type: testValue-1
                     name: TestResource-Combo-intent-device-type-asset-device-id-V1
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -3268,7 +3368,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-intent-device-type-asset-device-id-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -3305,6 +3405,7 @@ features:
                     asset-device-id: testValue-3
                     intent-device-type: testValue-2
                     name: TestResource-Combo-intent-device-type-asset-device-id-V2
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -3331,7 +3432,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-intent-device-type-asset-device-id-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -3368,6 +3469,7 @@ features:
                     asset-device-id: testValue-4
                     intent-device-type: testValue-3
                     name: TestResource-Combo-intent-device-type-asset-device-id-V3
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -3394,7 +3496,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Combo-intent-device-type-asset-device-id-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -3430,6 +3532,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Typestring-V1
+                    owner-id: 100
                     serial-number: test-value-1
                   expectedStatus: 201
                   validations:
@@ -3456,7 +3559,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Typestring-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -3492,6 +3595,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Typestring-V2
+                    owner-id: 100
                     serial-number: TestValue2
                   expectedStatus: 201
                   validations:
@@ -3518,7 +3622,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Typestring-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -3554,6 +3658,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-serial-number-Typestring-V3
+                    owner-id: 100
                     serial-number: test_value_3
                   expectedStatus: 201
                   validations:
@@ -3580,7 +3685,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-serial-number-Typestring-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -3609,30 +3714,31 @@ features:
               isDeploymentTest: true
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to device at 2026-05-01T06:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -3654,30 +3760,31 @@ features:
               isDeploymentTest: true
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to site at 2026-05-01T06:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -3696,21 +3803,22 @@ features:
               isDeploymentTest: true
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: scheduleInitialDeployment
                   description: Schedule initial deployment
                   method: POST
@@ -3719,7 +3827,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -3730,14 +3838,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T04:30:49Z
+                  description: Edit deployment schedule to 2026-05-01T07:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T04:30:49Z"
+                    deployAt: "2026-05-01T07:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -3756,21 +3864,22 @@ features:
               isDeploymentTest: true
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: scheduleDeployment
                   description: Schedule deployment
                   method: POST
@@ -3779,7 +3888,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -3814,21 +3923,22 @@ features:
               isDeploymentTest: false
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: cloneProfile
                   description: Clone the configuration profile
                   method: POST
@@ -3853,21 +3963,22 @@ features:
               isDeploymentTest: false
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: cloneFeatureObject
                   description: Clone device feature object
                   method: POST
@@ -3895,21 +4006,22 @@ features:
               isDeploymentTest: true
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: initialDeploy
                   description: Deploy to device — establishes previousDeployedValue baseline
                   method: POST
@@ -3998,21 +4110,22 @@ features:
               isDeploymentTest: true
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: initialDeploy
                   description: Deploy to establish previousDeployedValue baseline
                   method: POST
@@ -4161,21 +4274,22 @@ features:
               isDeploymentTest: true
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: initialDeploy
                   description: Deploy to establish previousDeployedValue baseline
                   method: POST
@@ -4290,21 +4404,22 @@ features:
               isDeploymentTest: false
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: createDeviceOverride
                   description: Create device-level override for device with serial-number=updated-test-value (+1 more)
                   method: POST
@@ -4367,7 +4482,7 @@ features:
                     targetId: 550e8400-e29b-41d4-a716-446655440000
                     updateProperties:
                         - name: serial-number
-                          value: testValue
+                          value: 123e4567-e89b-12d3-a456-426614174000
                         - name: intent-device-type
                           value: updated-test-value
                   expectedStatus: 200
@@ -4422,21 +4537,22 @@ features:
               isDeploymentTest: false
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: createModelOverride
                   description: Create model-level override for device on model 5520 with serial-number=updated-test-value (+1 more)
                   method: POST
@@ -4509,21 +4625,22 @@ features:
               isDeploymentTest: false
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: createModelGroupOverride
                   description: Create model-group override for device on group 'enterprise-access-points' with serial-number=updated-test-value (+1 more)
                   method: POST
@@ -4596,21 +4713,22 @@ features:
               isDeploymentTest: false
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: createOverrideForListing
                   description: Create device override for device to ensure GET all overrides returns results
                   method: POST
@@ -4668,21 +4786,22 @@ features:
               isDeploymentTest: false
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: createModelOverride
                   description: Create model-level override for device on model 5520
                   method: POST
@@ -4756,21 +4875,22 @@ features:
               isDeploymentTest: true
               steps:
                 - name: createdevice
-                  description: Create device configuration with serial-number=testValue, intent-device-type=testValue
+                  description: Create device configuration with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   method: POST
                   api: REST
                   path: /global-profile/feature/object/modify
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
-                    - Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                    - Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                   assertions:
                     - type: statusCode
                       expected: 201
-                      description: Verify device created successfully with serial-number=testValue, intent-device-type=testValue
+                      description: Verify device created successfully with owner-id=100, serial-number=testValue, intent-device-type=testValue
                 - name: createDeviceOverride
                   description: Create device-level override for device with serial-number=updated-test-value (+1 more)
                   method: POST
@@ -4925,6 +5045,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                   expectedStatus: 400
                   validations:
                     - Verify server rejects request missing required field 'serial-number' with 400 Bad Request
@@ -4951,6 +5072,7 @@ features:
                   path: /configuration-profile/device/conflict/resolve
                   body:
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 400
                   validations:
@@ -4980,6 +5102,7 @@ features:
                     deleted-at: '!!!INVALID-PATTERN@@@'
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 400
                   validations:
@@ -5003,6 +5126,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopq
                   expectedStatus: 400
                   validations:
@@ -5026,6 +5150,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: ""
                   expectedStatus: 400
                   validations:
@@ -5052,6 +5177,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: null
                   expectedStatus: 400
                   validations:
@@ -5078,6 +5204,7 @@ features:
                   body:
                     intent-device-type: ""
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 400
                   validations:
@@ -5104,6 +5231,7 @@ features:
                   body:
                     intent-device-type: null
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 400
                   validations:
@@ -5153,6 +5281,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 400
                   validations:
@@ -5204,6 +5333,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: PerfTest-0
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -5224,6 +5354,7 @@ features:
                   body:
                     intent-device-type: testValue-1
                     name: PerfTest-1
+                    owner-id: 101
                     serial-number: testValue-1
                   expectedStatus: 201
                   validations:
@@ -5244,6 +5375,7 @@ features:
                   body:
                     intent-device-type: testValue-2
                     name: PerfTest-2
+                    owner-id: 102
                     serial-number: testValue-2
                   expectedStatus: 201
                   validations:
@@ -5264,6 +5396,7 @@ features:
                   body:
                     intent-device-type: testValue-3
                     name: PerfTest-3
+                    owner-id: 103
                     serial-number: testValue-3
                   expectedStatus: 201
                   validations:
@@ -5284,6 +5417,7 @@ features:
                   body:
                     intent-device-type: testValue-4
                     name: PerfTest-4
+                    owner-id: 104
                     serial-number: testValue-4
                   expectedStatus: 201
                   validations:
@@ -5304,6 +5438,7 @@ features:
                   body:
                     intent-device-type: testValue-5
                     name: PerfTest-5
+                    owner-id: 105
                     serial-number: testValue-5
                   expectedStatus: 201
                   validations:
@@ -5324,6 +5459,7 @@ features:
                   body:
                     intent-device-type: testValue-6
                     name: PerfTest-6
+                    owner-id: 106
                     serial-number: testValue-6
                   expectedStatus: 201
                   validations:
@@ -5344,6 +5480,7 @@ features:
                   body:
                     intent-device-type: testValue-7
                     name: PerfTest-7
+                    owner-id: 107
                     serial-number: testValue-7
                   expectedStatus: 201
                   validations:
@@ -5364,6 +5501,7 @@ features:
                   body:
                     intent-device-type: testValue-8
                     name: PerfTest-8
+                    owner-id: 108
                     serial-number: testValue-8
                   expectedStatus: 201
                   validations:
@@ -5384,6 +5522,7 @@ features:
                   body:
                     intent-device-type: testValue-9
                     name: PerfTest-9
+                    owner-id: 109
                     serial-number: testValue-9
                   expectedStatus: 201
                   validations:
@@ -5780,6 +5919,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: DeletePerfTest-0
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -5811,6 +5951,7 @@ features:
                   body:
                     intent-device-type: testValue-1
                     name: DeletePerfTest-1
+                    owner-id: 101
                     serial-number: testValue-1
                   expectedStatus: 201
                   validations:
@@ -5842,6 +5983,7 @@ features:
                   body:
                     intent-device-type: testValue-2
                     name: DeletePerfTest-2
+                    owner-id: 102
                     serial-number: testValue-2
                   expectedStatus: 201
                   validations:
@@ -5873,6 +6015,7 @@ features:
                   body:
                     intent-device-type: testValue-3
                     name: DeletePerfTest-3
+                    owner-id: 103
                     serial-number: testValue-3
                   expectedStatus: 201
                   validations:
@@ -5904,6 +6047,7 @@ features:
                   body:
                     intent-device-type: testValue-4
                     name: DeletePerfTest-4
+                    owner-id: 104
                     serial-number: testValue-4
                   expectedStatus: 201
                   validations:
@@ -5935,6 +6079,7 @@ features:
                   body:
                     intent-device-type: testValue-5
                     name: DeletePerfTest-5
+                    owner-id: 105
                     serial-number: testValue-5
                   expectedStatus: 201
                   validations:
@@ -5966,6 +6111,7 @@ features:
                   body:
                     intent-device-type: testValue-6
                     name: DeletePerfTest-6
+                    owner-id: 106
                     serial-number: testValue-6
                   expectedStatus: 201
                   validations:
@@ -5997,6 +6143,7 @@ features:
                   body:
                     intent-device-type: testValue-7
                     name: DeletePerfTest-7
+                    owner-id: 107
                     serial-number: testValue-7
                   expectedStatus: 201
                   validations:
@@ -6028,6 +6175,7 @@ features:
                   body:
                     intent-device-type: testValue-8
                     name: DeletePerfTest-8
+                    owner-id: 108
                     serial-number: testValue-8
                   expectedStatus: 201
                   validations:
@@ -6059,6 +6207,7 @@ features:
                   body:
                     intent-device-type: testValue-9
                     name: DeletePerfTest-9
+                    owner-id: 109
                     serial-number: testValue-9
                   expectedStatus: 201
                   validations:
@@ -6101,6 +6250,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: DeploymentPerfTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -6318,6 +6468,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource-0
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -6333,6 +6484,7 @@ features:
                   body:
                     intent-device-type: testValue-1
                     name: TestResource-1
+                    owner-id: 101
                     serial-number: testValue-1
                   expectedStatus: 201
                   validations:
@@ -6348,6 +6500,7 @@ features:
                   body:
                     intent-device-type: testValue-2
                     name: TestResource-2
+                    owner-id: 102
                     serial-number: testValue-2
                   expectedStatus: 201
                   validations:
@@ -6363,6 +6516,7 @@ features:
                   body:
                     intent-device-type: testValue-3
                     name: TestResource-3
+                    owner-id: 103
                     serial-number: testValue-3
                   expectedStatus: 201
                   validations:
@@ -6378,6 +6532,7 @@ features:
                   body:
                     intent-device-type: testValue-4
                     name: TestResource-4
+                    owner-id: 104
                     serial-number: testValue-4
                   expectedStatus: 201
                   validations:
@@ -6393,6 +6548,7 @@ features:
                   body:
                     intent-device-type: testValue-5
                     name: TestResource-5
+                    owner-id: 105
                     serial-number: testValue-5
                   expectedStatus: 201
                   validations:
@@ -6408,6 +6564,7 @@ features:
                   body:
                     intent-device-type: testValue-6
                     name: TestResource-6
+                    owner-id: 106
                     serial-number: testValue-6
                   expectedStatus: 201
                   validations:
@@ -6423,6 +6580,7 @@ features:
                   body:
                     intent-device-type: testValue-7
                     name: TestResource-7
+                    owner-id: 107
                     serial-number: testValue-7
                   expectedStatus: 201
                   validations:
@@ -6438,6 +6596,7 @@ features:
                   body:
                     intent-device-type: testValue-8
                     name: TestResource-8
+                    owner-id: 108
                     serial-number: testValue-8
                   expectedStatus: 201
                   validations:
@@ -6453,6 +6612,7 @@ features:
                   body:
                     intent-device-type: testValue-9
                     name: TestResource-9
+                    owner-id: 109
                     serial-number: testValue-9
                   expectedStatus: 201
                   validations:
@@ -6468,6 +6628,7 @@ features:
                   body:
                     intent-device-type: testValue-10
                     name: TestResource-10
+                    owner-id: 110
                     serial-number: testValue-10
                   expectedStatus: 201
                   validations:
@@ -6483,6 +6644,7 @@ features:
                   body:
                     intent-device-type: testValue-11
                     name: TestResource-11
+                    owner-id: 111
                     serial-number: testValue-11
                   expectedStatus: 201
                   validations:
@@ -6498,6 +6660,7 @@ features:
                   body:
                     intent-device-type: testValue-12
                     name: TestResource-12
+                    owner-id: 112
                     serial-number: testValue-12
                   expectedStatus: 201
                   validations:
@@ -6513,6 +6676,7 @@ features:
                   body:
                     intent-device-type: testValue-13
                     name: TestResource-13
+                    owner-id: 113
                     serial-number: testValue-13
                   expectedStatus: 201
                   validations:
@@ -6528,6 +6692,7 @@ features:
                   body:
                     intent-device-type: testValue-14
                     name: TestResource-14
+                    owner-id: 114
                     serial-number: testValue-14
                   expectedStatus: 201
                   validations:
@@ -6543,6 +6708,7 @@ features:
                   body:
                     intent-device-type: testValue-15
                     name: TestResource-15
+                    owner-id: 115
                     serial-number: testValue-15
                   expectedStatus: 201
                   validations:
@@ -6558,6 +6724,7 @@ features:
                   body:
                     intent-device-type: testValue-16
                     name: TestResource-16
+                    owner-id: 116
                     serial-number: testValue-16
                   expectedStatus: 201
                   validations:
@@ -6573,6 +6740,7 @@ features:
                   body:
                     intent-device-type: testValue-17
                     name: TestResource-17
+                    owner-id: 117
                     serial-number: testValue-17
                   expectedStatus: 201
                   validations:
@@ -6588,6 +6756,7 @@ features:
                   body:
                     intent-device-type: testValue-18
                     name: TestResource-18
+                    owner-id: 118
                     serial-number: testValue-18
                   expectedStatus: 201
                   validations:
@@ -6603,6 +6772,7 @@ features:
                   body:
                     intent-device-type: testValue-19
                     name: TestResource-19
+                    owner-id: 119
                     serial-number: testValue-19
                   expectedStatus: 201
                   validations:
@@ -6618,6 +6788,7 @@ features:
                   body:
                     intent-device-type: testValue-20
                     name: TestResource-20
+                    owner-id: 120
                     serial-number: testValue-20
                   expectedStatus: 201
                   validations:
@@ -6633,6 +6804,7 @@ features:
                   body:
                     intent-device-type: testValue-21
                     name: TestResource-21
+                    owner-id: 121
                     serial-number: testValue-21
                   expectedStatus: 201
                   validations:
@@ -6648,6 +6820,7 @@ features:
                   body:
                     intent-device-type: testValue-22
                     name: TestResource-22
+                    owner-id: 122
                     serial-number: testValue-22
                   expectedStatus: 201
                   validations:
@@ -6663,6 +6836,7 @@ features:
                   body:
                     intent-device-type: testValue-23
                     name: TestResource-23
+                    owner-id: 123
                     serial-number: testValue-23
                   expectedStatus: 201
                   validations:
@@ -6678,6 +6852,7 @@ features:
                   body:
                     intent-device-type: testValue-24
                     name: TestResource-24
+                    owner-id: 124
                     serial-number: testValue-24
                   expectedStatus: 201
                   validations:
@@ -6693,6 +6868,7 @@ features:
                   body:
                     intent-device-type: testValue-25
                     name: TestResource-25
+                    owner-id: 125
                     serial-number: testValue-25
                   expectedStatus: 201
                   validations:
@@ -6708,6 +6884,7 @@ features:
                   body:
                     intent-device-type: testValue-26
                     name: TestResource-26
+                    owner-id: 126
                     serial-number: testValue-26
                   expectedStatus: 201
                   validations:
@@ -6723,6 +6900,7 @@ features:
                   body:
                     intent-device-type: testValue-27
                     name: TestResource-27
+                    owner-id: 127
                     serial-number: testValue-27
                   expectedStatus: 201
                   validations:
@@ -6738,6 +6916,7 @@ features:
                   body:
                     intent-device-type: testValue-28
                     name: TestResource-28
+                    owner-id: 128
                     serial-number: testValue-28
                   expectedStatus: 201
                   validations:
@@ -6753,6 +6932,7 @@ features:
                   body:
                     intent-device-type: testValue-29
                     name: TestResource-29
+                    owner-id: 129
                     serial-number: testValue-29
                   expectedStatus: 201
                   validations:
@@ -6768,6 +6948,7 @@ features:
                   body:
                     intent-device-type: testValue-30
                     name: TestResource-30
+                    owner-id: 130
                     serial-number: testValue-30
                   expectedStatus: 201
                   validations:
@@ -6783,6 +6964,7 @@ features:
                   body:
                     intent-device-type: testValue-31
                     name: TestResource-31
+                    owner-id: 131
                     serial-number: testValue-31
                   expectedStatus: 201
                   validations:
@@ -6798,6 +6980,7 @@ features:
                   body:
                     intent-device-type: testValue-32
                     name: TestResource-32
+                    owner-id: 132
                     serial-number: testValue-32
                   expectedStatus: 201
                   validations:
@@ -6813,6 +6996,7 @@ features:
                   body:
                     intent-device-type: testValue-33
                     name: TestResource-33
+                    owner-id: 133
                     serial-number: testValue-33
                   expectedStatus: 201
                   validations:
@@ -6828,6 +7012,7 @@ features:
                   body:
                     intent-device-type: testValue-34
                     name: TestResource-34
+                    owner-id: 134
                     serial-number: testValue-34
                   expectedStatus: 201
                   validations:
@@ -6843,6 +7028,7 @@ features:
                   body:
                     intent-device-type: testValue-35
                     name: TestResource-35
+                    owner-id: 135
                     serial-number: testValue-35
                   expectedStatus: 201
                   validations:
@@ -6858,6 +7044,7 @@ features:
                   body:
                     intent-device-type: testValue-36
                     name: TestResource-36
+                    owner-id: 136
                     serial-number: testValue-36
                   expectedStatus: 201
                   validations:
@@ -6873,6 +7060,7 @@ features:
                   body:
                     intent-device-type: testValue-37
                     name: TestResource-37
+                    owner-id: 137
                     serial-number: testValue-37
                   expectedStatus: 201
                   validations:
@@ -6888,6 +7076,7 @@ features:
                   body:
                     intent-device-type: testValue-38
                     name: TestResource-38
+                    owner-id: 138
                     serial-number: testValue-38
                   expectedStatus: 201
                   validations:
@@ -6903,6 +7092,7 @@ features:
                   body:
                     intent-device-type: testValue-39
                     name: TestResource-39
+                    owner-id: 139
                     serial-number: testValue-39
                   expectedStatus: 201
                   validations:
@@ -6918,6 +7108,7 @@ features:
                   body:
                     intent-device-type: testValue-40
                     name: TestResource-40
+                    owner-id: 140
                     serial-number: testValue-40
                   expectedStatus: 201
                   validations:
@@ -6933,6 +7124,7 @@ features:
                   body:
                     intent-device-type: testValue-41
                     name: TestResource-41
+                    owner-id: 141
                     serial-number: testValue-41
                   expectedStatus: 201
                   validations:
@@ -6948,6 +7140,7 @@ features:
                   body:
                     intent-device-type: testValue-42
                     name: TestResource-42
+                    owner-id: 142
                     serial-number: testValue-42
                   expectedStatus: 201
                   validations:
@@ -6963,6 +7156,7 @@ features:
                   body:
                     intent-device-type: testValue-43
                     name: TestResource-43
+                    owner-id: 143
                     serial-number: testValue-43
                   expectedStatus: 201
                   validations:
@@ -6978,6 +7172,7 @@ features:
                   body:
                     intent-device-type: testValue-44
                     name: TestResource-44
+                    owner-id: 144
                     serial-number: testValue-44
                   expectedStatus: 201
                   validations:
@@ -6993,6 +7188,7 @@ features:
                   body:
                     intent-device-type: testValue-45
                     name: TestResource-45
+                    owner-id: 145
                     serial-number: testValue-45
                   expectedStatus: 201
                   validations:
@@ -7008,6 +7204,7 @@ features:
                   body:
                     intent-device-type: testValue-46
                     name: TestResource-46
+                    owner-id: 146
                     serial-number: testValue-46
                   expectedStatus: 201
                   validations:
@@ -7023,6 +7220,7 @@ features:
                   body:
                     intent-device-type: testValue-47
                     name: TestResource-47
+                    owner-id: 147
                     serial-number: testValue-47
                   expectedStatus: 201
                   validations:
@@ -7038,6 +7236,7 @@ features:
                   body:
                     intent-device-type: testValue-48
                     name: TestResource-48
+                    owner-id: 148
                     serial-number: testValue-48
                   expectedStatus: 201
                   validations:
@@ -7053,6 +7252,7 @@ features:
                   body:
                     intent-device-type: testValue-49
                     name: TestResource-49
+                    owner-id: 149
                     serial-number: testValue-49
                   expectedStatus: 201
                   validations:
@@ -7068,6 +7268,7 @@ features:
                   body:
                     intent-device-type: testValue-50
                     name: TestResource-50
+                    owner-id: 150
                     serial-number: testValue-50
                   expectedStatus: 201
                   validations:
@@ -7083,6 +7284,7 @@ features:
                   body:
                     intent-device-type: testValue-51
                     name: TestResource-51
+                    owner-id: 151
                     serial-number: testValue-51
                   expectedStatus: 201
                   validations:
@@ -7098,6 +7300,7 @@ features:
                   body:
                     intent-device-type: testValue-52
                     name: TestResource-52
+                    owner-id: 152
                     serial-number: testValue-52
                   expectedStatus: 201
                   validations:
@@ -7113,6 +7316,7 @@ features:
                   body:
                     intent-device-type: testValue-53
                     name: TestResource-53
+                    owner-id: 153
                     serial-number: testValue-53
                   expectedStatus: 201
                   validations:
@@ -7128,6 +7332,7 @@ features:
                   body:
                     intent-device-type: testValue-54
                     name: TestResource-54
+                    owner-id: 154
                     serial-number: testValue-54
                   expectedStatus: 201
                   validations:
@@ -7143,6 +7348,7 @@ features:
                   body:
                     intent-device-type: testValue-55
                     name: TestResource-55
+                    owner-id: 155
                     serial-number: testValue-55
                   expectedStatus: 201
                   validations:
@@ -7158,6 +7364,7 @@ features:
                   body:
                     intent-device-type: testValue-56
                     name: TestResource-56
+                    owner-id: 156
                     serial-number: testValue-56
                   expectedStatus: 201
                   validations:
@@ -7173,6 +7380,7 @@ features:
                   body:
                     intent-device-type: testValue-57
                     name: TestResource-57
+                    owner-id: 157
                     serial-number: testValue-57
                   expectedStatus: 201
                   validations:
@@ -7188,6 +7396,7 @@ features:
                   body:
                     intent-device-type: testValue-58
                     name: TestResource-58
+                    owner-id: 158
                     serial-number: testValue-58
                   expectedStatus: 201
                   validations:
@@ -7203,6 +7412,7 @@ features:
                   body:
                     intent-device-type: testValue-59
                     name: TestResource-59
+                    owner-id: 159
                     serial-number: testValue-59
                   expectedStatus: 201
                   validations:
@@ -7218,6 +7428,7 @@ features:
                   body:
                     intent-device-type: testValue-60
                     name: TestResource-60
+                    owner-id: 160
                     serial-number: testValue-60
                   expectedStatus: 201
                   validations:
@@ -7233,6 +7444,7 @@ features:
                   body:
                     intent-device-type: testValue-61
                     name: TestResource-61
+                    owner-id: 161
                     serial-number: testValue-61
                   expectedStatus: 201
                   validations:
@@ -7248,6 +7460,7 @@ features:
                   body:
                     intent-device-type: testValue-62
                     name: TestResource-62
+                    owner-id: 162
                     serial-number: testValue-62
                   expectedStatus: 201
                   validations:
@@ -7263,6 +7476,7 @@ features:
                   body:
                     intent-device-type: testValue-63
                     name: TestResource-63
+                    owner-id: 163
                     serial-number: testValue-63
                   expectedStatus: 201
                   validations:
@@ -7278,6 +7492,7 @@ features:
                   body:
                     intent-device-type: testValue-64
                     name: TestResource-64
+                    owner-id: 164
                     serial-number: testValue-64
                   expectedStatus: 201
                   validations:
@@ -7293,6 +7508,7 @@ features:
                   body:
                     intent-device-type: testValue-65
                     name: TestResource-65
+                    owner-id: 165
                     serial-number: testValue-65
                   expectedStatus: 201
                   validations:
@@ -7308,6 +7524,7 @@ features:
                   body:
                     intent-device-type: testValue-66
                     name: TestResource-66
+                    owner-id: 166
                     serial-number: testValue-66
                   expectedStatus: 201
                   validations:
@@ -7323,6 +7540,7 @@ features:
                   body:
                     intent-device-type: testValue-67
                     name: TestResource-67
+                    owner-id: 167
                     serial-number: testValue-67
                   expectedStatus: 201
                   validations:
@@ -7338,6 +7556,7 @@ features:
                   body:
                     intent-device-type: testValue-68
                     name: TestResource-68
+                    owner-id: 168
                     serial-number: testValue-68
                   expectedStatus: 201
                   validations:
@@ -7353,6 +7572,7 @@ features:
                   body:
                     intent-device-type: testValue-69
                     name: TestResource-69
+                    owner-id: 169
                     serial-number: testValue-69
                   expectedStatus: 201
                   validations:
@@ -7368,6 +7588,7 @@ features:
                   body:
                     intent-device-type: testValue-70
                     name: TestResource-70
+                    owner-id: 170
                     serial-number: testValue-70
                   expectedStatus: 201
                   validations:
@@ -7383,6 +7604,7 @@ features:
                   body:
                     intent-device-type: testValue-71
                     name: TestResource-71
+                    owner-id: 171
                     serial-number: testValue-71
                   expectedStatus: 201
                   validations:
@@ -7398,6 +7620,7 @@ features:
                   body:
                     intent-device-type: testValue-72
                     name: TestResource-72
+                    owner-id: 172
                     serial-number: testValue-72
                   expectedStatus: 201
                   validations:
@@ -7413,6 +7636,7 @@ features:
                   body:
                     intent-device-type: testValue-73
                     name: TestResource-73
+                    owner-id: 173
                     serial-number: testValue-73
                   expectedStatus: 201
                   validations:
@@ -7428,6 +7652,7 @@ features:
                   body:
                     intent-device-type: testValue-74
                     name: TestResource-74
+                    owner-id: 174
                     serial-number: testValue-74
                   expectedStatus: 201
                   validations:
@@ -7443,6 +7668,7 @@ features:
                   body:
                     intent-device-type: testValue-75
                     name: TestResource-75
+                    owner-id: 175
                     serial-number: testValue-75
                   expectedStatus: 201
                   validations:
@@ -7458,6 +7684,7 @@ features:
                   body:
                     intent-device-type: testValue-76
                     name: TestResource-76
+                    owner-id: 176
                     serial-number: testValue-76
                   expectedStatus: 201
                   validations:
@@ -7473,6 +7700,7 @@ features:
                   body:
                     intent-device-type: testValue-77
                     name: TestResource-77
+                    owner-id: 177
                     serial-number: testValue-77
                   expectedStatus: 201
                   validations:
@@ -7488,6 +7716,7 @@ features:
                   body:
                     intent-device-type: testValue-78
                     name: TestResource-78
+                    owner-id: 178
                     serial-number: testValue-78
                   expectedStatus: 201
                   validations:
@@ -7503,6 +7732,7 @@ features:
                   body:
                     intent-device-type: testValue-79
                     name: TestResource-79
+                    owner-id: 179
                     serial-number: testValue-79
                   expectedStatus: 201
                   validations:
@@ -7518,6 +7748,7 @@ features:
                   body:
                     intent-device-type: testValue-80
                     name: TestResource-80
+                    owner-id: 180
                     serial-number: testValue-80
                   expectedStatus: 201
                   validations:
@@ -7533,6 +7764,7 @@ features:
                   body:
                     intent-device-type: testValue-81
                     name: TestResource-81
+                    owner-id: 181
                     serial-number: testValue-81
                   expectedStatus: 201
                   validations:
@@ -7548,6 +7780,7 @@ features:
                   body:
                     intent-device-type: testValue-82
                     name: TestResource-82
+                    owner-id: 182
                     serial-number: testValue-82
                   expectedStatus: 201
                   validations:
@@ -7563,6 +7796,7 @@ features:
                   body:
                     intent-device-type: testValue-83
                     name: TestResource-83
+                    owner-id: 183
                     serial-number: testValue-83
                   expectedStatus: 201
                   validations:
@@ -7578,6 +7812,7 @@ features:
                   body:
                     intent-device-type: testValue-84
                     name: TestResource-84
+                    owner-id: 184
                     serial-number: testValue-84
                   expectedStatus: 201
                   validations:
@@ -7593,6 +7828,7 @@ features:
                   body:
                     intent-device-type: testValue-85
                     name: TestResource-85
+                    owner-id: 185
                     serial-number: testValue-85
                   expectedStatus: 201
                   validations:
@@ -7608,6 +7844,7 @@ features:
                   body:
                     intent-device-type: testValue-86
                     name: TestResource-86
+                    owner-id: 186
                     serial-number: testValue-86
                   expectedStatus: 201
                   validations:
@@ -7623,6 +7860,7 @@ features:
                   body:
                     intent-device-type: testValue-87
                     name: TestResource-87
+                    owner-id: 187
                     serial-number: testValue-87
                   expectedStatus: 201
                   validations:
@@ -7638,6 +7876,7 @@ features:
                   body:
                     intent-device-type: testValue-88
                     name: TestResource-88
+                    owner-id: 188
                     serial-number: testValue-88
                   expectedStatus: 201
                   validations:
@@ -7653,6 +7892,7 @@ features:
                   body:
                     intent-device-type: testValue-89
                     name: TestResource-89
+                    owner-id: 189
                     serial-number: testValue-89
                   expectedStatus: 201
                   validations:
@@ -7668,6 +7908,7 @@ features:
                   body:
                     intent-device-type: testValue-90
                     name: TestResource-90
+                    owner-id: 190
                     serial-number: testValue-90
                   expectedStatus: 201
                   validations:
@@ -7683,6 +7924,7 @@ features:
                   body:
                     intent-device-type: testValue-91
                     name: TestResource-91
+                    owner-id: 191
                     serial-number: testValue-91
                   expectedStatus: 201
                   validations:
@@ -7698,6 +7940,7 @@ features:
                   body:
                     intent-device-type: testValue-92
                     name: TestResource-92
+                    owner-id: 192
                     serial-number: testValue-92
                   expectedStatus: 201
                   validations:
@@ -7713,6 +7956,7 @@ features:
                   body:
                     intent-device-type: testValue-93
                     name: TestResource-93
+                    owner-id: 193
                     serial-number: testValue-93
                   expectedStatus: 201
                   validations:
@@ -7728,6 +7972,7 @@ features:
                   body:
                     intent-device-type: testValue-94
                     name: TestResource-94
+                    owner-id: 194
                     serial-number: testValue-94
                   expectedStatus: 201
                   validations:
@@ -7743,6 +7988,7 @@ features:
                   body:
                     intent-device-type: testValue-95
                     name: TestResource-95
+                    owner-id: 195
                     serial-number: testValue-95
                   expectedStatus: 201
                   validations:
@@ -7758,6 +8004,7 @@ features:
                   body:
                     intent-device-type: testValue-96
                     name: TestResource-96
+                    owner-id: 196
                     serial-number: testValue-96
                   expectedStatus: 201
                   validations:
@@ -7773,6 +8020,7 @@ features:
                   body:
                     intent-device-type: testValue-97
                     name: TestResource-97
+                    owner-id: 197
                     serial-number: testValue-97
                   expectedStatus: 201
                   validations:
@@ -7788,6 +8036,7 @@ features:
                   body:
                     intent-device-type: testValue-98
                     name: TestResource-98
+                    owner-id: 198
                     serial-number: testValue-98
                   expectedStatus: 201
                   validations:
@@ -7803,6 +8052,7 @@ features:
                   body:
                     intent-device-type: testValue-99
                     name: TestResource-99
+                    owner-id: 199
                     serial-number: testValue-99
                   expectedStatus: 201
                   validations:
@@ -7839,6 +8089,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: TestResource
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -7864,6 +8115,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: MultiDeviceProfile
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -9290,6 +9542,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -9306,6 +9559,7 @@ features:
                     description: Update iteration 0
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 200
                   validations:
@@ -9322,6 +9576,7 @@ features:
                     description: Update iteration 1
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 200
                   validations:
@@ -9338,6 +9593,7 @@ features:
                     description: Update iteration 2
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 200
                   validations:
@@ -9354,6 +9610,7 @@ features:
                     description: Update iteration 3
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 200
                   validations:
@@ -9370,6 +9627,7 @@ features:
                     description: Update iteration 4
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 200
                   validations:
@@ -9386,6 +9644,7 @@ features:
                     description: Update iteration 5
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 200
                   validations:
@@ -9402,6 +9661,7 @@ features:
                     description: Update iteration 6
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 200
                   validations:
@@ -9418,6 +9678,7 @@ features:
                     description: Update iteration 7
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 200
                   validations:
@@ -9434,6 +9695,7 @@ features:
                     description: Update iteration 8
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 200
                   validations:
@@ -9450,6 +9712,7 @@ features:
                     description: Update iteration 9
                     intent-device-type: testValue
                     name: RapidUpdateTest
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 200
                   validations:
@@ -9476,6 +9739,7 @@ features:
                   body:
                     intent-device-type: testValue
                     name: MaxCapacityTest-0
+                    owner-id: 100
                     serial-number: testValue
                   expectedStatus: 201
                   validations:
@@ -9491,6 +9755,7 @@ features:
                   body:
                     intent-device-type: testValue-1
                     name: MaxCapacityTest-1
+                    owner-id: 101
                     serial-number: testValue-1
                   expectedStatus: 201
                   validations:
@@ -9506,6 +9771,7 @@ features:
                   body:
                     intent-device-type: testValue-2
                     name: MaxCapacityTest-2
+                    owner-id: 102
                     serial-number: testValue-2
                   expectedStatus: 201
                   validations:
@@ -9521,6 +9787,7 @@ features:
                   body:
                     intent-device-type: testValue-3
                     name: MaxCapacityTest-3
+                    owner-id: 103
                     serial-number: testValue-3
                   expectedStatus: 201
                   validations:
@@ -9536,6 +9803,7 @@ features:
                   body:
                     intent-device-type: testValue-4
                     name: MaxCapacityTest-4
+                    owner-id: 104
                     serial-number: testValue-4
                   expectedStatus: 201
                   validations:
@@ -9551,6 +9819,7 @@ features:
                   body:
                     intent-device-type: testValue-5
                     name: MaxCapacityTest-5
+                    owner-id: 105
                     serial-number: testValue-5
                   expectedStatus: 201
                   validations:
@@ -9566,6 +9835,7 @@ features:
                   body:
                     intent-device-type: testValue-6
                     name: MaxCapacityTest-6
+                    owner-id: 106
                     serial-number: testValue-6
                   expectedStatus: 201
                   validations:
@@ -9581,6 +9851,7 @@ features:
                   body:
                     intent-device-type: testValue-7
                     name: MaxCapacityTest-7
+                    owner-id: 107
                     serial-number: testValue-7
                   expectedStatus: 201
                   validations:
@@ -9596,6 +9867,7 @@ features:
                   body:
                     intent-device-type: testValue-8
                     name: MaxCapacityTest-8
+                    owner-id: 108
                     serial-number: testValue-8
                   expectedStatus: 201
                   validations:
@@ -9611,6 +9883,7 @@ features:
                   body:
                     intent-device-type: testValue-9
                     name: MaxCapacityTest-9
+                    owner-id: 109
                     serial-number: testValue-9
                   expectedStatus: 201
                   validations:
@@ -9626,6 +9899,7 @@ features:
                   body:
                     intent-device-type: testValue-10
                     name: MaxCapacityTest-10
+                    owner-id: 110
                     serial-number: testValue-10
                   expectedStatus: 201
                   validations:
@@ -9641,6 +9915,7 @@ features:
                   body:
                     intent-device-type: testValue-11
                     name: MaxCapacityTest-11
+                    owner-id: 111
                     serial-number: testValue-11
                   expectedStatus: 201
                   validations:
@@ -9656,6 +9931,7 @@ features:
                   body:
                     intent-device-type: testValue-12
                     name: MaxCapacityTest-12
+                    owner-id: 112
                     serial-number: testValue-12
                   expectedStatus: 201
                   validations:
@@ -9671,6 +9947,7 @@ features:
                   body:
                     intent-device-type: testValue-13
                     name: MaxCapacityTest-13
+                    owner-id: 113
                     serial-number: testValue-13
                   expectedStatus: 201
                   validations:
@@ -9686,6 +9963,7 @@ features:
                   body:
                     intent-device-type: testValue-14
                     name: MaxCapacityTest-14
+                    owner-id: 114
                     serial-number: testValue-14
                   expectedStatus: 201
                   validations:
@@ -9701,6 +9979,7 @@ features:
                   body:
                     intent-device-type: testValue-15
                     name: MaxCapacityTest-15
+                    owner-id: 115
                     serial-number: testValue-15
                   expectedStatus: 201
                   validations:
@@ -9716,6 +9995,7 @@ features:
                   body:
                     intent-device-type: testValue-16
                     name: MaxCapacityTest-16
+                    owner-id: 116
                     serial-number: testValue-16
                   expectedStatus: 201
                   validations:
@@ -9731,6 +10011,7 @@ features:
                   body:
                     intent-device-type: testValue-17
                     name: MaxCapacityTest-17
+                    owner-id: 117
                     serial-number: testValue-17
                   expectedStatus: 201
                   validations:
@@ -9746,6 +10027,7 @@ features:
                   body:
                     intent-device-type: testValue-18
                     name: MaxCapacityTest-18
+                    owner-id: 118
                     serial-number: testValue-18
                   expectedStatus: 201
                   validations:
@@ -9761,6 +10043,7 @@ features:
                   body:
                     intent-device-type: testValue-19
                     name: MaxCapacityTest-19
+                    owner-id: 119
                     serial-number: testValue-19
                   expectedStatus: 201
                   validations:
@@ -9776,6 +10059,7 @@ features:
                   body:
                     intent-device-type: testValue-20
                     name: MaxCapacityTest-20
+                    owner-id: 120
                     serial-number: testValue-20
                   expectedStatus: 201
                   validations:
@@ -9791,6 +10075,7 @@ features:
                   body:
                     intent-device-type: testValue-21
                     name: MaxCapacityTest-21
+                    owner-id: 121
                     serial-number: testValue-21
                   expectedStatus: 201
                   validations:
@@ -9806,6 +10091,7 @@ features:
                   body:
                     intent-device-type: testValue-22
                     name: MaxCapacityTest-22
+                    owner-id: 122
                     serial-number: testValue-22
                   expectedStatus: 201
                   validations:
@@ -9821,6 +10107,7 @@ features:
                   body:
                     intent-device-type: testValue-23
                     name: MaxCapacityTest-23
+                    owner-id: 123
                     serial-number: testValue-23
                   expectedStatus: 201
                   validations:
@@ -9836,6 +10123,7 @@ features:
                   body:
                     intent-device-type: testValue-24
                     name: MaxCapacityTest-24
+                    owner-id: 124
                     serial-number: testValue-24
                   expectedStatus: 201
                   validations:
@@ -9851,6 +10139,7 @@ features:
                   body:
                     intent-device-type: testValue-25
                     name: MaxCapacityTest-25
+                    owner-id: 125
                     serial-number: testValue-25
                   expectedStatus: 201
                   validations:
@@ -9866,6 +10155,7 @@ features:
                   body:
                     intent-device-type: testValue-26
                     name: MaxCapacityTest-26
+                    owner-id: 126
                     serial-number: testValue-26
                   expectedStatus: 201
                   validations:
@@ -9881,6 +10171,7 @@ features:
                   body:
                     intent-device-type: testValue-27
                     name: MaxCapacityTest-27
+                    owner-id: 127
                     serial-number: testValue-27
                   expectedStatus: 201
                   validations:
@@ -9896,6 +10187,7 @@ features:
                   body:
                     intent-device-type: testValue-28
                     name: MaxCapacityTest-28
+                    owner-id: 128
                     serial-number: testValue-28
                   expectedStatus: 201
                   validations:
@@ -9911,6 +10203,7 @@ features:
                   body:
                     intent-device-type: testValue-29
                     name: MaxCapacityTest-29
+                    owner-id: 129
                     serial-number: testValue-29
                   expectedStatus: 201
                   validations:
@@ -9926,6 +10219,7 @@ features:
                   body:
                     intent-device-type: testValue-30
                     name: MaxCapacityTest-30
+                    owner-id: 130
                     serial-number: testValue-30
                   expectedStatus: 201
                   validations:
@@ -9941,6 +10235,7 @@ features:
                   body:
                     intent-device-type: testValue-31
                     name: MaxCapacityTest-31
+                    owner-id: 131
                     serial-number: testValue-31
                   expectedStatus: 201
                   validations:
@@ -9956,6 +10251,7 @@ features:
                   body:
                     intent-device-type: testValue-32
                     name: MaxCapacityTest-32
+                    owner-id: 132
                     serial-number: testValue-32
                   expectedStatus: 201
                   validations:
@@ -9971,6 +10267,7 @@ features:
                   body:
                     intent-device-type: testValue-33
                     name: MaxCapacityTest-33
+                    owner-id: 133
                     serial-number: testValue-33
                   expectedStatus: 201
                   validations:
@@ -9986,6 +10283,7 @@ features:
                   body:
                     intent-device-type: testValue-34
                     name: MaxCapacityTest-34
+                    owner-id: 134
                     serial-number: testValue-34
                   expectedStatus: 201
                   validations:
@@ -10001,6 +10299,7 @@ features:
                   body:
                     intent-device-type: testValue-35
                     name: MaxCapacityTest-35
+                    owner-id: 135
                     serial-number: testValue-35
                   expectedStatus: 201
                   validations:
@@ -10016,6 +10315,7 @@ features:
                   body:
                     intent-device-type: testValue-36
                     name: MaxCapacityTest-36
+                    owner-id: 136
                     serial-number: testValue-36
                   expectedStatus: 201
                   validations:
@@ -10031,6 +10331,7 @@ features:
                   body:
                     intent-device-type: testValue-37
                     name: MaxCapacityTest-37
+                    owner-id: 137
                     serial-number: testValue-37
                   expectedStatus: 201
                   validations:
@@ -10046,6 +10347,7 @@ features:
                   body:
                     intent-device-type: testValue-38
                     name: MaxCapacityTest-38
+                    owner-id: 138
                     serial-number: testValue-38
                   expectedStatus: 201
                   validations:
@@ -10061,6 +10363,7 @@ features:
                   body:
                     intent-device-type: testValue-39
                     name: MaxCapacityTest-39
+                    owner-id: 139
                     serial-number: testValue-39
                   expectedStatus: 201
                   validations:
@@ -10076,6 +10379,7 @@ features:
                   body:
                     intent-device-type: testValue-40
                     name: MaxCapacityTest-40
+                    owner-id: 140
                     serial-number: testValue-40
                   expectedStatus: 201
                   validations:
@@ -10091,6 +10395,7 @@ features:
                   body:
                     intent-device-type: testValue-41
                     name: MaxCapacityTest-41
+                    owner-id: 141
                     serial-number: testValue-41
                   expectedStatus: 201
                   validations:
@@ -10106,6 +10411,7 @@ features:
                   body:
                     intent-device-type: testValue-42
                     name: MaxCapacityTest-42
+                    owner-id: 142
                     serial-number: testValue-42
                   expectedStatus: 201
                   validations:
@@ -10121,6 +10427,7 @@ features:
                   body:
                     intent-device-type: testValue-43
                     name: MaxCapacityTest-43
+                    owner-id: 143
                     serial-number: testValue-43
                   expectedStatus: 201
                   validations:
@@ -10136,6 +10443,7 @@ features:
                   body:
                     intent-device-type: testValue-44
                     name: MaxCapacityTest-44
+                    owner-id: 144
                     serial-number: testValue-44
                   expectedStatus: 201
                   validations:
@@ -10151,6 +10459,7 @@ features:
                   body:
                     intent-device-type: testValue-45
                     name: MaxCapacityTest-45
+                    owner-id: 145
                     serial-number: testValue-45
                   expectedStatus: 201
                   validations:
@@ -10166,6 +10475,7 @@ features:
                   body:
                     intent-device-type: testValue-46
                     name: MaxCapacityTest-46
+                    owner-id: 146
                     serial-number: testValue-46
                   expectedStatus: 201
                   validations:
@@ -10181,6 +10491,7 @@ features:
                   body:
                     intent-device-type: testValue-47
                     name: MaxCapacityTest-47
+                    owner-id: 147
                     serial-number: testValue-47
                   expectedStatus: 201
                   validations:
@@ -10196,6 +10507,7 @@ features:
                   body:
                     intent-device-type: testValue-48
                     name: MaxCapacityTest-48
+                    owner-id: 148
                     serial-number: testValue-48
                   expectedStatus: 201
                   validations:
@@ -10211,6 +10523,7 @@ features:
                   body:
                     intent-device-type: testValue-49
                     name: MaxCapacityTest-49
+                    owner-id: 149
                     serial-number: testValue-49
                   expectedStatus: 201
                   validations:
@@ -10226,6 +10539,7 @@ features:
                   body:
                     intent-device-type: testValue-50
                     name: MaxCapacityTest-50
+                    owner-id: 150
                     serial-number: testValue-50
                   expectedStatus: 201
                   validations:
@@ -10241,6 +10555,7 @@ features:
                   body:
                     intent-device-type: testValue-51
                     name: MaxCapacityTest-51
+                    owner-id: 151
                     serial-number: testValue-51
                   expectedStatus: 201
                   validations:
@@ -10256,6 +10571,7 @@ features:
                   body:
                     intent-device-type: testValue-52
                     name: MaxCapacityTest-52
+                    owner-id: 152
                     serial-number: testValue-52
                   expectedStatus: 201
                   validations:
@@ -10271,6 +10587,7 @@ features:
                   body:
                     intent-device-type: testValue-53
                     name: MaxCapacityTest-53
+                    owner-id: 153
                     serial-number: testValue-53
                   expectedStatus: 201
                   validations:
@@ -10286,6 +10603,7 @@ features:
                   body:
                     intent-device-type: testValue-54
                     name: MaxCapacityTest-54
+                    owner-id: 154
                     serial-number: testValue-54
                   expectedStatus: 201
                   validations:
@@ -10301,6 +10619,7 @@ features:
                   body:
                     intent-device-type: testValue-55
                     name: MaxCapacityTest-55
+                    owner-id: 155
                     serial-number: testValue-55
                   expectedStatus: 201
                   validations:
@@ -10316,6 +10635,7 @@ features:
                   body:
                     intent-device-type: testValue-56
                     name: MaxCapacityTest-56
+                    owner-id: 156
                     serial-number: testValue-56
                   expectedStatus: 201
                   validations:
@@ -10331,6 +10651,7 @@ features:
                   body:
                     intent-device-type: testValue-57
                     name: MaxCapacityTest-57
+                    owner-id: 157
                     serial-number: testValue-57
                   expectedStatus: 201
                   validations:
@@ -10346,6 +10667,7 @@ features:
                   body:
                     intent-device-type: testValue-58
                     name: MaxCapacityTest-58
+                    owner-id: 158
                     serial-number: testValue-58
                   expectedStatus: 201
                   validations:
@@ -10361,6 +10683,7 @@ features:
                   body:
                     intent-device-type: testValue-59
                     name: MaxCapacityTest-59
+                    owner-id: 159
                     serial-number: testValue-59
                   expectedStatus: 201
                   validations:
@@ -10376,6 +10699,7 @@ features:
                   body:
                     intent-device-type: testValue-60
                     name: MaxCapacityTest-60
+                    owner-id: 160
                     serial-number: testValue-60
                   expectedStatus: 201
                   validations:
@@ -10391,6 +10715,7 @@ features:
                   body:
                     intent-device-type: testValue-61
                     name: MaxCapacityTest-61
+                    owner-id: 161
                     serial-number: testValue-61
                   expectedStatus: 201
                   validations:
@@ -10406,6 +10731,7 @@ features:
                   body:
                     intent-device-type: testValue-62
                     name: MaxCapacityTest-62
+                    owner-id: 162
                     serial-number: testValue-62
                   expectedStatus: 201
                   validations:
@@ -10421,6 +10747,7 @@ features:
                   body:
                     intent-device-type: testValue-63
                     name: MaxCapacityTest-63
+                    owner-id: 163
                     serial-number: testValue-63
                   expectedStatus: 201
                   validations:
@@ -10436,6 +10763,7 @@ features:
                   body:
                     intent-device-type: testValue-64
                     name: MaxCapacityTest-64
+                    owner-id: 164
                     serial-number: testValue-64
                   expectedStatus: 201
                   validations:
@@ -10451,6 +10779,7 @@ features:
                   body:
                     intent-device-type: testValue-65
                     name: MaxCapacityTest-65
+                    owner-id: 165
                     serial-number: testValue-65
                   expectedStatus: 201
                   validations:
@@ -10466,6 +10795,7 @@ features:
                   body:
                     intent-device-type: testValue-66
                     name: MaxCapacityTest-66
+                    owner-id: 166
                     serial-number: testValue-66
                   expectedStatus: 201
                   validations:
@@ -10481,6 +10811,7 @@ features:
                   body:
                     intent-device-type: testValue-67
                     name: MaxCapacityTest-67
+                    owner-id: 167
                     serial-number: testValue-67
                   expectedStatus: 201
                   validations:
@@ -10496,6 +10827,7 @@ features:
                   body:
                     intent-device-type: testValue-68
                     name: MaxCapacityTest-68
+                    owner-id: 168
                     serial-number: testValue-68
                   expectedStatus: 201
                   validations:
@@ -10511,6 +10843,7 @@ features:
                   body:
                     intent-device-type: testValue-69
                     name: MaxCapacityTest-69
+                    owner-id: 169
                     serial-number: testValue-69
                   expectedStatus: 201
                   validations:
@@ -10526,6 +10859,7 @@ features:
                   body:
                     intent-device-type: testValue-70
                     name: MaxCapacityTest-70
+                    owner-id: 170
                     serial-number: testValue-70
                   expectedStatus: 201
                   validations:
@@ -10541,6 +10875,7 @@ features:
                   body:
                     intent-device-type: testValue-71
                     name: MaxCapacityTest-71
+                    owner-id: 171
                     serial-number: testValue-71
                   expectedStatus: 201
                   validations:
@@ -10556,6 +10891,7 @@ features:
                   body:
                     intent-device-type: testValue-72
                     name: MaxCapacityTest-72
+                    owner-id: 172
                     serial-number: testValue-72
                   expectedStatus: 201
                   validations:
@@ -10571,6 +10907,7 @@ features:
                   body:
                     intent-device-type: testValue-73
                     name: MaxCapacityTest-73
+                    owner-id: 173
                     serial-number: testValue-73
                   expectedStatus: 201
                   validations:
@@ -10586,6 +10923,7 @@ features:
                   body:
                     intent-device-type: testValue-74
                     name: MaxCapacityTest-74
+                    owner-id: 174
                     serial-number: testValue-74
                   expectedStatus: 201
                   validations:
@@ -10601,6 +10939,7 @@ features:
                   body:
                     intent-device-type: testValue-75
                     name: MaxCapacityTest-75
+                    owner-id: 175
                     serial-number: testValue-75
                   expectedStatus: 201
                   validations:
@@ -10616,6 +10955,7 @@ features:
                   body:
                     intent-device-type: testValue-76
                     name: MaxCapacityTest-76
+                    owner-id: 176
                     serial-number: testValue-76
                   expectedStatus: 201
                   validations:
@@ -10631,6 +10971,7 @@ features:
                   body:
                     intent-device-type: testValue-77
                     name: MaxCapacityTest-77
+                    owner-id: 177
                     serial-number: testValue-77
                   expectedStatus: 201
                   validations:
@@ -10646,6 +10987,7 @@ features:
                   body:
                     intent-device-type: testValue-78
                     name: MaxCapacityTest-78
+                    owner-id: 178
                     serial-number: testValue-78
                   expectedStatus: 201
                   validations:
@@ -10661,6 +11003,7 @@ features:
                   body:
                     intent-device-type: testValue-79
                     name: MaxCapacityTest-79
+                    owner-id: 179
                     serial-number: testValue-79
                   expectedStatus: 201
                   validations:
@@ -10676,6 +11019,7 @@ features:
                   body:
                     intent-device-type: testValue-80
                     name: MaxCapacityTest-80
+                    owner-id: 180
                     serial-number: testValue-80
                   expectedStatus: 201
                   validations:
@@ -10691,6 +11035,7 @@ features:
                   body:
                     intent-device-type: testValue-81
                     name: MaxCapacityTest-81
+                    owner-id: 181
                     serial-number: testValue-81
                   expectedStatus: 201
                   validations:
@@ -10706,6 +11051,7 @@ features:
                   body:
                     intent-device-type: testValue-82
                     name: MaxCapacityTest-82
+                    owner-id: 182
                     serial-number: testValue-82
                   expectedStatus: 201
                   validations:
@@ -10721,6 +11067,7 @@ features:
                   body:
                     intent-device-type: testValue-83
                     name: MaxCapacityTest-83
+                    owner-id: 183
                     serial-number: testValue-83
                   expectedStatus: 201
                   validations:
@@ -10736,6 +11083,7 @@ features:
                   body:
                     intent-device-type: testValue-84
                     name: MaxCapacityTest-84
+                    owner-id: 184
                     serial-number: testValue-84
                   expectedStatus: 201
                   validations:
@@ -10751,6 +11099,7 @@ features:
                   body:
                     intent-device-type: testValue-85
                     name: MaxCapacityTest-85
+                    owner-id: 185
                     serial-number: testValue-85
                   expectedStatus: 201
                   validations:
@@ -10766,6 +11115,7 @@ features:
                   body:
                     intent-device-type: testValue-86
                     name: MaxCapacityTest-86
+                    owner-id: 186
                     serial-number: testValue-86
                   expectedStatus: 201
                   validations:
@@ -10781,6 +11131,7 @@ features:
                   body:
                     intent-device-type: testValue-87
                     name: MaxCapacityTest-87
+                    owner-id: 187
                     serial-number: testValue-87
                   expectedStatus: 201
                   validations:
@@ -10796,6 +11147,7 @@ features:
                   body:
                     intent-device-type: testValue-88
                     name: MaxCapacityTest-88
+                    owner-id: 188
                     serial-number: testValue-88
                   expectedStatus: 201
                   validations:
@@ -10811,6 +11163,7 @@ features:
                   body:
                     intent-device-type: testValue-89
                     name: MaxCapacityTest-89
+                    owner-id: 189
                     serial-number: testValue-89
                   expectedStatus: 201
                   validations:
@@ -10826,6 +11179,7 @@ features:
                   body:
                     intent-device-type: testValue-90
                     name: MaxCapacityTest-90
+                    owner-id: 190
                     serial-number: testValue-90
                   expectedStatus: 201
                   validations:
@@ -10841,6 +11195,7 @@ features:
                   body:
                     intent-device-type: testValue-91
                     name: MaxCapacityTest-91
+                    owner-id: 191
                     serial-number: testValue-91
                   expectedStatus: 201
                   validations:
@@ -10856,6 +11211,7 @@ features:
                   body:
                     intent-device-type: testValue-92
                     name: MaxCapacityTest-92
+                    owner-id: 192
                     serial-number: testValue-92
                   expectedStatus: 201
                   validations:
@@ -10871,6 +11227,7 @@ features:
                   body:
                     intent-device-type: testValue-93
                     name: MaxCapacityTest-93
+                    owner-id: 193
                     serial-number: testValue-93
                   expectedStatus: 201
                   validations:
@@ -10886,6 +11243,7 @@ features:
                   body:
                     intent-device-type: testValue-94
                     name: MaxCapacityTest-94
+                    owner-id: 194
                     serial-number: testValue-94
                   expectedStatus: 201
                   validations:
@@ -10901,6 +11259,7 @@ features:
                   body:
                     intent-device-type: testValue-95
                     name: MaxCapacityTest-95
+                    owner-id: 195
                     serial-number: testValue-95
                   expectedStatus: 201
                   validations:
@@ -10916,6 +11275,7 @@ features:
                   body:
                     intent-device-type: testValue-96
                     name: MaxCapacityTest-96
+                    owner-id: 196
                     serial-number: testValue-96
                   expectedStatus: 201
                   validations:
@@ -10931,6 +11291,7 @@ features:
                   body:
                     intent-device-type: testValue-97
                     name: MaxCapacityTest-97
+                    owner-id: 197
                     serial-number: testValue-97
                   expectedStatus: 201
                   validations:
@@ -10946,6 +11307,7 @@ features:
                   body:
                     intent-device-type: testValue-98
                     name: MaxCapacityTest-98
+                    owner-id: 198
                     serial-number: testValue-98
                   expectedStatus: 201
                   validations:
@@ -10961,6 +11323,7 @@ features:
                   body:
                     intent-device-type: testValue-99
                     name: MaxCapacityTest-99
+                    owner-id: 199
                     serial-number: testValue-99
                   expectedStatus: 201
                   validations:
@@ -10976,6 +11339,7 @@ features:
                   body:
                     intent-device-type: testValue-100
                     name: MaxCapacityTest-100
+                    owner-id: 200
                     serial-number: testValue-100
                   expectedStatus: 201
                   validations:
@@ -10991,6 +11355,7 @@ features:
                   body:
                     intent-device-type: testValue-101
                     name: MaxCapacityTest-101
+                    owner-id: 201
                     serial-number: testValue-101
                   expectedStatus: 201
                   validations:
@@ -11006,6 +11371,7 @@ features:
                   body:
                     intent-device-type: testValue-102
                     name: MaxCapacityTest-102
+                    owner-id: 202
                     serial-number: testValue-102
                   expectedStatus: 201
                   validations:
@@ -11021,6 +11387,7 @@ features:
                   body:
                     intent-device-type: testValue-103
                     name: MaxCapacityTest-103
+                    owner-id: 203
                     serial-number: testValue-103
                   expectedStatus: 201
                   validations:
@@ -11036,6 +11403,7 @@ features:
                   body:
                     intent-device-type: testValue-104
                     name: MaxCapacityTest-104
+                    owner-id: 204
                     serial-number: testValue-104
                   expectedStatus: 201
                   validations:
@@ -11051,6 +11419,7 @@ features:
                   body:
                     intent-device-type: testValue-105
                     name: MaxCapacityTest-105
+                    owner-id: 205
                     serial-number: testValue-105
                   expectedStatus: 201
                   validations:
@@ -11066,6 +11435,7 @@ features:
                   body:
                     intent-device-type: testValue-106
                     name: MaxCapacityTest-106
+                    owner-id: 206
                     serial-number: testValue-106
                   expectedStatus: 201
                   validations:
@@ -11081,6 +11451,7 @@ features:
                   body:
                     intent-device-type: testValue-107
                     name: MaxCapacityTest-107
+                    owner-id: 207
                     serial-number: testValue-107
                   expectedStatus: 201
                   validations:
@@ -11096,6 +11467,7 @@ features:
                   body:
                     intent-device-type: testValue-108
                     name: MaxCapacityTest-108
+                    owner-id: 208
                     serial-number: testValue-108
                   expectedStatus: 201
                   validations:
@@ -11111,6 +11483,7 @@ features:
                   body:
                     intent-device-type: testValue-109
                     name: MaxCapacityTest-109
+                    owner-id: 209
                     serial-number: testValue-109
                   expectedStatus: 201
                   validations:
@@ -11126,6 +11499,7 @@ features:
                   body:
                     intent-device-type: testValue-110
                     name: MaxCapacityTest-110
+                    owner-id: 210
                     serial-number: testValue-110
                   expectedStatus: 201
                   validations:
@@ -11141,6 +11515,7 @@ features:
                   body:
                     intent-device-type: testValue-111
                     name: MaxCapacityTest-111
+                    owner-id: 211
                     serial-number: testValue-111
                   expectedStatus: 201
                   validations:
@@ -11156,6 +11531,7 @@ features:
                   body:
                     intent-device-type: testValue-112
                     name: MaxCapacityTest-112
+                    owner-id: 212
                     serial-number: testValue-112
                   expectedStatus: 201
                   validations:
@@ -11171,6 +11547,7 @@ features:
                   body:
                     intent-device-type: testValue-113
                     name: MaxCapacityTest-113
+                    owner-id: 213
                     serial-number: testValue-113
                   expectedStatus: 201
                   validations:
@@ -11186,6 +11563,7 @@ features:
                   body:
                     intent-device-type: testValue-114
                     name: MaxCapacityTest-114
+                    owner-id: 214
                     serial-number: testValue-114
                   expectedStatus: 201
                   validations:
@@ -11201,6 +11579,7 @@ features:
                   body:
                     intent-device-type: testValue-115
                     name: MaxCapacityTest-115
+                    owner-id: 215
                     serial-number: testValue-115
                   expectedStatus: 201
                   validations:
@@ -11216,6 +11595,7 @@ features:
                   body:
                     intent-device-type: testValue-116
                     name: MaxCapacityTest-116
+                    owner-id: 216
                     serial-number: testValue-116
                   expectedStatus: 201
                   validations:
@@ -11231,6 +11611,7 @@ features:
                   body:
                     intent-device-type: testValue-117
                     name: MaxCapacityTest-117
+                    owner-id: 217
                     serial-number: testValue-117
                   expectedStatus: 201
                   validations:
@@ -11246,6 +11627,7 @@ features:
                   body:
                     intent-device-type: testValue-118
                     name: MaxCapacityTest-118
+                    owner-id: 218
                     serial-number: testValue-118
                   expectedStatus: 201
                   validations:
@@ -11261,6 +11643,7 @@ features:
                   body:
                     intent-device-type: testValue-119
                     name: MaxCapacityTest-119
+                    owner-id: 219
                     serial-number: testValue-119
                   expectedStatus: 201
                   validations:
@@ -11276,6 +11659,7 @@ features:
                   body:
                     intent-device-type: testValue-120
                     name: MaxCapacityTest-120
+                    owner-id: 220
                     serial-number: testValue-120
                   expectedStatus: 201
                   validations:
@@ -11291,6 +11675,7 @@ features:
                   body:
                     intent-device-type: testValue-121
                     name: MaxCapacityTest-121
+                    owner-id: 221
                     serial-number: testValue-121
                   expectedStatus: 201
                   validations:
@@ -11306,6 +11691,7 @@ features:
                   body:
                     intent-device-type: testValue-122
                     name: MaxCapacityTest-122
+                    owner-id: 222
                     serial-number: testValue-122
                   expectedStatus: 201
                   validations:
@@ -11321,6 +11707,7 @@ features:
                   body:
                     intent-device-type: testValue-123
                     name: MaxCapacityTest-123
+                    owner-id: 223
                     serial-number: testValue-123
                   expectedStatus: 201
                   validations:
@@ -11336,6 +11723,7 @@ features:
                   body:
                     intent-device-type: testValue-124
                     name: MaxCapacityTest-124
+                    owner-id: 224
                     serial-number: testValue-124
                   expectedStatus: 201
                   validations:
@@ -11351,6 +11739,7 @@ features:
                   body:
                     intent-device-type: testValue-125
                     name: MaxCapacityTest-125
+                    owner-id: 225
                     serial-number: testValue-125
                   expectedStatus: 201
                   validations:
@@ -11366,6 +11755,7 @@ features:
                   body:
                     intent-device-type: testValue-126
                     name: MaxCapacityTest-126
+                    owner-id: 226
                     serial-number: testValue-126
                   expectedStatus: 201
                   validations:
@@ -11381,6 +11771,7 @@ features:
                   body:
                     intent-device-type: testValue-127
                     name: MaxCapacityTest-127
+                    owner-id: 227
                     serial-number: testValue-127
                   expectedStatus: 201
                   validations:
@@ -11396,6 +11787,7 @@ features:
                   body:
                     intent-device-type: testValue-128
                     name: MaxCapacityTest-128
+                    owner-id: 228
                     serial-number: testValue-128
                   expectedStatus: 201
                   validations:
@@ -11411,6 +11803,7 @@ features:
                   body:
                     intent-device-type: testValue-129
                     name: MaxCapacityTest-129
+                    owner-id: 229
                     serial-number: testValue-129
                   expectedStatus: 201
                   validations:
@@ -11426,6 +11819,7 @@ features:
                   body:
                     intent-device-type: testValue-130
                     name: MaxCapacityTest-130
+                    owner-id: 230
                     serial-number: testValue-130
                   expectedStatus: 201
                   validations:
@@ -11441,6 +11835,7 @@ features:
                   body:
                     intent-device-type: testValue-131
                     name: MaxCapacityTest-131
+                    owner-id: 231
                     serial-number: testValue-131
                   expectedStatus: 201
                   validations:
@@ -11456,6 +11851,7 @@ features:
                   body:
                     intent-device-type: testValue-132
                     name: MaxCapacityTest-132
+                    owner-id: 232
                     serial-number: testValue-132
                   expectedStatus: 201
                   validations:
@@ -11471,6 +11867,7 @@ features:
                   body:
                     intent-device-type: testValue-133
                     name: MaxCapacityTest-133
+                    owner-id: 233
                     serial-number: testValue-133
                   expectedStatus: 201
                   validations:
@@ -11486,6 +11883,7 @@ features:
                   body:
                     intent-device-type: testValue-134
                     name: MaxCapacityTest-134
+                    owner-id: 234
                     serial-number: testValue-134
                   expectedStatus: 201
                   validations:
@@ -11501,6 +11899,7 @@ features:
                   body:
                     intent-device-type: testValue-135
                     name: MaxCapacityTest-135
+                    owner-id: 235
                     serial-number: testValue-135
                   expectedStatus: 201
                   validations:
@@ -11516,6 +11915,7 @@ features:
                   body:
                     intent-device-type: testValue-136
                     name: MaxCapacityTest-136
+                    owner-id: 236
                     serial-number: testValue-136
                   expectedStatus: 201
                   validations:
@@ -11531,6 +11931,7 @@ features:
                   body:
                     intent-device-type: testValue-137
                     name: MaxCapacityTest-137
+                    owner-id: 237
                     serial-number: testValue-137
                   expectedStatus: 201
                   validations:
@@ -11546,6 +11947,7 @@ features:
                   body:
                     intent-device-type: testValue-138
                     name: MaxCapacityTest-138
+                    owner-id: 238
                     serial-number: testValue-138
                   expectedStatus: 201
                   validations:
@@ -11561,6 +11963,7 @@ features:
                   body:
                     intent-device-type: testValue-139
                     name: MaxCapacityTest-139
+                    owner-id: 239
                     serial-number: testValue-139
                   expectedStatus: 201
                   validations:
@@ -11576,6 +11979,7 @@ features:
                   body:
                     intent-device-type: testValue-140
                     name: MaxCapacityTest-140
+                    owner-id: 240
                     serial-number: testValue-140
                   expectedStatus: 201
                   validations:
@@ -11591,6 +11995,7 @@ features:
                   body:
                     intent-device-type: testValue-141
                     name: MaxCapacityTest-141
+                    owner-id: 241
                     serial-number: testValue-141
                   expectedStatus: 201
                   validations:
@@ -11606,6 +12011,7 @@ features:
                   body:
                     intent-device-type: testValue-142
                     name: MaxCapacityTest-142
+                    owner-id: 242
                     serial-number: testValue-142
                   expectedStatus: 201
                   validations:
@@ -11621,6 +12027,7 @@ features:
                   body:
                     intent-device-type: testValue-143
                     name: MaxCapacityTest-143
+                    owner-id: 243
                     serial-number: testValue-143
                   expectedStatus: 201
                   validations:
@@ -11636,6 +12043,7 @@ features:
                   body:
                     intent-device-type: testValue-144
                     name: MaxCapacityTest-144
+                    owner-id: 244
                     serial-number: testValue-144
                   expectedStatus: 201
                   validations:
@@ -11651,6 +12059,7 @@ features:
                   body:
                     intent-device-type: testValue-145
                     name: MaxCapacityTest-145
+                    owner-id: 245
                     serial-number: testValue-145
                   expectedStatus: 201
                   validations:
@@ -11666,6 +12075,7 @@ features:
                   body:
                     intent-device-type: testValue-146
                     name: MaxCapacityTest-146
+                    owner-id: 246
                     serial-number: testValue-146
                   expectedStatus: 201
                   validations:
@@ -11681,6 +12091,7 @@ features:
                   body:
                     intent-device-type: testValue-147
                     name: MaxCapacityTest-147
+                    owner-id: 247
                     serial-number: testValue-147
                   expectedStatus: 201
                   validations:
@@ -11696,6 +12107,7 @@ features:
                   body:
                     intent-device-type: testValue-148
                     name: MaxCapacityTest-148
+                    owner-id: 248
                     serial-number: testValue-148
                   expectedStatus: 201
                   validations:
@@ -11711,6 +12123,7 @@ features:
                   body:
                     intent-device-type: testValue-149
                     name: MaxCapacityTest-149
+                    owner-id: 249
                     serial-number: testValue-149
                   expectedStatus: 201
                   validations:
@@ -11726,6 +12139,7 @@ features:
                   body:
                     intent-device-type: testValue-150
                     name: MaxCapacityTest-150
+                    owner-id: 250
                     serial-number: testValue-150
                   expectedStatus: 201
                   validations:
@@ -11741,6 +12155,7 @@ features:
                   body:
                     intent-device-type: testValue-151
                     name: MaxCapacityTest-151
+                    owner-id: 251
                     serial-number: testValue-151
                   expectedStatus: 201
                   validations:
@@ -11756,6 +12171,7 @@ features:
                   body:
                     intent-device-type: testValue-152
                     name: MaxCapacityTest-152
+                    owner-id: 252
                     serial-number: testValue-152
                   expectedStatus: 201
                   validations:
@@ -11771,6 +12187,7 @@ features:
                   body:
                     intent-device-type: testValue-153
                     name: MaxCapacityTest-153
+                    owner-id: 253
                     serial-number: testValue-153
                   expectedStatus: 201
                   validations:
@@ -11786,6 +12203,7 @@ features:
                   body:
                     intent-device-type: testValue-154
                     name: MaxCapacityTest-154
+                    owner-id: 254
                     serial-number: testValue-154
                   expectedStatus: 201
                   validations:
@@ -11801,6 +12219,7 @@ features:
                   body:
                     intent-device-type: testValue-155
                     name: MaxCapacityTest-155
+                    owner-id: 255
                     serial-number: testValue-155
                   expectedStatus: 201
                   validations:
@@ -11816,6 +12235,7 @@ features:
                   body:
                     intent-device-type: testValue-156
                     name: MaxCapacityTest-156
+                    owner-id: 256
                     serial-number: testValue-156
                   expectedStatus: 201
                   validations:
@@ -11831,6 +12251,7 @@ features:
                   body:
                     intent-device-type: testValue-157
                     name: MaxCapacityTest-157
+                    owner-id: 257
                     serial-number: testValue-157
                   expectedStatus: 201
                   validations:
@@ -11846,6 +12267,7 @@ features:
                   body:
                     intent-device-type: testValue-158
                     name: MaxCapacityTest-158
+                    owner-id: 258
                     serial-number: testValue-158
                   expectedStatus: 201
                   validations:
@@ -11861,6 +12283,7 @@ features:
                   body:
                     intent-device-type: testValue-159
                     name: MaxCapacityTest-159
+                    owner-id: 259
                     serial-number: testValue-159
                   expectedStatus: 201
                   validations:
@@ -11876,6 +12299,7 @@ features:
                   body:
                     intent-device-type: testValue-160
                     name: MaxCapacityTest-160
+                    owner-id: 260
                     serial-number: testValue-160
                   expectedStatus: 201
                   validations:
@@ -11891,6 +12315,7 @@ features:
                   body:
                     intent-device-type: testValue-161
                     name: MaxCapacityTest-161
+                    owner-id: 261
                     serial-number: testValue-161
                   expectedStatus: 201
                   validations:
@@ -11906,6 +12331,7 @@ features:
                   body:
                     intent-device-type: testValue-162
                     name: MaxCapacityTest-162
+                    owner-id: 262
                     serial-number: testValue-162
                   expectedStatus: 201
                   validations:
@@ -11921,6 +12347,7 @@ features:
                   body:
                     intent-device-type: testValue-163
                     name: MaxCapacityTest-163
+                    owner-id: 263
                     serial-number: testValue-163
                   expectedStatus: 201
                   validations:
@@ -11936,6 +12363,7 @@ features:
                   body:
                     intent-device-type: testValue-164
                     name: MaxCapacityTest-164
+                    owner-id: 264
                     serial-number: testValue-164
                   expectedStatus: 201
                   validations:
@@ -11951,6 +12379,7 @@ features:
                   body:
                     intent-device-type: testValue-165
                     name: MaxCapacityTest-165
+                    owner-id: 265
                     serial-number: testValue-165
                   expectedStatus: 201
                   validations:
@@ -11966,6 +12395,7 @@ features:
                   body:
                     intent-device-type: testValue-166
                     name: MaxCapacityTest-166
+                    owner-id: 266
                     serial-number: testValue-166
                   expectedStatus: 201
                   validations:
@@ -11981,6 +12411,7 @@ features:
                   body:
                     intent-device-type: testValue-167
                     name: MaxCapacityTest-167
+                    owner-id: 267
                     serial-number: testValue-167
                   expectedStatus: 201
                   validations:
@@ -11996,6 +12427,7 @@ features:
                   body:
                     intent-device-type: testValue-168
                     name: MaxCapacityTest-168
+                    owner-id: 268
                     serial-number: testValue-168
                   expectedStatus: 201
                   validations:
@@ -12011,6 +12443,7 @@ features:
                   body:
                     intent-device-type: testValue-169
                     name: MaxCapacityTest-169
+                    owner-id: 269
                     serial-number: testValue-169
                   expectedStatus: 201
                   validations:
@@ -12026,6 +12459,7 @@ features:
                   body:
                     intent-device-type: testValue-170
                     name: MaxCapacityTest-170
+                    owner-id: 270
                     serial-number: testValue-170
                   expectedStatus: 201
                   validations:
@@ -12041,6 +12475,7 @@ features:
                   body:
                     intent-device-type: testValue-171
                     name: MaxCapacityTest-171
+                    owner-id: 271
                     serial-number: testValue-171
                   expectedStatus: 201
                   validations:
@@ -12056,6 +12491,7 @@ features:
                   body:
                     intent-device-type: testValue-172
                     name: MaxCapacityTest-172
+                    owner-id: 272
                     serial-number: testValue-172
                   expectedStatus: 201
                   validations:
@@ -12071,6 +12507,7 @@ features:
                   body:
                     intent-device-type: testValue-173
                     name: MaxCapacityTest-173
+                    owner-id: 273
                     serial-number: testValue-173
                   expectedStatus: 201
                   validations:
@@ -12086,6 +12523,7 @@ features:
                   body:
                     intent-device-type: testValue-174
                     name: MaxCapacityTest-174
+                    owner-id: 274
                     serial-number: testValue-174
                   expectedStatus: 201
                   validations:
@@ -12101,6 +12539,7 @@ features:
                   body:
                     intent-device-type: testValue-175
                     name: MaxCapacityTest-175
+                    owner-id: 275
                     serial-number: testValue-175
                   expectedStatus: 201
                   validations:
@@ -12116,6 +12555,7 @@ features:
                   body:
                     intent-device-type: testValue-176
                     name: MaxCapacityTest-176
+                    owner-id: 276
                     serial-number: testValue-176
                   expectedStatus: 201
                   validations:
@@ -12131,6 +12571,7 @@ features:
                   body:
                     intent-device-type: testValue-177
                     name: MaxCapacityTest-177
+                    owner-id: 277
                     serial-number: testValue-177
                   expectedStatus: 201
                   validations:
@@ -12146,6 +12587,7 @@ features:
                   body:
                     intent-device-type: testValue-178
                     name: MaxCapacityTest-178
+                    owner-id: 278
                     serial-number: testValue-178
                   expectedStatus: 201
                   validations:
@@ -12161,6 +12603,7 @@ features:
                   body:
                     intent-device-type: testValue-179
                     name: MaxCapacityTest-179
+                    owner-id: 279
                     serial-number: testValue-179
                   expectedStatus: 201
                   validations:
@@ -12176,6 +12619,7 @@ features:
                   body:
                     intent-device-type: testValue-180
                     name: MaxCapacityTest-180
+                    owner-id: 280
                     serial-number: testValue-180
                   expectedStatus: 201
                   validations:
@@ -12191,6 +12635,7 @@ features:
                   body:
                     intent-device-type: testValue-181
                     name: MaxCapacityTest-181
+                    owner-id: 281
                     serial-number: testValue-181
                   expectedStatus: 201
                   validations:
@@ -12206,6 +12651,7 @@ features:
                   body:
                     intent-device-type: testValue-182
                     name: MaxCapacityTest-182
+                    owner-id: 282
                     serial-number: testValue-182
                   expectedStatus: 201
                   validations:
@@ -12221,6 +12667,7 @@ features:
                   body:
                     intent-device-type: testValue-183
                     name: MaxCapacityTest-183
+                    owner-id: 283
                     serial-number: testValue-183
                   expectedStatus: 201
                   validations:
@@ -12236,6 +12683,7 @@ features:
                   body:
                     intent-device-type: testValue-184
                     name: MaxCapacityTest-184
+                    owner-id: 284
                     serial-number: testValue-184
                   expectedStatus: 201
                   validations:
@@ -12251,6 +12699,7 @@ features:
                   body:
                     intent-device-type: testValue-185
                     name: MaxCapacityTest-185
+                    owner-id: 285
                     serial-number: testValue-185
                   expectedStatus: 201
                   validations:
@@ -12266,6 +12715,7 @@ features:
                   body:
                     intent-device-type: testValue-186
                     name: MaxCapacityTest-186
+                    owner-id: 286
                     serial-number: testValue-186
                   expectedStatus: 201
                   validations:
@@ -12281,6 +12731,7 @@ features:
                   body:
                     intent-device-type: testValue-187
                     name: MaxCapacityTest-187
+                    owner-id: 287
                     serial-number: testValue-187
                   expectedStatus: 201
                   validations:
@@ -12296,6 +12747,7 @@ features:
                   body:
                     intent-device-type: testValue-188
                     name: MaxCapacityTest-188
+                    owner-id: 288
                     serial-number: testValue-188
                   expectedStatus: 201
                   validations:
@@ -12311,6 +12763,7 @@ features:
                   body:
                     intent-device-type: testValue-189
                     name: MaxCapacityTest-189
+                    owner-id: 289
                     serial-number: testValue-189
                   expectedStatus: 201
                   validations:
@@ -12326,6 +12779,7 @@ features:
                   body:
                     intent-device-type: testValue-190
                     name: MaxCapacityTest-190
+                    owner-id: 290
                     serial-number: testValue-190
                   expectedStatus: 201
                   validations:
@@ -12341,6 +12795,7 @@ features:
                   body:
                     intent-device-type: testValue-191
                     name: MaxCapacityTest-191
+                    owner-id: 291
                     serial-number: testValue-191
                   expectedStatus: 201
                   validations:
@@ -12356,6 +12811,7 @@ features:
                   body:
                     intent-device-type: testValue-192
                     name: MaxCapacityTest-192
+                    owner-id: 292
                     serial-number: testValue-192
                   expectedStatus: 201
                   validations:
@@ -12371,6 +12827,7 @@ features:
                   body:
                     intent-device-type: testValue-193
                     name: MaxCapacityTest-193
+                    owner-id: 293
                     serial-number: testValue-193
                   expectedStatus: 201
                   validations:
@@ -12386,6 +12843,7 @@ features:
                   body:
                     intent-device-type: testValue-194
                     name: MaxCapacityTest-194
+                    owner-id: 294
                     serial-number: testValue-194
                   expectedStatus: 201
                   validations:
@@ -12401,6 +12859,7 @@ features:
                   body:
                     intent-device-type: testValue-195
                     name: MaxCapacityTest-195
+                    owner-id: 295
                     serial-number: testValue-195
                   expectedStatus: 201
                   validations:
@@ -12416,6 +12875,7 @@ features:
                   body:
                     intent-device-type: testValue-196
                     name: MaxCapacityTest-196
+                    owner-id: 296
                     serial-number: testValue-196
                   expectedStatus: 201
                   validations:
@@ -12431,6 +12891,7 @@ features:
                   body:
                     intent-device-type: testValue-197
                     name: MaxCapacityTest-197
+                    owner-id: 297
                     serial-number: testValue-197
                   expectedStatus: 201
                   validations:
@@ -12446,6 +12907,7 @@ features:
                   body:
                     intent-device-type: testValue-198
                     name: MaxCapacityTest-198
+                    owner-id: 298
                     serial-number: testValue-198
                   expectedStatus: 201
                   validations:
@@ -12461,6 +12923,7 @@ features:
                   body:
                     intent-device-type: testValue-199
                     name: MaxCapacityTest-199
+                    owner-id: 299
                     serial-number: testValue-199
                   expectedStatus: 201
                   validations:

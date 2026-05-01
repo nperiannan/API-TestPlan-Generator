@@ -1,5 +1,5 @@
 version: "1.0"
-generatedAt: "2026-05-01T08:00:49+05:30"
+generatedAt: "2026-05-01T10:39:11+05:30"
 sourceYangDir: .\sources\PlatformCommonModels\ConfigState\etc\yang
 sourceRESTAPI: .\sources\PlatformServices\Configuration\src\configuration\infra\rest\openapi.yaml
 sourceNOSAPI: .\sources\nosapi\nos-openapi.yaml
@@ -10,7 +10,7 @@ features:
       description: ""
       tests:
         boundary:
-            - testCaseID: TCXM_3501
+            - testCaseID: TCXM_3498
               featureName: group
               priority: P3
               automation: Automatable
@@ -47,7 +47,7 @@ features:
                       expected: create
                       description: Verify operation type is 'create'
         functional:
-            - testCaseID: TCXM_3436
+            - testCaseID: TCXM_3435
               featureName: group
               priority: P1
               automation: Automatable
@@ -83,7 +83,7 @@ features:
                       path: $[0].operation
                       expected: create
                       description: Verify operation type is 'create'
-            - testCaseID: TCXM_3437
+            - testCaseID: TCXM_3436
               featureName: group
               priority: P3
               automation: Automatable
@@ -119,119 +119,7 @@ features:
                     - type: statusCode
                       expected: 409
                       description: Verify duplicate create of group with group is rejected (409 Conflict)
-            - testCaseID: TCXM_3438
-              featureName: group
-              priority: P1
-              automation: Automatable
-              type: functional
-              description: Create group, scope to device, target to device, deploy, and verify on NOS devices
-              scopeType: device
-              targetType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: creategroup
-                  description: Create group configuration
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/group/clone
-                  body:
-                    name: TestProfile
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-                - name: scopeProfileTodevice
-                  description: Scope profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/scope
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    scopeId: test-scope-001
-                    scopeType: device
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: targetProfileTodevice
-                  description: Target profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/target
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    targetId: test-scope-001
-                    targetType: device
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                - name: deployProfileTodevice
-                  description: Deploy profile to device
-                  method: POST
-                  api: REST
-                  path: /global-profile/TestProfile/deploy
-                  pathParams:
-                    profileName: TestProfile
-                  body:
-                    deploymentMethod: immediate
-                  expectedStatus: 202
-                  validations:
-                    - Verify HTTP status code is 202
-                  assertions:
-                    - type: statusCode
-                      expected: 202
-                - name: checkDeploymentStatus
-                  description: Verify deployment status
-                  method: GET
-                  api: REST
-                  path: /global-profile/TestProfile/deployment/status
-                  pathParams:
-                    profileName: TestProfile
-                  expectedStatus: 200
-                  validations:
-                    - Verify HTTP status code is 200
-                    - Verify '$.status' equals SUCCESS
-                  assertions:
-                    - type: statusCode
-                      expected: 200
-                    - type: jsonPathEquals
-                      path: $.status
-                      expected: SUCCESS
-                  timeout: 300
-            - testCaseID: TCXM_3439
-              featureName: group
-              priority: P2
-              automation: Automatable
-              type: functional
-              description: Create group and verify configuration on NOS devices (without explicit scope/target/deploy)
-              scopeType: device
-              deploymentMethod: immediate
-              isDeploymentTest: true
-              steps:
-                - name: creategroup
-                  description: Create group configuration
-                  method: POST
-                  api: REST
-                  path: /configuration-profile/{name}/feature/object/group/clone
-                  body:
-                    name: TestProfile-Simple
-                  expectedStatus: 201
-                  validations:
-                    - Verify HTTP status code is 201
-                  assertions:
-                    - type: statusCode
-                      expected: 201
-            - testCaseID: TCXM_3440
+            - testCaseID: TCXM_3437
               featureName: group
               priority: P2
               automation: Automatable
@@ -252,7 +140,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify resource is created with required fields only
-            - testCaseID: TCXM_3441
+            - testCaseID: TCXM_3438
               featureName: group
               priority: P2
               automation: Automatable
@@ -274,7 +162,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify resource is created with all fields
-            - testCaseID: TCXM_3442
+            - testCaseID: TCXM_3439
               featureName: group
               priority: P3
               automation: Automatable
@@ -296,7 +184,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify resource is created when optional field 'group-info' is provided
-            - testCaseID: TCXM_3443
+            - testCaseID: TCXM_3440
               featureName: group
               priority: P2
               automation: Automatable
@@ -319,7 +207,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify group-info type 'list' value is accepted
-            - testCaseID: TCXM_3444
+            - testCaseID: TCXM_3441
               featureName: group
               priority: P2
               automation: Automatable
@@ -342,7 +230,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify group-info type 'list' value is accepted
-            - testCaseID: TCXM_3445
+            - testCaseID: TCXM_3442
               featureName: group
               priority: P2
               automation: Automatable
@@ -364,7 +252,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify name type 'string' value is accepted
-            - testCaseID: TCXM_3446
+            - testCaseID: TCXM_3443
               featureName: group
               priority: P2
               automation: Automatable
@@ -386,7 +274,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify name type 'string' value is accepted
-            - testCaseID: TCXM_3447
+            - testCaseID: TCXM_3444
               featureName: group
               priority: P2
               automation: Automatable
@@ -409,7 +297,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify common-service-id type 'int64' value is accepted
-            - testCaseID: TCXM_3448
+            - testCaseID: TCXM_3445
               featureName: group
               priority: P2
               automation: Automatable
@@ -432,7 +320,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify common-service-id type 'int64' value is accepted
-            - testCaseID: TCXM_3449
+            - testCaseID: TCXM_3446
               featureName: group
               priority: P2
               automation: Automatable
@@ -455,7 +343,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify group-type type 'inferred-types:group-type-enum' value is accepted
-            - testCaseID: TCXM_3450
+            - testCaseID: TCXM_3447
               featureName: group
               priority: P2
               automation: Automatable
@@ -478,22 +366,22 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify group-type type 'inferred-types:group-type-enum' value is accepted
-            - testCaseID: TCXM_3451
+            - testCaseID: TCXM_3448
               featureName: group
               priority: P2
               automation: Automatable
               type: functional
-              description: Verify YANG datatype 'ietf-yang:uuid' for field 'parent-id' with value variation 1 (testValue) — It refers to the uuid of group itself which is the parent of current group
+              description: Verify YANG datatype 'ietf-yang:uuid' for field 'parent-id' with value variation 1 (123e4567-e89b-12d3-a456-426614174000) — It refers to the uuid of group itself which is the parent of current group
               isDeploymentTest: false
               steps:
                 - name: createWithietfyang:uuidType_v1
-                  description: 'Create group with YANG type ''ietf-yang:uuid'' value: testValue'
+                  description: 'Create group with YANG type ''ietf-yang:uuid'' value: 123e4567-e89b-12d3-a456-426614174000'
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/group/clone
                   body:
                     name: TestResource
-                    parent-id: testValue
+                    parent-id: 123e4567-e89b-12d3-a456-426614174000
                   expectedStatus: 201
                   validations:
                     - Verify parent-id type 'ietf-yang:uuid' value is accepted
@@ -501,22 +389,22 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify parent-id type 'ietf-yang:uuid' value is accepted
-            - testCaseID: TCXM_3452
+            - testCaseID: TCXM_3449
               featureName: group
               priority: P2
               automation: Automatable
               type: functional
-              description: Verify YANG datatype 'ietf-yang:uuid' for field 'parent-id' with value variation 2 (testValue) — It refers to the uuid of group itself which is the parent of current group
+              description: Verify YANG datatype 'ietf-yang:uuid' for field 'parent-id' with value variation 2 (123e4567-e89b-12d3-a456-426614174000) — It refers to the uuid of group itself which is the parent of current group
               isDeploymentTest: false
               steps:
                 - name: createWithietfyang:uuidType_v2
-                  description: 'Create group with YANG type ''ietf-yang:uuid'' value: testValue'
+                  description: 'Create group with YANG type ''ietf-yang:uuid'' value: 123e4567-e89b-12d3-a456-426614174000'
                   method: POST
                   api: REST
                   path: /configuration-profile/{name}/feature/object/group/clone
                   body:
                     name: TestResource
-                    parent-id: testValue
+                    parent-id: 123e4567-e89b-12d3-a456-426614174000
                   expectedStatus: 201
                   validations:
                     - Verify parent-id type 'ietf-yang:uuid' value is accepted
@@ -524,7 +412,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify parent-id type 'ietf-yang:uuid' value is accepted
-            - testCaseID: TCXM_3453
+            - testCaseID: TCXM_3450
               featureName: group
               priority: P2
               automation: Automatable
@@ -547,7 +435,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify latitude type 'decimal64' value is accepted
-            - testCaseID: TCXM_3454
+            - testCaseID: TCXM_3451
               featureName: group
               priority: P2
               automation: Automatable
@@ -570,7 +458,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify latitude type 'decimal64' value is accepted
-            - testCaseID: TCXM_3455
+            - testCaseID: TCXM_3452
               featureName: group
               priority: P2
               automation: Automatable
@@ -593,7 +481,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify expanded type 'boolean' value is accepted
-            - testCaseID: TCXM_3456
+            - testCaseID: TCXM_3453
               featureName: group
               priority: P2
               automation: Automatable
@@ -616,7 +504,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify expanded type 'boolean' value is accepted
-            - testCaseID: TCXM_3457
+            - testCaseID: TCXM_3454
               featureName: group
               priority: P2
               automation: Automatable
@@ -639,7 +527,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify group-id type 'leafref' value is accepted
-            - testCaseID: TCXM_3458
+            - testCaseID: TCXM_3455
               featureName: group
               priority: P2
               automation: Automatable
@@ -662,7 +550,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify group-id type 'leafref' value is accepted
-            - testCaseID: TCXM_3459
+            - testCaseID: TCXM_3456
               featureName: group
               priority: P2
               automation: Automatable
@@ -705,7 +593,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -722,7 +610,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3460
+            - testCaseID: TCXM_3457
               featureName: group
               priority: P2
               automation: Automatable
@@ -765,7 +653,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -782,7 +670,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3461
+            - testCaseID: TCXM_3458
               featureName: group
               priority: P2
               automation: Automatable
@@ -825,7 +713,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -842,7 +730,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3462
+            - testCaseID: TCXM_3459
               featureName: group
               priority: P2
               automation: Automatable
@@ -885,7 +773,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -902,7 +790,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3463
+            - testCaseID: TCXM_3460
               featureName: group
               priority: P2
               automation: Automatable
@@ -945,7 +833,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -962,7 +850,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3464
+            - testCaseID: TCXM_3461
               featureName: group
               priority: P2
               automation: Automatable
@@ -1005,7 +893,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt0-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -1022,7 +910,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3465
+            - testCaseID: TCXM_3462
               featureName: group
               priority: P2
               automation: Automatable
@@ -1066,7 +954,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var1/device/test-device-001/deploy/status
                   pathParams:
@@ -1083,7 +971,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3466
+            - testCaseID: TCXM_3463
               featureName: group
               priority: P2
               automation: Automatable
@@ -1127,7 +1015,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var1/site/test-site-001/deploy/status
                   pathParams:
@@ -1144,7 +1032,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3467
+            - testCaseID: TCXM_3464
               featureName: group
               priority: P2
               automation: Automatable
@@ -1188,7 +1076,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var2/device/test-device-001/deploy/status
                   pathParams:
@@ -1205,7 +1093,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3468
+            - testCaseID: TCXM_3465
               featureName: group
               priority: P2
               automation: Automatable
@@ -1249,7 +1137,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var2/site/test-site-001/deploy/status
                   pathParams:
@@ -1266,7 +1154,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3469
+            - testCaseID: TCXM_3466
               featureName: group
               priority: P2
               automation: Automatable
@@ -1310,7 +1198,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var3/device/test-device-001/deploy/status
                   pathParams:
@@ -1327,7 +1215,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3470
+            - testCaseID: TCXM_3467
               featureName: group
               priority: P2
               automation: Automatable
@@ -1371,7 +1259,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-Opt1-Var3/site/test-site-001/deploy/status
                   pathParams:
@@ -1388,7 +1276,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3471
+            - testCaseID: TCXM_3468
               featureName: group
               priority: P2
               automation: Automatable
@@ -1433,7 +1321,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-A/device/test-device-001/deploy/status
                   pathParams:
@@ -1450,7 +1338,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3472
+            - testCaseID: TCXM_3469
               featureName: group
               priority: P2
               automation: Automatable
@@ -1495,7 +1383,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-B/device/test-device-001/deploy/status
                   pathParams:
@@ -1512,7 +1400,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3473
+            - testCaseID: TCXM_3470
               featureName: group
               priority: P2
               automation: Automatable
@@ -1557,7 +1445,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-C/device/test-device-001/deploy/status
                   pathParams:
@@ -1574,7 +1462,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3474
+            - testCaseID: TCXM_3471
               featureName: group
               priority: P2
               automation: Automatable
@@ -1619,7 +1507,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Alpha/device/test-device-001/deploy/status
                   pathParams:
@@ -1636,7 +1524,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3475
+            - testCaseID: TCXM_3472
               featureName: group
               priority: P2
               automation: Automatable
@@ -1681,7 +1569,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Beta/device/test-device-001/deploy/status
                   pathParams:
@@ -1698,7 +1586,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3476
+            - testCaseID: TCXM_3473
               featureName: group
               priority: P2
               automation: Automatable
@@ -1743,7 +1631,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Gamma/device/test-device-001/deploy/status
                   pathParams:
@@ -1760,7 +1648,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3477
+            - testCaseID: TCXM_3474
               featureName: group
               priority: P2
               automation: Automatable
@@ -1805,7 +1693,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Delta/device/test-device-001/deploy/status
                   pathParams:
@@ -1822,7 +1710,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3478
+            - testCaseID: TCXM_3475
               featureName: group
               priority: P2
               automation: Automatable
@@ -1867,7 +1755,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Epsilon/device/test-device-001/deploy/status
                   pathParams:
@@ -1884,7 +1772,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3479
+            - testCaseID: TCXM_3476
               featureName: group
               priority: P2
               automation: Automatable
@@ -1929,7 +1817,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Test1/device/test-device-001/deploy/status
                   pathParams:
@@ -1946,7 +1834,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3480
+            - testCaseID: TCXM_3477
               featureName: group
               priority: P2
               automation: Automatable
@@ -1991,7 +1879,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/Resource-Test2/device/test-device-001/deploy/status
                   pathParams:
@@ -2008,7 +1896,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3481
+            - testCaseID: TCXM_3478
               featureName: group
               priority: P2
               automation: Automatable
@@ -2052,7 +1940,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-group-info-Type[]map[string]interface{}-V1/device/test-device-001/deploy/status
                   pathParams:
@@ -2069,7 +1957,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3482
+            - testCaseID: TCXM_3479
               featureName: group
               priority: P2
               automation: Automatable
@@ -2113,7 +2001,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-group-info-Type[]map[string]interface{}-V2/device/test-device-001/deploy/status
                   pathParams:
@@ -2130,7 +2018,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3483
+            - testCaseID: TCXM_3480
               featureName: group
               priority: P2
               automation: Automatable
@@ -2174,7 +2062,7 @@ features:
                       expected: 202
                 - name: checkDeploymentStatus
                   description: Verify deployment status
-                  method: POST
+                  method: GET
                   api: REST
                   path: /configuration-profile/TestResource-group-info-Type[]map[string]interface{}-V3/device/test-device-001/deploy/status
                   pathParams:
@@ -2191,7 +2079,7 @@ features:
                       path: $.status
                       expected: SUCCESS
                   timeout: 300
-            - testCaseID: TCXM_3484
+            - testCaseID: TCXM_3481
               featureName: group
               priority: P1
               automation: Automatable
@@ -2217,14 +2105,14 @@ features:
                       expected: 201
                       description: Verify group created successfully with group
                 - name: scheduleDeploymentTodevice
-                  description: Schedule deployment to device at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to device at 2026-05-01T06:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -2234,7 +2122,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_3485
+            - testCaseID: TCXM_3482
               featureName: group
               priority: P1
               automation: Automatable
@@ -2260,14 +2148,14 @@ features:
                       expected: 201
                       description: Verify group created successfully with group
                 - name: scheduleDeploymentTosite
-                  description: Schedule deployment to site at 2026-05-01T03:30:49Z
+                  description: Schedule deployment to site at 2026-05-01T06:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/sites/deploy
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -2277,7 +2165,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "202"
-            - testCaseID: TCXM_3486
+            - testCaseID: TCXM_3483
               featureName: group
               priority: P2
               automation: Automatable
@@ -2307,7 +2195,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -2318,14 +2206,14 @@ features:
                     - type: statusCode
                       expected: "202"
                 - name: editDeploymentSchedule
-                  description: Edit deployment schedule to 2026-05-01T04:30:49Z
+                  description: Edit deployment schedule to 2026-05-01T07:09:11Z
                   method: POST
                   api: REST
                   path: /configuration-profile/TestProfile-Additional/devices/deploy/edit-schedule
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T04:30:49Z"
+                    deployAt: "2026-05-01T07:09:11Z"
                     devices:
                         - test-device-001
                     timezone: UTC
@@ -2335,7 +2223,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_3487
+            - testCaseID: TCXM_3484
               featureName: group
               priority: P2
               automation: Automatable
@@ -2365,7 +2253,7 @@ features:
                   pathParams:
                     name: TestProfile-Additional
                   body:
-                    deployAt: "2026-05-01T03:30:49Z"
+                    deployAt: "2026-05-01T06:09:11Z"
                     sites:
                         - test-site-001
                     timezone: UTC
@@ -2391,7 +2279,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "200"
-            - testCaseID: TCXM_3488
+            - testCaseID: TCXM_3485
               featureName: group
               priority: P2
               automation: Automatable
@@ -2428,7 +2316,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_3489
+            - testCaseID: TCXM_3486
               featureName: group
               priority: P2
               automation: Automatable
@@ -2468,7 +2356,7 @@ features:
                   assertions:
                     - type: statusCode
                       expected: "201"
-            - testCaseID: TCXM_3490
+            - testCaseID: TCXM_3487
               featureName: group
               priority: P2
               automation: Automatable
@@ -2568,7 +2456,7 @@ features:
                     - type: jsonPathExists
                       path: $.features[0].featurePath
                       description: Conflicting feature path is reported
-            - testCaseID: TCXM_3491
+            - testCaseID: TCXM_3488
               featureName: group
               priority: P1
               automation: Automatable
@@ -2728,7 +2616,7 @@ features:
                     - type: jsonPathEquals
                       path: $.hasConflicts
                       expected: false
-            - testCaseID: TCXM_3492
+            - testCaseID: TCXM_3489
               featureName: group
               priority: P1
               automation: Automatable
@@ -2854,7 +2742,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: Verify hasConflicts=false after DD resolution for group — device value accepted as new cloud baseline
-            - testCaseID: TCXM_3493
+            - testCaseID: TCXM_3490
               featureName: group
               priority: P1
               automation: Automatable
@@ -2980,7 +2868,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify retrieve returns 200
-            - testCaseID: TCXM_3494
+            - testCaseID: TCXM_3491
               featureName: group
               priority: P2
               automation: Automatable
@@ -3063,7 +2951,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model override removed
-            - testCaseID: TCXM_3495
+            - testCaseID: TCXM_3492
               featureName: group
               priority: P2
               automation: Automatable
@@ -3146,7 +3034,7 @@ features:
                     - type: statusCode
                       expected: 200
                       description: Verify model-group override removed
-            - testCaseID: TCXM_3496
+            - testCaseID: TCXM_3493
               featureName: group
               priority: P2
               automation: Automatable
@@ -3214,7 +3102,7 @@ features:
                     - type: jsonPathExists
                       path: $.overrides
                       description: Verify overrides array present
-            - testCaseID: TCXM_3497
+            - testCaseID: TCXM_3494
               featureName: group
               priority: P1
               automation: Automatable
@@ -3296,7 +3184,7 @@ features:
                     - type: jsonPathExists
                       path: $.configObjects[0].properties
                       description: Verify properties present — device override values should be applied
-            - testCaseID: TCXM_3498
+            - testCaseID: TCXM_3495
               featureName: group
               priority: P1
               automation: Automatable
@@ -3396,7 +3284,7 @@ features:
                       path: $.hasConflicts
                       expected: false
                       description: No conflict expected — override values were deployed
-            - testCaseID: TCXM_3499
+            - testCaseID: TCXM_3496
               featureName: group
               priority: P3
               automation: Automatable
@@ -3422,7 +3310,7 @@ features:
                     - type: statusCode
                       expected: 404
                       description: Verify 404 returned for non-existent override removal
-            - testCaseID: TCXM_3500
+            - testCaseID: TCXM_3497
               featureName: group
               priority: P3
               automation: Automatable
@@ -3452,7 +3340,7 @@ features:
                       expected: 400
                       description: Verify 400 returned for invalid overrideType
         negative:
-            - testCaseID: TCXM_3502
+            - testCaseID: TCXM_3499
               featureName: group
               priority: P3
               automation: Automatable
@@ -3473,7 +3361,7 @@ features:
                     - type: statusCode
                       expected: 201
                       description: Verify server accepts request when optional field 'group-info' is omitted
-            - testCaseID: TCXM_3503
+            - testCaseID: TCXM_3500
               featureName: group
               priority: P2
               automation: Automatable
@@ -3497,7 +3385,7 @@ features:
                       expected: 400
                     - type: jsonPathExists
                       path: $.error
-            - testCaseID: TCXM_3504
+            - testCaseID: TCXM_3501
               featureName: group
               priority: P2
               automation: Automatable
@@ -3522,7 +3410,7 @@ features:
                     - type: statusCode
                       expected: 404
         performance:
-            - testCaseID: TCXM_3508
+            - testCaseID: TCXM_3505
               featureName: group
               priority: P4
               automation: Automatable
@@ -3715,7 +3603,7 @@ features:
                 iterations: 10
                 operation: create
         scale:
-            - testCaseID: TCXM_3505
+            - testCaseID: TCXM_3502
               featureName: group
               priority: P3
               automation: Automatable
@@ -5025,7 +4913,7 @@ features:
                       expected: 201
               metadata:
                 instanceCount: 100
-            - testCaseID: TCXM_3506
+            - testCaseID: TCXM_3503
               featureName: group
               priority: P3
               automation: Automatable
@@ -5189,7 +5077,7 @@ features:
               metadata:
                 testType: rapid-updates
                 updateCount: 10
-            - testCaseID: TCXM_3507
+            - testCaseID: TCXM_3504
               featureName: group
               priority: P3
               automation: Automatable
