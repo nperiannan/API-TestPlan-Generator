@@ -110,24 +110,37 @@ func (s *Server) loadFigmaConfig() (*figmaConfig, error) {
 const figmaBaseURL = "https://api.figma.com/v1"
 
 func figmaRequest(token, path string) ([]byte, int, error) {
-	req, err := http.NewRequest("GET", figmaBaseURL+path, nil)
-	if err != nil {
-		return nil, 0, err
-	}
-	req.Header.Set("X-FIGMA-TOKEN", token)
-
 	client := &http.Client{Timeout: 120 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, 0, fmt.Errorf("figma request failed: %w", err)
-	}
-	defer resp.Body.Close()
+	maxRetries := 3
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, resp.StatusCode, fmt.Errorf("reading figma response: %w", err)
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		req, err := http.NewRequest("GET", figmaBaseURL+path, nil)
+		if err != nil {
+			return nil, 0, err
+		}
+		req.Header.Set("X-FIGMA-TOKEN", token)
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, 0, fmt.Errorf("figma request failed: %w", err)
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, resp.StatusCode, fmt.Errorf("reading figma response: %w", err)
+		}
+
+		if resp.StatusCode == 429 && attempt < maxRetries {
+			wait := time.Duration(2<<uint(attempt)) * time.Second // 2s, 4s, 8s
+			log.Printf("[figma] rate limited (429), retrying in %v (attempt %d/%d)", wait, attempt+1, maxRetries)
+			time.Sleep(wait)
+			continue
+		}
+
+		return body, resp.StatusCode, nil
 	}
-	return body, resp.StatusCode, nil
+	return nil, 429, fmt.Errorf("figma rate limit exceeded after %d retries", maxRetries)
 }
 
 // figmaFileResponse is the structure of GET /v1/files/:key
