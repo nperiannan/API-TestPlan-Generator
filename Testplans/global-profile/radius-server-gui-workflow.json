@@ -1,0 +1,1415 @@
+{
+  "feature": "RADIUS Servers",
+  "module": "Network Configuration",
+  "profileType": "Global Profiles",
+  "navigation": "Configuration → Third-Party Management → Network Configuration → Global Profiles → Feature Navigator → Radius Servers",
+  "generatedFrom": "UI Screenshots (5 screens)",
+  "sections": [
+    {
+      "section": "A",
+      "name": "Page Load / Empty State",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_001",
+          "title": "Verify RADIUS Servers page loads with correct layout",
+          "preconditions": "User is logged in with admin role",
+          "navigationSteps": [
+            "Click 'Configuration' in left nav",
+            "Click 'Third-Party Management'",
+            "Click 'Global Profiles' tab",
+            "In Feature Navigator, click 'Radius Servers'"
+          ],
+          "testSteps": [
+            "Observe the page layout"
+          ],
+          "expectedBehavior": [
+            "Page title shows 'RADIUS Servers' with 'View Usage' link",
+            "'Platform ONE Security' toggle is visible (default OFF)",
+            "Search bar is present",
+            "'+ Add RADIUS Server' button is visible",
+            "Refresh and Export icons are present",
+            "Table columns: Priority, IP Address/FQDN, Enabled/Disabled, Type, RADSec, Name, Authentication Port",
+            "'Columns' and 'Filters' sidebars available on right edge"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_002",
+          "title": "Verify empty state message when no servers configured",
+          "preconditions": "No RADIUS servers exist in the system",
+          "navigationSteps": [
+            "Navigate to RADIUS Servers page"
+          ],
+          "testSteps": [
+            "Observe the table area"
+          ],
+          "expectedBehavior": [
+            "Table body shows empty state icon",
+            "Message: 'No Radius Server Configuration Found.'"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_003",
+          "title": "Verify Feature Navigator highlights active feature",
+          "preconditions": "User is on Network Configuration page",
+          "navigationSteps": [
+            "Click 'Radius Servers' in Feature Navigator"
+          ],
+          "testSteps": [
+            "Observe Feature Navigator on right side"
+          ],
+          "expectedBehavior": [
+            "'Radius Servers' is highlighted/selected (purple text)",
+            "Other features (NTP Servers, DNS, DHCP Servers, Syslog Servers) are not highlighted",
+            "'Global Features' section is expanded"
+          ],
+          "type": "positive",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_004",
+          "title": "Verify 'View Usage' link is present and clickable",
+          "preconditions": "User is on RADIUS Servers page",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'View Usage' next to page title"
+          ],
+          "expectedBehavior": [
+            "'View Usage' link is visible next to 'RADIUS Servers' title"
+          ],
+          "type": "positive",
+          "priority": "P3",
+          "assumptions": "Opens a view showing where this RADIUS config is used"
+        },
+        {
+          "testCaseID": "GUI_RS_005",
+          "title": "Verify search bar is present on empty table",
+          "preconditions": "No RADIUS servers exist",
+          "navigationSteps": [
+            "Navigate to RADIUS Servers page"
+          ],
+          "testSteps": [
+            "Click on the Search bar"
+          ],
+          "expectedBehavior": [
+            "Search input is active and accepts text"
+          ],
+          "type": "positive",
+          "priority": "P2",
+          "assumptions": "Search filters the table rows in real-time or on enter"
+        },
+        {
+          "testCaseID": "GUI_RS_006",
+          "title": "Verify Columns sidebar toggle",
+          "preconditions": "User is on RADIUS Servers page",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Columns' toggle on right edge"
+          ],
+          "expectedBehavior": [
+            "A sidebar opens allowing show/hide of table columns"
+          ],
+          "type": "positive",
+          "priority": "P3",
+          "assumptions": "Columns sidebar allows toggling visibility of individual table columns"
+        },
+        {
+          "testCaseID": "GUI_RS_007",
+          "title": "Verify Filters sidebar toggle",
+          "preconditions": "User is on RADIUS Servers page",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Filters' toggle on right edge"
+          ],
+          "expectedBehavior": [
+            "A sidebar opens with filter options for the table"
+          ],
+          "type": "positive",
+          "priority": "P3",
+          "assumptions": "Filter sidebar provides filter criteria for table data"
+        }
+      ]
+    },
+    {
+      "section": "B",
+      "name": "Platform ONE Security Toggle",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_010",
+          "title": "Verify Platform ONE Security toggle default state",
+          "preconditions": "User is on RADIUS Servers page, no prior changes",
+          "navigationSteps": [
+            "Navigate to RADIUS Servers page"
+          ],
+          "testSteps": [
+            "Observe 'Platform ONE Security' toggle"
+          ],
+          "expectedBehavior": [
+            "Toggle is in OFF position (grey)",
+            "Label reads 'Platform ONE Security'"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_011",
+          "title": "Verify enabling Platform ONE Security shows confirmation dialog",
+          "preconditions": "Platform ONE Security toggle is OFF",
+          "navigationSteps": [
+            "Navigate to RADIUS Servers page"
+          ],
+          "testSteps": [
+            "Click the 'Platform ONE Security' toggle to ON"
+          ],
+          "expectedBehavior": [
+            "Confirmation dialog appears: 'Enable Platform ONE Security?'",
+            "Dialog text: 'Are you sure you want to enable Platform ONE Security? It will be synced to Configuration Profiles inheriting the global RADIUS Servers.'",
+            "Additional note: 'Deployment of this Configuration Profile is required for the changes to take effect on the assigned devices.'",
+            "'View Inheriting Configuration Profiles' expandable section is visible",
+            "Buttons: 'Cancel' and 'Enable'"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_012",
+          "title": "Verify inheriting profiles section in enable dialog",
+          "preconditions": "Platform ONE Security confirmation dialog is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Expand 'View Inheriting Configuration Profiles'"
+          ],
+          "expectedBehavior": [
+            "Expandable section opens",
+            "Shows a Search bar",
+            "Table with columns: Configuration Profile, Deployment Status",
+            "If no profiles: 'No configuration profiles found'"
+          ],
+          "type": "positive",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_013",
+          "title": "Verify confirming 'Enable' activates Platform ONE Security",
+          "preconditions": "Confirmation dialog is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Enable' button"
+          ],
+          "expectedBehavior": [
+            "Dialog closes",
+            "Toggle moves to ON position (purple/blue)"
+          ],
+          "type": "positive",
+          "priority": "P1",
+          "assumptions": "RADIUS server type becomes 'Platform ONE Security' for applicable servers"
+        },
+        {
+          "testCaseID": "GUI_RS_014",
+          "title": "Verify canceling the enable dialog keeps toggle OFF",
+          "preconditions": "Confirmation dialog is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Cancel' button"
+          ],
+          "expectedBehavior": [
+            "Dialog closes",
+            "Toggle remains in OFF position (grey)",
+            "No changes applied"
+          ],
+          "type": "negative",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_015",
+          "title": "Verify closing enable dialog with X keeps toggle OFF",
+          "preconditions": "Confirmation dialog is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'X' close button on dialog"
+          ],
+          "expectedBehavior": [
+            "Dialog closes",
+            "Toggle remains in OFF position"
+          ],
+          "type": "negative",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_016",
+          "title": "Verify disabling Platform ONE Security (toggle OFF)",
+          "preconditions": "Platform ONE Security toggle is ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click the toggle to OFF"
+          ],
+          "expectedBehavior": [
+            "Toggle moves to OFF (grey)"
+          ],
+          "type": "positive",
+          "priority": "P1",
+          "assumptions": "A confirmation dialog may appear asking to disable"
+        }
+      ]
+    },
+    {
+      "section": "C",
+      "name": "Add RADIUS Server — Modal Behavior",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_020",
+          "title": "Verify clicking 'Add RADIUS Server' opens modal",
+          "preconditions": "User is on RADIUS Servers page",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click '+ Add RADIUS Server' button"
+          ],
+          "expectedBehavior": [
+            "Modal opens with title 'Add RADIUS Server'",
+            "'Advanced' toggle at top-right (default OFF)",
+            "X close button visible",
+            "Left sidebar: 'RADIUS Server Details' (active), 'Inheriting Configuration Profiles' (Optional)",
+            "Form fields visible in 'RADIUS Server Details' section"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_021",
+          "title": "Verify modal has two tabs",
+          "preconditions": "Add RADIUS Server modal is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Observe the left sidebar tabs"
+          ],
+          "expectedBehavior": [
+            "Tab 1: 'RADIUS Server Details' (active by default, highlighted)",
+            "Tab 2: 'Inheriting Configuration Profiles' with 'Optional' subtitle"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_022",
+          "title": "Verify switching to 'Inheriting Configuration Profiles' tab",
+          "preconditions": "Add RADIUS Server modal is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Inheriting Configuration Profiles' tab"
+          ],
+          "expectedBehavior": [
+            "Tab becomes active (highlighted with blue border)",
+            "Content area shows 'Inheriting Configuration Profiles' title",
+            "Search bar present",
+            "Table with columns: Configuration Profile, Deployment Status",
+            "Empty state: 'No configuration profiles found'",
+            "Scrollbar visible at bottom"
+          ],
+          "type": "positive",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_023",
+          "title": "Verify switching back to 'RADIUS Server Details' tab",
+          "preconditions": "'Inheriting Configuration Profiles' tab is active",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'RADIUS Server Details' tab"
+          ],
+          "expectedBehavior": [
+            "Tab becomes active",
+            "Form fields for RADIUS Server Details are displayed again",
+            "Previously entered values (if any) are preserved"
+          ],
+          "type": "positive",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_024",
+          "title": "Verify closing modal with X button",
+          "preconditions": "Add RADIUS Server modal is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click X button at top-right"
+          ],
+          "expectedBehavior": [
+            "Modal closes",
+            "Returns to RADIUS Servers list page"
+          ],
+          "type": "positive",
+          "priority": "P1",
+          "assumptions": "Unsaved data is discarded (or a discard confirmation appears)"
+        },
+        {
+          "testCaseID": "GUI_RS_025",
+          "title": "Verify modal overlay blocks background interaction",
+          "preconditions": "Add RADIUS Server modal is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Try clicking on the background page elements"
+          ],
+          "expectedBehavior": [
+            "Background is dimmed/overlaid",
+            "Clicks on background do not interact with the main page"
+          ],
+          "type": "positive",
+          "priority": "P2"
+        }
+      ]
+    },
+    {
+      "section": "D",
+      "name": "Add RADIUS Server — Form Fields (Standard Mode)",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_030",
+          "title": "Verify all standard form fields are present",
+          "preconditions": "Add RADIUS Server modal is open, Advanced OFF",
+          "navigationSteps": [],
+          "testSteps": [
+            "Observe the form"
+          ],
+          "expectedBehavior": [
+            "'IP Address/FQDN' text input with helper text 'Supports IPv4, and IPv6.'",
+            "'Name (Optional)' text input",
+            "'Authentication' toggle (default OFF)",
+            "'Accounting' toggle (default OFF)",
+            "'Authentication Port' text input",
+            "'Shared Secret' password input (under Authentication) with eye toggle icon",
+            "'Accounting Port' text input",
+            "'Shared Secret' password input (under Accounting) with eye toggle icon"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_031",
+          "title": "Verify IP Address/FQDN field accepts valid IPv4",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter '10.0.0.1' in IP Address/FQDN"
+          ],
+          "expectedBehavior": [
+            "Field accepts the value",
+            "No validation error shown"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_032",
+          "title": "Verify IP Address/FQDN field accepts valid IPv6",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter '2001:db8::1' in IP Address/FQDN"
+          ],
+          "expectedBehavior": [
+            "Field accepts the value",
+            "No validation error shown"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_033",
+          "title": "Verify IP Address/FQDN field accepts FQDN",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter 'radius.example.com' in IP Address/FQDN"
+          ],
+          "expectedBehavior": [
+            "Field accepts the value",
+            "No validation error shown"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_034",
+          "title": "Verify Name field is optional",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Leave 'Name (Optional)' empty",
+            "Fill all required fields",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Server is created successfully without a name"
+          ],
+          "type": "positive",
+          "priority": "P1",
+          "assumptions": "Name defaults to empty or auto-generated"
+        },
+        {
+          "testCaseID": "GUI_RS_035",
+          "title": "Verify Name field accepts valid input",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter 'Radius-Server-1' in Name field"
+          ],
+          "expectedBehavior": [
+            "Field accepts the value",
+            "No validation error"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_036",
+          "title": "Verify Shared Secret fields have masked input",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter text in either 'Shared Secret' field"
+          ],
+          "expectedBehavior": [
+            "Characters are masked (shown as dots/bullets)",
+            "Eye toggle icon is visible to show/hide the value"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_037",
+          "title": "Verify Shared Secret eye toggle reveals password",
+          "preconditions": "Modal open, text entered in Shared Secret",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click the eye icon on Shared Secret field"
+          ],
+          "expectedBehavior": [
+            "Password text becomes visible in plain text",
+            "Eye icon toggles to 'hide' state"
+          ],
+          "type": "positive",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_038",
+          "title": "Verify Authentication Port default value",
+          "preconditions": "Modal open, Authentication toggle ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Observe Authentication Port field"
+          ],
+          "expectedBehavior": [
+            "Field may show default value 1812 or be empty for user input"
+          ],
+          "type": "positive",
+          "priority": "P2",
+          "assumptions": "Default port 1812 per YANG model"
+        },
+        {
+          "testCaseID": "GUI_RS_039",
+          "title": "Verify Accounting Port default value",
+          "preconditions": "Modal open, Accounting toggle ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Observe Accounting Port field"
+          ],
+          "expectedBehavior": [
+            "Field may show default value 1813 or be empty for user input"
+          ],
+          "type": "positive",
+          "priority": "P2",
+          "assumptions": "Default port 1813 per YANG model"
+        }
+      ]
+    },
+    {
+      "section": "E",
+      "name": "Toggle Behavior (Authentication / Accounting)",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_040",
+          "title": "Verify Authentication toggle default state is OFF",
+          "preconditions": "Add RADIUS Server modal is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Observe Authentication toggle"
+          ],
+          "expectedBehavior": [
+            "Toggle is OFF (grey)",
+            "Authentication Port and Shared Secret fields appear disabled/greyed out"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_041",
+          "title": "Verify Accounting toggle default state is OFF",
+          "preconditions": "Add RADIUS Server modal is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Observe Accounting toggle"
+          ],
+          "expectedBehavior": [
+            "Toggle is OFF (grey)",
+            "Accounting Port and Shared Secret fields appear disabled/greyed out"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_042",
+          "title": "Verify enabling Authentication toggle enables dependent fields",
+          "preconditions": "Modal open, Authentication toggle OFF",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click Authentication toggle to ON"
+          ],
+          "expectedBehavior": [
+            "Toggle changes to ON (purple/blue)",
+            "'Authentication Port' field becomes enabled/editable",
+            "'Shared Secret' field (under Authentication) becomes enabled/editable"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_043",
+          "title": "Verify enabling Accounting toggle enables dependent fields",
+          "preconditions": "Modal open, Accounting toggle OFF",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click Accounting toggle to ON"
+          ],
+          "expectedBehavior": [
+            "Toggle changes to ON (purple/blue)",
+            "'Accounting Port' field becomes enabled/editable",
+            "'Shared Secret' field (under Accounting) becomes enabled/editable"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_044",
+          "title": "Verify disabling Authentication toggle after filling fields",
+          "preconditions": "Modal open, Authentication ON with values entered",
+          "navigationSteps": [],
+          "testSteps": [
+            "Turn Authentication toggle OFF"
+          ],
+          "expectedBehavior": [
+            "Toggle changes to OFF (grey)",
+            "Authentication Port and Shared Secret fields become disabled/greyed out"
+          ],
+          "type": "positive",
+          "priority": "P1",
+          "assumptions": "Previously entered values may be cleared or retained but disabled"
+        },
+        {
+          "testCaseID": "GUI_RS_045",
+          "title": "Verify disabling Accounting toggle after filling fields",
+          "preconditions": "Modal open, Accounting ON with values entered",
+          "navigationSteps": [],
+          "testSteps": [
+            "Turn Accounting toggle OFF"
+          ],
+          "expectedBehavior": [
+            "Toggle changes to OFF (grey)",
+            "Accounting Port and Shared Secret fields become disabled/greyed out"
+          ],
+          "type": "positive",
+          "priority": "P1",
+          "assumptions": "Previously entered values may be cleared or retained but disabled"
+        },
+        {
+          "testCaseID": "GUI_RS_046",
+          "title": "Verify both toggles can be ON simultaneously",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Turn both Authentication and Accounting toggles ON"
+          ],
+          "expectedBehavior": [
+            "Both toggles are ON (purple/blue)",
+            "All four sub-fields (Auth Port, Auth Secret, Acct Port, Acct Secret) are enabled"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_047",
+          "title": "Verify saving with both toggles OFF",
+          "preconditions": "Modal open, both toggles OFF",
+          "navigationSteps": [],
+          "testSteps": [
+            "Fill IP Address/FQDN",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Server is created with auth-server-enabled=false and accounting-server-enabled=false"
+          ],
+          "type": "positive",
+          "priority": "P2",
+          "assumptions": "Both auth and accounting disabled is a valid configuration"
+        }
+      ]
+    },
+    {
+      "section": "F",
+      "name": "Advanced Mode Toggle",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_050",
+          "title": "Verify Advanced toggle default state is OFF",
+          "preconditions": "Add RADIUS Server modal is open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Observe 'Advanced' toggle at top-right"
+          ],
+          "expectedBehavior": [
+            "Toggle is OFF (grey)",
+            "Only standard fields are visible (IP, Name, Auth toggle, Acct toggle, ports, secrets)"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_051",
+          "title": "Verify enabling Advanced mode shows additional fields",
+          "preconditions": "Modal open, Advanced OFF",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Advanced' toggle to ON"
+          ],
+          "expectedBehavior": [
+            "Toggle changes to ON (purple/blue)",
+            "Additional fields appear at bottom of form:",
+            "'Organization (Optional)' text input",
+            "'Message Authenticator' dropdown (with chevron)"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_052",
+          "title": "Verify Organization field is optional in Advanced mode",
+          "preconditions": "Advanced ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Leave 'Organization (Optional)' empty",
+            "Fill required fields",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Server is created successfully without Organization value"
+          ],
+          "type": "positive",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_053",
+          "title": "Verify Message Authenticator dropdown options",
+          "preconditions": "Advanced ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Message Authenticator' dropdown"
+          ],
+          "expectedBehavior": [
+            "Dropdown opens with selectable options"
+          ],
+          "type": "positive",
+          "priority": "P2",
+          "assumptions": "Options may include 'REQUIRED' and 'NOT_REQUIRED' based on YANG model"
+        },
+        {
+          "testCaseID": "GUI_RS_054",
+          "title": "Verify disabling Advanced mode hides extra fields",
+          "preconditions": "Advanced ON with values entered",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Advanced' toggle to OFF"
+          ],
+          "expectedBehavior": [
+            "Extra fields (Organization, Message Authenticator) are hidden"
+          ],
+          "type": "positive",
+          "priority": "P2",
+          "assumptions": "Values may be cleared or retained internally"
+        },
+        {
+          "testCaseID": "GUI_RS_055",
+          "title": "Verify re-enabling Advanced mode retains values",
+          "preconditions": "Advanced was ON with values, toggled OFF then ON again",
+          "navigationSteps": [],
+          "testSteps": [
+            "Toggle Advanced OFF then ON"
+          ],
+          "expectedBehavior": [
+            "Organization and Message Authenticator fields reappear"
+          ],
+          "type": "positive",
+          "priority": "P3",
+          "assumptions": "Previously entered values may be retained or cleared"
+        }
+      ]
+    },
+    {
+      "section": "G",
+      "name": "Field Validation (Negative Scenarios)",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_060",
+          "title": "Verify IP Address/FQDN is required",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Leave IP Address/FQDN empty",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Validation error appears on IP Address/FQDN field",
+            "Save is blocked",
+            "Error message indicates field is required"
+          ],
+          "type": "negative",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_061",
+          "title": "Verify invalid IP address is rejected",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter '999.999.999.999' in IP Address/FQDN",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Validation error on the field"
+          ],
+          "type": "negative",
+          "priority": "P1",
+          "assumptions": "Error message like 'Invalid IP address'"
+        },
+        {
+          "testCaseID": "GUI_RS_062",
+          "title": "Verify invalid IPv6 is rejected",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter 'not:a:valid:ipv6' in IP Address/FQDN"
+          ],
+          "expectedBehavior": [
+            "Validation error displayed"
+          ],
+          "type": "negative",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_063",
+          "title": "Verify special characters in IP field",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter '!@#$%^&*()' in IP Address/FQDN"
+          ],
+          "expectedBehavior": [
+            "Validation error or input rejected"
+          ],
+          "type": "negative",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_064",
+          "title": "Verify empty string in IP field",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter spaces only in IP Address/FQDN",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Validation error — field treated as empty"
+          ],
+          "type": "negative",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_065",
+          "title": "Verify Authentication Port accepts valid port",
+          "preconditions": "Modal open, Authentication ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter '1812' in Authentication Port"
+          ],
+          "expectedBehavior": [
+            "Field accepts value, no error"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_066",
+          "title": "Verify Authentication Port rejects non-numeric input",
+          "preconditions": "Modal open, Authentication ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter 'abc' in Authentication Port"
+          ],
+          "expectedBehavior": [
+            "Field rejects non-numeric input or shows validation error"
+          ],
+          "type": "negative",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_067",
+          "title": "Verify Authentication Port rejects out-of-range port",
+          "preconditions": "Modal open, Authentication ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter '99999' in Authentication Port"
+          ],
+          "expectedBehavior": [
+            "Validation error for port out of valid range (1-65535)"
+          ],
+          "type": "negative",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_068",
+          "title": "Verify Authentication Port rejects negative number",
+          "preconditions": "Modal open, Authentication ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter '-1' in Authentication Port"
+          ],
+          "expectedBehavior": [
+            "Validation error or input rejected"
+          ],
+          "type": "negative",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_069",
+          "title": "Verify Accounting Port rejects non-numeric input",
+          "preconditions": "Modal open, Accounting ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter 'xyz' in Accounting Port"
+          ],
+          "expectedBehavior": [
+            "Field rejects non-numeric input or shows validation error"
+          ],
+          "type": "negative",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_070",
+          "title": "Verify Shared Secret is required when Authentication is ON",
+          "preconditions": "Modal open, Authentication ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Leave Auth Shared Secret empty",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Validation error on Shared Secret field"
+          ],
+          "type": "negative",
+          "priority": "P1",
+          "assumptions": "Shared Secret is required when auth is enabled"
+        },
+        {
+          "testCaseID": "GUI_RS_071",
+          "title": "Verify Shared Secret is required when Accounting is ON",
+          "preconditions": "Modal open, Accounting ON",
+          "navigationSteps": [],
+          "testSteps": [
+            "Leave Acct Shared Secret empty",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Validation error on Shared Secret field"
+          ],
+          "type": "negative",
+          "priority": "P1",
+          "assumptions": "Shared Secret is required when accounting is enabled"
+        },
+        {
+          "testCaseID": "GUI_RS_072",
+          "title": "Verify duplicate IP Address/FQDN is rejected",
+          "preconditions": "One RADIUS server already exists with IP '10.0.0.1'",
+          "navigationSteps": [],
+          "testSteps": [
+            "Open Add modal",
+            "Enter '10.0.0.1' in IP Address/FQDN",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Error indicating duplicate server IP"
+          ],
+          "type": "negative",
+          "priority": "P1",
+          "assumptions": "Duplicate server IP/FQDN is not allowed"
+        },
+        {
+          "testCaseID": "GUI_RS_073",
+          "title": "Verify max length on Name field",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter a very long string (256+ characters) in Name"
+          ],
+          "expectedBehavior": [
+            "Input truncated or validation error at max length"
+          ],
+          "type": "negative",
+          "priority": "P3",
+          "assumptions": "Name field has a maximum length constraint"
+        }
+      ]
+    },
+    {
+      "section": "H",
+      "name": "Save / Cancel / Save & Add Another Flows",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_080",
+          "title": "Verify successful save with minimum required fields",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter '10.0.0.1' in IP Address/FQDN",
+            "Click 'Save'"
+          ],
+          "expectedBehavior": [
+            "Modal closes",
+            "Success notification/toast appears",
+            "New RADIUS server appears in the table",
+            "Server row shows: Priority=auto, IP Address/FQDN=10.0.0.1"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_081",
+          "title": "Verify successful save with all standard fields",
+          "preconditions": "Modal open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter '10.0.0.1' in IP Address/FQDN",
+            "Enter 'Radius-Server-1' in Name",
+            "Turn Authentication ON",
+            "Enter '1812' in Authentication Port",
+            "Enter 'secret123' in Auth Shared Secret",
+            "Turn Accounting ON",
+            "Enter '1813' in Accounting Port",
+            "Enter 'secret456' in Acct Shared Secret",
+            "Click 'Save'"
+          ],
+          "expectedBehavior": [
+            "Modal closes",
+            "Success notification appears",
+            "Server in table shows: Priority, IP=10.0.0.1, Enabled/Disabled=Enabled, Name=Radius-Server-1, Authentication Port=1812"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_082",
+          "title": "Verify 'Save & Add Another' keeps modal open",
+          "preconditions": "Modal open with valid data entered",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Save & Add Another'"
+          ],
+          "expectedBehavior": [
+            "Current server is saved (success notification)",
+            "Modal stays open",
+            "Form fields are cleared/reset for next entry",
+            "Toggles reset to OFF, Advanced reset to OFF"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_083",
+          "title": "Verify 'Save & Add Another' then save second server",
+          "preconditions": "Modal open after first save via 'Save & Add Another'",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter '10.0.0.2' in IP Address/FQDN",
+            "Click 'Save'"
+          ],
+          "expectedBehavior": [
+            "Second server saved",
+            "Modal closes",
+            "Table shows both servers"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_084",
+          "title": "Verify Cancel button discards unsaved data",
+          "preconditions": "Modal open with data entered",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Cancel'"
+          ],
+          "expectedBehavior": [
+            "Modal closes",
+            "No new server is added to the table",
+            "No success/error notification"
+          ],
+          "type": "negative",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_085",
+          "title": "Verify Cancel with no data entered",
+          "preconditions": "Modal open, no fields filled",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Cancel'"
+          ],
+          "expectedBehavior": [
+            "Modal closes cleanly",
+            "No error or confirmation dialog"
+          ],
+          "type": "positive",
+          "priority": "P2"
+        }
+      ]
+    },
+    {
+      "section": "I",
+      "name": "Table Behavior (After Server Created)",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_090",
+          "title": "Verify table shows newly added server",
+          "preconditions": "At least one RADIUS server is configured",
+          "navigationSteps": [
+            "Navigate to RADIUS Servers page"
+          ],
+          "testSteps": [
+            "Observe the table"
+          ],
+          "expectedBehavior": [
+            "Table shows server rows with data in all columns: Priority, IP Address/FQDN, Enabled/Disabled, Type, RADSec, Name, Authentication Port",
+            "Empty state message no longer shown"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_091",
+          "title": "Verify table column values match saved data",
+          "preconditions": "Server '10.0.0.1' / 'Radius-Server-1' exists",
+          "navigationSteps": [],
+          "testSteps": [
+            "Observe table row"
+          ],
+          "expectedBehavior": [
+            "Priority shows assigned value (e.g., 1)",
+            "IP Address/FQDN = '10.0.0.1'",
+            "Name = 'Radius-Server-1'",
+            "Authentication Port = 1812"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_092",
+          "title": "Verify search filters table results",
+          "preconditions": "Multiple servers exist",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter a server name or IP in the Search bar"
+          ],
+          "expectedBehavior": [
+            "Table filters to show only matching rows",
+            "Non-matching rows are hidden"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_093",
+          "title": "Verify search with no results",
+          "preconditions": "Servers exist but none match query",
+          "navigationSteps": [],
+          "testSteps": [
+            "Enter 'nonexistent' in Search bar"
+          ],
+          "expectedBehavior": [
+            "Table shows no rows"
+          ],
+          "type": "negative",
+          "priority": "P2",
+          "assumptions": "Empty state or 'No results' message shown"
+        },
+        {
+          "testCaseID": "GUI_RS_094",
+          "title": "Verify refresh button reloads table data",
+          "preconditions": "Servers exist in table",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click the Refresh icon (circular arrow)"
+          ],
+          "expectedBehavior": [
+            "Table data is refreshed/reloaded from server"
+          ],
+          "type": "positive",
+          "priority": "P2"
+        },
+        {
+          "testCaseID": "GUI_RS_095",
+          "title": "Verify export/download button",
+          "preconditions": "Servers exist in table",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click the Export/Download icon"
+          ],
+          "expectedBehavior": [
+            "Downloads server list or opens export options"
+          ],
+          "type": "positive",
+          "priority": "P3",
+          "assumptions": "Downloads as CSV/Excel or opens export format picker"
+        },
+        {
+          "testCaseID": "GUI_RS_096",
+          "title": "Verify table row checkbox selection",
+          "preconditions": "Servers exist in table",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click the checkbox on a table row"
+          ],
+          "expectedBehavior": [
+            "Row is selected/highlighted"
+          ],
+          "type": "positive",
+          "priority": "P2",
+          "assumptions": "Bulk action options may appear (e.g., Delete selected)"
+        },
+        {
+          "testCaseID": "GUI_RS_097",
+          "title": "Verify select all checkbox",
+          "preconditions": "Multiple servers in table",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click the header checkbox (next to 'Priority')"
+          ],
+          "expectedBehavior": [
+            "All rows are selected"
+          ],
+          "type": "positive",
+          "priority": "P2",
+          "assumptions": "Bulk action toolbar appears"
+        },
+        {
+          "testCaseID": "GUI_RS_098",
+          "title": "Verify table row click opens edit/detail view",
+          "preconditions": "Server exists",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click on a server row (not checkbox)"
+          ],
+          "expectedBehavior": [
+            "Edit modal opens or detail panel slides in with server details pre-filled"
+          ],
+          "type": "positive",
+          "priority": "P1",
+          "assumptions": "Row click opens edit view; IP may be read-only (key field)"
+        }
+      ]
+    },
+    {
+      "section": "J",
+      "name": "Edit / Delete Workflows",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_100",
+          "title": "Verify editing an existing RADIUS server",
+          "preconditions": "Server '10.0.0.1' exists",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click on the server row to open edit"
+          ],
+          "expectedBehavior": [
+            "Edit modal opens with pre-filled values",
+            "IP Address/FQDN = '10.0.0.1'",
+            "Name = previously saved name",
+            "Toggle states match saved configuration"
+          ],
+          "type": "positive",
+          "priority": "P1",
+          "assumptions": "IP/FQDN field may be read-only (key field)"
+        },
+        {
+          "testCaseID": "GUI_RS_101",
+          "title": "Verify modifying server name and saving",
+          "preconditions": "Edit modal open for existing server",
+          "navigationSteps": [],
+          "testSteps": [
+            "Change Name to 'Updated-Server'",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Modal closes",
+            "Success notification",
+            "Table row shows updated Name = 'Updated-Server'"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_102",
+          "title": "Verify enabling Authentication on existing server",
+          "preconditions": "Edit modal open, Authentication OFF",
+          "navigationSteps": [],
+          "testSteps": [
+            "Turn Authentication toggle ON",
+            "Enter '1812' in Auth Port",
+            "Enter 'newsecret' in Auth Shared Secret",
+            "Click Save"
+          ],
+          "expectedBehavior": [
+            "Server updated successfully",
+            "Enabled/Disabled column reflects new state"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_103",
+          "title": "Verify deleting a RADIUS server",
+          "preconditions": "Server exists, row selected",
+          "navigationSteps": [],
+          "testSteps": [
+            "Select server row",
+            "Click Delete action"
+          ],
+          "expectedBehavior": [
+            "Confirmation dialog appears",
+            "After confirming, server is removed from table",
+            "If last server, empty state message reappears"
+          ],
+          "type": "positive",
+          "priority": "P1",
+          "assumptions": "Delete confirmation dialog is shown before deletion"
+        },
+        {
+          "testCaseID": "GUI_RS_104",
+          "title": "Verify canceling delete operation",
+          "preconditions": "Delete confirmation dialog open",
+          "navigationSteps": [],
+          "testSteps": [
+            "Click 'Cancel' on delete dialog"
+          ],
+          "expectedBehavior": [
+            "Dialog closes",
+            "Server remains in table"
+          ],
+          "type": "negative",
+          "priority": "P1"
+        }
+      ]
+    },
+    {
+      "section": "K",
+      "name": "Full End-to-End Workflow",
+      "tests": [
+        {
+          "testCaseID": "GUI_RS_110",
+          "title": "Complete CRUD workflow for RADIUS Server",
+          "preconditions": "User logged in as admin, no existing servers",
+          "navigationSteps": [
+            "Navigate to Configuration → Third-Party Management",
+            "Click Global Profiles tab",
+            "Click Radius Servers in Feature Navigator"
+          ],
+          "testSteps": [
+            "Click '+ Add RADIUS Server'",
+            "Enter '10.0.0.1' in IP Address/FQDN",
+            "Enter 'Radius-Server-1' in Name",
+            "Turn Authentication ON",
+            "Enter '1812' in Authentication Port",
+            "Enter 'secret123' in Shared Secret",
+            "Turn Accounting ON",
+            "Enter '1813' in Accounting Port",
+            "Enter 'secret456' in Shared Secret",
+            "Click Save",
+            "Verify server row in table with correct values",
+            "Click server row to edit",
+            "Change Name to 'Updated-Server-1'",
+            "Click Save",
+            "Verify updated name in table",
+            "Select server row",
+            "Delete server",
+            "Confirm deletion",
+            "Verify empty state returns"
+          ],
+          "expectedBehavior": [
+            "Create: Modal closes, toast 'success', row appears with correct data",
+            "Read: All columns populated correctly",
+            "Update: Name updates in table",
+            "Delete: Server removed, 'No Radius Server Configuration Found.' shown"
+          ],
+          "type": "positive",
+          "priority": "P1"
+        },
+        {
+          "testCaseID": "GUI_RS_111",
+          "title": "Platform ONE Security enable with server creation",
+          "preconditions": "User logged in, toggle is OFF",
+          "navigationSteps": [
+            "Navigate to RADIUS Servers page"
+          ],
+          "testSteps": [
+            "Click 'Platform ONE Security' toggle",
+            "In confirmation dialog, click 'Enable'",
+            "Verify toggle is ON",
+            "Click '+ Add RADIUS Server'",
+            "Toggle Advanced ON",
+            "Fill all fields including Organization and Message Authenticator",
+            "Click Save",
+            "Verify table row shows Type value"
+          ],
+          "expectedBehavior": [
+            "Toggle ON after confirmation",
+            "Server created with all advanced fields",
+            "Table reflects correct Type value"
+          ],
+          "type": "positive",
+          "priority": "P1",
+          "assumptions": "Type column shows 'Platform ONE Security' when toggle is enabled"
+        }
+      ]
+    }
+  ],
+  "fieldToAPIMapping": {
+    "IP Address/FQDN": {"apiProperty": "server", "type": "string", "required": true, "section": "Standard"},
+    "Name (Optional)": {"apiProperty": "name", "type": "string", "required": false, "section": "Standard"},
+    "Authentication toggle": {"apiProperty": "auth-server-enabled", "type": "boolean", "required": false, "defaultValue": false, "section": "Standard"},
+    "Accounting toggle": {"apiProperty": "accounting-server-enabled", "type": "boolean", "required": false, "defaultValue": false, "section": "Standard"},
+    "Authentication Port": {"apiProperty": "auth-server-port", "type": "number", "required": "when auth ON", "defaultValue": 1812, "section": "Standard"},
+    "Shared Secret (Auth)": {"apiProperty": "auth-server-secret", "type": "string", "required": "when auth ON", "section": "Standard"},
+    "Accounting Port": {"apiProperty": "accounting-server-port", "type": "number", "required": "when acct ON", "defaultValue": 1813, "section": "Standard"},
+    "Shared Secret (Acct)": {"apiProperty": "accounting-server-secret", "type": "string", "required": "when acct ON", "section": "Standard"},
+    "Organization (Optional)": {"apiProperty": "operator-name", "type": "string", "required": false, "section": "Advanced"},
+    "Message Authenticator": {"apiProperty": "message-authenticator", "type": "enumeration", "required": false, "section": "Advanced"},
+    "Priority": {"apiProperty": "priority", "type": "number", "required": false, "section": "Table (auto-assigned)"},
+    "Enabled/Disabled": {"apiProperty": "derived from auth/acct toggles", "type": "display", "section": "Table column"},
+    "Type": {"apiProperty": "radius-server-type", "type": "enumeration", "section": "Table column"},
+    "RADSec": {"apiProperty": "derived from secure-mode", "type": "display", "section": "Table column"}
+  },
+  "systemManagedFields": [
+    "id", "created-at", "customer-id", "owner-id", "deleted-at",
+    "vr-name", "auth-secret-is-encrypted", "accounting-secret-is-encrypted",
+    "auth-secure-mode", "accounting-secure-mode"
+  ]
+}
