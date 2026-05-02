@@ -478,8 +478,11 @@ footer{text-align:center;color:#aaa;font-size:.8em;margin-top:20px;}
           <input type="text" id="guiGenJiraKey" placeholder="Jira issue key (optional, e.g. UX-2404)" style="min-width:220px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:.9em;">
           <button class="btn btn-secondary" style="color:#333;" onclick="fetchFigmaFromJira()" id="btnFetchFigmaJira">&#128279; Fetch Figma from Jira</button>
           <button class="btn btn-success" onclick="generateGUITestPlan()" id="btnGuiGen">&#9654; Generate GUI Test Plan</button>
+          <button class="btn" style="background:#7c4dff;color:#fff;" onclick="llmAnalyzeScreens()" id="btnLLMAnalyze" title="Use LLM (Claude/GPT-4) to analyze Figma screenshots and auto-generate UI patterns">&#129302; LLM Analyze Screens</button>
         </div>
+        <div id="llmStatusBadge" style="display:none;margin-bottom:8px;font-size:.85em;"></div>
         <div id="guiJiraFigmaInfo" style="display:none;margin-bottom:16px;background:#f5f8ff;border:1px solid #d0ddf0;border-radius:8px;padding:12px;font-size:.9em;"></div>
+        <div id="llmAnalysisResults" style="display:none;margin-bottom:16px;"></div>
         <div id="guiGenResults"></div>
       </div>
     </div>
@@ -2035,6 +2038,7 @@ let guiGenCategoryData = {};
 async function loadGuiGenSection() {
   await loadGuiGenCategories();
   await loadGuiPlans();
+  checkLLMStatus();
 }
 
 async function loadGuiGenCategories() {
@@ -2090,8 +2094,12 @@ async function fetchFigmaFromJira() {
         html += '<div style="margin-bottom:4px;">';
         html += '<span style="font-family:monospace;font-size:.85em;">File: <strong>' + escapeHtml(l.fileKey) + '</strong>';
         if (l.nodeId) html += ' | Node: <strong>' + escapeHtml(l.nodeId) + '</strong>';
+        var sourceLabel = l.source || 'description';
+        var sourceColor = sourceLabel === 'designs' ? '#7c4dff' : sourceLabel === 'properties' ? '#ff6f00' : '#43a047';
+        html += ' | Source: <span style="color:' + sourceColor + ';font-weight:600;">' + escapeHtml(sourceLabel) + '</span>';
         html += '</span>';
         if (i === 0) html += ' <span style="color:#43a047;font-weight:600;">(auto-filled &#8593;)</span>';
+        if (l.url) html += '<br><a href="' + escapeHtml(l.url) + '" target="_blank" style="font-size:.8em;color:#1565c0;">Open in Figma &#8599;</a>';
         html += '</div>';
       });
       html += '</div>';
@@ -2110,6 +2118,79 @@ async function fetchFigmaFromJira() {
   } finally {
     btn.disabled = false;
     btn.innerHTML = '&#128279; Fetch Figma from Jira';
+  }
+}
+
+// Check LLM status on page load
+async function checkLLMStatus() {
+  try {
+    const data = await apiJSON('/api/llm/status');
+    const badge = document.getElementById('llmStatusBadge');
+    if (data.configured) {
+      badge.innerHTML = '<span style="color:#43a047;">&#10003; LLM configured: <strong>' + escapeHtml(data.provider) + '/' + escapeHtml(data.model) + '</strong></span>';
+    } else {
+      badge.innerHTML = '<span style="color:#888;">LLM not configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY to enable AI-powered screen analysis.</span>';
+    }
+    badge.style.display = 'block';
+  } catch(e) {}
+}
+
+async function llmAnalyzeScreens() {
+  const category = document.getElementById('guiGenCategory').value;
+  const feature = document.getElementById('guiGenFeature').value;
+  const jiraKey = document.getElementById('guiGenJiraKey').value.trim();
+  if (!category) { showToast('Select a category', 'error'); return; }
+  if (!feature) { showToast('Select a feature', 'error'); return; }
+
+  const btn = document.getElementById('btnLLMAnalyze');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></div> Analyzing with LLM...';
+  const container = document.getElementById('llmAnalysisResults');
+  container.innerHTML = '<div style="background:#f3e5f5;border:1px solid #ce93d8;border-radius:8px;padding:16px;"><div class="spinner" style="display:inline-block;width:16px;height:16px;vertical-align:middle;"></div> <strong>Sending Figma screenshots to LLM for analysis...</strong><br><span style="color:#666;font-size:.85em;">This may take 30-60 seconds. The LLM will analyze UI elements, labels, toggles, menus, and generate a pattern JSON.</span></div>';
+  container.style.display = 'block';
+
+  // Get Figma file key and node from auto-filled inputs
+  var fileKey = '';
+  var nodeId = '';
+  var figmaKeyInput = document.getElementById('figmaFileKeyInput');
+  var figmaNodeInput = document.getElementById('figmaNodeIdInput');
+  if (figmaKeyInput) fileKey = figmaKeyInput.value;
+  if (figmaNodeInput) nodeId = figmaNodeInput.value;
+
+  try {
+    const resp = await apiJSON('/api/llm/analyze-screens', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        category: category,
+        featureName: feature,
+        fileKey: fileKey,
+        nodeId: nodeId,
+        jiraKey: jiraKey
+      })
+    });
+
+    var html = '<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:16px;">';
+    html += '<h3 style="margin:0 0 8px;color:#2e7d32;">&#129302; LLM UI Analysis Complete</h3>';
+    html += '<div style="font-size:.9em;margin-bottom:8px;">';
+    html += '<strong>Provider:</strong> ' + escapeHtml(resp.provider || '') + '/' + escapeHtml(resp.model || '');
+    html += ' | <strong>Elapsed:</strong> ' + escapeHtml(resp.elapsed || '');
+    html += ' | <strong>Images analyzed:</strong> ' + (resp.imagesUsed || 0);
+    html += ' | <strong>Pattern saved to:</strong> ' + escapeHtml(resp.patternFile || '');
+    html += '</div>';
+    html += '<details><summary style="cursor:pointer;color:#1565c0;font-weight:600;">View generated UI pattern JSON</summary>';
+    html += '<pre style="background:#263238;color:#eeffff;padding:16px;border-radius:8px;font-size:.8em;max-height:400px;overflow:auto;margin-top:8px;">' + escapeHtml(JSON.stringify(resp.pattern, null, 2)) + '</pre>';
+    html += '</details>';
+    html += '<div style="margin-top:12px;"><button class="btn btn-success" onclick="generateGUITestPlan()" style="font-size:.9em;">&#9654; Now Generate GUI Test Plan with these patterns</button></div>';
+    html += '</div>';
+    container.innerHTML = html;
+    showToast('LLM analysis complete! UI patterns saved.', 'success');
+  } catch (e) {
+    container.innerHTML = '<div style="background:#ffebee;border:1px solid #ef9a9a;border-radius:8px;padding:16px;"><strong style="color:#c62828;">LLM Analysis Failed:</strong> ' + escapeHtml(e.message) + '</div>';
+    showToast('LLM analysis failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '&#129302; LLM Analyze Screens';
   }
 }
 

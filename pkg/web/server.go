@@ -159,6 +159,11 @@ func (s *Server) registerRoutes() {
 		api.POST("/figma/import", s.handleFigmaImport)
 		api.GET("/figma/import", s.handleFigmaLastImport)
 		api.POST("/figma/map", s.handleFigmaManualMap)
+		api.GET("/figma/images", s.handleFigmaExportImages)
+
+		// LLM-powered UI Analysis
+		api.GET("/llm/status", s.handleLLMStatus)
+		api.POST("/llm/analyze-screens", s.handleLLMAnalyzeScreens)
 
 		// GUI Test Plan Generation
 		api.POST("/gui/generate", s.handleGUIGenerate)

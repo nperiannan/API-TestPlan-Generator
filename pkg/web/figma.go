@@ -722,3 +722,184 @@ func truncate(s string, maxLen int) string {
 	}
 	return s[:maxLen] + "..."
 }
+
+// ---------- Figma Image Export ----------
+
+// FigmaScreenImage holds the exported image data for a single screen.
+type FigmaScreenImage struct {
+	NodeID   string `json:"nodeId"`
+	Name     string `json:"name"`
+	ImageURL string `json:"imageUrl"`
+	FilePath string `json:"filePath,omitempty"` // local path after download
+}
+
+// handleFigmaExportImages exports screen-level images from a Figma file using the Image Export API.
+// GET /api/figma/images?fileKey=...&nodeId=...&format=png&scale=2
+func (s *Server) handleFigmaExportImages(c *gin.Context) {
+	fcfg, err := s.loadFigmaConfig()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fileKey := c.Query("fileKey")
+	if fileKey == "" {
+		fileKey = fcfg.FileKey
+	}
+	nodeID := c.Query("nodeId")
+	format := c.DefaultQuery("format", "png")
+	scale := c.DefaultQuery("scale", "2")
+
+	if fileKey == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "fileKey is required"})
+		return
+	}
+
+	// If nodeId specified, get images for that section's screens.
+	// Otherwise, get top-level frame images from the file.
+	var nodeIDs []string
+
+	if nodeID != "" {
+		// Fetch the section node to get its child frames
+		encodedNode := strings.ReplaceAll(nodeID, "-", ":")
+		nodesPath := fmt.Sprintf("/files/%s/nodes?ids=%s&depth=2", fileKey, url.QueryEscape(encodedNode))
+		body, status, err := figmaRequest(fcfg.Token, nodesPath)
+		if err != nil {
+			c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+			return
+		}
+		if status != 200 {
+			c.JSON(status, gin.H{"error": fmt.Sprintf("Figma API returned %d", status)})
+			return
+		}
+
+		var nodesResp figmaNodesResponse
+		json.Unmarshal(body, &nodesResp)
+
+		for _, entry := range nodesResp.Nodes {
+			for _, child := range entry.Document.Children {
+				if child.Type == "FRAME" || child.Type == "COMPONENT" || child.Type == "GROUP" {
+					nodeIDs = append(nodeIDs, child.ID)
+				}
+			}
+			// If the node itself is a frame, include it
+			if entry.Document.Type == "FRAME" {
+				nodeIDs = append(nodeIDs, entry.Document.ID)
+			}
+		}
+	} else {
+		// Get file at depth=2 and find all top-level frames
+		body, status, err := figmaRequest(fcfg.Token, "/files/"+fileKey+"?depth=2")
+		if err != nil {
+			c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+			return
+		}
+		if status != 200 {
+			c.JSON(status, gin.H{"error": fmt.Sprintf("Figma API returned %d", status)})
+			return
+		}
+
+		var fileResp figmaFileResponse
+		json.Unmarshal(body, &fileResp)
+
+		// Collect first-level frames from all pages
+		for _, page := range fileResp.Document.Children {
+			for _, frame := range page.Children {
+				if frame.Type == "FRAME" || frame.Type == "SECTION" {
+					nodeIDs = append(nodeIDs, frame.ID)
+				}
+			}
+		}
+	}
+
+	if len(nodeIDs) == 0 {
+		c.JSON(http.StatusOK, gin.H{"images": []interface{}{}, "message": "No frames found"})
+		return
+	}
+
+	// Limit to first 20 frames to avoid overloading
+	if len(nodeIDs) > 20 {
+		nodeIDs = nodeIDs[:20]
+	}
+
+	// Call Figma Image Export API
+	idsParam := strings.Join(nodeIDs, ",")
+	imgPath := fmt.Sprintf("/images/%s?ids=%s&format=%s&scale=%s",
+		fileKey, url.QueryEscape(idsParam), url.QueryEscape(format), url.QueryEscape(scale))
+	body, status, err := figmaRequest(fcfg.Token, imgPath)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+		return
+	}
+	if status != 200 {
+		c.JSON(status, gin.H{"error": fmt.Sprintf("Figma Image API returned %d: %s", status, truncate(string(body), 300))})
+		return
+	}
+
+	var imgResp struct {
+		Err    interface{}       `json:"err"`
+		Images map[string]string `json:"images"`
+	}
+	json.Unmarshal(body, &imgResp)
+
+	// Download and save images locally
+	imgDir := filepath.Join("data", "figma-screens", fileKey)
+	os.MkdirAll(imgDir, 0755)
+
+	var images []FigmaScreenImage
+	for id, imgURL := range imgResp.Images {
+		if imgURL == "" {
+			continue
+		}
+
+		safeName := strings.ReplaceAll(id, ":", "-")
+		localPath := filepath.Join(imgDir, safeName+"."+format)
+
+		// Download the image
+		if dlErr := downloadFile(imgURL, localPath); dlErr != nil {
+			log.Printf("[figma-images] failed to download %s: %v", id, dlErr)
+			images = append(images, FigmaScreenImage{
+				NodeID:   id,
+				ImageURL: imgURL,
+			})
+			continue
+		}
+
+		images = append(images, FigmaScreenImage{
+			NodeID:   id,
+			ImageURL: imgURL,
+			FilePath: localPath,
+		})
+	}
+
+	log.Printf("[figma-images] exported %d images for file %s", len(images), fileKey)
+	c.JSON(http.StatusOK, gin.H{
+		"fileKey": fileKey,
+		"format":  format,
+		"scale":   scale,
+		"count":   len(images),
+		"images":  images,
+	})
+}
+
+// downloadFile downloads a URL to a local file path.
+func downloadFile(url, filepath string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("download returned HTTP %d", resp.StatusCode)
+	}
+
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	return err
+}

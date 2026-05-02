@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -1382,7 +1383,8 @@ func (s *Server) handleJiraProjects(c *gin.Context) {
 	c.JSON(resp.StatusCode, result)
 }
 
-// handleJiraFigmaLinks extracts Figma URLs from a Jira issue description and comments.
+// handleJiraFigmaLinks extracts Figma URLs from a Jira issue description, comments,
+// remote links, and custom fields (including the Figma for Jira "Designs" section).
 func (s *Server) handleJiraFigmaLinks(c *gin.Context) {
 	jcfg, err := s.loadJiraConfig()
 	if err != nil {
@@ -1405,25 +1407,58 @@ func (s *Server) handleJiraFigmaLinks(c *gin.Context) {
 
 	data, _ := json.Marshal(result)
 	var issue struct {
-		Fields struct {
-			Summary     string      `json:"summary"`
-			Description interface{} `json:"description"`
-		} `json:"fields"`
+		Fields json.RawMessage `json:"fields"`
 	}
 	json.Unmarshal(data, &issue)
 
+	// Parse known fields
+	var knownFields struct {
+		Summary     string      `json:"summary"`
+		Description interface{} `json:"description"`
+	}
+	json.Unmarshal(issue.Fields, &knownFields)
+
 	// Extract all text from the issue (description in ADF format)
 	descText := ""
-	if issue.Fields.Description != nil {
-		descText = extractADFText(issue.Fields.Description)
+	if knownFields.Description != nil {
+		descText = extractADFText(knownFields.Description)
 	}
 
 	// Also extract raw URLs from ADF marks (hyperlinks)
 	var allURLs []string
-	extractADFURLs(issue.Fields.Description, &allURLs)
+	extractADFURLs(knownFields.Description, &allURLs)
+
+	// ── Scan ALL custom fields for Figma URLs ──
+	// Figma for Jira stores design URLs in custom fields or as embedded data.
+	// Walk the entire fields JSON to find any Figma URLs.
+	var fieldsMap map[string]interface{}
+	json.Unmarshal(issue.Fields, &fieldsMap)
+	for fieldKey, fieldVal := range fieldsMap {
+		if fieldKey == "description" || fieldKey == "summary" {
+			continue
+		}
+		extractFigmaURLsFromValue(fieldVal, &allURLs)
+	}
+
+	// ── Fetch remote links (Figma for Jira "Designs" section) ──
+	remoteLinks := s.fetchJiraRemoteLinks(jcfg, key)
+	allURLs = append(allURLs, remoteLinks...)
+
+	// ── Fetch issue properties (some Figma integrations store data here) ──
+	propURLs := s.fetchJiraIssuePropertyFigmaURLs(jcfg, key)
+	allURLs = append(allURLs, propURLs...)
+
+	// ── Also check sub-tasks and parent for Figma links ──
+	// (The Figma design may be attached to a parent epic/story)
 
 	// Search for Figma URLs in text + extracted URLs
-	figmaRe := regexp.MustCompile(`https?://(?:www\.)?figma\.com/(?:file|design|proto)/([a-zA-Z0-9]+)(?:/[^?\s]*)?(?:\?[^\s]*node-id=([0-9]+(?:[:-][0-9]+)?))?`)
+	// URL-decode all URLs first (Jira stores node-id with %3A instead of :)
+	for i, u := range allURLs {
+		if decoded, err := url.QueryUnescape(u); err == nil {
+			allURLs[i] = decoded
+		}
+	}
+	figmaRe := regexp.MustCompile(`https?://(?:www\.)?figma\.com/(?:file|design|proto|board)/([a-zA-Z0-9]+)(?:/[^?\s"'\]>)]*)?(?:\?[^\s"'\]>)]*node-id=([0-9]+(?:[:-][0-9]+)?))?`)
 
 	allText := descText + "\n" + strings.Join(allURLs, "\n")
 	matches := figmaRe.FindAllStringSubmatch(allText, -1)
@@ -1432,6 +1467,7 @@ func (s *Server) handleJiraFigmaLinks(c *gin.Context) {
 		URL     string `json:"url"`
 		FileKey string `json:"fileKey"`
 		NodeID  string `json:"nodeId"`
+		Source  string `json:"source"`
 	}
 	seen := map[string]bool{}
 	var links []figmaLink
@@ -1446,14 +1482,160 @@ func (s *Server) handleJiraFigmaLinks(c *gin.Context) {
 			continue
 		}
 		seen[dedupKey] = true
-		links = append(links, figmaLink{URL: m[0], FileKey: fileKey, NodeID: nodeID})
+
+		source := "description"
+		fullURL := m[0]
+		for _, rl := range remoteLinks {
+			if strings.Contains(rl, fileKey) {
+				source = "designs"
+				if len(fullURL) < len(rl) {
+					fullURL = rl
+				}
+				break
+			}
+		}
+		for _, pl := range propURLs {
+			if strings.Contains(pl, fileKey) {
+				source = "properties"
+				break
+			}
+		}
+
+		links = append(links, figmaLink{URL: fullURL, FileKey: fileKey, NodeID: nodeID, Source: source})
 	}
+
+	log.Printf("[figma-links] %s: found %d link(s) from description(%d URLs), remoteLinks(%d), properties(%d)",
+		key, len(links), len(allURLs)-len(remoteLinks)-len(propURLs), len(remoteLinks), len(propURLs))
 
 	c.JSON(http.StatusOK, gin.H{
 		"issueKey": key,
-		"summary":  issue.Fields.Summary,
+		"summary":  knownFields.Summary,
 		"links":    links,
 	})
+}
+
+// fetchJiraRemoteLinks gets remote links from a Jira issue (used by Figma for Jira "Designs" section).
+func (s *Server) fetchJiraRemoteLinks(jcfg *jiraConfig, key string) []string {
+	apiURL := fmt.Sprintf("%s/rest/api/3/issue/%s/remotelink", jcfg.URL, url.PathEscape(key))
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return nil
+	}
+	auth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", jcfg.Email, jcfg.Token)))
+	req.Header.Set("Authorization", "Basic "+auth)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("[figma-links] failed to fetch remote links for %s: %v", key, err)
+		return nil
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("[figma-links] remote links API returned %d for %s", resp.StatusCode, key)
+		return nil
+	}
+
+	var remoteLinks []struct {
+		Object struct {
+			URL   string `json:"url"`
+			Title string `json:"title"`
+		} `json:"object"`
+	}
+	json.Unmarshal(body, &remoteLinks)
+
+	var urls []string
+	for _, rl := range remoteLinks {
+		if rl.Object.URL != "" {
+			urls = append(urls, rl.Object.URL)
+		}
+	}
+	log.Printf("[figma-links] %s: %d remote link(s) found", key, len(urls))
+	return urls
+}
+
+// fetchJiraIssuePropertyFigmaURLs checks issue properties for Figma-related data.
+func (s *Server) fetchJiraIssuePropertyFigmaURLs(jcfg *jiraConfig, key string) []string {
+	apiURL := fmt.Sprintf("%s/rest/api/3/issue/%s/properties", jcfg.URL, url.PathEscape(key))
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return nil
+	}
+	auth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", jcfg.Email, jcfg.Token)))
+	req.Header.Set("Authorization", "Basic "+auth)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return nil
+	}
+
+	// Parse properties list
+	var propList struct {
+		Keys []struct {
+			Key string `json:"key"`
+		} `json:"keys"`
+	}
+	json.Unmarshal(body, &propList)
+
+	var urls []string
+	figmaRe := regexp.MustCompile(`https?://(?:www\.)?figma\.com/[^\s"'\]>)]+`)
+
+	for _, prop := range propList.Keys {
+		// Fetch each property that might contain Figma data
+		if !strings.Contains(strings.ToLower(prop.Key), "figma") &&
+			!strings.Contains(strings.ToLower(prop.Key), "design") {
+			continue
+		}
+
+		propURL := fmt.Sprintf("%s/rest/api/3/issue/%s/properties/%s",
+			jcfg.URL, url.PathEscape(key), url.PathEscape(prop.Key))
+		propReq, err := http.NewRequest("GET", propURL, nil)
+		if err != nil {
+			continue
+		}
+		propReq.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString(
+			[]byte(fmt.Sprintf("%s:%s", jcfg.Email, jcfg.Token))))
+		propReq.Header.Set("Accept", "application/json")
+
+		propResp, err := http.DefaultClient.Do(propReq)
+		if err != nil {
+			continue
+		}
+		propBody, _ := io.ReadAll(propResp.Body)
+		propResp.Body.Close()
+
+		// Extract any Figma URLs from the property value
+		propMatches := figmaRe.FindAllString(string(propBody), -1)
+		urls = append(urls, propMatches...)
+	}
+	return urls
+}
+
+// extractFigmaURLsFromValue recursively walks a JSON value looking for Figma URLs.
+func extractFigmaURLsFromValue(val interface{}, urls *[]string) {
+	figmaRe := regexp.MustCompile(`https?://(?:www\.)?figma\.com/[^\s"'\]>)]+`)
+	switch v := val.(type) {
+	case string:
+		matches := figmaRe.FindAllString(v, -1)
+		*urls = append(*urls, matches...)
+	case map[string]interface{}:
+		for _, child := range v {
+			extractFigmaURLsFromValue(child, urls)
+		}
+	case []interface{}:
+		for _, child := range v {
+			extractFigmaURLsFromValue(child, urls)
+		}
+	}
 }
 
 // extractADFURLs extracts hyperlink URLs from Atlassian Document Format nodes.
