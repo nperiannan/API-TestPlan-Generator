@@ -1,0 +1,261 @@
+{
+  "patternName": "global-profile",
+  "module": "Network Configuration",
+  "navigation": "Configuration → Third-Party Management → Network Configuration → Global Profiles → Feature Navigator → {featureLabel}",
+  "commonUI": {
+    "listPage": {
+      "searchBar": true,
+      "addButtonLabel": "+ Add {featureLabel}",
+      "refreshButton": true,
+      "exportButton": true,
+      "columnsSidebar": {
+        "toggle": "Columns",
+        "searchBar": true,
+        "checkboxPerColumn": true,
+        "dragToReorder": true,
+        "allColumnsCheckedByDefault": true
+      },
+      "filtersSidebar": {
+        "toggle": "Filters",
+        "searchBar": true,
+        "expandablePerColumn": true,
+        "filterInputType": "text",
+        "buttons": ["Apply", "Reset"]
+      },
+      "tableCheckboxes": true,
+      "emptyStateMessage": "No {featureLabel} Found.",
+      "pagination": {
+        "pageSizeOptions": [100],
+        "format": "1 to N of N | Page X of Y"
+      },
+      "bulkActions": {
+        "selectionLabel": "{count} {featureLabelPlural} Selected",
+        "actions": ["Delete"]
+      },
+      "rowActions": {
+        "kebabMenu": true,
+        "defaultKebabActions": ["Edit", "Delete"]
+      },
+      "toolbarActions": {
+        "refreshButton": true,
+        "exportButton": true,
+        "moreOptionsMenu": true
+      }
+    },
+    "addModal": {
+      "titleTemplate": "Add {featureLabel}",
+      "closeButton": true,
+      "defaultTab": "{featureLabel} Details",
+      "configProfilesTab": {
+        "optional": true,
+        "columns": ["Configuration Profile", "Deployment Status"],
+        "searchBar": true,
+        "emptyState": "No configuration profiles found"
+      },
+      "syncMessage": "This value will be {syncVerb} to Configuration Profiles inheriting the global {featureLabel}. Deployment of Configuration Profiles is required for the changes to take effect on the assigned devices.",
+      "ipHelperText": "Supports IPv4, and IPv6.",
+      "defaultButtons": ["Cancel", "Save"]
+    },
+    "toastMessages": {
+      "create": "{featureLabel} {identifier} Created",
+      "update": "{featureLabel} {identifier} Updated",
+      "delete": "{featureLabel} {identifier} Deleted",
+      "refresh": "Grid refreshed!",
+      "download": "{featureLabel} list downloaded!",
+      "subtitle": "Changes take effect on devices after the next deployment of the inheriting Configuration Profiles."
+    }
+  },
+  "features": {
+    "radius-server": {
+      "featureLabel": "RADIUS Server",
+      "featureLabelPlural": "RADIUS Servers",
+      "configProfilesTabLabel": "Inheriting Configuration Profiles",
+      "syncVerb": "synced",
+      "listPage": {
+        "pageTitle": "RADIUS Servers",
+        "viewUsageLink": {
+          "label": "View Usage",
+          "modalTitle": "RADIUS Servers Usage",
+          "searchBar": true,
+          "tableColumns": ["Configuration Profile", "Deployment Status"],
+          "emptyState": "No configuration profiles found"
+        },
+        "tableColumns": ["Priority", "IP Address/FQDN", "Enabled/Disabled", "Type", "RADSec", "Name", "Authentication Port"],
+        "emptyStateMessage": "No Radius Server Configuration Found.",
+        "rowInlineToggle": {
+          "column": "Enabled/Disabled",
+          "defaultState": "OFF",
+          "description": "Enable or disable individual RADIUS server entries"
+        },
+        "rowKebabMenu": ["Edit", "Delete", "Feature Assignment"],
+        "toolbarMoreMenu": {
+          "requiresSelection": true,
+          "actions": ["Enable", "Disable"]
+        },
+        "pageToggles": [
+          {
+            "label": "Platform ONE Security",
+            "defaultState": "OFF",
+            "confirmDialog": {
+              "title": "Enable Platform ONE Security?",
+              "message": "Are you sure you want to enable Platform ONE Security? It will be synced to Configuration Profiles inheriting the global RADIUS Servers.",
+              "deployNote": "Deployment of this Configuration Profile is required for the changes to take effect on the assigned devices.",
+              "expandable": "View Inheriting Configuration Profiles",
+              "buttons": ["Cancel", "Enable"]
+            }
+          }
+        ]
+      },
+      "addModal": {
+        "buttons": ["Cancel", "Save & Add Another", "Save"],
+        "advancedToggle": true,
+        "standardFields": [
+          {"uiLabel": "IP Address/FQDN", "apiProperty": "server", "widgetType": "text", "required": true, "helperText": "Supports IPv4, and IPv6."},
+          {"uiLabel": "Name (Optional)", "apiProperty": "name", "widgetType": "text", "required": false}
+        ],
+        "toggleGroups": [
+          {
+            "toggleLabel": "Authentication",
+            "apiProperty": "auth-server-enabled",
+            "defaultState": "OFF",
+            "dependentFields": [
+              {"uiLabel": "Authentication Port", "apiProperty": "auth-server-port", "widgetType": "number", "defaultValue": 1812},
+              {"uiLabel": "Shared Secret", "apiProperty": "auth-server-secret", "widgetType": "password", "required": true}
+            ]
+          },
+          {
+            "toggleLabel": "Accounting",
+            "apiProperty": "accounting-server-enabled",
+            "defaultState": "OFF",
+            "dependentFields": [
+              {"uiLabel": "Accounting Port", "apiProperty": "accounting-server-port", "widgetType": "number", "defaultValue": 1813},
+              {"uiLabel": "Shared Secret", "apiProperty": "accounting-server-secret", "widgetType": "password", "required": true}
+            ]
+          }
+        ],
+        "advancedFields": [
+          {"uiLabel": "Organization (Optional)", "apiProperty": "operator-name", "widgetType": "text", "required": false},
+          {"uiLabel": "Message Authenticator", "apiProperty": "message-authenticator", "widgetType": "dropdown", "required": false}
+        ]
+      },
+      "systemManagedFields": ["id", "created-at", "customer-id", "owner-id", "deleted-at", "vr-name", "auth-secret-is-encrypted", "accounting-secret-is-encrypted", "auth-secure-mode", "accounting-secure-mode"],
+      "toastMessages": {
+        "create": "RADIUS Server {identifier} Created",
+        "update": "RADIUS Server {identifier} Updated",
+        "delete": "RADIUS Server {identifier} Deleted",
+        "subtitle": "Changes take effect on devices after the next deployment of the inheriting Configuration Profiles."
+      }
+    },
+
+    "ntp-server": {
+      "featureLabel": "NTP Server",
+      "featureLabelPlural": "NTP Servers",
+      "configProfilesTabLabel": "Affected Configuration Profiles",
+      "syncVerb": "auto-synced",
+      "listPage": {
+        "pageTitle": "NTP Server",
+        "tableColumns": ["Priority", "IP Address/FQDN", "Authentication Key"],
+        "emptyStateMessage": "No NTP Servers Found."
+      },
+      "addModal": {
+        "buttons": ["Cancel", "Save"],
+        "multiRowAdd": true,
+        "multiRowAddButton": "[+]",
+        "standardFields": [
+          {"uiLabel": "IP Address/FQDN", "apiProperty": "server", "widgetType": "text", "required": true, "helperText": "Supports IPv4, and IPv6."},
+          {"uiLabel": "Authentication Key (Optional)", "apiProperty": "auth-key", "widgetType": "text", "required": false}
+        ]
+      },
+      "systemManagedFields": ["id", "created-at", "customer-id", "owner-id", "deleted-at"]
+    },
+
+    "dns-server": {
+      "featureLabel": "DNS Server",
+      "featureLabelPlural": "DNS Servers",
+      "configProfilesTabLabel": "Affected Configuration Profiles",
+      "syncVerb": "auto-synced",
+      "listPage": {
+        "pageTitle": "DNS Server",
+        "tableColumns": ["Priority", "IP Address"],
+        "emptyStateMessage": "No DNS Servers Found.",
+        "siblingFeature": {
+          "name": "DNS Suffix",
+          "layout": "card",
+          "emptyState": "No DNS Suffix Found",
+          "addButtonLabel": "+ Add DNS Suffix"
+        }
+      },
+      "addModal": {
+        "buttons": ["Cancel", "Save"],
+        "standardFields": [
+          {"uiLabel": "IP Address", "apiProperty": "server", "widgetType": "multi-tag-input", "required": true, "helperText": "Press Enter, Comma, or Space to add. Supports IPv4, and IPv6."}
+        ]
+      },
+      "systemManagedFields": ["id", "created-at", "customer-id", "owner-id", "deleted-at"]
+    },
+
+    "dns-suffix": {
+      "featureLabel": "DNS Suffix",
+      "featureLabelPlural": "DNS Suffixes",
+      "configProfilesTabLabel": "Affected Configuration Profiles",
+      "syncVerb": "auto-synced",
+      "listPage": {
+        "layout": "card",
+        "emptyStateMessage": "No DNS Suffix Found"
+      },
+      "addModal": {
+        "buttons": ["Cancel", "Save"],
+        "standardFields": [
+          {"uiLabel": "FQDN", "apiProperty": "suffix", "widgetType": "text", "required": true}
+        ]
+      },
+      "systemManagedFields": ["id", "created-at", "customer-id", "owner-id", "deleted-at"]
+    },
+
+    "dhcp-server": {
+      "featureLabel": "DHCP Server",
+      "featureLabelPlural": "DHCP Servers",
+      "configProfilesTabLabel": "Affected Configuration Profiles",
+      "syncVerb": "auto-synced",
+      "listPage": {
+        "pageTitle": "DHCP Servers",
+        "tableColumns": ["Priority", "IP Address", "Name"],
+        "emptyStateMessage": "No DHCP Server Found"
+      },
+      "addModal": {
+        "buttons": ["Cancel", "Save"],
+        "multiRowAdd": true,
+        "multiRowAddButton": "[+]",
+        "multiRowDeleteButton": "trash icon",
+        "standardFields": [
+          {"uiLabel": "IP Address", "apiProperty": "server", "widgetType": "text", "required": true, "helperText": "Supports IPv4, and IPv6."},
+          {"uiLabel": "Name (Optional)", "apiProperty": "name", "widgetType": "text", "required": false}
+        ]
+      },
+      "systemManagedFields": ["id", "created-at", "customer-id", "owner-id", "deleted-at"]
+    },
+
+    "syslog-server": {
+      "featureLabel": "Syslog Server",
+      "featureLabelPlural": "Syslog Servers",
+      "configProfilesTabLabel": "Synced Configuration Profiles",
+      "syncVerb": "synced",
+      "listPage": {
+        "pageTitle": "Syslog Servers",
+        "tableColumns": ["Priority", "IP Address/FQDN", "Name", "UDP Port", "Facility", "Severity"],
+        "emptyStateMessage": "No Syslog Servers Found."
+      },
+      "addModal": {
+        "buttons": ["Cancel", "Save And Add Another", "Save"],
+        "standardFields": [
+          {"uiLabel": "IP Address / FQDN", "apiProperty": "server", "widgetType": "text", "required": true, "helperText": "Supports IPv4, and IPv6."},
+          {"uiLabel": "Name (Optional)", "apiProperty": "name", "widgetType": "text", "required": false},
+          {"uiLabel": "UDP Port", "apiProperty": "udp-port", "widgetType": "number", "required": false},
+          {"uiLabel": "Facility", "apiProperty": "facility", "widgetType": "dropdown", "required": false},
+          {"uiLabel": "Severity", "apiProperty": "severity", "widgetType": "dropdown", "required": false}
+        ]
+      },
+      "systemManagedFields": ["id", "created-at", "customer-id", "owner-id", "deleted-at"]
+    }
+  }
+}

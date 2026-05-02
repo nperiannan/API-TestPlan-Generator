@@ -18,6 +18,344 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ---------- UI Pattern Data Model ----------
+
+// uiPattern is the top-level structure for a category's UI pattern definition.
+type uiPattern struct {
+	PatternName string                     `json:"patternName"`
+	Module      string                     `json:"module"`
+	Navigation  string                     `json:"navigation"`
+	CommonUI    uiCommonUI                 `json:"commonUI"`
+	Features    map[string]uiFeatureDef    `json:"features"`
+}
+
+type uiCommonUI struct {
+	ListPage uiListPageCommon `json:"listPage"`
+	AddModal uiAddModalCommon `json:"addModal"`
+	Toasts   uiToastMessages  `json:"toastMessages"`
+}
+
+type uiListPageCommon struct {
+	SearchBar       bool              `json:"searchBar"`
+	AddButtonLabel  string            `json:"addButtonLabel"`
+	RefreshButton   bool              `json:"refreshButton"`
+	ExportButton    bool              `json:"exportButton"`
+	ColumnsSidebar  *uiColumnsSidebar `json:"columnsSidebar"`
+	FiltersSidebar  *uiFiltersSidebar `json:"filtersSidebar"`
+	TableCheckboxes bool              `json:"tableCheckboxes"`
+	EmptyStateMsg   string            `json:"emptyStateMessage"`
+}
+
+type uiColumnsSidebar struct {
+	Toggle                  string `json:"toggle"`
+	SearchBar               bool   `json:"searchBar"`
+	CheckboxPerColumn       bool   `json:"checkboxPerColumn"`
+	DragToReorder           bool   `json:"dragToReorder"`
+	AllColumnsCheckedDefault bool  `json:"allColumnsCheckedByDefault"`
+}
+
+type uiFiltersSidebar struct {
+	Toggle              string   `json:"toggle"`
+	SearchBar           bool     `json:"searchBar"`
+	ExpandablePerColumn bool     `json:"expandablePerColumn"`
+	FilterInputType     string   `json:"filterInputType"`
+	Buttons             []string `json:"buttons"`
+}
+
+type uiAddModalCommon struct {
+	TitleTemplate     string `json:"titleTemplate"`
+	CloseButton       bool   `json:"closeButton"`
+	DefaultTab        string `json:"defaultTab"`
+	SyncMessage       string `json:"syncMessage"`
+	IPHelperText      string `json:"ipHelperText"`
+	DefaultButtons    []string `json:"defaultButtons"`
+}
+
+type uiToastMessages struct {
+	Create   string `json:"create"`
+	Update   string `json:"update"`
+	Delete   string `json:"delete"`
+	Refresh  string `json:"refresh"`
+	Download string `json:"download"`
+	Subtitle string `json:"subtitle"`
+}
+
+type uiFeatureDef struct {
+	FeatureLabel          string          `json:"featureLabel"`
+	FeatureLabelPlural    string          `json:"featureLabelPlural"`
+	ConfigProfilesTabLabel string         `json:"configProfilesTabLabel"`
+	SyncVerb              string          `json:"syncVerb"`
+	ListPage              uiListPage      `json:"listPage"`
+	AddModal              uiAddModal      `json:"addModal"`
+	SystemManagedFields   []string        `json:"systemManagedFields"`
+	Toasts                *uiToastMessages `json:"toastMessages,omitempty"`
+}
+
+type uiListPage struct {
+	PageTitle        string             `json:"pageTitle"`
+	ViewUsageLink    *uiViewUsage       `json:"viewUsageLink,omitempty"`
+	TableColumns     []string           `json:"tableColumns"`
+	EmptyStateMsg    string             `json:"emptyStateMessage"`
+	PageToggles      []uiPageToggle     `json:"pageToggles,omitempty"`
+	SiblingFeature   *uiSiblingFeature  `json:"siblingFeature,omitempty"`
+	Layout           string             `json:"layout,omitempty"`
+	RowInlineToggle  *uiRowInlineToggle `json:"rowInlineToggle,omitempty"`
+	RowKebabMenu     []string           `json:"rowKebabMenu,omitempty"`
+	ToolbarMoreMenu  *uiToolbarMoreMenu `json:"toolbarMoreMenu,omitempty"`
+	BulkActions      *uiBulkActions     `json:"bulkActions,omitempty"`
+	Pagination       *uiPagination      `json:"pagination,omitempty"`
+}
+
+type uiViewUsage struct {
+	Label        string   `json:"label"`
+	ModalTitle   string   `json:"modalTitle"`
+	SearchBar    bool     `json:"searchBar"`
+	TableColumns []string `json:"tableColumns"`
+	EmptyState   string   `json:"emptyState"`
+}
+
+type uiToolbarMoreMenu struct {
+	RequiresSelection bool     `json:"requiresSelection"`
+	Actions           []string `json:"actions"`
+}
+
+type uiRowInlineToggle struct {
+	Column       string `json:"column"`
+	DefaultState string `json:"defaultState"`
+	Description  string `json:"description"`
+}
+
+type uiBulkActions struct {
+	SelectionLabel string   `json:"selectionLabel"`
+	Actions        []string `json:"actions"`
+}
+
+type uiPagination struct {
+	PageSizeOptions []int  `json:"pageSizeOptions"`
+	Format          string `json:"format"`
+}
+
+type uiPageToggle struct {
+	Label         string          `json:"label"`
+	DefaultState  string          `json:"defaultState"`
+	ConfirmDialog *uiConfirmDialog `json:"confirmDialog,omitempty"`
+}
+
+type uiConfirmDialog struct {
+	Title      string   `json:"title"`
+	Message    string   `json:"message"`
+	DeployNote string   `json:"deployNote"`
+	Expandable string   `json:"expandable"`
+	Buttons    []string `json:"buttons"`
+}
+
+type uiSiblingFeature struct {
+	Name           string `json:"name"`
+	Layout         string `json:"layout"`
+	EmptyState     string `json:"emptyState"`
+	AddButtonLabel string `json:"addButtonLabel"`
+}
+
+type uiAddModal struct {
+	Buttons             []string          `json:"buttons"`
+	AdvancedToggle      bool              `json:"advancedToggle,omitempty"`
+	MultiRowAdd         bool              `json:"multiRowAdd,omitempty"`
+	MultiRowAddButton   string            `json:"multiRowAddButton,omitempty"`
+	MultiRowDeleteButton string           `json:"multiRowDeleteButton,omitempty"`
+	StandardFields      []uiFieldDef      `json:"standardFields"`
+	AdvancedFields      []uiFieldDef      `json:"advancedFields,omitempty"`
+	ToggleGroups        []uiToggleGroup   `json:"toggleGroups,omitempty"`
+}
+
+type uiFieldDef struct {
+	UILabel      string `json:"uiLabel"`
+	APIProperty  string `json:"apiProperty"`
+	WidgetType   string `json:"widgetType"` // text, number, dropdown, password, toggle, multi-tag-input
+	Required     bool   `json:"required"`
+	HelperText   string `json:"helperText,omitempty"`
+	DefaultValue interface{} `json:"defaultValue,omitempty"`
+}
+
+type uiToggleGroup struct {
+	ToggleLabel     string       `json:"toggleLabel"`
+	APIProperty     string       `json:"apiProperty"`
+	DefaultState    string       `json:"defaultState"`
+	DependentFields []uiFieldDef `json:"dependentFields"`
+}
+
+// loadUIPattern loads the UI pattern definition for a category.
+func (s *Server) loadUIPattern(category string) *uiPattern {
+	patternPath := filepath.Join("config", "ui-patterns", category+".json")
+	data, err := os.ReadFile(patternPath)
+	if err != nil {
+		log.Printf("GUI test gen: no UI pattern file for '%s': %v", category, err)
+		return nil
+	}
+	var pattern uiPattern
+	if err := json.Unmarshal(data, &pattern); err != nil {
+		log.Printf("GUI test gen: failed to parse UI pattern '%s': %v", category, err)
+		return nil
+	}
+	log.Printf("GUI test gen: loaded UI pattern '%s' with %d features", category, len(pattern.Features))
+	return &pattern
+}
+
+// getUIFeatureDef looks up the feature definition from the UI pattern.
+func getUIFeatureDef(pattern *uiPattern, featureName string) *uiFeatureDef {
+	if pattern == nil {
+		return nil
+	}
+	if def, ok := pattern.Features[featureName]; ok {
+		return &def
+	}
+	// Try slug variations
+	slug := strings.ToLower(strings.ReplaceAll(featureName, " ", "-"))
+	for name, def := range pattern.Features {
+		if strings.ToLower(name) == slug {
+			return &def
+		}
+	}
+	return nil
+}
+
+// isSystemManagedField checks if a field should be excluded from GUI form fill.
+func isSystemManagedField(fieldName string, uiDef *uiFeatureDef) bool {
+	if uiDef == nil {
+		return false
+	}
+	lower := strings.ToLower(fieldName)
+	for _, smf := range uiDef.SystemManagedFields {
+		if strings.ToLower(smf) == lower {
+			return true
+		}
+	}
+	return false
+}
+
+// findUILabel returns the UI label for an API property, or the property name if not mapped.
+func findUILabel(apiProp string, uiDef *uiFeatureDef) string {
+	if uiDef == nil {
+		return apiProp
+	}
+	for _, f := range uiDef.AddModal.StandardFields {
+		if strings.EqualFold(f.APIProperty, apiProp) {
+			return f.UILabel
+		}
+	}
+	for _, f := range uiDef.AddModal.AdvancedFields {
+		if strings.EqualFold(f.APIProperty, apiProp) {
+			return f.UILabel
+		}
+	}
+	for _, tg := range uiDef.AddModal.ToggleGroups {
+		if strings.EqualFold(tg.APIProperty, apiProp) {
+			return tg.ToggleLabel
+		}
+		for _, f := range tg.DependentFields {
+			if strings.EqualFold(f.APIProperty, apiProp) {
+				return f.UILabel
+			}
+		}
+	}
+	return apiProp
+}
+
+// findWidgetType returns the widget type for an API property from the UI definition.
+func findWidgetType(apiProp string, uiDef *uiFeatureDef) string {
+	if uiDef == nil {
+		return "text"
+	}
+	for _, f := range uiDef.AddModal.StandardFields {
+		if strings.EqualFold(f.APIProperty, apiProp) {
+			return f.WidgetType
+		}
+	}
+	for _, f := range uiDef.AddModal.AdvancedFields {
+		if strings.EqualFold(f.APIProperty, apiProp) {
+			return f.WidgetType
+		}
+	}
+	for _, tg := range uiDef.AddModal.ToggleGroups {
+		for _, f := range tg.DependentFields {
+			if strings.EqualFold(f.APIProperty, apiProp) {
+				return f.WidgetType
+			}
+		}
+	}
+	return "text"
+}
+
+// isToggleDependentField checks if a field is controlled by a toggle group.
+func isToggleDependentField(apiProp string, uiDef *uiFeatureDef) (bool, string) {
+	if uiDef == nil {
+		return false, ""
+	}
+	for _, tg := range uiDef.AddModal.ToggleGroups {
+		for _, f := range tg.DependentFields {
+			if strings.EqualFold(f.APIProperty, apiProp) {
+				return true, tg.ToggleLabel
+			}
+		}
+	}
+	return false, ""
+}
+
+// isAdvancedField checks if a field is only visible in Advanced mode.
+func isAdvancedField(apiProp string, uiDef *uiFeatureDef) bool {
+	if uiDef == nil {
+		return false
+	}
+	for _, f := range uiDef.AddModal.AdvancedFields {
+		if strings.EqualFold(f.APIProperty, apiProp) {
+			return true
+		}
+	}
+	return false
+}
+
+// resolveToast returns the toast message for a CRUD operation, using feature-specific override or common template.
+func resolveToast(pattern *uiPattern, uiDef *uiFeatureDef, op string) (title, subtitle string) {
+	var t *uiToastMessages
+	if uiDef != nil && uiDef.Toasts != nil {
+		t = uiDef.Toasts
+	} else if pattern != nil {
+		t = &pattern.CommonUI.Toasts
+	}
+	if t == nil {
+		return fmt.Sprintf("%s {identifier} %s", uiDef.FeatureLabel, strings.Title(op)), ""
+	}
+	switch op {
+	case "create":
+		title = t.Create
+	case "update":
+		title = t.Update
+	case "delete":
+		title = t.Delete
+	}
+	if title == "" {
+		title = fmt.Sprintf("%s {identifier} %s", uiDef.FeatureLabel, strings.Title(op))
+	}
+	return title, t.Subtitle
+}
+
+// getAllUIFieldDefs returns all fields from the UI definition (standard + toggle + advanced).
+func getAllUIFieldDefs(uiDef *uiFeatureDef) []uiFieldDef {
+	if uiDef == nil {
+		return nil
+	}
+	var all []uiFieldDef
+	all = append(all, uiDef.AddModal.StandardFields...)
+	for _, tg := range uiDef.AddModal.ToggleGroups {
+		all = append(all, uiFieldDef{
+			UILabel: tg.ToggleLabel, APIProperty: tg.APIProperty,
+			WidgetType: "toggle", Required: false,
+		})
+		all = append(all, tg.DependentFields...)
+	}
+	all = append(all, uiDef.AddModal.AdvancedFields...)
+	return all
+}
+
 // ---------- GUI Test Plan Data Model ----------
 
 // GUITestPlan is the top-level structure for a generated GUI test plan.
@@ -151,6 +489,33 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 		// Also enrich fields inside each apiTestCaseInfo
 		for i := range apiTestCases {
 			apiTestCases[i].Fields = enrichFieldsWithYANG(apiTestCases[i].Fields, yangFeature)
+		}
+	}
+
+	// 1c. Load UI pattern definition for this category + feature
+	uiPatternDef := s.loadUIPattern(req.Category)
+	uiDef := getUIFeatureDef(uiPatternDef, req.Feature)
+	if uiDef != nil {
+		featureLabel = uiDef.FeatureLabel // Use exact UI label from screenshots
+		log.Printf("GUI test gen: loaded UI definition for '%s' (%d std fields, %d toggle groups, %d adv fields)",
+			uiDef.FeatureLabel, len(uiDef.AddModal.StandardFields),
+			len(uiDef.AddModal.ToggleGroups), len(uiDef.AddModal.AdvancedFields))
+		// Filter out system-managed fields from form fill
+		var filteredFields []apiField
+		for _, f := range fields {
+			if !isSystemManagedField(f.Name, uiDef) {
+				filteredFields = append(filteredFields, f)
+			}
+		}
+		fields = filteredFields
+		for i := range apiTestCases {
+			var ff []apiField
+			for _, f := range apiTestCases[i].Fields {
+				if !isSystemManagedField(f.Name, uiDef) {
+					ff = append(ff, f)
+				}
+			}
+			apiTestCases[i].Fields = ff
 		}
 	}
 
@@ -300,7 +665,7 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 				if f.DefaultValue != "" && stepN <= 7 {
 					defaultSteps = append(defaultSteps, GUITestStep{
 						StepNumber: stepN, Action: "verify_prefilled", Target: f.Name,
-						Value: f.DefaultValue,
+						Value:    f.DefaultValue,
 						Expected: fmt.Sprintf("'%s' field shows YANG default value '%s'", f.Name, f.DefaultValue),
 					})
 					stepN++
@@ -388,6 +753,351 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 			len(defaultFields), len(yangFeature.Keys), countEnumFields(fields))
 	}
 
+	// --- F. UI Pattern-driven tests (page load, modal, toggle deps, advanced mode, multi-row, save flows) ---
+	if uiDef != nil {
+		listScreen := pickScreen(screensByRole, "list", "add")
+		addScreen := pickScreen(screensByRole, "add", "list")
+		featurePlural := uiDef.FeatureLabelPlural
+		if featurePlural == "" {
+			featurePlural = featureLabel + "s"
+		}
+
+		// F1. Page Load / Empty State
+		emptyMsg := uiDef.ListPage.EmptyStateMsg
+		if emptyMsg == "" {
+			emptyMsg = fmt.Sprintf("No %s Found.", featurePlural)
+		}
+		allTests = append(allTests, GUITestCase{
+			TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+			FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+			Type: "functional", Screen: listScreen,
+			Description: fmt.Sprintf("Verify %s page loads with correct layout, table columns, and empty state", featurePlural),
+			Steps: buildPageLoadSteps(uiDef, listScreen, featurePlural, emptyMsg),
+		})
+		catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+
+		// F2. Add Modal structure
+		allTests = append(allTests, GUITestCase{
+			TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+			FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+			Type: "functional", Screen: addScreen,
+			Description: fmt.Sprintf("Verify Add %s modal opens with correct tabs, fields, and buttons", featureLabel),
+			Steps: buildModalStructureSteps(uiDef, listScreen, addScreen, featureLabel),
+		})
+		catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+
+		// F3. Create with all visible form fields (using real UI labels)
+		allTests = append(allTests, GUITestCase{
+			TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+			FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+			Type: "functional", Screen: addScreen,
+			Description: fmt.Sprintf("Create %s via Add form filling all visible fields with valid data and verify in table", featureLabel),
+			Steps: buildUIFormFillSteps(uiDef, listScreen, featureLabel, featurePlural, fields),
+		})
+		catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+
+		// F4. Toggle dependency tests (e.g., Authentication toggle → port + secret)
+		for _, tg := range uiDef.AddModal.ToggleGroups {
+			// Test: toggle OFF → dependent fields disabled
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+				Type: "functional", Screen: addScreen,
+				Description: fmt.Sprintf("Verify '%s' toggle OFF disables dependent fields: %s", tg.ToggleLabel, toggleDepNames(tg)),
+				Steps: buildToggleOffSteps(uiDef, listScreen, featureLabel, tg),
+			})
+			catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+
+			// Test: toggle ON → dependent fields enabled
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+				Type: "functional", Screen: addScreen,
+				Description: fmt.Sprintf("Verify '%s' toggle ON enables dependent fields: %s", tg.ToggleLabel, toggleDepNames(tg)),
+				Steps: buildToggleOnSteps(uiDef, listScreen, featureLabel, tg),
+			})
+			catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+		}
+
+		// F5. Advanced toggle tests
+		if uiDef.AddModal.AdvancedToggle {
+			advFieldNames := make([]string, len(uiDef.AddModal.AdvancedFields))
+			for i, f := range uiDef.AddModal.AdvancedFields {
+				advFieldNames[i] = f.UILabel
+			}
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+				Type: "functional", Screen: addScreen,
+				Description: fmt.Sprintf("Verify Advanced toggle reveals additional fields: %s", strings.Join(advFieldNames, ", ")),
+				Steps: buildAdvancedToggleSteps(uiDef, listScreen, featureLabel),
+			})
+			catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+		}
+
+		// F6. Multi-row add tests
+		if uiDef.AddModal.MultiRowAdd {
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+				Type: "functional", Screen: addScreen,
+				Description: fmt.Sprintf("Verify multi-row add: click [+] to add another %s row in Add form", featureLabel),
+				Steps: buildMultiRowAddSteps(uiDef, listScreen, featureLabel),
+			})
+			catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+		}
+
+		// F7. Page toggle tests (e.g., Platform ONE Security)
+		for _, pt := range uiDef.ListPage.PageToggles {
+			if pt.ConfirmDialog != nil {
+				allTests = append(allTests, GUITestCase{
+					TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+					FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+					Type: "functional", Screen: listScreen,
+					Description: fmt.Sprintf("Verify '%s' toggle shows confirmation dialog and can be enabled/canceled", pt.Label),
+					Steps: buildPageToggleSteps(pt, listScreen, featurePlural),
+				})
+				catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+			}
+		}
+
+		// F8. Save & Add Another flow (if button exists)
+		for _, btn := range uiDef.AddModal.Buttons {
+			if strings.Contains(strings.ToLower(btn), "add another") {
+				allTests = append(allTests, GUITestCase{
+					TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+					FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+					Type: "functional", Screen: addScreen,
+					Description: fmt.Sprintf("Verify '%s' saves current entry and resets form for next entry", btn),
+					Steps: buildSaveAndAddAnotherSteps(uiDef, listScreen, featureLabel, btn),
+				})
+				catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+				break
+			}
+		}
+
+		// F9. Cancel button test
+		allTests = append(allTests, GUITestCase{
+			TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+			FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+			Type: "negative", Screen: addScreen,
+			Description: fmt.Sprintf("Verify Cancel discards form data and returns to %s list", featurePlural),
+			Steps: []GUITestStep{
+				{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", featurePlural)},
+				{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: "Add modal opens"},
+				{StepNumber: 3, Action: "fill", Target: uiDef.AddModal.StandardFields[0].UILabel, Value: "test-value", Expected: "Field populated"},
+				{StepNumber: 4, Action: "click", Target: "Cancel", Expected: fmt.Sprintf("Modal closes, returns to %s list, no entry created", featurePlural)},
+			},
+		})
+		catCounts["negative"]++; priCounts["P1"]++; tcCounter++
+
+		// F10. Close modal with X
+		allTests = append(allTests, GUITestCase{
+			TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+			FeatureName: req.Feature, Priority: "P2", Automation: "Automatable",
+			Type: "negative", Screen: addScreen,
+			Description: fmt.Sprintf("Verify closing Add %s modal with X button discards data", featureLabel),
+			Steps: []GUITestStep{
+				{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", featurePlural)},
+				{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: "Add modal opens"},
+				{StepNumber: 3, Action: "fill", Target: uiDef.AddModal.StandardFields[0].UILabel, Value: "test-value", Expected: "Field populated"},
+				{StepNumber: 4, Action: "click", Target: "X close button", Expected: fmt.Sprintf("Modal closes, no %s created", featureLabel)},
+			},
+		})
+		catCounts["negative"]++; priCounts["P2"]++; tcCounter++
+
+		// F11. Config Profiles tab in modal
+		allTests = append(allTests, GUITestCase{
+			TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+			FeatureName: req.Feature, Priority: "P2", Automation: "Automatable",
+			Type: "functional", Screen: addScreen,
+			Description: fmt.Sprintf("Verify '%s' tab in Add modal shows profile table", uiDef.ConfigProfilesTabLabel),
+			Steps: []GUITestStep{
+				{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", featurePlural)},
+				{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: "Add modal opens"},
+				{StepNumber: 3, Action: "click", Target: uiDef.ConfigProfilesTabLabel, Expected: "Tab becomes active"},
+				{StepNumber: 4, Action: "verify", Target: "table columns", Expected: "Table shows 'Configuration Profile' and 'Deployment Status' columns"},
+				{StepNumber: 5, Action: "verify", Target: "empty state", Expected: "Shows 'No configuration profiles found' when none exist"},
+				{StepNumber: 6, Action: "click", Target: fmt.Sprintf("%s Details", featureLabel), Expected: "Returns to form tab with data preserved"},
+			},
+		})
+		catCounts["functional"]++; priCounts["P2"]++; tcCounter++
+
+		// F12. Required field validation for each required standard field
+		for _, sf := range uiDef.AddModal.StandardFields {
+			if sf.Required {
+				allTests = append(allTests, GUITestCase{
+					TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+					FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+					Type: "negative", Screen: addScreen,
+					Description: fmt.Sprintf("Verify '%s' is required — submit form without it and verify validation error", sf.UILabel),
+					Steps: []GUITestStep{
+						{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", featurePlural)},
+						{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: "Add modal opens"},
+						{StepNumber: 3, Action: "leave_empty", Target: sf.UILabel, Expected: fmt.Sprintf("'%s' field is left empty", sf.UILabel)},
+						{StepNumber: 4, Action: "click", Target: "Save", Expected: "Form submission attempted"},
+						{StepNumber: 5, Action: "verify_error", Target: sf.UILabel, Expected: fmt.Sprintf("Validation error shown for required field '%s'", sf.UILabel)},
+					},
+				})
+				catCounts["negative"]++; priCounts["P1"]++; tcCounter++
+			}
+		}
+
+		// F13. Toast message verification (create, update, delete)
+		toastCreateTitle, toastSubtitle := resolveToast(uiPatternDef, uiDef, "create")
+		toastUpdateTitle, _ := resolveToast(uiPatternDef, uiDef, "update")
+		toastDeleteTitle, _ := resolveToast(uiPatternDef, uiDef, "delete")
+		allTests = append(allTests, GUITestCase{
+			TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+			FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+			Type: "functional", Screen: listScreen,
+			Description: fmt.Sprintf("Verify toast notifications for Create, Update, and Delete of %s", featureLabel),
+			Steps: buildToastVerificationSteps(uiDef, listScreen, featureLabel, featurePlural,
+				toastCreateTitle, toastUpdateTitle, toastDeleteTitle, toastSubtitle),
+		})
+		catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+
+		// F14. Row inline toggle (Enabled/Disabled per entry)
+		if uiDef.ListPage.RowInlineToggle != nil {
+			rit := uiDef.ListPage.RowInlineToggle
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+				Type: "functional", Screen: listScreen,
+				Description: fmt.Sprintf("Verify '%s' inline toggle in table row — default %s, can be toggled ON/OFF", rit.Column, rit.DefaultState),
+				Steps: buildRowInlineToggleSteps(uiDef, listScreen, featureLabel, featurePlural, rit),
+			})
+			catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+		}
+
+		// F15. Bulk select and delete
+		if uiPatternDef != nil && uiPatternDef.CommonUI.ListPage.TableCheckboxes {
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+				Type: "functional", Screen: listScreen,
+				Description: fmt.Sprintf("Verify bulk selection and Delete of multiple %s entries", featurePlural),
+				Steps: buildBulkDeleteSteps(uiDef, listScreen, featureLabel, featurePlural, toastDeleteTitle, toastSubtitle),
+			})
+			catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+		}
+
+		// F16. Search bar functionality
+		if uiPatternDef != nil && uiPatternDef.CommonUI.ListPage.SearchBar {
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+				Type: "functional", Screen: listScreen,
+				Description: fmt.Sprintf("Verify Search bar filters %s table by matching text", featurePlural),
+				Steps: buildSearchBarSteps(listScreen, featureLabel, featurePlural),
+			})
+			catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+		}
+
+		// F17. Columns sidebar — show/hide/reorder
+		if uiPatternDef != nil && uiPatternDef.CommonUI.ListPage.ColumnsSidebar != nil {
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P2", Automation: "Automatable",
+				Type: "functional", Screen: listScreen,
+				Description: fmt.Sprintf("Verify Columns sidebar — toggle column visibility, search, and drag-to-reorder for %s table", featurePlural),
+				Steps: buildColumnsSidebarSteps(uiDef, listScreen, featurePlural, uiPatternDef.CommonUI.ListPage.ColumnsSidebar),
+			})
+			catCounts["functional"]++; priCounts["P2"]++; tcCounter++
+		}
+
+		// F18. Filters sidebar — apply/reset per-column filter
+		if uiPatternDef != nil && uiPatternDef.CommonUI.ListPage.FiltersSidebar != nil {
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P2", Automation: "Automatable",
+				Type: "functional", Screen: listScreen,
+				Description: fmt.Sprintf("Verify Filters sidebar — expand column filter, enter text, Apply, and Reset for %s table", featurePlural),
+				Steps: buildFiltersSidebarSteps(uiDef, listScreen, featurePlural, uiPatternDef.CommonUI.ListPage.FiltersSidebar),
+			})
+			catCounts["functional"]++; priCounts["P2"]++; tcCounter++
+		}
+
+		// F19. Row kebab menu actions
+		if len(uiDef.ListPage.RowKebabMenu) > 0 {
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+				Type: "functional", Screen: listScreen,
+				Description: fmt.Sprintf("Verify row kebab menu (⋮) shows correct actions: %s", strings.Join(uiDef.ListPage.RowKebabMenu, ", ")),
+				Steps: buildRowKebabMenuSteps(uiDef, listScreen, featureLabel, featurePlural),
+			})
+			catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+		}
+
+		// F20. Toolbar more-options menu (Enable/Disable)
+		if uiDef.ListPage.ToolbarMoreMenu != nil {
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P1", Automation: "Automatable",
+				Type: "functional", Screen: listScreen,
+				Description: fmt.Sprintf("Verify toolbar ⋮ more-options menu shows: %s (requires row selection)", strings.Join(uiDef.ListPage.ToolbarMoreMenu.Actions, ", ")),
+				Steps: buildToolbarMoreMenuSteps(uiDef, listScreen, featureLabel, featurePlural),
+			})
+			catCounts["functional"]++; priCounts["P1"]++; tcCounter++
+		}
+
+		// F21. View Usage modal
+		if uiDef.ListPage.ViewUsageLink != nil {
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P2", Automation: "Automatable",
+				Type: "functional", Screen: listScreen,
+				Description: fmt.Sprintf("Verify 'View Usage' opens '%s' modal with config profile table", uiDef.ListPage.ViewUsageLink.ModalTitle),
+				Steps: buildViewUsageSteps(uiDef, listScreen, featurePlural),
+			})
+			catCounts["functional"]++; priCounts["P2"]++; tcCounter++
+		}
+
+		// F22. Refresh button + toast
+		if uiPatternDef != nil && uiPatternDef.CommonUI.ListPage.RefreshButton {
+			refreshToast := "Grid refreshed!"
+			if uiPatternDef.CommonUI.Toasts.Refresh != "" {
+				refreshToast = uiPatternDef.CommonUI.Toasts.Refresh
+			}
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P2", Automation: "Automatable",
+				Type: "functional", Screen: listScreen,
+				Description: fmt.Sprintf("Verify Refresh button reloads %s table and shows toast", featurePlural),
+				Steps: []GUITestStep{
+					{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", featurePlural)},
+					{StepNumber: 2, Action: "click", Target: "Refresh button (↻)", Expected: "Table data reloads"},
+					{StepNumber: 3, Action: "verify_toast", Target: "success notification", Expected: fmt.Sprintf("Toast: '%s'", refreshToast)},
+				},
+			})
+			catCounts["functional"]++; priCounts["P2"]++; tcCounter++
+		}
+
+		// F23. Download/Export button + toast
+		if uiPatternDef != nil && uiPatternDef.CommonUI.ListPage.ExportButton {
+			downloadToast := uiPatternDef.CommonUI.Toasts.Download
+			if downloadToast == "" {
+				downloadToast = featurePlural + " list downloaded!"
+			}
+			allTests = append(allTests, GUITestCase{
+				TestCaseID: fmt.Sprintf("GUI_%s_%04d", featureSlug, tcCounter),
+				FeatureName: req.Feature, Priority: "P2", Automation: "Automatable",
+				Type: "functional", Screen: listScreen,
+				Description: fmt.Sprintf("Verify Export/Download button downloads %s list and shows toast", featurePlural),
+				Steps: []GUITestStep{
+					{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed with entries", featurePlural)},
+					{StepNumber: 2, Action: "click", Target: "Download button (↓)", Expected: "File download initiated"},
+					{StepNumber: 3, Action: "verify_toast", Target: "success notification", Expected: fmt.Sprintf("Toast: '%s'", downloadToast)},
+					{StepNumber: 4, Action: "verify", Target: "downloaded file", Expected: "Downloaded file contains correct data"},
+				},
+			})
+			catCounts["functional"]++; priCounts["P2"]++; tcCounter++
+		}
+
+		log.Printf("GUI test gen: added %d UI pattern-driven tests", tcCounter-1-len(allTests)+len(allTests))
+	}
+
 	// 6. Group tests by screen for output
 	testsByScreen := map[string][]GUITestCase{}
 	for _, tc := range allTests {
@@ -461,9 +1171,24 @@ func (s *Server) handleGUIGenerate(c *gin.Context) {
 			FigmaSection:     figmaImport.SectionName,
 			JiraIssueKey:     req.JiraIssueKey,
 			JiraIssueSummary: jiraSummary,
-			YangModel:        func() string { if yangFeature != nil { return yangFeature.Name } ; return "" }(),
-			YangFields:       func() int { if yangFeature != nil { return len(yangFeature.Parameters) } ; return 0 }(),
-			YangKeys:         func() string { if yangFeature != nil { return strings.Join(yangFeature.Keys, ", ") } ; return "" }(),
+			YangModel: func() string {
+				if yangFeature != nil {
+					return yangFeature.Name
+				}
+				return ""
+			}(),
+			YangFields: func() int {
+				if yangFeature != nil {
+					return len(yangFeature.Parameters)
+				}
+				return 0
+			}(),
+			YangKeys: func() string {
+				if yangFeature != nil {
+					return strings.Join(yangFeature.Keys, ", ")
+				}
+				return ""
+			}(),
 		},
 		Screens: screens,
 		Summary: GUITestSummary{
@@ -1513,4 +2238,466 @@ func enrichFieldsWithYANG(fields []apiField, yangFeature *model.Feature) []apiFi
 	}
 
 	return fields
+}
+
+// ---------- UI Pattern Step Builders ----------
+
+func toggleDepNames(tg uiToggleGroup) string {
+	names := make([]string, len(tg.DependentFields))
+	for i, f := range tg.DependentFields {
+		names[i] = f.UILabel
+	}
+	return strings.Join(names, ", ")
+}
+
+func buildPageLoadSteps(uiDef *uiFeatureDef, listScreen, featurePlural, emptyMsg string) []GUITestStep {
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", featurePlural)},
+		{StepNumber: 2, Action: "verify", Target: "page title", Expected: fmt.Sprintf("Page title shows '%s'", uiDef.ListPage.PageTitle)},
+		{StepNumber: 3, Action: "verify", Target: "Search bar", Expected: "Search bar is present and functional"},
+		{StepNumber: 4, Action: "verify", Target: fmt.Sprintf("+ Add %s button", uiDef.FeatureLabel), Expected: "Add button is visible and clickable"},
+	}
+	n := 5
+	if len(uiDef.ListPage.TableColumns) > 0 {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "verify", Target: "table columns",
+			Expected: fmt.Sprintf("Table columns: %s", strings.Join(uiDef.ListPage.TableColumns, ", ")),
+		})
+		n++
+	}
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "verify", Target: "empty state",
+		Expected: fmt.Sprintf("Empty state message: '%s'", emptyMsg),
+	})
+	return steps
+}
+
+func buildModalStructureSteps(uiDef *uiFeatureDef, listScreen, addScreen, featureLabel string) []GUITestStep {
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", uiDef.FeatureLabelPlural)},
+		{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: fmt.Sprintf("'Add %s' modal opens", featureLabel)},
+		{StepNumber: 3, Action: "verify", Target: "modal title", Expected: fmt.Sprintf("Modal title is 'Add %s'", featureLabel)},
+		{StepNumber: 4, Action: "verify", Target: "modal tabs", Expected: fmt.Sprintf("Left tabs: '%s Details' (active), '%s'", featureLabel, uiDef.ConfigProfilesTabLabel)},
+		{StepNumber: 5, Action: "verify", Target: "X close button", Expected: "X close button is visible at top-right"},
+	}
+	n := 6
+	for _, sf := range uiDef.AddModal.StandardFields {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "verify", Target: sf.UILabel,
+			Expected: fmt.Sprintf("'%s' %s field is present", sf.UILabel, sf.WidgetType),
+		})
+		n++
+	}
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "verify", Target: "buttons",
+		Expected: fmt.Sprintf("Buttons visible: %s", strings.Join(uiDef.AddModal.Buttons, ", ")),
+	})
+	return steps
+}
+
+func buildUIFormFillSteps(uiDef *uiFeatureDef, listScreen, featureLabel, featurePlural string, fields []apiField) []GUITestStep {
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", featurePlural)},
+		{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: fmt.Sprintf("'Add %s' modal opens", featureLabel)},
+	}
+	n := 3
+
+	fieldByAPI := make(map[string]apiField)
+	for _, f := range fields {
+		fieldByAPI[strings.ToLower(f.Name)] = f
+	}
+
+	for _, sf := range uiDef.AddModal.StandardFields {
+		action := widgetAction(sf.WidgetType)
+		val := sampleValue(sf, fieldByAPI)
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: action, Target: sf.UILabel, Value: val,
+			Expected: fmt.Sprintf("'%s' set to '%s'", sf.UILabel, val),
+		})
+		n++
+	}
+
+	for _, tg := range uiDef.AddModal.ToggleGroups {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "toggle", Target: tg.ToggleLabel, Value: "ON",
+			Expected: fmt.Sprintf("'%s' toggle enabled — dependent fields become editable", tg.ToggleLabel),
+		})
+		n++
+		for _, df := range tg.DependentFields {
+			action := widgetAction(df.WidgetType)
+			val := sampleValue(df, fieldByAPI)
+			steps = append(steps, GUITestStep{
+				StepNumber: n, Action: action, Target: df.UILabel, Value: val,
+				Expected: fmt.Sprintf("'%s' set to '%s'", df.UILabel, val),
+			})
+			n++
+		}
+	}
+
+	steps = append(steps,
+		GUITestStep{StepNumber: n, Action: "click", Target: "Save", Expected: fmt.Sprintf("%s created successfully — success notification displayed", featureLabel)},
+		GUITestStep{StepNumber: n + 1, Action: "verify_row", Target: listScreen, Expected: fmt.Sprintf("New %s appears in table with correct values", featureLabel)},
+	)
+	return steps
+}
+
+func buildToggleOffSteps(uiDef *uiFeatureDef, listScreen, featureLabel string, tg uiToggleGroup) []GUITestStep {
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", uiDef.FeatureLabelPlural)},
+		{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: "Add modal opens"},
+		{StepNumber: 3, Action: "verify", Target: tg.ToggleLabel + " toggle", Expected: fmt.Sprintf("'%s' toggle is OFF by default", tg.ToggleLabel)},
+	}
+	n := 4
+	for _, df := range tg.DependentFields {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "verify_disabled", Target: df.UILabel,
+			Expected: fmt.Sprintf("'%s' field is disabled/greyed out (toggle OFF)", df.UILabel),
+		})
+		n++
+	}
+	return steps
+}
+
+func buildToggleOnSteps(uiDef *uiFeatureDef, listScreen, featureLabel string, tg uiToggleGroup) []GUITestStep {
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", uiDef.FeatureLabelPlural)},
+		{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: "Add modal opens"},
+		{StepNumber: 3, Action: "toggle", Target: tg.ToggleLabel, Value: "ON", Expected: fmt.Sprintf("'%s' toggle set to ON (purple)", tg.ToggleLabel)},
+	}
+	n := 4
+	for _, df := range tg.DependentFields {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "verify_enabled", Target: df.UILabel,
+			Expected: fmt.Sprintf("'%s' field becomes enabled and editable", df.UILabel),
+		})
+		n++
+	}
+	return steps
+}
+
+func buildAdvancedToggleSteps(uiDef *uiFeatureDef, listScreen, featureLabel string) []GUITestStep {
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", uiDef.FeatureLabelPlural)},
+		{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: "Add modal opens"},
+		{StepNumber: 3, Action: "verify", Target: "Advanced toggle", Expected: "Advanced toggle is OFF by default"},
+	}
+	n := 4
+	for _, af := range uiDef.AddModal.AdvancedFields {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "verify_hidden", Target: af.UILabel,
+			Expected: fmt.Sprintf("'%s' is not visible (Advanced OFF)", af.UILabel),
+		})
+		n++
+	}
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "toggle", Target: "Advanced", Value: "ON",
+		Expected: "Advanced toggle set to ON (purple)",
+	})
+	n++
+	for _, af := range uiDef.AddModal.AdvancedFields {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "verify_visible", Target: af.UILabel,
+			Expected: fmt.Sprintf("'%s' %s field appears", af.UILabel, af.WidgetType),
+		})
+		n++
+	}
+	return steps
+}
+
+func buildMultiRowAddSteps(uiDef *uiFeatureDef, listScreen, featureLabel string) []GUITestStep {
+	firstField := "IP Address"
+	if len(uiDef.AddModal.StandardFields) > 0 {
+		firstField = uiDef.AddModal.StandardFields[0].UILabel
+	}
+	return []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", uiDef.FeatureLabelPlural)},
+		{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: "Add modal opens with one row"},
+		{StepNumber: 3, Action: "fill", Target: firstField + " (row 1)", Value: "10.0.0.1", Expected: "First row populated"},
+		{StepNumber: 4, Action: "click", Target: "[+] button", Expected: "Second row of fields appears"},
+		{StepNumber: 5, Action: "fill", Target: firstField + " (row 2)", Value: "10.0.0.2", Expected: "Second row populated"},
+		{StepNumber: 6, Action: "verify", Target: "delete icon (row 1)", Expected: "Trash/delete icon appears for each row"},
+		{StepNumber: 7, Action: "click", Target: "Save", Expected: fmt.Sprintf("Both %ss created successfully", featureLabel)},
+		{StepNumber: 8, Action: "verify", Target: "table", Expected: "Table shows both entries with correct data"},
+	}
+}
+
+func buildPageToggleSteps(pt uiPageToggle, listScreen, featurePlural string) []GUITestStep {
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", featurePlural)},
+		{StepNumber: 2, Action: "verify", Target: pt.Label + " toggle", Expected: fmt.Sprintf("'%s' toggle is %s by default", pt.Label, pt.DefaultState)},
+		{StepNumber: 3, Action: "click", Target: pt.Label + " toggle", Expected: "Confirmation dialog appears"},
+	}
+	n := 4
+	if pt.ConfirmDialog != nil {
+		steps = append(steps,
+			GUITestStep{StepNumber: n, Action: "verify", Target: "dialog title", Expected: fmt.Sprintf("Dialog title: '%s'", pt.ConfirmDialog.Title)},
+			GUITestStep{StepNumber: n + 1, Action: "verify", Target: "dialog buttons", Expected: fmt.Sprintf("Buttons: %s", strings.Join(pt.ConfirmDialog.Buttons, ", "))},
+		)
+		n += 2
+		if pt.ConfirmDialog.Expandable != "" {
+			steps = append(steps, GUITestStep{
+				StepNumber: n, Action: "expand", Target: pt.ConfirmDialog.Expandable,
+				Expected: "Expandable section shows inheriting profiles table",
+			})
+			n++
+		}
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "click", Target: "Cancel",
+			Expected: fmt.Sprintf("Dialog closes, '%s' toggle remains %s", pt.Label, pt.DefaultState),
+		})
+		n++
+		steps = append(steps,
+			GUITestStep{StepNumber: n, Action: "click", Target: pt.Label + " toggle", Expected: "Confirmation dialog appears again"},
+			GUITestStep{StepNumber: n + 1, Action: "click", Target: pt.ConfirmDialog.Buttons[len(pt.ConfirmDialog.Buttons)-1], Expected: fmt.Sprintf("Dialog closes, '%s' toggle is now ON", pt.Label)},
+		)
+	}
+	return steps
+}
+
+func buildSaveAndAddAnotherSteps(uiDef *uiFeatureDef, listScreen, featureLabel, btnLabel string) []GUITestStep {
+	firstField := "IP Address/FQDN"
+	if len(uiDef.AddModal.StandardFields) > 0 {
+		firstField = uiDef.AddModal.StandardFields[0].UILabel
+	}
+	return []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", uiDef.FeatureLabelPlural)},
+		{StepNumber: 2, Action: "click", Target: fmt.Sprintf("+ Add %s", featureLabel), Expected: "Add modal opens"},
+		{StepNumber: 3, Action: "fill", Target: firstField, Value: "10.0.0.1", Expected: "Field populated"},
+		{StepNumber: 4, Action: "click", Target: btnLabel, Expected: fmt.Sprintf("First %s saved (success notification), form resets for next entry", featureLabel)},
+		{StepNumber: 5, Action: "verify", Target: firstField, Expected: fmt.Sprintf("'%s' is cleared/empty for next entry", firstField)},
+		{StepNumber: 6, Action: "fill", Target: firstField, Value: "10.0.0.2", Expected: "Second entry populated"},
+		{StepNumber: 7, Action: "click", Target: "Save", Expected: fmt.Sprintf("Second %s saved, modal closes", featureLabel)},
+		{StepNumber: 8, Action: "verify", Target: "table", Expected: "Table shows both entries"},
+	}
+}
+
+// widgetAction returns the appropriate test step action for a widget type.
+func widgetAction(widgetType string) string {
+	switch widgetType {
+	case "dropdown":
+		return "select"
+	case "toggle":
+		return "toggle"
+	case "password":
+		return "fill_secret"
+	case "number":
+		return "fill"
+	case "multi-tag-input":
+		return "type_and_enter"
+	default:
+		return "fill"
+	}
+}
+
+// sampleValue returns a sample value for a UI field, using YANG/API data when available.
+func sampleValue(sf uiFieldDef, fieldByAPI map[string]apiField) string {
+	apiProp := strings.ToLower(sf.APIProperty)
+	if f, ok := fieldByAPI[apiProp]; ok {
+		if f.SampleValue != "" {
+			return f.SampleValue
+		}
+	}
+	if sf.DefaultValue != nil {
+		return fmt.Sprintf("%v", sf.DefaultValue)
+	}
+	switch sf.WidgetType {
+	case "number":
+		return "1"
+	case "password":
+		return "secret123"
+	case "dropdown":
+		return "(select option)"
+	case "multi-tag-input":
+		return "10.0.0.1"
+	default:
+		return "test-value"
+	}
+}
+
+func buildToastVerificationSteps(uiDef *uiFeatureDef, listScreen, featureLabel, featurePlural, createToast, updateToast, deleteToast, subtitle string) []GUITestStep {
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "precondition", Target: listScreen, Expected: fmt.Sprintf("At least one %s exists; note its identifier (e.g. IP)", featureLabel)},
+	}
+	n := 2
+	// Create toast
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "create_entry", Target: featureLabel,
+		Expected: fmt.Sprintf("Create a new %s via Add form", featureLabel),
+	})
+	n++
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "verify_toast", Target: "success notification",
+		Expected: fmt.Sprintf("Toast title: '%s' (with actual identifier)", createToast),
+	})
+	n++
+	if subtitle != "" {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "verify_toast_subtitle", Target: "toast subtitle",
+			Expected: fmt.Sprintf("Toast subtitle: '%s'", subtitle),
+		})
+		n++
+	}
+	// Update toast
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "edit_entry", Target: featureLabel,
+		Expected: fmt.Sprintf("Edit existing %s via kebab menu → Edit", featureLabel),
+	})
+	n++
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "verify_toast", Target: "success notification",
+		Expected: fmt.Sprintf("Toast title: '%s' (with actual identifier)", updateToast),
+	})
+	n++
+	// Delete toast
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "delete_entry", Target: featureLabel,
+		Expected: fmt.Sprintf("Delete %s via kebab menu → Delete", featureLabel),
+	})
+	n++
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "verify_toast", Target: "success notification",
+		Expected: fmt.Sprintf("Toast title: '%s' (with actual identifier)", deleteToast),
+	})
+	return steps
+}
+
+func buildRowInlineToggleSteps(uiDef *uiFeatureDef, listScreen, featureLabel, featurePlural string, rit *uiRowInlineToggle) []GUITestStep {
+	return []GUITestStep{
+		{StepNumber: 1, Action: "precondition", Target: listScreen, Expected: fmt.Sprintf("At least one %s exists in table", featureLabel)},
+		{StepNumber: 2, Action: "verify", Target: fmt.Sprintf("'%s' column toggle", rit.Column), Expected: fmt.Sprintf("Inline toggle is %s by default for the entry", rit.DefaultState)},
+		{StepNumber: 3, Action: "click", Target: fmt.Sprintf("'%s' toggle on row", rit.Column), Expected: fmt.Sprintf("Toggle switches to ON — %s is now enabled", featureLabel)},
+		{StepNumber: 4, Action: "verify_toast", Target: "success notification", Expected: fmt.Sprintf("Toast confirms %s updated", featureLabel)},
+		{StepNumber: 5, Action: "verify", Target: fmt.Sprintf("'%s' column toggle", rit.Column), Expected: "Toggle now shows ON (blue/purple)"},
+		{StepNumber: 6, Action: "click", Target: fmt.Sprintf("'%s' toggle on row", rit.Column), Expected: fmt.Sprintf("Toggle switches back to OFF — %s is now disabled", featureLabel)},
+		{StepNumber: 7, Action: "verify_toast", Target: "success notification", Expected: fmt.Sprintf("Toast confirms %s updated", featureLabel)},
+		{StepNumber: 8, Action: "verify", Target: fmt.Sprintf("'%s' column toggle", rit.Column), Expected: "Toggle now shows OFF (grey)"},
+	}
+}
+
+func buildBulkDeleteSteps(uiDef *uiFeatureDef, listScreen, featureLabel, featurePlural, deleteToast, subtitle string) []GUITestStep {
+	return []GUITestStep{
+		{StepNumber: 1, Action: "precondition", Target: listScreen, Expected: fmt.Sprintf("At least 2 %s exist in table", featurePlural)},
+		{StepNumber: 2, Action: "click", Target: "header checkbox", Expected: fmt.Sprintf("All rows selected — toolbar shows '%s Selected'", featurePlural)},
+		{StepNumber: 3, Action: "verify", Target: "selection count", Expected: fmt.Sprintf("Shows 'N %s Selected' with correct count", featurePlural)},
+		{StepNumber: 4, Action: "verify", Target: "Delete link", Expected: "'Delete' action appears in toolbar (red text)"},
+		{StepNumber: 5, Action: "click", Target: "Delete", Expected: "Confirmation dialog or all selected entries are deleted"},
+		{StepNumber: 6, Action: "verify_toast", Target: "success notification", Expected: fmt.Sprintf("Toast: '%s'", deleteToast)},
+		{StepNumber: 7, Action: "verify", Target: "table", Expected: fmt.Sprintf("Deleted %s no longer appear in table", featurePlural)},
+	}
+}
+
+func buildSearchBarSteps(listScreen, featureLabel, featurePlural string) []GUITestStep {
+	return []GUITestStep{
+		{StepNumber: 1, Action: "precondition", Target: listScreen, Expected: fmt.Sprintf("Multiple %s exist in table", featurePlural)},
+		{StepNumber: 2, Action: "click", Target: "Search bar", Expected: "Search input is focused with 'Search' placeholder"},
+		{StepNumber: 3, Action: "fill", Target: "Search bar", Value: "10.1.1.1", Expected: "Table filters to show only matching rows"},
+		{StepNumber: 4, Action: "verify", Target: "table rows", Expected: "Only rows containing '10.1.1.1' are displayed"},
+		{StepNumber: 5, Action: "fill", Target: "Search bar", Value: "nonexistent-value", Expected: "Table shows no results / empty state"},
+		{StepNumber: 6, Action: "clear", Target: "Search bar", Expected: fmt.Sprintf("All %s re-appear in table", featurePlural)},
+	}
+}
+
+func buildColumnsSidebarSteps(uiDef *uiFeatureDef, listScreen, featurePlural string, cs *uiColumnsSidebar) []GUITestStep {
+	firstCol := "Priority"
+	if len(uiDef.ListPage.TableColumns) > 0 {
+		firstCol = uiDef.ListPage.TableColumns[0]
+	}
+	return []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", featurePlural)},
+		{StepNumber: 2, Action: "click", Target: "Columns sidebar toggle", Expected: "Columns panel opens on right side"},
+		{StepNumber: 3, Action: "verify", Target: "column checkboxes", Expected: fmt.Sprintf("All %d columns shown with checkboxes (all checked by default)", len(uiDef.ListPage.TableColumns))},
+		{StepNumber: 4, Action: "verify", Target: "Search field", Expected: "Search box is present in Columns sidebar"},
+		{StepNumber: 5, Action: "verify", Target: "drag handles", Expected: "Drag handles (⊞) visible for reordering columns"},
+		{StepNumber: 6, Action: "uncheck", Target: fmt.Sprintf("'%s' checkbox", firstCol), Expected: fmt.Sprintf("'%s' column is hidden from table", firstCol)},
+		{StepNumber: 7, Action: "verify", Target: "table columns", Expected: fmt.Sprintf("Table no longer shows '%s' column", firstCol)},
+		{StepNumber: 8, Action: "check", Target: fmt.Sprintf("'%s' checkbox", firstCol), Expected: fmt.Sprintf("'%s' column reappears in table", firstCol)},
+		{StepNumber: 9, Action: "click", Target: "Columns sidebar toggle", Expected: "Columns panel closes"},
+	}
+}
+
+func buildFiltersSidebarSteps(uiDef *uiFeatureDef, listScreen, featurePlural string, fs *uiFiltersSidebar) []GUITestStep {
+	firstCol := "IP Address/FQDN"
+	if len(uiDef.ListPage.TableColumns) > 1 {
+		firstCol = uiDef.ListPage.TableColumns[1]
+	}
+	return []GUITestStep{
+		{StepNumber: 1, Action: "precondition", Target: listScreen, Expected: fmt.Sprintf("Multiple %s exist in table", featurePlural)},
+		{StepNumber: 2, Action: "click", Target: "Filters sidebar toggle", Expected: "Filters panel opens on right side"},
+		{StepNumber: 3, Action: "verify", Target: "expandable columns", Expected: "Filter sections shown for each column (collapsed by default)"},
+		{StepNumber: 4, Action: "expand", Target: fmt.Sprintf("'%s' filter section", firstCol), Expected: fmt.Sprintf("'%s' filter expands showing dropdown and 'Filter...' text input", firstCol)},
+		{StepNumber: 5, Action: "fill", Target: "Filter... input", Value: "10.1.1.1", Expected: "Filter value entered"},
+		{StepNumber: 6, Action: "click", Target: "Apply", Expected: fmt.Sprintf("Table filters to show only %s matching '%s' = '10.1.1.1'", featurePlural, firstCol)},
+		{StepNumber: 7, Action: "verify", Target: "table rows", Expected: "Only rows matching the filter are displayed"},
+		{StepNumber: 8, Action: "click", Target: "Reset", Expected: fmt.Sprintf("Filter cleared — all %s re-appear", featurePlural)},
+		{StepNumber: 9, Action: "click", Target: "Filters sidebar toggle", Expected: "Filters panel closes"},
+	}
+}
+
+func buildRowKebabMenuSteps(uiDef *uiFeatureDef, listScreen, featureLabel, featurePlural string) []GUITestStep {
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "precondition", Target: listScreen, Expected: fmt.Sprintf("At least one %s exists in table", featureLabel)},
+		{StepNumber: 2, Action: "click", Target: "row ⋮ (kebab menu)", Expected: "Dropdown menu appears"},
+	}
+	n := 3
+	for _, action := range uiDef.ListPage.RowKebabMenu {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "verify", Target: fmt.Sprintf("'%s' menu item", action),
+			Expected: fmt.Sprintf("'%s' option is visible and clickable", action),
+		})
+		n++
+	}
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "click", Target: "outside menu",
+		Expected: "Kebab menu closes",
+	})
+	return steps
+}
+
+func buildToolbarMoreMenuSteps(uiDef *uiFeatureDef, listScreen, featureLabel, featurePlural string) []GUITestStep {
+	tmm := uiDef.ListPage.ToolbarMoreMenu
+	steps := []GUITestStep{
+		{StepNumber: 1, Action: "precondition", Target: listScreen, Expected: fmt.Sprintf("At least one %s exists in table", featureLabel)},
+	}
+	n := 2
+	if tmm.RequiresSelection {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "click", Target: "row checkbox", Expected: fmt.Sprintf("1 %s Selected shown in toolbar", featureLabel),
+		})
+		n++
+	}
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "click", Target: "toolbar ⋮ (more options)", Expected: "Dropdown menu appears",
+	})
+	n++
+	for _, action := range tmm.Actions {
+		steps = append(steps, GUITestStep{
+			StepNumber: n, Action: "verify", Target: fmt.Sprintf("'%s' menu item", action),
+			Expected: fmt.Sprintf("'%s' option is visible", action),
+		})
+		n++
+	}
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "click", Target: fmt.Sprintf("'%s'", tmm.Actions[0]),
+		Expected: fmt.Sprintf("'%s' action applied to selected %s", tmm.Actions[0], featureLabel),
+	})
+	n++
+	steps = append(steps, GUITestStep{
+		StepNumber: n, Action: "verify_toast", Target: "success notification",
+		Expected: fmt.Sprintf("Toast confirms %s updated", featureLabel),
+	})
+	return steps
+}
+
+func buildViewUsageSteps(uiDef *uiFeatureDef, listScreen, featurePlural string) []GUITestStep {
+	vu := uiDef.ListPage.ViewUsageLink
+	return []GUITestStep{
+		{StepNumber: 1, Action: "navigate", Target: listScreen, Expected: fmt.Sprintf("%s page is displayed", featurePlural)},
+		{StepNumber: 2, Action: "click", Target: "View Usage link", Expected: fmt.Sprintf("'%s' modal opens", vu.ModalTitle)},
+		{StepNumber: 3, Action: "verify", Target: "modal title", Expected: fmt.Sprintf("Title: '%s'", vu.ModalTitle)},
+		{StepNumber: 4, Action: "verify", Target: "X close button", Expected: "X close button is visible"},
+		{StepNumber: 5, Action: "verify", Target: "Search bar", Expected: "Search bar is present in modal"},
+		{StepNumber: 6, Action: "verify", Target: "table columns", Expected: fmt.Sprintf("Columns: %s", strings.Join(vu.TableColumns, ", "))},
+		{StepNumber: 7, Action: "verify", Target: "empty state", Expected: fmt.Sprintf("Shows '%s' when no profiles exist", vu.EmptyState)},
+		{StepNumber: 8, Action: "click", Target: "X close button", Expected: "Modal closes, returns to list page"},
+	}
 }
